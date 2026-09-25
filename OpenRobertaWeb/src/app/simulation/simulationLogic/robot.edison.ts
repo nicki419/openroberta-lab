@@ -2,7 +2,7 @@ import { SelectionListener } from 'robot.base';
 import { Interpreter } from 'interpreter.interpreter';
 import { EdisonChassis, EdisonLeds, WebAudio } from 'robot.actuators';
 import { Pose, RobotBaseMobile } from 'robot.base.mobile';
-import { EdisonInfraredSensors, EV3Keys, Keys, LineSensor, SoundSensorBoolean } from 'robot.sensors';
+import { EdisonInfraredSensors, EdisonLightSensors, EV3Keys, Keys, LineSensor, SoundSensorBoolean } from 'robot.sensors';
 import * as $ from 'jquery';
 
 export default class RobotEdison extends RobotBaseMobile {
@@ -13,6 +13,7 @@ export default class RobotEdison extends RobotBaseMobile {
     override readonly imgList = ['simpleBackgroundEdison', 'drawBackground', 'rescueBackground', 'mathBackground'];
     private infraredSensors: EdisonInfraredSensors;
     private lightSensor: LineSensor;
+    private lightSensors: EdisonLightSensors;
     private soundSensor: SoundSensorBoolean;
     private leds: EdisonLeds;
 
@@ -35,6 +36,8 @@ export default class RobotEdison extends RobotBaseMobile {
     protected configure(configuration: object): void {
         this.infraredSensors = new EdisonInfraredSensors();
         this.lightSensor = new LineSensor({ x: 15, y: 0 }, 3);
+        // left and right light sensors (LLIGHT, RLIGHT), located at the LEDs like on the real robot
+        this.lightSensors = new EdisonLightSensors({ x: 16.5, y: -4.5 }, { x: 16.5, y: 4.5 }, 3);
         this.soundSensor = new SoundSensorBoolean(this);
         this.leds = new EdisonLeds({ x: 16.5, y: 4.5 }, this.id, '#fa7000');
 

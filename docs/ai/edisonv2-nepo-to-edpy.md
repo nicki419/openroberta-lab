@@ -341,7 +341,7 @@ The Blockly `sensorsAll.edison` is key, infrared, irseeker, light, sound. There'
 | `robSensors_key_getSample` | B+E | `sensor.generic.KeysSensor` | Ed | `(Ed.ReadKeypad() == Ed.KEYPAD_TRIANGLE)` for `PLAY`, `… KEYPAD_ROUND)` for `REC` | not collected; an unknown port gives an empty expression |
 | `robSensors_infrared_getSample` | B+E | `sensor.generic.InfraredSensor` | Ed | `_obstacleDetection(Ed.OBSTACLE_AHEAD\|OBSTACLE_LEFT\|OBSTACLE_RIGHT)` for `FRONT`/`LEFT`/`RIGHT` | `UsedSensor(port, INFRARED, OBSTACLE)`; helper switches the IR beam on |
 | `robSensors_irseeker_getSample` | B+E | `sensor.generic.IRSeekerSensor` | Ed | `_irSeek(1)` (RCCODE; legacy EDISON_CODE → `_irSeek(0)`) | sim error |
-| `robSensors_light_getSample` | B+E | `sensor.generic.LightSensor` | Ed | LIGHT: `Ed.ReadLeftLightLevel() / 10`, `Ed.ReadRightLightLevel() / 10`, `Ed.ReadLineTracker() / 10`. LINE (only `LINETRACKER`): `(Ed.ReadLineState() == Ed.LINE_ON_BLACK)` | sim error for LIGHT on LLIGHT/RLIGHT |
+| `robSensors_light_getSample` | B+E | `sensor.generic.LightSensor` | Ed | LIGHT: `Ed.ReadLeftLightLevel() / 10`, `Ed.ReadRightLightLevel() / 10`, `Ed.ReadLineTracker() / 10`. LINE (only `LINETRACKER`): `(Ed.ReadLineState() == Ed.LINE_ON_BLACK)` | simulated. LLIGHT/RLIGHT approximate ground brightness (§12.3). |
 | `robSensors_sound_getSample` | B+E | `sensor.generic.SoundSensor` | Ed | `(Ed.ReadClapSensor() == Ed.CLAP_DETECTED)` | `UsedSensor(- EMPTY_PORT -, SOUND, SOUND)` |
 | `edisonSensors_sensor_reset` | B+E | `sensors.edison.ResetSensor` [RE] | Ed | a bare read to clear: `Ed.ReadObstacleDetection()`, `Ed.ReadKeypad()`, `Ed.ReadClapSensor()`, or `Ed.ReadRemote()` + `Ed.ReadIRData()` | sim warning |
 | `robSensors_getSample` (preset in `robControls_wait_for`) | B+E | `sensor.generic.GetSampleSensor` | Ed | `(` + sensor code + `)`; SENSORTYPE ∈ `KEY_PRESSED`, `INFRARED_OBSTACLE`, `IRSEEKER_RCCODE`, `LIGHT_LIGHT`, `LIGHT_LINE`, `SOUND_SOUND` | |
@@ -605,11 +605,30 @@ Block errors come back inside `progXML` (`<error>`/`<warning>`). Worker exceptio
 - **Server:** `EdisonStackMachineVisitor` generates ops.
 - **Browser:** `OpenRobertaWeb/src/app/simulation/simulationLogic/robot.edison.ts` (`RobotEdison extends
   RobotBaseMobile`). It has a differential chassis `EdisonChassis` (`LMOTOR`/`RMOTOR`), `EdisonLeds`,
-  `EdisonInfraredSensors` (FRONT/LEFT/RIGHT, obstacle if the distance is under 3), one `LineSensor` (light 0–100, line
-  if light < 50), a clap sensor `SoundSensorBoolean` (microphone volume > 25), and buttons (play/rec).
+  It has:
+  - a differential chassis `EdisonChassis` (`LMOTOR`/`RMOTOR`);
+  - `EdisonLeds`;
+  - `EdisonInfraredSensors` (FRONT/LEFT/RIGHT, obstacle if the distance is under 3);
+  - the line tracker `LineSensor` at (15, 0) (light 0–100, line if light < 50) → `values.infrared.light` / `.line`;
+  - the **left/right light sensors** `EdisonLightSensors` at the LEDs (16.5, ∓4.5). They report the **ground brightness**
+    below them (0–100 %) → `values.infrared.LLIGHT.light` / `values.infrared.RLIGHT.light`. That's an approximation:
+    the real sensors measure the light in front of the robot, but the simulated scene has no light sources.
+  - a clap sensor `SoundSensorBoolean` (microphone volume > 25);
+  - buttons (play/rec).
+
+  For LLIGHT/RLIGHT the server emits `GET_SAMPLE infrared` with `mode light` **and `port`**; the line tracker has no
+  port.
 - **Not simulated** (`SIM_BLOCK_NOT_SUPPORTED`):
-  - errors: light in LIGHT mode on LLIGHT/RLIGHT, IR seeker, receive IR;
+  - errors: IR seeker, receive IR;
   - warnings (the block is a no-op): play file, send IR, reset sensor.
+- **Sensor values panel** (`#sensorValuesView`). Every robot property with a `getLabel()` is listed, sorted by
+  `labelPriority`:
+  - infrared sensor → front / left / right (true/false)
+  - line tracker, labelled "infrared sensor → bottom left → line / light"
+  - light sensor → left / right (%)
+  - sound sensor (true/false)
+
+  Buttons, motors, and LEDs have no rows.
 
 The simulator is a candidate test runtime with a ready-made world model. Note that it executes the **stack-machine**
 program, not the EdPy.

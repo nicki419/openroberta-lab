@@ -569,6 +569,53 @@ export class LineSensor implements ISensor, IDrawable, ILabel {
     }
 }
 
+/**
+ * The left and right light sensors of the Edison (ports LLIGHT and RLIGHT). The real sensors measure the light in front of the
+ * robot; the simulation approximates this with the brightness of the ground below them (0 - 100 %), reusing the sampling of the
+ * {@link LineSensor}. The values are provided as values['infrared'][port]['light'], the line tracker keeps values['infrared']['light'].
+ */
+export class EdisonLightSensors implements ISensor, IDrawable, ILabel {
+    drawPriority: number = 4;
+    labelPriority: number = 5;
+    private readonly sensors: { port: string; msgKey: string; sensor: LineSensor }[];
+
+    constructor(left: Point, right: Point, diameter: number) {
+        this.sensors = [
+            { port: 'LLIGHT', msgKey: 'LEFT', sensor: new LineSensor(left, diameter) },
+            { port: 'RLIGHT', msgKey: 'RIGHT', sensor: new LineSensor(right, diameter) },
+        ];
+    }
+
+    draw(rCtx: CanvasRenderingContext2D, myRobot: RobotBase): void {
+        this.sensors.forEach((s) => s.sensor.draw(rCtx, myRobot));
+    }
+
+    getLabel(): string {
+        let myLabel: string = '<div><label>' + Blockly.Msg['SENSOR_LIGHT'] + '</label></div>';
+        this.sensors.forEach((s) => {
+            myLabel += '<div><label>&nbsp;-&nbsp;' + Blockly.Msg[s.msgKey] + '</label><span>' + s.sensor.light + ' %</span></div>';
+        });
+        return myLabel;
+    }
+
+    updateSensor(
+        running: boolean,
+        dt: number,
+        myRobot: RobotBase,
+        values: object,
+        uCtx: CanvasRenderingContext2D,
+        udCtx: CanvasRenderingContext2D,
+        personalObstacleList: any[]
+    ): void {
+        values['infrared'] = values['infrared'] || {};
+        this.sensors.forEach((s) => {
+            // sample into a scratch object, so that the values of the line tracker are not overwritten
+            s.sensor.updateSensor(running, dt, myRobot, {}, uCtx, udCtx, personalObstacleList);
+            values['infrared'][s.port] = { light: s.sensor.light };
+        });
+    }
+}
+
 export class ThymioLineSensors implements ILabel, ISensor, IDrawable {
     left: LineSensor;
     right: LineSensor;

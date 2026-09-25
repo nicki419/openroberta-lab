@@ -121,7 +121,12 @@ public final class EdisonStackMachineVisitor extends AbstractStackMachineVisitor
     @Override
     public Void visitLightSensor(LightSensor lightSensor) {
         String mode = lightSensor.getMode().toLowerCase();
+        String port = lightSensor.getUserDefinedPort();
         JSONObject o = makeNode(C.GET_SAMPLE).put(C.GET_SAMPLE, C.INFRARED).put(C.MODE, mode);
+        if ( !port.equals("LINETRACKER") ) {
+            // the left and right light sensors (LLIGHT, RLIGHT) are addressed by port, the line tracker is not
+            o.put(C.PORT, port);
+        }
         return add(o);
     }
 
