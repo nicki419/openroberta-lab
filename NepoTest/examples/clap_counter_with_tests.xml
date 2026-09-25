@@ -1,0 +1,638 @@
+<export xmlns="http://de.fhg.iais.roberta.blockly">
+    <program>
+        <block_set xmlns="http://de.fhg.iais.roberta.blockly" robottype="edison" xmlversion="3.1" description="" tags="">
+            <instance x="20" y="20">
+                <block type="robControls_start" id="cc06" intask="true" deletable="false">
+                    <mutation declare="true"/>
+                    <field name="DEBUG">FALSE</field>
+                    <statement name="ST">
+                        <block type="robGlobalVariables_declare" id="cc03" intask="true" deletable="false" movable="false">
+                            <mutation next="true" declaration_type="Number"/>
+                            <field name="VAR">claps</field>
+                            <field name="TYPE">Number</field>
+                            <value name="VALUE">
+                                <block type="math_number" id="cc02" intask="true">
+                                    <field name="NUM">0</field>
+                                </block>
+                            </value>
+                        </block>
+                        <block type="robGlobalVariables_declare" id="cc05" intask="true" deletable="false" movable="false">
+                            <mutation next="false" declaration_type="Number"/>
+                            <field name="VAR">goal</field>
+                            <field name="TYPE">Number</field>
+                            <value name="VALUE">
+                                <block type="math_number" id="cc04" intask="true">
+                                    <field name="NUM">3</field>
+                                </block>
+                            </value>
+                        </block>
+                    </statement>
+                </block>
+                <block type="controls_whileUntil" id="cc14" intask="true">
+                    <field name="MODE">WHILE</field>
+                    <value name="BOOL">
+                        <block type="logic_compare" id="cc09" intask="true">
+                            <field name="OP">LT</field>
+                            <value name="A">
+                                <block type="variables_get" id="cc07" intask="true">
+                                    <mutation datatype="Number"/>
+                                    <field name="VAR">claps</field>
+                                </block>
+                            </value>
+                            <value name="B">
+                                <block type="variables_get" id="cc08" intask="true">
+                                    <mutation datatype="Number"/>
+                                    <field name="VAR">goal</field>
+                                </block>
+                            </value>
+                        </block>
+                    </value>
+                    <statement name="DO">
+                        <block type="robControls_wait_for" id="cc10" intask="true">
+                            <value name="WAIT0">
+                                <block type="robSensors_sound_getSample" id="cc01" intask="true">
+                                    <mutation mode="SOUND"/>
+                                    <field name="MODE">SOUND</field>
+                                    <field name="SENSORPORT"/>
+                                    <field name="SLOT"/>
+                                </block>
+                            </value>
+                        </block>
+                        <block type="robMath_change" id="cc13" intask="true">
+                            <value name="VAR">
+                                <block type="variables_get" id="cc11" intask="true">
+                                    <mutation datatype="Number"/>
+                                    <field name="VAR">claps</field>
+                                </block>
+                            </value>
+                            <value name="DELTA">
+                                <block type="math_number" id="cc12" intask="true">
+                                    <field name="NUM">1</field>
+                                </block>
+                            </value>
+                        </block>
+                    </statement>
+                </block>
+                <block type="robProcedures_callnoreturn" id="cc16" intask="true">
+                    <mutation name="blink">
+                        <arg name="times" type="Number"/>
+                    </mutation>
+                    <value name="ARG0">
+                        <block type="variables_get" id="cc15" intask="true">
+                            <mutation datatype="Number"/>
+                            <field name="VAR">claps</field>
+                        </block>
+                    </value>
+                </block>
+                <block type="robActions_motorDiff_on_for" id="cc20" intask="true">
+                    <field name="DIRECTION">FOREWARD</field>
+                    <value name="POWER">
+                        <block type="robProcedures_callreturn" id="cc18" intask="true">
+                            <mutation name="clampSpeed" output_type="Number">
+                                <arg name="speed" type="Number"/>
+                            </mutation>
+                            <value name="ARG0">
+                                <block type="math_number" id="cc17" intask="true">
+                                    <field name="NUM">150</field>
+                                </block>
+                            </value>
+                        </block>
+                    </value>
+                    <value name="DISTANCE">
+                        <block type="math_number" id="cc19" intask="true">
+                            <field name="NUM">10</field>
+                        </block>
+                    </value>
+                </block>
+            </instance>
+            <instance x="500" y="20">
+                <block type="robProcedures_defreturn" id="cc33" intask="true">
+                    <mutation declare="true" return_type="Number"/>
+                    <field name="NAME">clampSpeed</field>
+                    <field name="TYPE">Number</field>
+                    <repetitions>
+                        <statement name="ST">
+                            <block type="robLocalVariables_declare" id="cc32" intask="true" deletable="false" movable="false">
+                                <mutation next="false" declaration_type="Number"/>
+                                <field name="VAR">speed</field>
+                                <field name="TYPE">Number</field>
+                            </block>
+                        </statement>
+                        <statement name="STACK">
+                            <block type="robProcedures_ifreturn" id="cc25" intask="true">
+                                <mutation value="1"/>
+                                <value name="CONDITION">
+                                    <block type="logic_compare" id="cc23" intask="true">
+                                        <field name="OP">GT</field>
+                                        <value name="A">
+                                            <block type="variables_get" id="cc21" intask="true">
+                                                <mutation datatype="Number"/>
+                                                <field name="VAR">speed</field>
+                                            </block>
+                                        </value>
+                                        <value name="B">
+                                            <block type="math_number" id="cc22" intask="true">
+                                                <field name="NUM">100</field>
+                                            </block>
+                                        </value>
+                                    </block>
+                                </value>
+                                <value name="VALUE">
+                                    <block type="math_number" id="cc24" intask="true">
+                                        <field name="NUM">100</field>
+                                    </block>
+                                </value>
+                            </block>
+                            <block type="robProcedures_ifreturn" id="cc30" intask="true">
+                                <mutation value="1"/>
+                                <value name="CONDITION">
+                                    <block type="logic_compare" id="cc28" intask="true">
+                                        <field name="OP">LT</field>
+                                        <value name="A">
+                                            <block type="variables_get" id="cc26" intask="true">
+                                                <mutation datatype="Number"/>
+                                                <field name="VAR">speed</field>
+                                            </block>
+                                        </value>
+                                        <value name="B">
+                                            <block type="math_number" id="cc27" intask="true">
+                                                <field name="NUM">0</field>
+                                            </block>
+                                        </value>
+                                    </block>
+                                </value>
+                                <value name="VALUE">
+                                    <block type="math_number" id="cc29" intask="true">
+                                        <field name="NUM">0</field>
+                                    </block>
+                                </value>
+                            </block>
+                        </statement>
+                        <value name="RETURN">
+                            <block type="variables_get" id="cc31" intask="true">
+                                <mutation datatype="Number"/>
+                                <field name="VAR">speed</field>
+                            </block>
+                        </value>
+                    </repetitions>
+                </block>
+            </instance>
+            <instance x="500" y="300">
+                <block type="robProcedures_defreturn" id="cc41" intask="true">
+                    <mutation declare="true" return_type="Number"/>
+                    <field name="NAME">average</field>
+                    <field name="TYPE">Number</field>
+                    <repetitions>
+                        <statement name="ST">
+                            <block type="robLocalVariables_declare" id="cc39" intask="true" deletable="false" movable="false">
+                                <mutation next="true" declaration_type="Number"/>
+                                <field name="VAR">a</field>
+                                <field name="TYPE">Number</field>
+                            </block>
+                            <block type="robLocalVariables_declare" id="cc40" intask="true" deletable="false" movable="false">
+                                <mutation next="false" declaration_type="Number"/>
+                                <field name="VAR">b</field>
+                                <field name="TYPE">Number</field>
+                            </block>
+                        </statement>
+                        <value name="RETURN">
+                            <block type="math_arithmetic" id="cc38" intask="true">
+                                <field name="OP">DIVIDE</field>
+                                <value name="A">
+                                    <block type="math_arithmetic" id="cc36" intask="true">
+                                        <field name="OP">ADD</field>
+                                        <value name="A">
+                                            <block type="variables_get" id="cc34" intask="true">
+                                                <mutation datatype="Number"/>
+                                                <field name="VAR">a</field>
+                                            </block>
+                                        </value>
+                                        <value name="B">
+                                            <block type="variables_get" id="cc35" intask="true">
+                                                <mutation datatype="Number"/>
+                                                <field name="VAR">b</field>
+                                            </block>
+                                        </value>
+                                    </block>
+                                </value>
+                                <value name="B">
+                                    <block type="math_number" id="cc37" intask="true">
+                                        <field name="NUM">2</field>
+                                    </block>
+                                </value>
+                            </block>
+                        </value>
+                    </repetitions>
+                </block>
+            </instance>
+            <instance x="500" y="500">
+                <block type="robProcedures_defnoreturn" id="cc51" intask="true">
+                    <mutation declare="true"/>
+                    <field name="NAME">blink</field>
+                    <statement name="ST">
+                        <block type="robLocalVariables_declare" id="cc50" intask="true" deletable="false" movable="false">
+                            <mutation next="false" declaration_type="Number"/>
+                            <field name="VAR">times</field>
+                            <field name="TYPE">Number</field>
+                        </block>
+                    </statement>
+                    <statement name="STACK">
+                        <block type="controls_repeat_ext" id="cc49" intask="true">
+                            <value name="TIMES">
+                                <block type="variables_get" id="cc42" intask="true">
+                                    <mutation datatype="Number"/>
+                                    <field name="VAR">times</field>
+                                </block>
+                            </value>
+                            <statement name="DO">
+                                <block type="actions_led_edison" id="cc43" intask="true">
+                                    <field name="ACTORPORT">LLED</field>
+                                    <field name="MODE">ON</field>
+                                </block>
+                                <block type="robControls_wait_time" id="cc45" intask="true">
+                                    <value name="WAIT">
+                                        <block type="math_number" id="cc44" intask="true">
+                                            <field name="NUM">200</field>
+                                        </block>
+                                    </value>
+                                </block>
+                                <block type="actions_led_edison" id="cc46" intask="true">
+                                    <field name="ACTORPORT">LLED</field>
+                                    <field name="MODE">OFF</field>
+                                </block>
+                                <block type="robControls_wait_time" id="cc48" intask="true">
+                                    <value name="WAIT">
+                                        <block type="math_number" id="cc47" intask="true">
+                                            <field name="NUM">200</field>
+                                        </block>
+                                    </value>
+                                </block>
+                            </statement>
+                        </block>
+                    </statement>
+                </block>
+            </instance>
+            <instance x="20" y="20">
+                <block type="nepoTest_suite" id="t69" intask="true"/>
+                <block type="nepoTest_run" id="t70" intask="true">
+                    <field name="NAME">clampSpeed keeps 42</field>
+                </block>
+                <block type="nepoTest_run" id="t71" intask="true">
+                    <field name="NAME">clampSpeed limits 150 to 100</field>
+                </block>
+                <block type="nepoTest_run" id="t72" intask="true">
+                    <field name="NAME">clampSpeed raises -5 to 0</field>
+                </block>
+                <block type="nepoTest_run" id="t73" intask="true">
+                    <field name="NAME">average of 4 and 6 is 5</field>
+                </block>
+                <block type="nepoTest_run" id="t74" intask="true">
+                    <field name="NAME">blink 2 times switches the left LED on and off twice</field>
+                </block>
+                <block type="nepoTest_run" id="t75" intask="true">
+                    <field name="NAME">three claps: blink three times, then drive 10 cm at full power</field>
+                </block>
+                <block type="nepoTest_run" id="t76" intask="true">
+                    <field name="NAME">with two claps the robot keeps waiting and never drives</field>
+                </block>
+                <block type="nepoTest_run" id="t77" intask="true">
+                    <field name="NAME">a clap at the very start is swallowed by the setup block</field>
+                </block>
+            </instance>
+            <instance x="400" y="20">
+                <block type="nepoTest_test" id="t61" intask="true">
+                    <field name="NAME">clampSpeed keeps 42</field>
+                    <statement name="WHEN">
+                        <block type="nepoTest_when_call" id="t02" intask="true">
+                            <mutation name="clampSpeed">
+                                <arg name="speed" type="Number"/>
+                            </mutation>
+                            <field name="FUNCTION">clampSpeed</field>
+                            <value name="ARG0">
+                                <block type="math_number" id="t01" intask="true">
+                                    <field name="NUM">42</field>
+                                </block>
+                            </value>
+                        </block>
+                    </statement>
+                    <statement name="THEN">
+                        <block type="nepoTest_expect_result" id="t04" intask="true">
+                            <field name="OP">EQ</field>
+                            <value name="VALUE">
+                                <block type="math_number" id="t03" intask="true">
+                                    <field name="NUM">42</field>
+                                </block>
+                            </value>
+                        </block>
+                    </statement>
+                </block>
+            </instance>
+            <instance x="400" y="280">
+                <block type="nepoTest_test" id="t62" intask="true">
+                    <field name="NAME">clampSpeed limits 150 to 100</field>
+                    <statement name="WHEN">
+                        <block type="nepoTest_when_call" id="t06" intask="true">
+                            <mutation name="clampSpeed">
+                                <arg name="speed" type="Number"/>
+                            </mutation>
+                            <field name="FUNCTION">clampSpeed</field>
+                            <value name="ARG0">
+                                <block type="math_number" id="t05" intask="true">
+                                    <field name="NUM">150</field>
+                                </block>
+                            </value>
+                        </block>
+                    </statement>
+                    <statement name="THEN">
+                        <block type="nepoTest_expect_result" id="t08" intask="true">
+                            <field name="OP">EQ</field>
+                            <value name="VALUE">
+                                <block type="math_number" id="t07" intask="true">
+                                    <field name="NUM">100</field>
+                                </block>
+                            </value>
+                        </block>
+                    </statement>
+                </block>
+            </instance>
+            <instance x="400" y="540">
+                <block type="nepoTest_test" id="t63" intask="true">
+                    <field name="NAME">clampSpeed raises -5 to 0</field>
+                    <statement name="WHEN">
+                        <block type="nepoTest_when_call" id="t10" intask="true">
+                            <mutation name="clampSpeed">
+                                <arg name="speed" type="Number"/>
+                            </mutation>
+                            <field name="FUNCTION">clampSpeed</field>
+                            <value name="ARG0">
+                                <block type="math_number" id="t09" intask="true">
+                                    <field name="NUM">-5</field>
+                                </block>
+                            </value>
+                        </block>
+                    </statement>
+                    <statement name="THEN">
+                        <block type="nepoTest_expect_result" id="t12" intask="true">
+                            <field name="OP">EQ</field>
+                            <value name="VALUE">
+                                <block type="math_number" id="t11" intask="true">
+                                    <field name="NUM">0</field>
+                                </block>
+                            </value>
+                        </block>
+                    </statement>
+                </block>
+            </instance>
+            <instance x="400" y="800">
+                <block type="nepoTest_test" id="t64" intask="true">
+                    <field name="NAME">average of 4 and 6 is 5</field>
+                    <statement name="WHEN">
+                        <block type="nepoTest_when_call" id="t15" intask="true">
+                            <mutation name="average">
+                                <arg name="a" type="Number"/>
+                                <arg name="b" type="Number"/>
+                            </mutation>
+                            <field name="FUNCTION">average</field>
+                            <value name="ARG0">
+                                <block type="math_number" id="t13" intask="true">
+                                    <field name="NUM">4</field>
+                                </block>
+                            </value>
+                            <value name="ARG1">
+                                <block type="math_number" id="t14" intask="true">
+                                    <field name="NUM">6</field>
+                                </block>
+                            </value>
+                        </block>
+                    </statement>
+                    <statement name="THEN">
+                        <block type="nepoTest_expect_result" id="t17" intask="true">
+                            <field name="OP">EQ</field>
+                            <value name="VALUE">
+                                <block type="math_number" id="t16" intask="true">
+                                    <field name="NUM">5</field>
+                                </block>
+                            </value>
+                        </block>
+                    </statement>
+                </block>
+            </instance>
+            <instance x="400" y="1060">
+                <block type="nepoTest_test" id="t65" intask="true">
+                    <field name="NAME">blink 2 times switches the left LED on and off twice</field>
+                    <statement name="WHEN">
+                        <block type="nepoTest_when_call" id="t19" intask="true">
+                            <mutation name="blink">
+                                <arg name="times" type="Number"/>
+                            </mutation>
+                            <field name="FUNCTION">blink</field>
+                            <value name="ARG0">
+                                <block type="math_number" id="t18" intask="true">
+                                    <field name="NUM">2</field>
+                                </block>
+                            </value>
+                        </block>
+                    </statement>
+                    <statement name="THEN">
+                        <block type="nepoTest_expect_action" id="t21" intask="true">
+                            <value name="ACTION">
+                                <block type="nepoTest_action_led" id="t20" intask="true">
+                                    <field name="PORT">LLED</field>
+                                    <field name="MODE">ON</field>
+                                </block>
+                            </value>
+                        </block>
+                        <block type="nepoTest_expect_action" id="t23" intask="true">
+                            <value name="ACTION">
+                                <block type="nepoTest_action_led" id="t22" intask="true">
+                                    <field name="PORT">LLED</field>
+                                    <field name="MODE">OFF</field>
+                                </block>
+                            </value>
+                        </block>
+                        <block type="nepoTest_expect_action" id="t25" intask="true">
+                            <value name="ACTION">
+                                <block type="nepoTest_action_led" id="t24" intask="true">
+                                    <field name="PORT">LLED</field>
+                                    <field name="MODE">ON</field>
+                                </block>
+                            </value>
+                        </block>
+                        <block type="nepoTest_expect_action" id="t27" intask="true">
+                            <value name="ACTION">
+                                <block type="nepoTest_action_led" id="t26" intask="true">
+                                    <field name="PORT">LLED</field>
+                                    <field name="MODE">OFF</field>
+                                </block>
+                            </value>
+                        </block>
+                        <block type="nepoTest_expect_count" id="t29" intask="true">
+                            <field name="OP">EQ</field>
+                            <field name="COUNT">4</field>
+                            <value name="ACTION">
+                                <block type="nepoTest_action_led" id="t28" intask="true">
+                                    <field name="PORT">ANY</field>
+                                    <field name="MODE">ANY</field>
+                                </block>
+                            </value>
+                        </block>
+                    </statement>
+                </block>
+            </instance>
+            <instance x="400" y="1320">
+                <block type="nepoTest_test" id="t66" intask="true">
+                    <field name="NAME">three claps: blink three times, then drive 10 cm at full power</field>
+                    <statement name="GIVEN">
+                        <block type="nepoTest_given_clap" id="t30" intask="true">
+                            <field name="AT">1000</field>
+                        </block>
+                        <block type="nepoTest_given_clap" id="t31" intask="true">
+                            <field name="AT">2000</field>
+                        </block>
+                        <block type="nepoTest_given_clap" id="t32" intask="true">
+                            <field name="AT">3000</field>
+                        </block>
+                    </statement>
+                    <statement name="WHEN">
+                        <block type="nepoTest_when_run" id="t33" intask="true">
+                            <field name="SECONDS">10</field>
+                        </block>
+                    </statement>
+                    <statement name="THEN">
+                        <block type="nepoTest_expect_status" id="t34" intask="true">
+                            <field name="STATUS">finished</field>
+                        </block>
+                        <block type="nepoTest_expect_variable" id="t36" intask="true">
+                            <field name="VAR">claps</field>
+                            <field name="OP">EQ</field>
+                            <value name="VALUE">
+                                <block type="math_number" id="t35" intask="true">
+                                    <field name="NUM">3</field>
+                                </block>
+                            </value>
+                        </block>
+                        <block type="nepoTest_expect_called" id="t37" intask="true">
+                            <field name="FUNCTION">blink</field>
+                        </block>
+                        <block type="nepoTest_expect_count" id="t39" intask="true">
+                            <field name="OP">EQ</field>
+                            <field name="COUNT">6</field>
+                            <value name="ACTION">
+                                <block type="nepoTest_action_led" id="t38" intask="true">
+                                    <field name="PORT">LLED</field>
+                                    <field name="MODE">ANY</field>
+                                </block>
+                            </value>
+                        </block>
+                        <block type="nepoTest_expect_action" id="t43" intask="true">
+                            <value name="ACTION">
+                                <block type="nepoTest_action_drive" id="t42" intask="true">
+                                    <field name="DIR">forward</field>
+                                    <value name="POWER">
+                                        <block type="math_number" id="t40" intask="true">
+                                            <field name="NUM">100</field>
+                                        </block>
+                                    </value>
+                                    <value name="DISTANCE">
+                                        <block type="math_number" id="t41" intask="true">
+                                            <field name="NUM">10</field>
+                                        </block>
+                                    </value>
+                                </block>
+                            </value>
+                        </block>
+                    </statement>
+                </block>
+            </instance>
+            <instance x="400" y="1580">
+                <block type="nepoTest_test" id="t67" intask="true">
+                    <field name="NAME">with two claps the robot keeps waiting and never drives</field>
+                    <statement name="GIVEN">
+                        <block type="nepoTest_given_clap" id="t44" intask="true">
+                            <field name="AT">1000</field>
+                        </block>
+                        <block type="nepoTest_given_clap" id="t45" intask="true">
+                            <field name="AT">2000</field>
+                        </block>
+                    </statement>
+                    <statement name="WHEN">
+                        <block type="nepoTest_when_run" id="t46" intask="true">
+                            <field name="SECONDS">10</field>
+                        </block>
+                    </statement>
+                    <statement name="THEN">
+                        <block type="nepoTest_expect_status" id="t47" intask="true">
+                            <field name="STATUS">running</field>
+                        </block>
+                        <block type="nepoTest_expect_variable" id="t49" intask="true">
+                            <field name="VAR">claps</field>
+                            <field name="OP">EQ</field>
+                            <value name="VALUE">
+                                <block type="math_number" id="t48" intask="true">
+                                    <field name="NUM">2</field>
+                                </block>
+                            </value>
+                        </block>
+                        <block type="nepoTest_expect_no_action" id="t51" intask="true">
+                            <value name="ACTION">
+                                <block type="nepoTest_action_drive" id="t50" intask="true">
+                                    <field name="DIR">ANY</field>
+                                </block>
+                            </value>
+                        </block>
+                        <block type="nepoTest_expect_no_action" id="t53" intask="true">
+                            <value name="ACTION">
+                                <block type="nepoTest_action_led" id="t52" intask="true">
+                                    <field name="PORT">ANY</field>
+                                    <field name="MODE">ANY</field>
+                                </block>
+                            </value>
+                        </block>
+                    </statement>
+                </block>
+            </instance>
+            <instance x="400" y="1840">
+                <block type="nepoTest_test" id="t68" intask="true">
+                    <field name="NAME">a clap at the very start is swallowed by the setup block</field>
+                    <statement name="GIVEN">
+                        <block type="nepoTest_given_clap" id="t54" intask="true">
+                            <field name="AT">0</field>
+                        </block>
+                        <block type="nepoTest_given_clap" id="t55" intask="true">
+                            <field name="AT">1000</field>
+                        </block>
+                        <block type="nepoTest_given_clap" id="t56" intask="true">
+                            <field name="AT">2000</field>
+                        </block>
+                    </statement>
+                    <statement name="WHEN">
+                        <block type="nepoTest_when_run" id="t57" intask="true">
+                            <field name="SECONDS">10</field>
+                        </block>
+                    </statement>
+                    <statement name="THEN">
+                        <block type="nepoTest_expect_status" id="t58" intask="true">
+                            <field name="STATUS">running</field>
+                        </block>
+                        <block type="nepoTest_expect_variable" id="t60" intask="true">
+                            <field name="VAR">claps</field>
+                            <field name="OP">EQ</field>
+                            <value name="VALUE">
+                                <block type="math_number" id="t59" intask="true">
+                                    <field name="NUM">2</field>
+                                </block>
+                            </value>
+                        </block>
+                    </statement>
+                </block>
+            </instance>
+        </block_set>
+    </program>
+    <config>
+        <block_set xmlns="http://de.fhg.iais.roberta.blockly" robottype="edison" xmlversion="3.1" description="" tags="">
+            <instance x="213" y="213">
+                <block type="robBrick_Edison-Brick" id="1" intask="true" deletable="false"/>
+            </instance>
+        </block_set>
+    </config>
+</export>

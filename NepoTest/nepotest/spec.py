@@ -17,7 +17,7 @@ from .world import EVENTS, World
 
 EXPECT_KEYS = ('returns', 'status', 'finished_within_ms', 'variables', 'actions', 'actions_exactly', 'no_actions',
                'action_count', 'calls', 'error', 'covers')
-TEST_KEYS = ('name', 'description', 'call', 'args', 'globals', 'world', 'max_time_ms', 'max_steps', 'expect', 'origin')
+TEST_KEYS = ('name', 'description', 'call', 'args', 'globals', 'world', 'max_time_ms', 'max_steps', 'expect', 'origin', 'block_id')
 STATUS_VALUES = ('finished', 'running', 'time_limit', 'step_limit')
 
 
@@ -79,6 +79,8 @@ def validate_spec(spec, subject=None):
 # ---------------------------------------------------------------------- matching
 
 def _value_matches(expected, actual):
+    if isinstance(expected, dict) and 'not' in expected:
+        return not _value_matches(expected['not'], actual)
     if isinstance(expected, dict) and ('min' in expected or 'max' in expected):
         return isinstance(actual, (int, float)) and not isinstance(actual, bool) and \
             expected.get('min', actual) <= actual <= expected.get('max', actual)
@@ -123,6 +125,8 @@ def check_expectations(expect, test, result, is_call):
         e = result.error.to_json()
         if error_expected is None:
             fail('error', None, e, 'the program failed: %s' % result.error)
+        elif error_expected == 'any':
+            pass
         elif isinstance(error_expected, str) and error_expected != e['kind']:
             fail('error', error_expected, e)
         elif isinstance(error_expected, dict) and not matches(error_expected, e):
@@ -155,10 +159,13 @@ def check_expectations(expect, test, result, is_call):
         hits = [a for a in result.actions if matches(m, a)]
         if hits:
             fail('no_actions[%d]' % i, m, _compact(hits), 'this action happened')
-    for block_type, count in (expect.get('action_count') or {}).items():
-        actual = len(result.actions_of(block_type))
-        if not _value_matches(count, actual):
-            fail('action_count.%s' % block_type, count, actual)
+    counts = expect.get('action_count') or {}
+    if isinstance(counts, dict):  # {"<block type>": n}
+        counts = [{'match': {'block': block_type}, 'count': n} for block_type, n in counts.items()]
+    for i, c in enumerate(counts):  # [{"match": matcher, "count": n}]
+        actual = sum(1 for a in result.actions if matches(c['match'], a))
+        if not _value_matches(c['count'], actual):
+            fail('action_count[%d]' % i, c, actual, 'actions matching %s happened %d times' % (json.dumps(c['match']), actual))
     if 'calls' in expect:
         calls = [dict(c, **({'returns': c['returned']} if c['completed'] else {})) for c in result.calls]
         missing = _in_order(expect['calls'], calls)
@@ -183,7 +190,7 @@ def run_test(subject, test, defaults=None):
     else:
         result = subject.run(world, max_time_ms=options.get('max_time_ms', 60000), max_steps=options.get('max_steps', 2000000))
     failures = check_expectations(test['expect'], test, result, is_call)
-    report = {'name': test['name'], 'outcome': 'failed' if failures else 'passed', 'failures': failures,
+    report = {'name': test['name'], 'block_id': test.get('block_id'), 'outcome': 'failed' if failures else 'passed', 'failures': failures,
               'error': result.error.to_json() if result.error else None, 'time_ms': result.time_ms,
               'variables': result.variables, 'actions': result.actions, 'calls': result.calls,
               'covered_blocks': sorted(result.coverage.covered)}
@@ -202,7 +209,7 @@ def run_spec(spec, subject):
             report, cov = run_test(subject, test, spec.get('defaults'))
             coverage = cov if coverage is None else coverage.merge(cov)
         except Exception as e:  # a problem of the test, not of the program (e.g. wrong argument types)
-            report = {'name': test.get('name'), 'outcome': 'error', 'failures': [],
+            report = {'name': test.get('name'), 'block_id': test.get('block_id'), 'outcome': 'error', 'failures': [],
                       'error': {'kind': 'test_error', 'message': '%s: %s' % (type(e).__name__, e)}}
         reports.append(report)
     counts = dict((o, sum(1 for r in reports if r['outcome'] == o)) for o in ('passed', 'failed', 'error'))

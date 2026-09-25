@@ -77,6 +77,12 @@ programs, which implements the project goal. It covers:
 
 Read it before working on testing.
 
+**`docs/ai/nepo-test-blocks.md`** documents the Lab's **Tests tab**: learners build test suites from NEPO test blocks
+(red start block, test blocks with given / when / then, run-test blocks), see the converted code, and run the tests in
+the browser (NepoTest in Pyodide, in a Web Worker). It covers the block vocabulary (the contract between
+`nepoTest.blocks.ts` and `NepoTest/nepotest/blocks.py`), how suites are saved inside the program XML, and how results
+link back to blocks. Read it before changing the Tests tab or adding a test block.
+
 **`docs/ai/edpy-test-engine.md`** documents the framework's engine (`NepoTest/nepotest/engine`). The engine runs
 generated EdPy under CPython with EdPy semantics: 16-bit ints, floor division, constant folding, a virtual clock, and
 latched sensors from EdPy's library. The document also lists which behaviour is verified, derived or assumed.
@@ -100,6 +106,7 @@ latched sensors from EdPy's library. The document also lists which behaviour is 
 | Test runner for golden files | `OpenRobertaServer/src/test/java/.../integrationTest/ReuseIntegrationAsUnitTest.java` (configured by `crossCompilerTests/testSpec.yml`) |
 | Frontend (TypeScript sources) | `OpenRobertaWeb/src/**` (compiles into `OpenRobertaServer/staticResources`) |
 | **NEPO unit-test framework** (Python) | `NepoTest/` (`nepotest/`, `nepotest/engine/`, `examples/`, `tests/`, `schema/`) |
+| **Tests tab** (test blocks, runner) | `OpenRobertaWeb/src/app/nepotest/*` (blocks, suite storage, runner, Web Worker), `OpenRobertaWeb/src/app/roberta/controller/tests.controller.ts`; markup in `staticResources/index.html` (`#tabTests`, `#tests`); translation `NepoTest/nepotest/blocks.py` |
 | Source map for tests (block id → EdPy ranges) | `OpenRobertaRobot/…/bean/SourceMapBean`, filled by `EdisonPythonVisitor.preVisitCheck/postVisitCheck`, served by `ProjectWorkflowRestController` `/projectWorkflow/sourceForTest`; test `OpenRobertaServer/src/test/java/…/javaServer/EdisonSourceMapTest` |
 
 `…` = `src/main/java/de/fhg/iais/roberta`. Paths are repo-relative.
@@ -150,14 +157,19 @@ cd NepoTest
 python -m unittest discover -s tests -t .              # framework + engine tests (live-Lab tests need a running Lab)
 python -m unittest discover -s examples -t .           # the example's Python tests
 python -m nepotest run examples/clap_counter.tests.json
+python -m nepotest run examples/clap_counter_with_tests.xml   # a program with a suite from the Tests tab
 ```
 
-These passed on 2026-09-25: 65 + 8 tests, including the live-Lab tests and the reference-compiler check. Each suite has
+These passed on 2026-09-25: 76 + 8 tests, including the live-Lab tests and the reference-compiler check. Each suite has
 one deliberate expected failure, which shows generator quirk #14; the example test file reports it as its one failure.
 The live-Lab tests skip if no Lab answers at `$NEPOTEST_LAB` (default `http://localhost:1999`). The Level-0 check skips
 unless `EDPY_HOME`/`EDPY_PYTHON` point to the reference compiler. The same tests run with pytest. After generator
 changes, rebuild and restart the Lab, run `EdisonSourceMapTest` and `tests/test_lab_live.py`, and re-create the
 bundles (`python -m nepotest convert <xml> -o <bundle>`).
+
+The frontend (including the Tests tab): in `OpenRobertaWeb`, `npx tsc --noEmit -p .` (type check), then `npx gulp`
+(TypeScript, CSS, and the NepoTest bundle for the browser); `npx gulp nepotest` after changes in `NepoTest/nepotest`.
+Reload the page; the server serves `staticResources` directly.
 
 Run the server locally: `./admin.sh -git-mode create-empty-db` once, then `./ora.sh start-from-git` → http://localhost:1999.
 On Windows use Git Bash. "Show source" works offline. Running a program on a real Edison needs the external Edison
@@ -165,8 +177,12 @@ compile service and the EdComm audio cable.
 
 ## Rules and gotchas
 
-- **Never edit generated files**: `OpenRobertaServer/staticResources/js/**` is built from `OpenRobertaWeb/src`. Blockly
-  itself is built in a separate repo and copied in.
+- **Never edit generated files**: `OpenRobertaServer/staticResources/js/**` is built from `OpenRobertaWeb/src`, and
+  `OpenRobertaServer/staticResources/nepotest/nepotest-files.json` from `NepoTest/nepotest` (gulp). Blockly itself is
+  built in a separate repo and copied in.
+- **The test blocks** (`nepoTest_*`) are defined in `nepoTest.blocks.ts` and translated by `NepoTest/nepotest/blocks.py`.
+  Change both together, and keep the block table in `docs/ai/nepo-test-blocks.md` current. Test blocks are never part
+  of the program workspace or code generation. They are saved as extra instances of the program XML.
 - AST classes must be `final` and annotated (`@NepoPhrase` / `@NepoExpr` / `@NepoBasic` …) with their `blocklyNames`.
   `AstFactory.loadBlocks()` must run before any XML → AST transformation. Tests call it in `@BeforeClass`.
 - Workers are instantiated **once per RobotFactory** and reused across requests, so keep them stateless.

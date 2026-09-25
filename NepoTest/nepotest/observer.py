@@ -186,9 +186,23 @@ def _ed_calls(ex, trace, name):
     return [trace[i] for i in ex.calls if trace[i].name == name]
 
 
+# the kind of an action, independent of the block variant (a drive with and without distance is both a 'drive')
+ACTION_KINDS = {
+    'actions_led_edison': 'led', 'robActions_motorDiff_on': 'drive', 'robActions_motorDiff_on_for': 'drive',
+    'robActions_motorDiff_turn': 'turn', 'robActions_motorDiff_turn_for': 'turn', 'robActions_motorDiff_curve': 'curve',
+    'robActions_motorDiff_curve_for': 'curve', 'robActions_motorDiff_stop': 'stop', 'robActions_motor_stop': 'stop',
+    'robActions_motor_on': 'motor', 'robActions_play_tone': 'tone', 'mbedActions_play_note': 'tone',
+    'robActions_play_file': 'sound_file', 'edisonCommunication_ir_sendBlock': 'ir_send', 'robControls_wait_time': 'wait',
+    'robControls_wait_for': 'wait_for', 'edisonSensors_sensor_reset': 'sensor_reset',
+}
+# normalized directions: the XML spells them FOREWARD, BACKWARD or BACKWARDS, RIGHT, LEFT
+DIRECTIONS = {'FOREWARD': 'forward', 'FORWARD': 'forward', 'BACKWARD': 'backward', 'BACKWARDS': 'backward', 'RIGHT': 'right', 'LEFT': 'left'}
+
+
 def decode_action(ex, block, trace, nepo):
     """the NEPO view of one execution of an action block"""
-    a = {'t': ex.t, 'block': ex.type, 'block_id': ex.block_id, 'function': nepo.function_of(ex.block_id)}
+    a = {'t': ex.t, 'block': ex.type, 'block_id': ex.block_id, 'function': nepo.function_of(ex.block_id),
+         'action': ACTION_KINDS.get(ex.type, ex.type)}
     t = ex.type
     if t == 'actions_led_edison':
         a.update(port=_field(block, 'ACTORPORT'), mode=_field(block, 'MODE'))
@@ -231,4 +245,6 @@ def decode_action(ex, block, trace, nepo):
         a.update(t_end=trace[ex.calls[-1]].t if ex.calls else None)
     elif t == 'edisonSensors_sensor_reset':
         a.update(sensor=_field(block, 'SENSOR'))
+    if 'direction' in a:
+        a['dir'] = DIRECTIONS.get(a['direction'], a['direction'])
     return a

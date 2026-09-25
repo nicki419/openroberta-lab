@@ -11,6 +11,7 @@ import * as Blockly from 'blockly';
 import * as $ from 'jquery';
 import 'jquery-validate';
 import * as ACE_EDITOR from 'aceEditor';
+import * as NEPOTEST_SUITE from 'nepoTest.suite';
 
 var $formSingleModal;
 
@@ -173,7 +174,7 @@ function initEvents() {
 function saveToServer() {
     $('.modal').modal('hide'); // close all opened popups
     var xmlProgram = Blockly.Xml.workspaceToDom(blocklyWorkspace);
-    var xmlProgramText = Blockly.Xml.domToText(xmlProgram);
+    var xmlProgramText = NEPOTEST_SUITE.merge(Blockly.Xml.domToText(xmlProgram)); // with the test suite of the Tests tab
     var isNamedConfig = !GUISTATE_C.isConfigurationStandard() && !GUISTATE_C.isConfigurationAnonymous();
     var configName = isNamedConfig ? GUISTATE_C.getConfigurationName() : undefined;
     var xmlConfigText = GUISTATE_C.isConfigurationAnonymous() ? GUISTATE_C.getConfigurationXML() : undefined;
@@ -206,7 +207,7 @@ function saveAsProgramToServer() {
         $('.modal').modal('hide'); // close all opened popups
         var progName = $('#singleModalInput').val().trim();
         var xmlProgram = Blockly.Xml.workspaceToDom(blocklyWorkspace);
-        var xmlProgramText = Blockly.Xml.domToText(xmlProgram);
+        var xmlProgramText = NEPOTEST_SUITE.merge(Blockly.Xml.domToText(xmlProgram)); // with the test suite of the Tests tab
         var isNamedConfig = !GUISTATE_C.isConfigurationStandard() && !GUISTATE_C.isConfigurationAnonymous();
         var configName = isNamedConfig ? GUISTATE_C.getConfigurationName() : undefined;
         var xmlConfigText = GUISTATE_C.isConfigurationAnonymous() ? GUISTATE_C.getConfigurationXML() : undefined;
@@ -441,7 +442,7 @@ function confirmLoadProgram() {
 
 function linkProgram() {
     var dom = Blockly.Xml.workspaceToDom(blocklyWorkspace);
-    var xml = Blockly.Xml.domToText(dom);
+    var xml = NEPOTEST_SUITE.merge(Blockly.Xml.domToText(dom));
     //TODO this should be removed after the next release
     xml = '<export xmlns="http://de.fhg.iais.roberta.blockly"><program>' + xml + '</program><config>' + GUISTATE_C.getConfigurationXML() + '</config></export>';
     var location = new URL(document.location);
@@ -467,7 +468,7 @@ function exportXml() {
     var dom = Blockly.Xml.workspaceToDom(blocklyWorkspace);
     var xml =
         '<export xmlns="http://de.fhg.iais.roberta.blockly"><program>' +
-        Blockly.Xml.domToText(dom) +
+        NEPOTEST_SUITE.merge(Blockly.Xml.domToText(dom)) +
         '</program><config>' +
         GUISTATE_C.getConfigurationXML() +
         '</config></export>';
@@ -513,14 +514,14 @@ function reloadProgram(opt_result, opt_fromShowSource) {
     } else {
         program = GUISTATE_C.getProgramXML();
     }
-    programToBlocklyWorkspace(program, opt_fromShowSource);
+    programToBlocklyWorkspace(program, opt_fromShowSource, !!opt_result);
 }
 
 function reloadView() {
     if (isVisible()) {
         var dom = Blockly.Xml.workspaceToDom(blocklyWorkspace);
         var xml = Blockly.Xml.domToText(dom);
-        programToBlocklyWorkspace(xml);
+        programToBlocklyWorkspace(xml, false, true);
         var toolbox = GUISTATE_C.getProgramToolbox();
         blocklyWorkspace.updateToolbox(toolbox);
         seen = true;
@@ -562,9 +563,20 @@ function isVisible() {
     return GUISTATE_C.getView() == 'tabProgram';
 }
 
-function programToBlocklyWorkspace(xml, opt_fromShowSource) {
+/**
+ * @param xml the program; test blocks in it (the Tests tab's suite, saved with the program) are split off
+ * @param opt_fromShowSource
+ * @param opt_keepTests true: the xml comes from a workflow result or a re-render and has no tests, keep the current suite; otherwise the
+ *            suite in the xml (or a new, empty one) replaces it
+ */
+function programToBlocklyWorkspace(xml, opt_fromShowSource, opt_keepTests) {
     if (!xml) {
         return;
+    }
+    var withTests = NEPOTEST_SUITE.split(xml);
+    xml = withTests.program;
+    if (!opt_keepTests) {
+        NEPOTEST_SUITE.loadTests(withTests.tests);
     }
     listenToBlocklyEvents = false;
     blocklyWorkspace.clear();

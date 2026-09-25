@@ -307,6 +307,167 @@ body.blocklyMinimalBody * {
     touch-action: none;
 }
 
+/* the Tests tab (tests.controller.ts): test workspace on the left, test runner and code on the right */
+#tests {
+    position: relative;
+    height: 100%;
+}
+
+#testsBlocklyDiv {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    right: 38%;
+    overflow: hidden;
+    touch-action: none;
+}
+
+#testsSide {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 38%;
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+    border-left: 1px solid #ccc;
+}
+
+#testsSideTabs {
+    flex: 0 0 auto;
+    padding: 4px 8px 0 8px;
+}
+
+#testsRunnerPane, #testsCodePane {
+    flex: 1 1 auto;
+    overflow: auto;
+    padding: 8px 12px;
+}
+
+#testsRunnerButtons button, #testsCodeSwitch button {
+    margin: 0 4px 8px 0;
+}
+
+#testsCodeSwitch button {
+    opacity: 0.55;
+}
+
+#testsCodeSwitch button.active {
+    opacity: 1;
+    font-weight: bold;
+}
+
+#testsStatus {
+    margin: 4px 0 8px 0;
+    color: #555;
+}
+
+#testsProblems ul, #testsResults, .nepoTestDetails, .nepoTestUncovered {
+    list-style: none;
+    padding-left: 0;
+    margin: 0;
+}
+
+#testsProblems {
+    margin-bottom: 8px;
+}
+
+.nepoTestProblemsTitle {
+    font-weight: bold;
+    color: #E2001A;
+}
+
+#testsProblems li {
+    padding: 2px 0 2px 16px;
+    color: #E2001A;
+}
+
+#testsProblems li.warning {
+    color: #b36b00;
+}
+
+.linked, .nepoTestResult {
+    cursor: pointer;
+}
+
+.nepoTestResult {
+    padding: 4px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.nepoTestResult .nepoTestIcon {
+    display: inline-block;
+    width: 1.4em;
+    font-weight: bold;
+}
+
+.nepoTestResult.waiting .nepoTestIcon:before {
+    content: '\2026';
+    color: #999;
+}
+
+.nepoTestResult.passed .nepoTestIcon:before {
+    content: '\2714';
+    color: #179C7D;
+}
+
+.nepoTestResult.failed .nepoTestIcon:before {
+    content: '\2718';
+    color: #E2001A;
+}
+
+.nepoTestResult.error .nepoTestIcon:before {
+    content: '\26A0';
+    color: #b36b00;
+}
+
+.nepoTestResult .nepoTestOutcome {
+    float: right;
+    color: #777;
+    font-size: 90%;
+}
+
+.nepoTestDetails li {
+    padding: 2px 0 2px 1.4em;
+    font-size: 90%;
+    color: #333;
+    word-break: break-word;
+}
+
+.nepoTestDetails li.nepoTestError {
+    color: #E2001A;
+    cursor: pointer;
+}
+
+#testsCoverage {
+    margin-top: 12px;
+}
+
+.nepoTestCoverageBar {
+    height: 8px;
+    background: #eee;
+    margin: 4px 0 8px 0;
+}
+
+.nepoTestCoverageBar div {
+    height: 100%;
+    background: #179C7D;
+}
+
+.nepoTestUncovered li {
+    padding: 1px 0 1px 1.4em;
+    font-size: 90%;
+    color: #555;
+}
+
+#testsCodeContent {
+    font-size: 12px;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
 .log {
     overflow: auto;
     position: fixed;

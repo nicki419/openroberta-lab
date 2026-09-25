@@ -88,6 +88,31 @@ function nodeTask() {
     return merge(...streams);
 }
 
+// NepoTest: bundles the Python package NepoTest/nepotest into one JSON file ({path: source}), which the Tests tab's Web Worker loads into Pyodide
+function nepotestTask(cb) {
+    const fs = require('fs');
+    const path = require('path');
+    const crypto = require('crypto');
+    const base = path.join(__dirname, '..', 'NepoTest');
+    const bundled = {};
+    (function walk(dir) {
+        for (const entry of fs.readdirSync(dir, { withFileTypes: true }).sort((a, b) => (a.name < b.name ? -1 : 1))) {
+            const full = path.join(dir, entry.name);
+            if (entry.isDirectory() && entry.name !== '__pycache__') {
+                walk(full);
+            } else if (entry.isFile() && entry.name.endsWith('.py')) {
+                bundled[path.relative(base, full).split(path.sep).join('/')] = fs.readFileSync(full, 'utf8').split('\r\n').join('\n');
+            }
+        }
+    })(path.join(base, 'nepotest'));
+    const content = JSON.stringify(bundled);
+    const out = path.join(__dirname, '..', 'OpenRobertaServer', 'staticResources', 'nepotest');
+    fs.mkdirSync(out, { recursive: true });
+    const version = crypto.createHash('sha1').update(content).digest('hex').substring(0, 12);
+    fs.writeFileSync(path.join(out, 'nepotest-files.json'), JSON.stringify({ generated: 'by OpenRobertaWeb/gulpfile.js nepotestTask; do not edit', version: version, files: bundled }));
+    cb();
+}
+
 // Cachebust
 function cacheBustTask() {
     var cbString = new Date().getTime();
@@ -106,7 +131,10 @@ function watchTask() {
 }
 
 // Runs the scss and js tasks simultaneously then runs cacheBust
-exports.default = series(parallel(scssTask, cssTask, nodeTask, jsTask), cacheBustTask);
+exports.default = series(parallel(scssTask, cssTask, nodeTask, jsTask, nepotestTask), cacheBustTask);
+
+// only the NepoTest bundle (after changes in NepoTest/nepotest)
+exports.nepotest = nepotestTask;
 
 // Runs only css and js tasks simultaneously, cacheBustTask and ends in watchTask
 exports.watch = series(parallel(cssTask, jsTask), cacheBustTask, watchTask);

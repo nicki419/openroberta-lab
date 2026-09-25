@@ -561,6 +561,10 @@ function setView(view) {
     } else if (view === 'tabNNlearn') {
         $('#head-navigation-configuration-edit').css('display', 'none');
         $('#head-navigation-program-edit').css('display', 'inline');
+    } else if (view === 'tabTests') {
+        // the test suite belongs to the program: the program menu (save, export, ...) stays available
+        $('#head-navigation-configuration-edit').css('display', 'none');
+        $('#head-navigation-program-edit').css('display', 'inline');
     } else if (view === 'tabSourceCodeEditor') {
         $('#head-navigation-configuration-edit').css('display', 'none');
         $('#head-navigation-program-edit').css('display', 'inline');
@@ -627,6 +631,19 @@ function setLanguage(language) {
         $('.bootstrap-tagsinput input').attr('placeholder', Blockly.Msg.INFO_TAGS || 'Tags');
         updateTutorialMenu();
     }
+    languageListeners.forEach(function (listener) {
+        listener(language);
+    });
+}
+
+var languageListeners = [];
+
+/**
+ * @param listener called with the new language after the language has been switched (used by modules this controller must not import, e.g.
+ *            the Tests tab: an import would be a cycle)
+ */
+export function addLanguageListener(listener) {
+    languageListeners.push(listener);
 }
 
 function getLanguage() {

@@ -21,7 +21,8 @@
    "properties": {
     "name": {"type": "string", "minLength": 1},
     "description": {"type": "string"},
-    "origin": {"type": "string", "description": "who wrote the test, e.g. 'learner', 'teacher', 'ai:<model>'"},
+    "origin": {"type": "string", "description": "who wrote the test, e.g. 'learner', 'teacher', 'blocks', 'ai:<model>'"},
+    "block_id": {"type": "string", "description": "the id of the test block, if the test was built with NEPO test blocks"},
     "call": {"type": "string", "description": "a NEPO function name: call it instead of running the whole program"},
     "args": {"type": "array", "items": {"$ref": "#/$defs/nepoValue"}},
     "globals": {"type": "object", "additionalProperties": {"$ref": "#/$defs/nepoValue"}, "description": "global variables to set before the call"},
@@ -51,10 +52,11 @@
   "valueMatcher": {"oneOf": [
    {"type": ["integer", "number", "boolean", "string", "null", "array"]},
    {"type": "object", "properties": {"min": {"type": "number"}, "max": {"type": "number"}}, "additionalProperties": false, "minProperties": 1},
-   {"type": "object", "properties": {"approx": {"type": "number"}, "tol": {"type": "number"}}, "required": ["approx"], "additionalProperties": false}
+   {"type": "object", "properties": {"approx": {"type": "number"}, "tol": {"type": "number"}}, "required": ["approx"], "additionalProperties": false},
+   {"type": "object", "properties": {"not": {}}, "required": ["not"], "additionalProperties": false}
   ]},
   "matcher": {"type": "object", "minProperties": 1, "additionalProperties": {"$ref": "#/$defs/valueMatcher"},
-              "description": "keys of an action (block, block_id, function, port, mode, direction, power, distance_cm, degrees, power_left, power_right, frequency_hz, duration_ms, ms, value, file, sensor, t, t_end) or of a call (function, args, returns)"},
+              "description": "keys of an action (action, dir, block, block_id, function, port, mode, direction, power, distance_cm, degrees, power_left, power_right, frequency_hz, duration_ms, ms, value, file, sensor, t, t_end) or of a call (function, args, returns)"},
   "expect": {
    "type": "object",
    "minProperties": 1,
@@ -67,9 +69,12 @@
     "actions": {"type": "array", "items": {"$ref": "#/$defs/matcher"}, "description": "found in this order, other actions may be in between"},
     "actions_exactly": {"type": "array", "items": {"$ref": "#/$defs/matcher"}, "description": "all actions, in this order"},
     "no_actions": {"type": "array", "items": {"$ref": "#/$defs/matcher"}},
-    "action_count": {"type": "object", "additionalProperties": {"$ref": "#/$defs/valueMatcher"}, "description": "block type -> number of executions"},
+    "action_count": {"oneOf": [
+     {"type": "object", "additionalProperties": {"$ref": "#/$defs/valueMatcher"}, "description": "block type -> number of executions"},
+     {"type": "array", "items": {"type": "object", "required": ["match", "count"], "additionalProperties": false,
+      "properties": {"match": {"$ref": "#/$defs/matcher"}, "count": {"$ref": "#/$defs/valueMatcher"}}}, "description": "number of actions matching each matcher"}]},
     "calls": {"type": "array", "items": {"$ref": "#/$defs/matcher"}, "description": "NEPO function calls, in this order, others may be in between"},
-    "error": {"oneOf": [{"type": "null"}, {"type": "string"}, {"$ref": "#/$defs/matcher"}], "description": "null (default): no runtime error; a kind such as 'division_by_zero'; or a matcher on kind, block_id, block_type, function"},
+    "error": {"oneOf": [{"type": "null"}, {"type": "string"}, {"$ref": "#/$defs/matcher"}], "description": "null (default): no runtime error; 'any'; a kind such as 'division_by_zero'; or a matcher on kind, block_id, block_type, function"},
     "covers": {"type": "array", "items": {"type": "string"}, "description": "block ids that must be executed"}
    }
   }

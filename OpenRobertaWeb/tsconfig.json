@@ -302,6 +302,18 @@
       "robotBlock": [
         "app/configVisualization/robotBlock"
       ],
+      "nepoTest.blocks": [
+        "app/nepotest/nepoTest.blocks"
+      ],
+      "nepoTest.suite": [
+        "app/nepotest/nepoTest.suite"
+      ],
+      "nepoTest.runner": [
+        "app/nepotest/nepoTest.runner"
+      ],
+      "tests.controller": [
+        "app/roberta/controller/tests.controller"
+      ],
       "wires": [
         "app/configVisualization/wires"
       ],

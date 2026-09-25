@@ -136,6 +136,11 @@ require.config({
         port: 'js/app/configVisualization/port',
         robotBlock: 'js/app/configVisualization/robotBlock',
         wires: 'js/app/configVisualization/wires',
+
+        'nepoTest.blocks': 'js/app/nepotest/nepoTest.blocks',
+        'nepoTest.suite': 'js/app/nepotest/nepoTest.suite',
+        'nepoTest.runner': 'js/app/nepotest/nepoTest.runner',
+        'tests.controller': 'js/app/roberta/controller/tests.controller',
     },
     shim: {
         webots: {
@@ -184,6 +189,9 @@ require.config({
             deps: ['blockly'],
         },
         robotBlock: {
+            deps: ['blockly'],
+        },
+        'nepoTest.blocks': {
             deps: ['blockly'],
         },
         port: {
@@ -306,6 +314,7 @@ require([
     'sourceCodeEditor.controller',
     'confVisualization',
     'robotBlock',
+    'tests.controller',
     'startView.controller',
     //start connections
     'connection.interface',
@@ -353,6 +362,7 @@ require([
     sourceCodeEditorController = require('sourceCodeEditor.controller');
     confVisualization = require('confVisualization');
     robotBlock = require('robotBlock');
+    testsController = require('tests.controller');
     startViewController = require('startView.controller');
     connectionController = require('connection.controller');
     aceEditor = require('aceEditor');
@@ -413,6 +423,7 @@ function initProgramming(robot, extensions, opt_callback, opt_params) {
             $('#header').addClass('shadow');
             programController.init();
             configurationController.init();
+            testsController.init();
             progHelpController.init();
             progInfoController.init();
             progCodeController.init();

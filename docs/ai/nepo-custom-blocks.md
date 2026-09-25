@@ -248,6 +248,16 @@ Caveats:
 - Messages are replaced on language switch, so `||` defaults won't be re-translated.
 - Keep all runtime-registered blocks in **one** module, so they can move into the Blockly repo later.
 
+**A complete, working example is the Tests tab's blocks:** `OpenRobertaWeb/src/app/nepotest/nepoTest.blocks.ts`
+(`nepo-test-blocks.md`). It shows:
+- 31 block types registered at runtime, with their own workspace and toolbox;
+- category colours and icons set through `Blockly.CAT_<NAME>_RGB` / `Blockly.CAT_ICON`;
+- EN/DE messages, re-applied on language switch through `GUISTATE_C.addLanguageListener`;
+- dynamic dropdowns whose generators must cope with a missing `sourceBlock_` while the field is constructed;
+- a mutation-based block with one input per parameter (`nepoTest_when_call`), using only XSD-allowed mutation parts.
+
+Those blocks aren't NEPO program blocks. They never reach the Java AST.
+
 ---
 
 ## 3. Layer 3: toolbox

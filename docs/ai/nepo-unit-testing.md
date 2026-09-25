@@ -9,7 +9,8 @@ for the robot. The EdPy runs against a virtual robot, and everything it does is 
 - which blocks no test executed.
 
 Tests are written in NEPO terms too. They're either a JSON file (made for test editors and **AI test generators**) or
-Python code. This is parts 1 to 3 of the project goal in `CLAUDE.md`: writing and running tests (§4, §5), detecting
+Python code. Learners build them from **NEPO test blocks** in the Lab's **Tests tab**, which runs them in the browser
+(`nepo-test-blocks.md`). This is parts 1 to 3 of the project goal in `CLAUDE.md`: writing and running tests (§4, §5), detecting
 what is worth testing (§7.2), and generating tests (§7).
 
 ```
@@ -29,10 +30,13 @@ Code: `NepoTest/` (Python, standard library only, CPython **3.11+**). Server sid
 `EdisonPythonVisitor`, and the REST service `sourceForTest` (§3.2).
 
 **Status (2026-09-25):**
-- **Python:** 65 tests in `NepoTest/tests` and 8 in `NepoTest/examples` pass with `unittest` and pytest 9.1.1. They
+- **Python:** 76 tests in `NepoTest/tests` and 8 in `NepoTest/examples` pass with `unittest` and pytest 9.1.1. They
   include the live-Lab tests against a server built from this repository, and the Level-0 check with the reference
   EdPy compiler.
-- **Java:** `EdisonSourceMapTest` (4 tests) passes, and the golden files are unchanged (317/317).
+- **Java:** `EdisonSourceMapTest` (4 tests) and `NepoTestSuitePersistenceTest` pass, and the golden files are
+  unchanged (317/317).
+- **Browser:** the same suite, built from test blocks, runs in the Lab's Tests tab under Pyodide with identical results
+  (`nepo-test-blocks.md`).
 - **Timings** measured on a laptop:
 
   | Step | Time |
@@ -55,6 +59,7 @@ cd NepoTest
 python -m nepotest describe examples/clap_counter.xml         # what's in the program, and what to test (JSON)
 python -m nepotest convert  examples/clap_counter.xml         # -> examples/clap_counter.bundle.json
 python -m nepotest run      examples/clap_counter.tests.json  # run a test file
+python -m nepotest run      examples/clap_counter_with_tests.xml   # run the test suite saved in a program (Tests tab)
 python -m unittest discover -s tests -t .                      # the framework's own tests
 ```
 
@@ -218,7 +223,8 @@ A **test**:
 
 | Key | Meaning |
 |---|---|
-| `name` (required, unique), `description`, `origin` | `origin` says who wrote it, e.g. `"learner"`, `"teacher"`, `"ai:<model>"` |
+| `name` (required, unique), `description`, `origin` | `origin` says who wrote it, e.g. `"learner"`, `"teacher"`, `"blocks"`, `"ai:<model>"` |
+| `block_id` | the test block the test was built from (Tests tab); results carry it back |
 | `call`, `args`, `globals` | a function test: call NEPO function `call` with `args`, after setting global variables `globals` |
 | `world` | events (§4.4), for runs and for calls |
 | `max_time_ms`, `max_steps` | budgets. Defaults: 60,000 ms virtual; 2,000,000 steps for runs, 100,000 for calls. |
@@ -283,9 +289,9 @@ Times are virtual ms from program start.
 | `actions` | both | these actions happened **in this order**; other actions may be in between |
 | `actions_exactly` | both | these are all actions, in order |
 | `no_actions` | both | none of the actions matches any of these |
-| `action_count` | both | `{"<block type>": n}`: executions per action block type (n may be a matcher) |
+| `action_count` | both | `{"<block type>": n}`: executions per action block type; or `[{"match": matcher, "count": n}]`: actions matching each matcher (n may be a matcher) |
 | `calls` | both | these NEPO function calls happened in this order (`function`, `args`, `returns`) |
-| `error` | both | `null` (the default: no runtime error allowed), an error **kind**, or a matcher on `kind`, `block_id`, `block_type`, `function` |
+| `error` | both | `null` (the default: no runtime error allowed), `"any"`, an error **kind**, or a matcher on `kind`, `block_id`, `block_type`, `function` |
 | `covers` | both | these block ids were executed |
 
 Runtime error kinds: `overflow`, `division_by_zero`, `index_out_of_range`, `shift_out_of_range`, `negative_value`,
@@ -296,8 +302,8 @@ Runtime error kinds: `overflow`, `division_by_zero`, `index_out_of_range`, `shif
 ### 4.6 Matchers
 
 - An action or call matcher is an object: every key must be present in the action or call, and its value must match.
-- A value matches if it's equal (numbers numerically; booleans only booleans), within `{"min": a, "max": b}`, or
-  within `{"approx": x, "tol": d}`.
+- A value matches if it's equal (numbers numerically; booleans only booleans), within `{"min": a, "max": b}`, within
+  `{"approx": x, "tol": d}`, or if it doesn't match `{"not": v}`.
 
 Example: `{"block": "robActions_motorDiff_on_for", "power": {"min": 90, "max": 100}}`.
 
@@ -307,7 +313,11 @@ Every action has these keys:
 - `t`: start time, in ms;
 - `block`: the block type;
 - `block_id`;
-- `function`: the NEPO function it runs in, `null` for the main program.
+- `function`: the NEPO function it runs in, `null` for the main program;
+- `action`: the kind, independent of the block variant (`led`, `drive`, `turn`, `curve`, `stop`, `motor`, `tone`,
+  `sound_file`, `ir_send`, `wait`, `wait_for`, `sensor_reset`), so `{"action": "drive"}` matches drives with and
+  without distance;
+- `dir`: for blocks with a direction, the normalized one (`forward`, `backward`, `right`, `left`).
 
 The values come from the NEPO block's fields (e.g. `port`, `direction`: literally what the XML says) and from the
 values the program computed (e.g. `power` is the evaluated power input in %, before the Edison's `(p + 5) / 10`
@@ -524,13 +534,17 @@ status, and errors.
 
 ### 7.4 Where tests run in the Lab
 
+**Implemented: in the browser.** The Tests tab (`nepo-test-blocks.md`) converts through `sourceForTest` and runs
+NepoTest in Pyodide in a Web Worker. Generated tests could be shown and run there once they are converted to test
+blocks. Other options:
+
 - **Server:** the Lab calls `nepotest` in a Python subprocess (3.11+) with the program and a test file, and gets the
   results JSON. The engine's restricted builtins are **not a sandbox**. Generated code comes from blocks and is
   constrained, but run it in a separate process with a wall-clock timeout and resource limits.
 - **Conversion:** a server-side integration could skip REST and read `SourceMapBean` directly after the `showsource`
   workflow.
-- **Browser:** the framework only needs the standard library, so Pyodide may run it (unverified). Conversion would
-  still be the `sourceForTest` request.
+- **Browser (what the Tests tab does):** the framework only needs the standard library. It runs unchanged under
+  Pyodide 314.0.7 (verified in Chrome and under Node). Conversion is still the `sourceForTest` request.
 
 ---
 
@@ -582,10 +596,15 @@ NepoTest/
     observer.py               block executions, Ed call attribution, function calls, actions, coverage
     subject.py                TestSubject, CallResult, ProgramRun, Coverage, NepoError, ConversionError
     spec.py                   test files: validate_spec, run_spec, matchers
+    blocks.py                 NEPO test blocks (Tests tab) -> test file; split_program for programs with embedded suites
+    browser.py                the functions the Lab's Pyodide worker calls (JSON strings in and out)
     engine/                   the EdPy engine (edpy-test-engine.md)
   schema/nepo-tests.schema.json
   examples/                   clap_counter.xml, its bundle, clap_counter.tests.json, test_clap_counter.py
-  tests/                      test_framework.py, test_lab_live.py, test_engine*.py, fixtures/ (golden bundles)
+  examples/clap_counter_with_tests.xml   the example program with a test suite made of test blocks (as the Lab saves it)
+  tests/                      test_framework.py, test_blocks.py, test_lab_live.py, test_engine*.py, fixtures/ (golden bundles)
+OpenRobertaWeb/src/app/nepotest/*, …/controller/tests.controller.ts   the Tests tab (nepo-test-blocks.md §2)
+OpenRobertaServer/staticResources/nepotest/nepotest-files.json      the nepotest package for the browser (generated by gulp)
 OpenRobertaRobot/…/bean/SourceMapBean.java
 RobotEdison/…/visitor/codegen/EdisonPythonVisitor.java (preVisitCheck/postVisitCheck), …/worker/codegen/EdisonPythonGeneratorWorker.java
 OpenRobertaServer/…/controller/ProjectWorkflowRestController.java (sourceForTest), ProjectSourceForTestResponse.java

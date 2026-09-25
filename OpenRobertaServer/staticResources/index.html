@@ -442,6 +442,11 @@ limitations under the License.
                             id='tabConfigurationName'></span>
                         </a>
                     </li>
+                    <li class='nav-item hidden'>
+                        <a class='nav-link mainTab' data-bs-toggle='tab' href='#tests' id='tabTests' role='tab'>
+                            <span class='menuTab'>Tests</span>
+                        </a>
+                    </li>
                     <li class='nav-item hidden mainTab tabLinkNN'>
                         <a class='nav-link' data-bs-toggle='tab' href='#nn' id='tabNN'>
                             <span class='menuTab' lkey='Blockly.Msg.TAB_NN'>Neural Network</span>&nbsp;
@@ -1181,6 +1186,32 @@ limitations under the License.
         <div class='tab-pane fade' id='configuration'>
             <div id='brickly'>
                 <div id='bricklyDiv'></div>
+            </div>
+        </div>
+        <div class='tab-pane fade' id='tests'>
+            <div id='testsBlocklyDiv'></div>
+            <div id='testsSide'>
+                <ul class='nav nav-tabs' id='testsSideTabs'>
+                    <li class='nav-item'><a class='nav-link active' href='#' id='testsRunnerTab'>Test runner</a></li>
+                    <li class='nav-item'><a class='nav-link' href='#' id='testsCodeTab'>Code</a></li>
+                </ul>
+                <div id='testsRunnerPane'>
+                    <div id='testsRunnerButtons'>
+                        <button class='btn btn-primary' id='testsRunButton' type='button'>&#9654; Run tests</button>
+                        <button class='btn btn-default' disabled id='testsStopButton' type='button'>Stop</button>
+                    </div>
+                    <div id='testsStatus'></div>
+                    <div id='testsProblems'></div>
+                    <ul id='testsResults'></ul>
+                    <div id='testsCoverage'></div>
+                </div>
+                <div id='testsCodePane' style='display: none;'>
+                    <div class='btn-group' id='testsCodeSwitch' role='group'>
+                        <button class='btn btn-default active' id='testsCodeJson' type='button'>Tests (JSON)</button>
+                        <button class='btn btn-default' id='testsCodeEdpy' type='button'>Program (EdPy)</button>
+                    </div>
+                    <pre id='testsCodeContent'></pre>
+                </div>
             </div>
         </div>
 
