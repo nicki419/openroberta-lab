@@ -1,0 +1,25 @@
+
+Var [booleanVar] := Binary [AND, Var [booleanVar], BoolConst[value: false]]
+
+
+Var [booleanVar] := Binary [OR, Binary [LT, Var [numberVar], NumConst[value: 5]], Var [booleanVar]]
+
+
+Var [booleanVar] := Binary [AND, Binary [OR, Binary [AND, Var [booleanVar], Binary [EQ, Var [numberVar], NumConst[value: 3]]], Unary [NOT, Var [booleanVar]]], BoolConst[value: true]]
+
+
+Var [booleanVar] := Unary [NOT, Binary [OR, Var [booleanVar], Var [booleanVar]]]
+
+
+if Binary [AND, SensorExpr [KeysSensor [PLAY, PRESSED, - EMPTY_SLOT -]], SensorExpr [InfraredSensor [FRONT, OBSTACLE, - EMPTY_SLOT -]]]
+,then
+AktionStmt [LedAction[port: LLED, mode: ON]]
+
+
+(repeat [WHILE, Binary [OR, Var [booleanVar], Binary [GT, Var [numberVar], NumConst[value: 10]]]]
+Var [booleanVar] := BoolConst[value: false]
+
+)
+WaitStmt [
+(repeat [WAIT, Binary [OR, SensorExpr [SoundSensor [- EMPTY_PORT -, SOUND, - EMPTY_SLOT -]], SensorExpr [KeysSensor [REC, PRESSED, - EMPTY_SLOT -]]]]
+)]

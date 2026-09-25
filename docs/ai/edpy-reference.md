@@ -70,6 +70,10 @@ cd "$WORK/edpy/src"
 - A few inputs crash the compiler instead of returning JSON. Verified example: `Ed.PlayTone(8000000/0, 500)` ends in
   a Python `TypeError` traceback, presumably from the division by zero during constant folding. Treat non-JSON output
   as "compiler error".
+- **Internal errors also end in a traceback under Python 3.** When the output contains "internal error" (e.g.
+  `Compiler internal error 700` for `and`), `EdPy.py` prints the program as a list and then crashes in its own logger
+  (`"PRG {:s}".format(list)`, `TypeError: unsupported format string passed to list.__format__`). To see the JSON, run
+  a scratch copy with `{:s}` changed to `{!s}` in that line. Don't patch the vendored/cloned original.
 
 **What a local check proves:** that the program is accepted by *this* EdPy version (syntax, types, ranges, known `Ed`
 functions, argument counts). **What it doesn't prove:** runtime behaviour on the robot, or acceptance by the deployed
@@ -97,8 +101,12 @@ EdPy is "a strict subset of python". Lexical rules (indentation, comments, line 
 ### 3.2 Operators
 
 - Operators per the spec: `+x -x`, `+ - *`, `/ // %`, `| & ^ ~`, `<< >>`, comparisons, `and or not`.
-- **`and`/`or` don't work in practice.** Verified: `if a and b:` → `Problem with variable temp-0 (unknown variable)`.
-  The Lab's `testSpec.yml` notes "AND/OR blocks not supported".
+- **`and`/`or` don't work in practice.** Verified: `if a and b:` → `Problem with variable temp-0 (unknown variable)`;
+  `x = y and False` → `Compiler internal error 700`.
+- **Bitwise `&`/`|` work as a replacement** (verified), because EdPy booleans are 0/1. The Lab's generator emits NEPO
+  AND/OR as `((a) & (b))` / `((a) | (b))`. The full parentheses are required, because `&`/`|` bind tighter than
+  comparisons (`a < 5 | b` would mean `a < (5 | b)`). Nested forms compile at 8 and 16 levels. Unlike `and`/`or`,
+  **both operands are always evaluated**.
 - **`**` isn't implemented.** The compiler source has `# IMPLEMENT POWER`, which is why the Lab uses a `_pow`
   helper.
 - Division is covered in detail in §4.3.
@@ -272,9 +280,9 @@ Writing to a constant → `Ed.Py constant … can not be written`.
 
 | Finding | Evidence |
 |---|---|
-| **All five Edison golden programs** (`action`, `control_logic`, `math_lists`, `sensors`, `text_messages_functions`) **pass EdPy 1.2.11** | `-c` → `{"error": false}` for each |
+| **All six Edison golden programs** (`action`, `control_logic`, `logic_operation`, `math_lists`, `sensors`, `text_messages_functions`) **pass EdPy 1.2.11** | `-c` → `{"error": false}` for each |
 | **Assert, debug and serial-print blocks can never compile.** They generate `print(...)`. | `Unknown function print` |
-| **AND/OR** (imported programs) fail | `Problem with variable temp-0 (unknown variable)` |
+| **AND/OR** compile since the generator emits `((a) & (b))` / `((a) \| (b))`. They used to be emitted as `and`/`or`, which fails. | `{"error": false}` for `logic_operation.py`; the same file with `and` → `Compiler internal error 700` |
 | **"Average" without "sum"** fails on the robot, while CPython runs it with the builtin `sum` | `Unknown function sum` |
 | **A comment-only `if`/loop body** fails | `Syntax error` |
 | **Tone blocks with a frequency ≤ 244 Hz** fail, although the Lab's validator accepts them. The cut-off for the note block's `4000000/f` is 123 Hz; the note picker starts at C4 (261.6 Hz). | `constant 32786 is out of range` |
@@ -301,7 +309,8 @@ Writing to a constant → `Ed.Py constant … can not be written`.
    polling reads advance it, or bound the loop iterations.
 4. **Driving:** `SPEED_FULL == 0`, so `speed 0` means *full speed*, not stop. The Lab's helpers special-case 0 → STOP.
    Distance is in cm (`Ed.DistanceUnits = Ed.CM`), and degrees for spins.
-5. **Integers:** wrap or check at 16 bits, use floor division (§4.3), and reject floats and strings.
+5. **Integers:** wrap or check at 16 bits, use floor division (§4.3), and reject floats and strings. Booleans are
+   0/1: generated AND/OR is `&`/`|` on booleans, which CPython also evaluates eagerly, like the robot.
 6. **Lists:** fixed size; `len()` is the max size.
 7. **Top level:** the program runs on load (no `main`). Execute it in a controlled sandbox, and don't `import` it.
 8. **Before running a test, run `EdPy.py -c`** to reject programs the robot would never accept. CPython is more

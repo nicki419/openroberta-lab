@@ -1,0 +1,6 @@
+Sensors: 
+[UsedSensor [FRONT, INFRARED, OBSTACLE], UsedSensor [- EMPTY_PORT -, SOUND, SOUND]]
+Actors: 
+[]
+Methods: 
+[OBSTACLEDETECTION]

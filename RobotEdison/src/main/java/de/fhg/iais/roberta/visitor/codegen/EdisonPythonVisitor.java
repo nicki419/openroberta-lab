@@ -58,7 +58,7 @@ import de.fhg.iais.roberta.visitor.lang.codegen.prog.AbstractPythonVisitor;
 /**
  * This class visits the Blockly blocks for the Edison robot and translates them into EdPy Python2 code (https://github.com/Bdanilko/EdPy) Many methods are not
  * supported (N O P) because the Edison robot does not allow the import of any Python module (f.e. math), also the edison robot only supports integers and has
- * no support for nested statements. (e.g. "if (a and b):" with a,b being booleans)
+ * no support for "and"/"or" (e.g. "if (a and b):" with a,b being booleans). Logical AND/OR is therefore generated with the bitwise operators "&"/"|"
  */
 public class EdisonPythonVisitor extends AbstractPythonVisitor implements IEdisonVisitor<Void> {
 
@@ -469,6 +469,14 @@ public class EdisonPythonVisitor extends AbstractPythonVisitor implements IEdiso
             binary.left.accept(this);
             this.src.add(" / ");
             binary.getRight().accept(this);
+        } else if ( binary.op == Binary.Op.AND || binary.op == Binary.Op.OR ) {
+            // EdPy doesn't support 'and'/'or'. Booleans are 0/1 in EdPy, so the bitwise operators compute the same value, but
+            // both operands are always evaluated. The parentheses are needed, because '&' and '|' bind tighter than comparisons
+            this.src.add("((");
+            binary.left.accept(this);
+            this.src.add(") ", binary.op == Binary.Op.AND ? "&" : "|", " (");
+            binary.getRight().accept(this);
+            this.src.add("))");
         } else {
             super.visitBinary(binary);
         }

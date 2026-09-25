@@ -362,6 +362,7 @@ The Blockly `sensorsAll.edison` is key, infrared, irseeker, light, sound. There'
 | Blockly type | Lvl | AST class | Gen | EdPy | Notes |
 |---|---|---|---|---|---|
 | `logic_compare` | B+E | `lang.expr.Binary` | Py | `==`, `!=`, `<`, `<=`, `>`, `>=` (a Binary operand is parenthesised) | |
+| `logic_operation` | B+E | `lang.expr.Binary` AND/OR | Ed | `((<a>) & (<b>))` / `((<a>) \| (<b>))`, because EdPy has no working `and`/`or`. Nests to any depth; 8 and 16 levels verified with EdPy. | **Both operands are always evaluated** (no short-circuit), unlike in the simulator (§11, gap 7) |
 | `logic_negate` | E | `lang.expr.Unary` NOT | Lang | `not <x>` | |
 | `logic_boolean` | B+E | `lang.expr.BoolConst` | Py | `True`/`False` | |
 | `math_integer` | B+E | `lang.expr.NumConst` | Ed | integer literal | a decimal throws (§13) |
@@ -405,7 +406,6 @@ without rejection.
 
 ### Not in the Edison toolbox, but accepted if imported
 
-- `logic_operation` (and/or): "not supported" per `testSpec.yml`, but nothing rejects it.
 - `controls_flow_statements` (break/continue): inside a wait-in-loop it emits `raise BreakOutOfALoop`, and **that
   class is never defined** in Edison output.
 - `math_round`: legacy integer tricks (§13).
@@ -491,8 +491,9 @@ Edison can't reach them. There's no square root, trigonometry, or random helper.
   ```
 
   **Both robots read the same input directory** `robotSpecific/edison/`.
-- There are five input programs: `action.xml`, `control_logic.xml`, `math_lists.xml`, `sensors.xml`,
-  `text_messages_functions.xml`. Expected outputs exist per robot:
+- There are six input programs: `action.xml`, `control_logic.xml`, `logic_operation.xml`, `math_lists.xml`,
+  `sensors.xml`, `text_messages_functions.xml`. `logic_operation.xml` covers AND/OR: simple, nested three deep,
+  under NOT, with sensor operands, and as the condition of if, while and wait-until. Expected outputs exist per robot:
   `_expected/robotSpecific/{astGenerated,targetLanguage,collectorResults}/{edisonv2,edisonv3}/`. The V2 and V3
   `.py` files are identical, because the generator hard-codes `Ed.EdisonVersion = Ed.V2`.
 - `testAllRobotSpecificProgramsAsUnitTests` checks four things per program and robot: the AST dump, the XML round
@@ -502,7 +503,7 @@ Edison can't reach them. There's no square root, trigonometry, or random helper.
   a header line).
 - The comparison ignores all whitespace inside lines, **including indentation**.
 - **Not covered:** the common programs (`testAllCommonProgramsAsUnitTests` only generates for ev3lejosv1,
-  calliope2017NoBlue, ev3dev, wedo, microbitv2), so loops, math, and lists are only covered by the five Edison
+  calliope2017NoBlue, ev3dev, wedo, microbitv2), so loops, math, and lists are only covered by the six Edison
   programs. There are no expected stack-machine outputs for Edison.
 
 Commands:
@@ -539,7 +540,7 @@ key rules:
 - no floats and no strings except tune strings
 - a variable's type is fixed on first assignment
 - only `import Ed`
-- no `print`, `raise`, or `**`; `and`/`or` don't work
+- no `print`, `raise`, or `**`; `and`/`or` don't work (the generator emits `&`/`|` instead)
 - a comment-only body is a syntax error
 - `Ed.EdisonVersion`/`DistanceUnits`/`Tempo` must be set once, in main code
 
@@ -551,7 +552,8 @@ The table below shows what the **OpenRoberta side** encodes in response:
 | No modules except `Ed` | Math and list functions are YAML helpers (`_abs`, `_pow`, `_isPrime`, `sum`, `min`, `max`, …) |
 | Fixed-size lists | `Ed.List(n, […])`; the Blockly list blocks only offer GET/SET with FROM_START |
 | No strings, casts, timer, volume, or motor power reading | The generator throws `DbcException`; the Blockly/toolbox side hides most of these |
-| "No nested statements (e.g. `if (a and b):`)" | Class comment of `EdisonPythonVisitor`; `testSpec.yml` excludes many common programs for Edison ("not supported", "AND/OR blocks not supported", "no real numeric type", "no strings") |
+| No `and`/`or` | `EdisonPythonVisitor.visitBinary` translates AND/OR to fully parenthesised `&`/`\|`. EdPy booleans are 0/1, so the value is the same. The parentheses are required, because `&`/`\|` bind tighter than comparisons. |
+| Unsupported common constructs | `testSpec.yml` excludes many common programs for Edison ("not supported", "AND/OR blocks not supported", "no real numeric type", "no strings"). These reasons are informational: Edison isn't in `ROBOTS_FOR_TARGET_LANGUAGE_GENERATION`, so the common programs never run for it. |
 | Blockly limits for `device === "edison"` | Variable types only Number, Boolean, Array_Number; `math_single` only ABS, NEG, POW10; `math_on_list` only SUM, MIN, MAX, AVERAGE; no WHOLE property |
 
 **Fidelity gaps between CPython + stub and a real Edison** (design inputs for the framework):
@@ -573,6 +575,18 @@ The table below shows what the **OpenRoberta side** encodes in response:
 6. Programs CPython runs but EdPy rejects, e.g. builtin `sum`, `print`, `and`/`or`, and floats. **Run the local EdPy
    check (`EdPy.py -c`) before executing a program in a mock.** It's the same compiler family as the Edison service,
    although the service's deployed version is unknown.
+7. **AND/OR evaluation differs between the robot and the simulator.**
+   - The generated EdPy `((a) & (b))` / `((a) | (b))` always evaluates both operands. Verified in the EdPy assembly:
+     `True | f()` still calls `f`.
+   - The simulator short-circuits: `AbstractStackMachineVisitor.visitBinary` compiles AND/OR into conditional jumps.
+   - The result is the same unless evaluating the right operand has a side effect. In NEPO that's a user function
+     with a return value that changes a global variable. `x OR f()` with `x` true runs `f` on the robot but not in the
+     simulator.
+   - This is a separate issue from gap 5. Simulated sensors are live state: keys are "held down", sound is
+     "slider > 25", so reading them never clears anything, with or without short-circuit. On the robot, eager AND/OR
+     makes gap 5 bite more often, because every sensor operand is read, and so cleared, each time. `if key PLAY AND
+     clap` consumes a pending clap even when PLAY isn't pressed.
+   - A CPython mock running the generated code has the robot's (eager) semantics, which is the correct reference.
 
 ---
 
@@ -692,17 +706,18 @@ still be created with the hidden shortcuts Ctrl/Cmd+3 and Ctrl/Cmd+2 (`menu.cont
 | 20 | code | `break`/`continue` inside a wait-in-loop emits `raise BreakOutOfALoop`/`ContinueLoop`, but the classes are never defined in Edison output (the block isn't in the toolbox). | `AbstractPythonVisitor.visitStmtFlowCon` |
 | 21 | code | The validator throws `DbcException("block is not implemented")` for motor get/set power and get/set volume (not in the toolbox). A `math_single` function without a helper (e.g. imported SIN) gives a NullPointerException. | `EdisonValidatorAndCollectorVisitor`, `HelperMethodGenerator` |
 | 22 | code | `___soundfile1…5` (play file) live in the user-variable namespace. They collide with user variables named `soundfile1…5`. | `EdisonPythonVisitor.visitPlayFileAction` |
-| 23 | code | Many generic constructs are emitted without rejection when imported (`math.*`, `random.*`, `str()`, `and`/`or`, list `.pop`/`.insert`), although they aren't valid EdPy. The validator enforces almost no EdPy limits. | `EdisonValidatorAndCollectorVisitor` |
+| 23 | code | Many generic constructs are emitted without rejection when imported (`math.*`, `random.*`, `str()`, list `.pop`/`.insert`), although they aren't valid EdPy. (AND/OR used to be one of them; it's now translated, see #29.) The validator enforces almost no EdPy limits. | `EdisonValidatorAndCollectorVisitor` |
 | 24 | **verified bug (EdPy)** | **A tone frequency ≤ 244 Hz fails on the robot.** `8000000/244` folds to 32786, and EdPy rejects it with `constant 32786 is out of range`. The Lab's validator accepts it. For the note block the cut-off is 123 Hz, but its picker starts at 261.6 Hz. | `EdisonPythonVisitor.visitToneAction`, `EdisonValidatorAndCollectorVisitor.visitToneAction` |
 | 25 | **verified (EdPy)** | **Tone frequency 0** passes the Lab's validator and **crashes the EdPy compiler** (division by zero in constant folding). | same |
 | 26 | spec | **Pitch shift:** the firmware tone code is `32e6/Hz` (1–5 kHz), and the Lab emits `8000000/f` (tone) or `4000000/f` (note). A NEPO tone sounds at 4·f and a note at 8·f, apparently deliberately, to reach the buzzer's range. A test asserting the pitch must model this. | `edpy-reference.md` §6–§7 |
 | 27 | **verified (EdPy)** | The literal `-32768` is rejected (`out of range`); the usable literal range is ±32767. | EdPy optimiser |
 | 28 | **verified (EdPy)** | The `NO_CONST_NOT_SUPPORTED` rule for tone frequency exists because `8000000/<variable>` doesn't compile (`constant 8000000 is out of range`). | `EdisonValidatorAndCollectorVisitor.visitToneAction` |
+| 29 | **verified** | **AND/OR is eager on the robot and lazy in the simulator.** The EdPy `((a) & (b))` / `((a) \| (b))` evaluates both sides; the stack machine short-circuits. The results differ only when the right operand has a side effect, i.e. a user function that changes globals (verified in the EdPy assembly: `True \| f()` calls `f`). On the robot, eager evaluation also means every latched sensor operand (clap, keypad, obstacle) is read and cleared. The simulator's sensors don't latch at all (§11, gap 7). | `EdisonPythonVisitor.visitBinary`, `AbstractStackMachineVisitor.visitBinary` |
 
 Good test-candidate classes: integer arithmetic at the edges (division, negative numbers, values near ±32767); the
 helper functions (empty lists, negative exponents, primes); drive, curve, and turn with distance vs unlimited; sensor
-read-and-clear semantics (clap, keypad, obstacle); wait-until loops; list indices; blocks that are only valid in some
-modes (light LINE vs LIGHT).
+read-and-clear semantics (clap, keypad, obstacle), including both operands of an AND/OR (#29); wait-until loops; list
+indices; blocks that are only valid in some modes (light LINE vs LIGHT).
 
 ---
 

@@ -112,7 +112,7 @@ The golden-file run was verified on 2026-09-25 (about 2 minutes with `-am`). To 
 separate them with commas (`-Dtest=A,B`); `+` only joins method names within one class.
 
 Edison isn't covered by the "common programs" test (`testAllCommonProgramsAsUnitTests`), by `TestTypecheck`, or by any
-test in `RobotEdison`. Its only unit-level coverage is the five programs in `robotSpecific/edison/`.
+test in `RobotEdison`. Its only unit-level coverage is the six programs in `robotSpecific/edison/`.
 
 The golden-file runner writes what it actually generated to `OpenRobertaServer/target/unitTests/` (AST dumps, generated
 `.py`, regenerated XML, collector results). Diff against `_expected/` to debug. To accept a new output, copy it into
@@ -122,7 +122,7 @@ Integration tests (`-PrunIT`, `@Category(IntegrationTest.class)`) aren't needed 
 Edison, "compile" only checks that the source is non-empty, and pylint checks Python 3 syntax, not EdPy.
 
 To check that generated EdPy really compiles, run the reference compiler in check mode (setup in
-`docs/ai/edpy-reference.md` §2): `python EdPy.py -c en_lang.json <file.py>` → `{"error": false, …}`. All five Edison
+`docs/ai/edpy-reference.md` §2): `python EdPy.py -c en_lang.json <file.py>` → `{"error": false, …}`. All six Edison
 golden files pass (verified). Don't vendor EdPy into this repo without a licence review (GPL-2.0 vs Apache-2.0).
 
 Run the server locally: `./admin.sh -git-mode create-empty-db` once, then `./ora.sh start-from-git` → http://localhost:1999.
