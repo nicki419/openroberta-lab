@@ -115,7 +115,9 @@ EdPy is "a strict subset of python". Lexical rules (indentation, comments, line 
 
 | Construct | Status |
 |---|---|
-| `if / elif / else`, `while [/ else]`, `for x in range([start,] stop [,step])`, `for x in <list>`, `break`, `continue`, `pass` | supported |
+| `if / elif / else`, `while`, `for x in range([start,] stop [,step])`, `for x in <list>`, `break`, `continue`, `pass` | supported |
+| `while … else` | **rejected** despite the spec: `WHILE code too complex for Ed.Py` (verified; plain `while` compiles) |
+| `x if c else y`, chained comparisons (`0 < a < 5`), `in` / `is`, list comprehensions, tuples (`a, b = 1, 2`) | rejected (verified): `IfExp expr not supported`, `COMPARE code too complex`, `In/Is not supported`, `ListComp expr not supported`, `Tuple expr not supported` |
 | `def` | supported. **No nested functions.** No variable arguments (`*args`); the compiler checks that every call matches the definition. All `return`s must return an int or nothing. Ints are passed by value, lists and tune strings by reference. **Recursion compiles** (verified; robot stack depth unknown). |
 | `global` | supported, and **must be the first statement** in a function (`globals must be first in functions`) |
 | `class` | supported without inheritance; the first method argument must be `self`; all statements must be inside methods |
@@ -297,6 +299,9 @@ Writing to a constant → `Ed.Py constant … can not be written`.
 ---
 
 ## 8. Building a mock `Ed` runtime: a checklist from the sources
+
+A complete, tested implementation of this checklist is `docs/ai/edpy-unit-testing/edtest`. It's documented in
+`edpy-unit-testing.md`, including which behaviour is verified, derived from `edpy_code.py`, or assumed.
 
 1. **Constants:** use the exact values from §5.2. Program logic compares against them, e.g.
    `Ed.ReadKeypad() == Ed.KEYPAD_ROUND` means `== 4`.

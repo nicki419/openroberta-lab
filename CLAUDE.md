@@ -65,6 +65,16 @@ side: hand-written Edison blocks, generic blocks with Edison branches, data-driv
 messages, toolbox) and how to create a custom one (XML ↔ Java annotations, the three visitors to implement, tests). It
 includes a complete example block that was built and verified end to end. Read it before adding or changing any block.
 
+**`docs/ai/edpy-unit-testing.md`** explains how to **unit-test generated EdPy in Python**, and documents the working
+harness in `docs/ai/edpy-unit-testing/edtest` (standard library only). It covers:
+- a mock `Ed` module with EdPy's exact constants;
+- 16-bit and floor-division arithmetic, and EdPy's constant folding;
+- a virtual clock, and scripted latched sensors;
+- function-level tests (`load().call(...)`) and whole-program scenarios (`run(Robot()...)`);
+- which behaviour is verified, derived or assumed.
+
+Read it before building test tooling for the project goal.
+
 ## Where the Edison V2 code lives (short map)
 
 | What | Where |
@@ -124,6 +134,16 @@ Edison, "compile" only checks that the source is non-empty, and pylint checks Py
 To check that generated EdPy really compiles, run the reference compiler in check mode (setup in
 `docs/ai/edpy-reference.md` §2): `python EdPy.py -c en_lang.json <file.py>` → `{"error": false, …}`. All six Edison
 golden files pass (verified). Don't vendor EdPy into this repo without a licence review (GPL-2.0 vs Apache-2.0).
+
+To run generated EdPy and its unit tests under CPython 3.8+ (the Python harness, the example tests, and the harness
+against all golden programs):
+
+```bash
+python -m unittest discover -s docs/ai/edpy-unit-testing -p "test_*.py" -t docs/ai/edpy-unit-testing
+```
+
+This passed on 2026-09-25 with 46 tests: one deliberate expected failure shows generator quirk #14, and one test is
+skipped unless `EDPY_HOME`/`EDPY_PYTHON` point to the reference compiler. The same tests also run with pytest.
 
 Run the server locally: `./admin.sh -git-mode create-empty-db` once, then `./ora.sh start-from-git` → http://localhost:1999.
 On Windows use Git Bash. "Show source" works offline. Running a program on a real Edison needs the external Edison
