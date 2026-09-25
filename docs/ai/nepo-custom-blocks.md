@@ -1,11 +1,12 @@
-# NEPO blocks on the micro:bit V2 — how they're defined and how to create custom ones
+# NEPO blocks on the Edison V2 — how they're defined and how to create custom ones
 
-> **Audience:** AI coding agents (and humans) adding or changing NEPO blocks for the `microbitv2` robot plugin.
-> **Companion doc:** `docs/ai/microbitv2-nepo-to-python.md` (pipeline, generated Python, runtime API, tests, quirks).
-> **Status:** written 2026-09-23 against `develop` @ `a6efc03c7`.
-> - The **Java/server side (§4–§7) was verified by building a real custom block end to end** in a throwaway git
->   worktree. It compiled, validated, generated Python, ran in the simulator workflow, round-tripped XML, and passed
->   the golden-file suite (316/316 programs). The worktree was deleted afterwards.
+> **Audience:** AI coding agents (and humans) adding or changing NEPO blocks for the `edisonv2` robot plugin.
+> The plugin is shared with `edisonv3`: every block change applies to both.
+> **Companion doc:** `docs/ai/edisonv2-nepo-to-edpy.md` (pipeline, generated EdPy, `Ed` API, tests, quirks).
+> **Status:** written 2026-09-25 against branch `work` @ `a87f69b37`.
+> - The **Java/server side (§4–§7) was verified by building a real custom Edison block end to end** in a throwaway git
+>   worktree. It compiled, validated, generated EdPy, ran through `compile` and the simulator workflow, round-tripped
+>   XML, and passed the golden-file suite (317/317). The worktree was deleted afterwards.
 > - The **Blockly/browser side (§2–§3)** is documented from the compiled Blockly bundle and existing TypeScript
 >   precedents. It was **not** run in a browser.
 
@@ -15,108 +16,93 @@ Paths are repo-relative. `…/` abbreviates `src/main/java/de/fhg/iais/roberta/`
 
 ## 0. The short version
 
-A NEPO block is a **string name** (its *block type*, e.g. `mbedActions_display_text`) that must be known, identically,
-in eight places. Nothing checks consistency at build time. Mismatches show up at runtime or in the golden tests.
+A NEPO block is a **string name** (its *block type*, e.g. `actions_led_edison`) that must be known, identically, in
+eight places. Nothing checks consistency at build time.
 
 | # | Layer | Where | What it defines |
 |---|---|---|---|
-| 1 | **Blockly definition** (browser) | compiled into `OpenRobertaServer/staticResources/blockly/blockly_compressed.js`, or registered at runtime from `OpenRobertaWeb/src` (§2.6) | shape, fields, inputs, input types, colour, tooltip |
+| 1 | **Blockly definition** (browser) | compiled into `OpenRobertaServer/staticResources/blockly/blockly_compressed.js`, or registered at runtime from `OpenRobertaWeb/src` (§2.6) | shape, fields, inputs, input types, dropdown values (**including Edison's hard-coded port names**), tooltip |
 | 2 | **Messages** | `OpenRobertaServer/staticResources/blockly/msg/js/<lang>.js` (`Blockly.Msg.*`) | labels, tooltips, dropdown texts |
-| 3 | **Toolbox** | `RobotMbed/src/main/resources/microbitV2/program.toolbox.{beginner,expert}.xml` | whether learners see the block, and with which default sub-blocks |
-| 4 | **Blockly XML** | produced by Blockly, stored in the DB, sent to the server | `<block type=…>` with `<field>`, `<value>`, `<statement>`, `<mutation>`, `<hide>`, `<data>` |
-| 5 | **Java AST class** | `RobotMbed/…/syntax/**` | XML ↔ Java mapping (annotations) |
-| 6 | **Visitors** | `RobotMbed/…/visitor/**` | validation + hardware collection, type check, **Python**, simulator ops, textly |
-| 7 | **Simulator** (optional) | `OpenRobertaWeb/src/app/nepostackmachine/**`, `…/simulation/simulationLogic/robot.microbitv2.ts` | behaviour in the browser simulator |
-| 8 | **Tests** | `OpenRobertaServer/src/test/resources/crossCompilerTests/**` | golden program + expected AST, Python, collector output |
+| 3 | **Toolbox** | `RobotEdison/src/main/resources/edison.program.toolbox.{beginner,expert}.xml` | whether learners see the block, and its default sub-blocks |
+| 4 | **Blockly XML** | produced by Blockly (`robottype="edison"`) | `<block type=…>` with `<field>`, `<value>`, `<statement>`, `<mutation>`, `<data>` |
+| 5 | **Java AST class** | `RobotEdison/…/syntax/**` (Edison-specific) or `OpenRobertaRobot/…/syntax/**` (generic) | XML ↔ Java mapping (annotations) |
+| 6 | **Visitors** | `IEdisonVisitor` + `EdisonPythonVisitor`, `EdisonValidatorAndCollectorVisitor`, `EdisonStackMachineVisitor` | EdPy, validation + collection, simulator ops |
+| 7 | **Simulator** (optional) | `OpenRobertaWeb/src/app/simulation/simulationLogic/robot.edison.ts`, `…/nepostackmachine/**` | behaviour in the browser simulator |
+| 8 | **Tests** | `OpenRobertaServer/src/test/resources/crossCompilerTests/**` | golden program (`robotSpecific/edison/`) + expected files for **edisonv2 and edisonv3** |
 
-Verified minimal change set for a new micro:bit V2 statement block (§7 has all the code):
+Verified minimal change set for a new Edison statement block (§7 has all the code):
 
-- **New (5 files):**
+- **New (1 + 1 + 6 files):**
   - the AST class
   - one golden test program
-  - three expected-output files (`.ast`, `.py`, collector `.txt`)
-- **Edited (7 files):**
-  - `IMicrobitV2Visitor`
-  - `MbedV2ValidatorAndCollectorVisitor`
-  - `MicrobitV2TypecheckVisitor`
-  - `MbedV2PythonVisitor`
-  - `MbedV2StackMachineVisitor`
-  - `MbedV2RegenerateTextlyJavaVisitor`
-  - the expert toolbox XML
-- **Plus,** for the block to be usable in the editor, a Blockly definition and its messages (layers 1–2).
+  - 2 × 3 expected-output files (`.ast`, `.py`, collector `.txt`, for `edisonv2` and for `edisonv3`)
+- **Edited (5 files):**
+  - `IEdisonVisitor`
+  - `EdisonPythonVisitor`
+  - `EdisonValidatorAndCollectorVisitor`
+  - `EdisonStackMachineVisitor`
+  - `edison.program.toolbox.expert.xml`
+- **Plus,** for the editor, a Blockly definition and its messages (layers 1–2).
+
+Compared with boards that have a type checker and a textly representation, the Edison needs **only three visitor
+implementations**. `RegenerateNepoWorker` is generic (no textly), and there's no type-check worker.
 
 ---
 
 ## 1. Anatomy of a block, using one real example
 
-The micro:bit V2 block **"speaker on/off"** (`actions_sound_toggle`), traced through all layers.
+The Edison block **"LED on/off"** (`actions_led_edison`), traced through all layers.
 
 **Layer 1: Blockly definition** (de-minified from `blockly_compressed.js`):
 
 ```js
-Blockly.Blocks.actions_sound_toggle = {
+Blockly.Blocks.actions_led_edison = {
     init: function () {
-        var ports = getConfigPorts("buzzer");          // dropdown of configuration components of type "buzzer"
-        this.hide = {};                                // bind invisibly to that component (see §2.4)
-        this.hide.name = "ACTORPORT";
-        this.hide.port = true;
-        this.hide.value = ports.getValue();            // e.g. "_B"
         this.jsonInit({
-            message0: Blockly.Msg.SPEAKER + " %1",
-            args0: [{ type: "field_dropdown", name: "MODE",
-                      options: [[Blockly.Msg.ON, "ON"], [Blockly.Msg.OFF, "OFF"]] }],
+            message0: Blockly.Msg.SET_LED + " %1 %2",
+            args0: [
+                { type: "field_dropdown", name: "ACTORPORT",                 // ← Edison port names are hard-coded here
+                  options: [[Blockly.Msg.LEFT, "LLED"], [Blockly.Msg.RIGHT, "RLED"]] },
+                { type: "field_dropdown", name: "MODE",
+                  options: [[Blockly.Msg.ON, "ON"], [Blockly.Msg.OFF, "OFF"]] }
+            ],
             colour: Blockly.CAT_ACTION_RGB,
-            previousStatement: true, nextStatement: true,  // a statement block
-            tooltip: Blockly.Msg.SOUND_TOGGLE_TOOLTIP
+            previousStatement: true, nextStatement: true,                   // a statement block
+            tooltip: Blockly.Msg.LED_ON_TOOLTIP
         });
-        /* … */
     }
 };
 ```
 
-**Layer 2: messages.** `Blockly.Msg.SPEAKER = "Speaker"` and `Blockly.Msg.SOUND_TOGGLE_TOOLTIP = "Turn the speaker on
-or off."` are in `blockly/msg/js/en.js`, and the same keys are in every other `<lang>.js`.
+**Layer 2: messages.** `SET_LED`, `LEFT`, `RIGHT`, `ON`, `OFF`, `LED_ON_TOOLTIP` in `blockly/msg/js/<lang>.js`.
 
-**Layer 3: toolbox.** `microbitV2/program.toolbox.expert.xml`, category `TOOLBOX_SOUND`: `<block type="actions_sound_toggle"></block>`.
+**Layer 3: toolbox.** In `edison.program.toolbox.expert.xml` and `beginner.xml`, category `TOOLBOX_LIGHT`, twice with
+different presets.
 
-**Layer 4: XML** (from the golden program `robotSpecific/microbitv2/v2_sounds.xml`):
+**Layer 4: XML**, e.g.:
 
 ```xml
-<block type="actions_sound_toggle" id="ghTrN}t^2{GXae:vDT0r" intask="true">
-    <field name="MODE">OFF</field>
-    <hide name="ACTORPORT" value="_B"></hide>
+<block type="actions_led_edison" id="…" intask="true">
+    <field name="ACTORPORT">LLED</field>
+    <field name="MODE">ON</field>
 </block>
 ```
 
-**Layer 5: Java AST class** (`RobotMbed/…/syntax/action/mbed/microbitV2/SoundToggleAction.java`):
+**Layer 5: Java AST class.** It's a *generic* class shared with other robots:
+`OpenRobertaRobot/…/syntax/action/light/LedAction.java`, with `@NepoField ACTORPORT` (`port`) and `MODE` (`mode`).
 
-```java
-@NepoPhrase(name = "SOUND_TOGGLE_ACTION", category = "ACTOR", blocklyNames = {"actions_sound_toggle"})
-public final class SoundToggleAction extends Action {
-    @NepoField(name = "MODE") public final String mode;   // ← <field name="MODE">
-    @NepoHide public final Hide hide;                      // ← <hide name="ACTORPORT" value="_B"/>
-
-    public SoundToggleAction(BlocklyProperties properties, String mode, Hide hide) {
-        super(properties); this.mode = mode; this.hide = hide; setReadOnly();
-    }
-}
-```
-
-**Layer 6: visitors.** `visitSoundToggleAction` is declared in `IMbedV2Visitor` and implemented in:
+**Layer 6: visitors.** `IEdisonVisitor.visitLedAction(...)` is implemented in:
 
 | Visitor | Implementation |
 |---|---|
-| `MbedV2ValidatorAndCollectorVisitor` | Errors with `CONFIGURATION_ERROR_ACTOR_MISSING` unless the hidden port exists; adds `UsedActor BUZZER`. |
-| `MicrobitV2ValidatorAndCollectorVisitor` | Adds a `SIM_BLOCK_NOT_SUPPORTED` warning in the simulator workflow. |
-| `MicrobitV2TypecheckVisitor` | `Sig.of(BlocklyType.VOID)…` |
-| `MbedV2PythonVisitor` | → `microbit.speaker.off()` / `microbit.speaker.on()` |
-| `MbedV2StackMachineVisitor` | no-op |
-| `MbedV2RegenerateTextlyJavaVisitor` | → `microbitv2.speaker(off);` |
+| `EdisonPythonVisitor.visitLedAction` | `LLED` → `Ed.LeftLed(Ed.ON/OFF)`, `RLED` → `Ed.RightLed(…)`. An unknown port or mode throws `DbcException`. |
+| `EdisonValidatorAndCollectorVisitor.visitLedAction` | nothing (`return null`) |
+| `EdisonStackMachineVisitor.visitLedAction` | op `LED_ACTION` with `port=lled/rled`, `mode=ON/OFF` |
 
-**Layer 7: simulator.** Nothing; the block is flagged as unsupported in the sim.
+**Layer 7: simulator.** `EdisonLeds` in `robot.edison.ts` lights the left or right LED red.
 
-**Layer 8: tests.** The block is used in `v2_sounds.xml`, with expected
-`_expected/robotSpecific/targetLanguage/microbitv2/v2_sounds.py` and the matching `.ast` and collector files.
+**Layer 8: tests.** The block is used in `robotSpecific/edison/action.xml`, with expected
+`_expected/robotSpecific/targetLanguage/{edisonv2,edisonv3}/action.py`.
 
 ---
 
@@ -127,206 +113,167 @@ public final class SoundToggleAction extends Action {
 - **The block definitions and messages don't have editable source in this repository.** All definitions live in
   `OpenRobertaServer/staticResources/blockly/blockly_compressed.js`. That file is minified, about 3,300 lines, and its
   first line is `// Do not edit this file; automatically generated by build.py.` It's built in the separate
-  **OpenRoberta/blockly** repository (a fork of Google Blockly), which isn't checked out here, and the build output is
-  copied into `staticResources/blockly/`.
-- Messages are in `staticResources/blockly/msg/js/<lang>.js`. There are also `msg/messages.js` and `msg/json/`.
+  **OpenRoberta/blockly** repository, which isn't checked out here.
+- Messages are in `staticResources/blockly/msg/js/<lang>.js` (also `msg/messages.js`, `msg/json/`).
 - **Two ways to add a block:**
-  1. **Standard:** add the definition and messages in the Blockly repo, rebuild, and copy the build output here.
+  1. **Standard:** edit the Blockly repo, rebuild, and copy the build output.
   2. **Inside this repo:** register it at runtime from `OpenRobertaWeb/src` (§2.6).
-- To read an existing definition, search the bundle, e.g. `grep -o "Blockly.Blocks.mbedActions_display_text=.\{0,800\}"`.
+- To read an existing definition, search the bundle, e.g. `grep -o "Blockly.Blocks.actions_led_edison=.\{0,800\}"`.
 
-### 2.2 How the editor loads blocks
+### 2.2 How the editor loads blocks, and what `device` is for the Edison
 
-1. `OpenRobertaWeb/src/main.js` (RequireJS) maps `blockly` → `blockly/blockly_compressed` and loads it as a plain
-   script. Its top-level `var`s (`Blockly`, `sensors`, `sensorsAll`, `confBlocks`, …) are **globals**.
-2. At load, the bundle runs `initSensors()` and `initConfBlocks()`, which *generate* many blocks from data tables (§2.3).
+1. `OpenRobertaWeb/src/main.js` (RequireJS) loads `blockly/blockly_compressed` as a plain script. Its top-level `var`s
+   (`Blockly`, `sensors`, `sensorsAll`, `confBlocks`) are **globals**.
+2. At load, the bundle runs `initSensors()` / `initConfBlocks()`, which generate data-driven blocks (§2.3 c).
 3. `programController.init()` (`OpenRobertaWeb/src/app/roberta/controller/program.controller.js`) calls
-   `Blockly.inject('blocklyDiv', {toolbox: GUISTATE_C.getProgramToolbox(), …})`.
-   - The toolbox XML comes from the server: `RobotFactory` reads the toolbox file of the plugin, and `POST
-     /rest/admin/setRobot` returns it.
-   - Then `blocklyWorkspace.setDevice({group: GUISTATE_C.getRobotGroup(), robot: GUISTATE_C.getRobot()})` sets
-     `workspace.device`. For micro:bit V2 that's **`"microbitv2"`** (the plugin has no `robot.plugin.group`, so the
-     group is the robot name).
-4. Instantiating a block whose type has no `Blockly.Blocks[type]` entry fails the assertion
-   **`Error: "<type>" is an unknown language block.`** This applies to toolbox entries and to saved programs alike, so
-   a definition must exist before the toolbox or program containing it is rendered.
+   `Blockly.inject(…, {toolbox})`. The toolbox XML comes from the server.
+4. Then `blocklyWorkspace.setDevice({group, robot})` sets **`workspace.device = "edison"`** (the robot group) and
+   `workspace.subDevice = "edisonv2"`. Many generic block definitions branch on `this.workspace.device ===
+   "edison"`.
+5. Instantiating an unknown block type fails the assertion `Error: "<type>" is an unknown language block.` This applies
+   to toolbox entries and saved programs alike.
 
-### 2.3 Three definition styles
+### 2.3 Definition styles used by Edison blocks
 
-**(a) Hand-written blocks.** `Blockly.Blocks.<type> = { init: function () { … } }`, used by most action blocks.
-There are two sub-styles:
+**(a) Hand-written Edison blocks** (all four Edison-specific toolbox blocks):
 
-- declarative `this.jsonInit({...})`, as in `actions_sound_toggle` above;
-- imperative, e.g. `mbedActions_display_getPixel` (de-minified):
+| Block type | Definition (de-minified essentials) | Java class |
+|---|---|---|
+| `actions_led_edison` | §1: dropdowns `ACTORPORT` (`LLED`/`RLED`) and `MODE` (`ON`/`OFF`), statement | `LedAction` (generic) |
+| `edisonSensors_sensor_reset` | Dummy input `SENSOR_RESET` + dropdown `SENSOR` `[[SENSOR_INFRARED,"OBSTACLEDETECTOR"],[SENSOR_KEYPAD,"KEYPAD"],[SENSOR_SOUND,"SOUND"],[SENSOR_IRSEEKER_EDISON,"RCCODE"]]` + `SENSOR_RESET_II`, statement | `RobotEdison/…/syntax/sensors/edison/ResetSensor` (`@NepoField SENSOR`) |
+| `edisonCommunication_ir_sendBlock` | Alias of `bob3Communication_sendBlock`. For device edison: `appendValueInput("sendData").setCheck("Number")`, statement | `RobotEdison/…/syntax/actors/edison/SendIRAction` (`@NepoValue sendData`) |
+| `edisonCommunication_ir_receiveBlock` | Alias of `bob3Communication_receiveBlock`: `setOutput(true, "Number")` | `ReceiveIRAction` (`@NepoExpr`, NUMBER) |
 
-```js
-Blockly.Blocks.mbedActions_display_getPixel = {
-    init: function () {
-        this.setColour(Blockly.CAT_ACTION_RGB);
-        this.appendValueInput("X").setCheck("Number")                       // <value name="X">, must be a Number
-            .appendField(Blockly.Msg.GET + " " + Blockly.Msg.DISPLAY_PIXEL_TITLE)
-            .appendField(Blockly.Msg.DISPLAY_PIXEL_BRIGHTNESS).setAlign(Blockly.ALIGN_RIGHT)
-            .appendField(Blockly.Msg.X);
-        this.appendValueInput("Y").setCheck("Number").setAlign(Blockly.ALIGN_RIGHT).appendField(Blockly.Msg.Y);
-        this.setTooltip(Blockly.Msg.DISPLAY_GET_PIXEL_TOOLTIP);
-        this.setOutput(true, "Number");                                    // an expression block returning Number
-    }
-};
-```
+The IR tooltips use message keys `CONNECTION_SEND/RECEIVE_TOOLTIP_EDISON`, which **aren't defined** in `en.js`.
 
-**(b) Data-driven sensor blocks** (`robSensors_<name>_getSample`). These aren't hand-written:
+**(b) Generic blocks with Edison branches.** The shared definition checks `this.workspace.device === "edison"`:
 
-```js
-// bundle, verbatim logic:
-function initSensors() {
-    for (var a in sensors)
-        Blockly.Blocks["robSensors_" + a + "_getSample"] = { sensor: a,
-            init: function () { Blockly.Blocks.robSensors_generic.init.call(this, sensors[this.sensor][this.workspace.device]); } };
-}
-initSensors();
-```
+| Block | Edison branch |
+|---|---|
+| `robActions_motor_on(_for)`, `robActions_motor_stop` | ports `[[MOTOR+" "+MOTOR_LEFT,"LMOTOR"],[MOTOR+" "+MOTOR_RIGHT,"RMOTOR"]]`; motor stop has no FLOAT/BRAKE mode |
+| variable type dropdown (`Blockly.TYPE_DROPDOWN`) | only Number, Boolean, Array_Number |
+| `robLists_create_with` | new Number items are `math_integer` |
+| `robLists_getIndex` / `robLists_setIndex` | only GET/SET with FROM_START |
+| `math_single` | only ABS, NEG, POW10 |
+| `math_number_property` | no WHOLE |
+| `math_on_list` | only SUM, MIN, MAX, AVERAGE |
+| `robControls_start` | `DEBUG` hidden; global declarations default to `math_integer` |
 
-Each sensor is a **data entry per robot group**. The micro:bit V2 entries are real values from the bundle:
+**(c) Data-driven sensor blocks** (`robSensors_<name>_getSample`), generated by `initSensors()` from
+`sensors.<name>.edison` through `robSensors_generic`. These are the exact Edison entries from the bundle:
 
 ```js
-sensors.logotouch.microbitv2 = { title: "LOGOTOUCH", modes: [{ name: "PRESSED", type: "Boolean", question: true }],
-                                 ports: "CONFIGURATION", portsHidden: true };
-sensors.accelerometer.microbitv2 = sensors.accelerometer.calliope;   // = { title: "ACCELEROMETER",
-    //   modes: [{ name: "VALUE", type: "Number", unit: "MILLIG", op: "NUM_REV", value: 0 }],
-    //   slots: [["x","X"],["y","Y"],["z","Z"],["STRENGTH","STRENGTH"]], ports: "CONFIGURATION", portsHidden: true }
-sensors.pintouch.microbitv2 = sensors.pintouch.microbit;            // = { title: "PINTOUCH",
-    //   ports: [[" 0","0"],[" 1","1"],[" 2","2"]], modes: [{ name: "PRESSED", type: "Boolean", question: true }], standardPort: "1" }
-sensorsAll.microbitv2 = [ sensors.key.microbitv2, sensors.pintouch.microbitv2, sensors.logotouch.microbitv2, … ];
-                                                                     // → the options of the generic robSensors_getSample block
+sensors.infrared.edison = { title: "INFRARED", ports: [["LEFT","LEFT"],["RIGHT","RIGHT"],["SLOT_FRONT","FRONT"]],
+                            modes: [{ name: "OBSTACLE", type: "Boolean" }] };
+sensors.irseeker.edison = { title: "IRSEEKER", modes: [{ name: "RCCODE", type: "Number" }] };
+sensors.key.edison      = { title: "KEY", modes: [{ name: "PRESSED", type: "Boolean", question: true }],
+                            ports: [["SENSOR_KEY_PLAY","PLAY"],["SENSOR_KEY_REC","REC"]] };
+sensors.light.edison    = { title: "LIGHT", modes: [
+                              { name: "LIGHT", type: "Number", unit: "PERCENT", ports: [["LEFT","LLIGHT"],["RIGHT","RLIGHT"],["BELOW","LINETRACKER"]] },
+                              { name: "LINE",  type: "Boolean", ports: [["BELOW","LINETRACKER"]] } ] };
+sensors.sound.edison    = { title: "SOUND", modes: [{ name: "SOUND", type: "Boolean" }] };
+sensorsAll.edison = [ sensors.key.edison, sensors.infrared.edison, sensors.irseeker.edison,
+                      sensors.light.edison, sensors.sound.edison ];     // → options of the generic robSensors_getSample
 ```
 
-What `robSensors_generic` does with such an entry:
+What `robSensors_generic` makes of such an entry:
 
 | Entry key | Effect in the block | XML produced |
 |---|---|---|
-| `title` | label from `Blockly.Msg["SENSOR_<title>_<GROUP>"]`, else `Blockly.Msg["SENSOR_<title>"]` | – |
-| `modes[]` (`name`, `type`, `unit`, `question`) | several modes give a `MODE` dropdown (labels `Blockly.Msg["MODE_<name>"]`), one mode a hidden field. `type` is the output type (`setOutput(true, type)`), `unit` shows `Blockly.Msg["SENSOR_UNIT_<unit>"]`, and `question: true` gives the "is pressed?" wording (`Blockly.Msg["SENSOR_IS_<name>"]`). | `<mutation mode="<MODE>"/>`, `<field name="MODE">` |
-| `ports: "CONFIGURATION"` | the `SENSORPORT` dropdown lists the configuration components of type `title.toLowerCase()` (`getConfigPorts`) | `<field name="SENSORPORT">_T</field>` |
-| `ports: [[label, value], …]` | a fixed port dropdown | `<field name="SENSORPORT">1</field>` |
-| `portsHidden: true` | if there's only one component, the port dropdown is hidden and a `hide` is used instead | `<hide name="SENSORPORT" value="_T"/>` |
-| `slots` | `SLOT` dropdown (e.g. accelerometer axis) | `<field name="SLOT">X</field>` (empty if there are no slots) |
-| `standardPort` | default port value | – |
-| tooltip | `SENSOR_<title>_<MODE>_GETSAMPLE_TOOLTIP[_<GROUP>]`, else `SENSOR_<title>_GETSAMPLE_TOOLTIP` | – |
+| `title` | label from `Blockly.Msg["SENSOR_<title>_EDISON"]`, else `SENSOR_<title>` | – |
+| `modes[]` (`name`, `type`, `unit`, `question`, per-mode `ports`) | several modes give a `MODE` dropdown (`MODE_<name>` labels), one mode a hidden field. `type` is the output type. `question: true` gives "… pressed?" wording. Per-mode `ports` rebuild the port dropdown when the mode changes (light: LINE only offers `LINETRACKER`). | `<mutation mode="…"/>`, `<field name="MODE">` |
+| `ports: [[label, value], …]` | a fixed `SENSORPORT` dropdown; this is where the **Edison port names** come from | `<field name="SENSORPORT">FRONT</field>` |
+| no `ports` | hidden, empty port (`- EMPTY_PORT -` in Java) | `<field name="SENSORPORT"></field>` |
+| `slots` | not used for Edison (SLOT is always hidden) | `<field name="SLOT"></field>` |
 
-The resulting XML is exactly what the Java `ExternalSensor` classes expect (§4.4): fields `MODE`, `SENSORPORT`, and
-`SLOT`, plus a mutation and a hide.
+Edison has **no `confBlocks.*.edison`** (no configurable components), and no blocks using `getConfigPorts` or
+`hide`.
 
-**(c) Data-driven configuration blocks** (`robConf_<name>`), generated by `initConfBlocks()` from
-`confBlocks.<name>.<group>` through `robConf_generic`:
+### 2.4 Ports: hard-coded, not configured
 
-```js
-confBlocks.logotouch.microbitv2 = { title: "LOGOTOUCH", sensor: true, inbuilt: true };
-confBlocks.buzzer.microbitv2 = confBlocks.buzzer.calliope;   // others: light, accelerometer, compass, temperature, key,
-                                                             // sound, digitalout, analogout, digitalin, analogin
-```
+`robBrick_Edison-Brick` has **no Blockly definition**. The configuration tab only shows a picture, and the
+configuration AST on the server has zero components. Port names therefore live in the block definitions (§2.3), and
+the Java generators switch on `getUserDefinedPort()`:
+- `LMOTOR`/`RMOTOR`
+- `LLED`/`RLED`
+- `LEFT`/`RIGHT`/`FRONT` (infrared)
+- `PLAY`/`REC` (keys)
+- `LLIGHT`/`RLIGHT`/`LINETRACKER`
 
-- `sensor` picks the colour and message prefix (`SENSOR_` or `ACTION_`).
-- `inbuilt` gives a hidden name with a leading underscore (e.g. `_LO`).
-- The block's first field is `NAME` (the user-defined port name the program blocks refer to), plus pin fields such as
-  `PIN1` where applicable.
-
-### 2.4 Binding program blocks to the configuration
-
-- `getConfigPorts(type)` scans the configuration workspace (`bricklyDiv`) for blocks whose `getConfigDecl()` has that
-  type. It returns a dropdown of their names, or "no port" if there are none.
-- For single, built-in components, blocks store the choice invisibly: `this.hide = {name: "ACTORPORT" | "SENSORPORT",
-  value: …}` (hand-written), or `hidePortIfOnlyInbuilt(block)` (generated sensors). That becomes
-  `<hide name="…" value="…"/>` in the XML, and Java reads it with `@NepoHide` or through the `ExternalSensor` machinery.
+**A new block that addresses hardware must use the same port strings in its dropdown and in the Java `switch`.**
 
 ### 2.5 Types and messages
 
-- **Input and output types:** `setCheck(...)` / `setOutput(true, …)` use the NEPO type names `"Number"`, `"Boolean"`,
-  `"String"`, `"Image"`, `"Array_Number"`, `"Array_String"`, `"Array_Boolean"`, `"Array_Image"`. Keep them consistent
-  with the Java type check (`BlocklyType`) and the `@NepoValue(type = …)` of the AST class.
-- **Messages:** a missing `Blockly.Msg` key falls back to `Blockly.checkMsgKey(key)`. That logs `This message is not
-  translated: <key>` and shows the raw key. Add keys for **every** language file, or at least `en.js` and `de.js`.
-- **Colours:** use `Blockly.CAT_ACTION_RGB`, `Blockly.CAT_SENSOR_RGB`, etc., so the block matches its toolbox
-  category.
+- **Input and output types:** `setCheck(...)` / `setOutput(true, …)` with `"Number"` or `"Boolean"` (and
+  `"Array_Number"`). The Edison has no strings or images.
+- **Numbers:** Edison programs use **`math_integer`** blocks. A decimal value that reaches the Java generator crashes
+  it (`Not an integer`, verified), so constrain inputs to integers in the Blockly definition and the toolbox presets.
+- **Messages:** a missing `Blockly.Msg` key falls back to `Blockly.checkMsgKey(key)`. It logs a warning and shows the
+  raw key. Add keys for every language file, or at least `en.js` and `de.js`.
 
 ### 2.6 Registering a custom block from this repo (no Blockly rebuild)
 
-There's a working precedent. `OpenRobertaWeb/src/app/configVisualization/robotBlock.ts` exports a block definition,
-and `confVisualization.ts:98` registers it with `window.Blockly.Blocks['robConf_robot'] = createRobotBlock(…)`. It's
-wired into `OpenRobertaWeb/src/main.js` in four places:
+There's a working precedent: `OpenRobertaWeb/src/app/configVisualization/robotBlock.ts` exports a block definition that
+`confVisualization.ts:98` registers (`window.Blockly.Blocks['robConf_robot'] = createRobotBlock(…)`). It's wired
+into `OpenRobertaWeb/src/main.js` in four places: a RequireJS `paths` entry, a `shim` with `deps: ['blockly']`, the
+`require([...])` list, and a `require('robotBlock')` call. TypeScript compiles with `tsc` (AMD, `outDir`
+`../OpenRobertaServer/staticResources/js`); see `OpenRobertaWeb/README.md` (`npm install && npm run build && npx gulp`).
 
-1. a RequireJS `paths` entry: `robotBlock: 'js/app/configVisualization/robotBlock'`;
-2. a `shim` entry: `robotBlock: { deps: ['blockly'] }`;
-3. an entry in the `require([...])` list;
-4. `robotBlock = require('robotBlock')`.
-
-The TypeScript compiles with `tsc` (AMD modules, `outDir` `../OpenRobertaServer/staticResources/js`); see
-`OpenRobertaWeb/README.md` (`npm install && npm run build && npx gulp`).
-
-The same pattern works for a custom micro:bit V2 block. The sketch below is **not run**. Register before
-`programController.init()` runs:
+The same pattern works for a custom Edison block. The sketch below is **not run**. Register before
+`programController.init()`:
 
 ```ts
-// OpenRobertaWeb/src/app/customBlocks/microbitv2.customBlocks.ts   (hypothetical file)
+// OpenRobertaWeb/src/app/customBlocks/edison.customBlocks.ts   (hypothetical file)
 const B = (<any>window).Blockly;
+B.Msg.EDISON_PLAY_BEEP = B.Msg.EDISON_PLAY_BEEP || 'play beep, tone';
+B.Msg.EDISON_PLAY_BEEP_TOOLTIP = B.Msg.EDISON_PLAY_BEEP_TOOLTIP || 'Plays a short beep with the given tone.';
 
-B.Msg.DISPLAY_SCROLL_DELAY = B.Msg.DISPLAY_SCROLL_DELAY || 'scroll text';        // provide defaults for missing keys
-B.Msg.DISPLAY_SCROLL_DELAY_TOOLTIP = B.Msg.DISPLAY_SCROLL_DELAY_TOOLTIP || 'Scrolls the text; delay = ms per column.';
-
-B.Blocks['mbedActions_display_scroll_delay'] = {
+B.Blocks['edisonActions_play_beep'] = {
     init: function () {
         this.setColour(B.CAT_ACTION_RGB);
-        this.appendValueInput('OUT').setCheck(['Number', 'Boolean', 'String']).appendField(B.Msg.DISPLAY_SCROLL_DELAY);
-        this.appendValueInput('DELAY').setCheck('Number').setAlign(B.ALIGN_RIGHT).appendField('delay (ms)');
+        this.appendValueInput('TONE').setCheck('Number').appendField(B.Msg.EDISON_PLAY_BEEP);
         this.setPreviousStatement(true);
         this.setNextStatement(true);
-        this.setTooltip(B.Msg.DISPLAY_SCROLL_DELAY_TOOLTIP);
+        this.setTooltip(B.Msg.EDISON_PLAY_BEEP_TOOLTIP);
     },
 };
 
-// A data-driven sensor instead needs a data entry, then a re-run of the generator:
-// (<any>window).sensors.mysensor = { microbitv2: { title: 'MYSENSOR', modes: [{ name: 'VALUE', type: 'Number' }],
-//                                                   ports: 'CONFIGURATION', portsHidden: true } };
-// (<any>window).sensorsAll.microbitv2.push((<any>window).sensors.mysensor.microbitv2);
+// A new data-driven Edison sensor instead needs a data entry, then a re-run of the generator:
+// (<any>window).sensors.mysensor = { edison: { title: 'MYSENSOR', modes: [{ name: 'VALUE', type: 'Number' }] } };
+// (<any>window).sensorsAll.edison.push((<any>window).sensors.mysensor.edison);
 // (<any>window).initSensors();
 ```
 
-Caveats for runtime registration:
-- Messages are replaced when the learner switches language (`msg/js/<lang>.js` is reloaded). Defaults set with `||`
-  won't be re-translated.
-- The block is unknown to every other tool that uses the Blockly bundle, e.g. anything built from the Blockly repo.
-- Keep all runtime-registered blocks in **one** module, so they're easy to move into the Blockly repo later.
+Caveats:
+- Messages are replaced on language switch, so `||` defaults won't be re-translated.
+- Keep all runtime-registered blocks in **one** module, so they can move into the Blockly repo later.
 
 ---
 
 ## 3. Layer 3: toolbox
 
-- Files: `RobotMbed/src/main/resources/microbitV2/program.toolbox.beginner.xml` and `program.toolbox.expert.xml`
-  (level 1/2 tabs in the editor). The format:
+- Files: `RobotEdison/src/main/resources/edison.program.toolbox.beginner.xml` and `…expert.xml` (level 1/2 tabs).
+- Expert categories:
+  - `TOOLBOX_ACTION` (`TOOLBOX_MOVE`, `TOOLBOX_DRIVE`, `TOOLBOX_SOUND`, `TOOLBOX_LIGHT`)
+  - `TOOLBOX_SENSOR`
+  - `TOOLBOX_CONTROL` (`TOOLBOX_DECISION`, `TOOLBOX_LOOP`, `TOOLBOX_WAIT`)
+  - `TOOLBOX_LOGIC`, `TOOLBOX_MATH`, `TOOLBOX_NN` (inside `#ifdef nn … #end`), `TOOLBOX_TEXT`, `TOOLBOX_LIST`
+  - `TOOLBOX_COMMUNICATION`
+  - `TOOLBOX_VARIABLE`, `TOOLBOX_PROCEDURE`
+- A toolbox entry can pre-attach **default inputs** (use `math_integer` for numbers):
 
   ```xml
-  <toolbox_set id="toolboxExpert">
-    <category name="TOOLBOX_ACTION" svg="true">
-      <category name="TOOLBOX_DISPLAY" svg="true">
-        <block type="…">…default sub-blocks…</block>
-  ```
-
-  - Category names are message keys.
-  - `#ifdef nn … #end` sections are kept only when the neural-network extension is on (`Util.applyTemplate`).
-  - `custom="VARIABLE"` / `custom="PROCEDURE"` are Blockly's dynamic flyouts.
-- A toolbox entry can pre-attach **default inputs**, which is what learners get when they drag the block in:
-
-  ```xml
-  <block type="mbedActions_display_scroll_delay">
-      <value name="OUT"><block type="text"><field name="TEXT">Hallo</field></block></value>
-      <value name="DELAY"><block type="math_number"><field name="NUM">150</field></block></value>
+  <block type="edisonActions_play_beep">
+      <value name="TONE"><block type="math_integer"><field name="NUM">200</field></block></value>
   </block>
   ```
 
-- The server serves the toolbox, so a toolbox change needs a server rebuild or restart, not a frontend build.
-- **A toolbox block must appear in a test program.** `TestToolboxBlocksAreUsedInTestFiles` fails otherwise
-  (verified; see §6).
-- Blocks that are implemented but not in the toolbox can still be loaded from saved or imported programs. That's how
-  `robActions_assert`/`robActions_debug` exist today; they're only reachable with hidden shortcuts.
+- The server serves the toolbox (`RobotFactory` → `/rest/admin/setRobot`), so a toolbox change needs a server
+  rebuild or restart.
+- **A toolbox block must appear in a test program.** `TestToolboxBlocksAreUsedInTestFiles` checks both `edisonv2` and
+  `edisonv3` against `common/**` + `robotSpecific/edison/**`.
+- Blocks that are implemented but not in the toolbox can still be loaded from imported XML, or created with the hidden
+  shortcuts (assert, debug). Generator exceptions for those surface as server errors.
 
 ---
 
@@ -335,131 +282,95 @@ Caveats for runtime registration:
 ### 4.1 Registration
 
 `AstFactory.loadBlocks()` (`OpenRobertaRobot/…/util/ast/AstFactory.java`) scans every class under
-`de.fhg.iais.roberta.syntax.` on the classpath (**all robot plugins**). Each class is registered through its class
-annotation. `Jaxb2ProgramAst.block2ast` lowercases the XML `type` and looks it up. Rules enforced at startup or XML
-parsing:
+`de.fhg.iais.roberta.syntax.` from **all** plugins. `Jaxb2ProgramAst` lowercases the XML type and looks it up. Rules:
 
-- `blocklyNames` are **globally unique across plugins** (case-insensitive). A duplicate gives the assertion
-  `AST classes … mapped both blockly name …`.
-- The class must be **`final`**. Otherwise you get `DbcException("class X is not final …")`.
-- `category` must be a `de.fhg.iais.roberta.components.Category` constant: `EXPR, SENSOR, ACTOR, STMT, TASK, FUNCTION,
-  METHOD, HELPER, CONFIGURATION_*`. Stacks whose top phrase has category `METHOD` are treated as function definitions.
-- Sensor **modes** must be listed in `AstFactory.allLegalModesArray`, otherwise you get `Undefined mode …`.
-- `@F2M` field names (for the generic get-sample block) form one global map. A duplicate silently overwrites.
+- `blocklyNames` are **globally unique across plugins**, case-insensitive (`AST classes … mapped both blockly name …`).
+- The class must be **`final`**.
+- `category` must be a `Category` constant: `EXPR, SENSOR, ACTOR, STMT, TASK, FUNCTION, METHOD, HELPER, CONFIGURATION_*`.
+- Sensor **modes** must be listed in `AstFactory.allLegalModesArray`, otherwise you get `Undefined mode …`. Edison
+  modes such as `OBSTACLE`, `RCCODE`, `EDISON_CODE`, `LINE`, `LIGHT`, `PRESSED`, and `SOUND` are there.
+- Existing Edison-specific classes: `RobotEdison/…/syntax/actors/edison/{SendIRAction,ReceiveIRAction}`,
+  `…/sensors/edison/ResetSensor`. The naming convention for Edison-only blocks is `edison<Category>_<name>`
+  (`edisonCommunication_ir_sendBlock`, `edisonSensors_sensor_reset`); `actions_led_edison` is the exception.
 
-### 4.2 Field annotations (`AnnotationHelper.block2astByAnnotation` / `ast2xml`)
+### 4.2 Field annotations (`AnnotationHelper`)
 
 | XML | Java | Allowed Java type | If missing in the XML |
 |---|---|---|---|
-| `<field name="MODE">ON</field>` | `@NepoField(name = "MODE", value = "<default>")` | `String`, `boolean`/`Boolean`, `double`/`Double`, any `enum` | the `value` default (`""`) |
-| `<value name="OUT"><block …/></value>` | `@NepoValue(name = "OUT", type = BlocklyType.STRING)` | `Expr` (or `Var`) | `EmptyExpr` of that type, which the validator turns into `ERROR_MISSING_PARAMETER` (verified) |
+| `<field name="MODE">ON</field>` | `@NepoField(name = "MODE", value = "<default>")` | `String`, `boolean`/`Boolean`, `double`/`Double`, `enum` | the `value` default (`""`) |
+| `<value name="TONE"><block …/></value>` | `@NepoValue(name = "TONE", type = BlocklyType.NUMBER)` | `Expr` (or `Var`) | `EmptyExpr` → `ERROR_MISSING_PARAMETER` from the validator (verified) |
 | `<mutation …/>` | `@NepoMutation` | `Mutation` | `null` |
-| `<hide name="…" value="…"/>` | `@NepoHide` | `Hide` | `null` (at most one) |
+| `<hide …/>` | `@NepoHide` | `Hide` | `null` (not used by Edison blocks) |
 | `<data>…</data>` | `@NepoData` | `String` | **exception** |
-| `<statement name="DO">…</statement>` | not supported → use `@NepoBasic` (§4.4) | `StmtList` | |
+| `<statement name="DO">…</statement>` | not supported → `@NepoBasic` with hand-written `xml2ast`/`ast2xml` | `StmtList` | |
 
 **Constructor contract.** The constructor is `public X(BlocklyProperties properties, <annotated fields in declaration
 order>)`, and it ends with `setReadOnly()`.
-- The Javadoc of `@NepoPhrase`/`@NepoExpr` still describes an older signature with `BlockDescriptor`/`BlocklyComment`.
-  Ignore it.
-- Direct `ExternalSensor` subclasses use `(BlocklyProperties, ExternalSensorBean)` instead.
+- Direct `ExternalSensor` subclasses use `(BlocklyProperties, ExternalSensorBean)`. `SENSORPORT`, `MODE`, `SLOT` and
+  the mutation are read automatically.
+- The Javadoc on `@NepoPhrase`/`@NepoExpr` describes an outdated signature.
 
-A wrong constructor fails at XML → AST time with `Constructor in annotated AST class X not found or invalid`.
-`NepoAnnotationValidTest` is meant to catch this, but see §8 #2.
+A wrong constructor fails at XML → AST time (`Constructor in annotated AST class X not found or invalid`).
+`NepoAnnotationValidTest` doesn't reliably catch it: it runs 0 tests alone.
 
 ### 4.3 Choosing the class kind
 
-| Block shape (Blockly) | Annotation | Base class | Examples |
+| Block shape | Annotation | Base class | Edison examples |
 |---|---|---|---|
-| statement, hardware action (`previousStatement/nextStatement`) | `@NepoPhrase(category = "ACTOR")` | `Action` | `SoundToggleAction`, `DisplayTextAction` |
-| statement configuring a sensor | `@NepoPhrase(category = "SENSOR")` | `Sensor` | `PinSetTouchMode`, `LogoSetTouchMode` |
-| expression reading hardware (`setOutput`) | `@NepoExpr(category = "ACTOR", blocklyType = …)` | `Action` | `DisplayGetPixelAction` |
-| data-driven sensor `robSensors_<x>_getSample` | `@NepoExpr(category = "SENSOR", blocklyNames = {"robSensors_<x>_getSample"}, sampleValues = {@F2M(field = "<TITLE>_<MODE>", mode = "<MODE>")})` | `ExternalSensor` | `LogoTouchSensor`, `RadioRssiSensor` |
-| pure function / operator | `@NepoExpr(category = "FUNCTION", blocklyType = …, precedence = …)` | `Function` | `ImageInvertFunction` |
-| statement inputs, repetitions, unusual XML | `@NepoBasic` + `static Phrase xml2ast(Block, Jaxb2ProgramAst)` + `List<Block> ast2xml()` | any | `Image`, `IfStmt`, `RepeatStmt`, `WaitStmt`, `GetSampleSensor` |
+| statement, hardware action | `@NepoPhrase(category = "ACTOR")` | `Action` | `SendIRAction`, the verified `PlayBeepAction` (§7) |
+| statement acting on sensors | `@NepoPhrase(category = "SENSOR")` | `Sensor` | `ResetSensor` |
+| expression reading hardware | `@NepoExpr(category = "ACTOR" \| "SENSOR", blocklyType = …)` | `Action` / `Sensor` | `ReceiveIRAction` (NUMBER) |
+| data-driven sensor `robSensors_<x>_getSample` | `@NepoExpr(category = "SENSOR", blocklyNames = {"robSensors_<x>_getSample"}, sampleValues = {@F2M(field = "<TITLE>_<MODE>", mode = "<MODE>")})` | `ExternalSensor` | the generic `InfraredSensor`, `LightSensor`, `KeysSensor`, `SoundSensor`, `IRSeekerSensor` |
+| statement inputs or unusual XML | `@NepoBasic` + `static Phrase xml2ast(Block, Jaxb2ProgramAst)` + `List<Block> ast2xml()` | any | `IfStmt`, `RepeatStmt`, `WaitStmt` |
 
-- **Wrapping is automatic.** An `Action`/`Sensor` in statement position is wrapped in `ActionStmt`/`SensorStmt`; in a
-  value socket it's wrapped in `ActionExpr`/`SensorExpr`. You only implement `visitXxx` for your class.
-- **Precedence.** Expressions default to `precedence = 999`, which means "atomic, never parenthesised". If your Python
-  contains operators, set a real precedence, or wrap the output in parentheses yourself. See
-  `microbitv2-nepo-to-python.md` §13 #1 for the bug this default causes today.
-- **`@NepoBasic` helpers:** `Jaxb2Ast.extractFields/extractField/extractValues/extractBlocklyProperties`,
-  `helper.extractValue(values, new ExprParam(name, type))`, and `helper.extractStatement(block.getStatement(), "DO")`.
-  Going back: `Ast2Jaxb.setBasicProperties/addField/addValue/addStatement/addMutation`.
-
-### 4.4 Sensor blocks on the Java side
-
-- An `ExternalSensor` subclass gets `SENSORPORT`, `MODE`, `SLOT`, mutation, and hide automatically
-  (`ExternalSensor.extractPortModeSlotMutationHide`).
-- `@F2M(field = "LOGOTOUCH_PRESSED", mode = "PRESSED")` connects the generic `robSensors_getSample` block's
-  `SENSORTYPE` value to the class and mode. The field is `<title>_<mode>`, matching the Blockly data entry.
-- Validators usually call `checkSensorExists(sensor, "<CONFIG TYPE>")`, which yields
-  `CONFIGURATION_ERROR_SENSOR_MISSING`. They add `UsedSensor(port, type, mode)`.
-
-### 4.5 Configuration blocks on the Java side
-
-- A new component type needs an empty marker class. Example: `RobotMbed/…/syntax/configuration/sensor/Logo.java`,
-  which has `@NepoConfiguration(name = "LOGOTOUCH", category = "CONFIGURATION_SENSOR", blocklyNames =
-  {"robConf_logotouch"})` and a private constructor that throws.
-- Add the block to `microbitV2/configuration.toolbox.xml` or `configuration.default.xml`.
-- Pin validation parameters are in `MicrobitV2ValidatorAndCollectorWorker`: `FREE_PINS`, `DEFAULT_PROPERTIES` (types
-  that skip pin checks), `MAP_CORRECT_CONFIG_PINS`.
+- An `Action` or `Sensor` is wrapped automatically in `ActionStmt`/`SensorStmt` (statement position) or
+  `ActionExpr`/`SensorExpr` (value socket).
+- Expressions default to `precedence = 999` (never parenthesised). Set a real precedence if the EdPy contains operators.
 
 ---
 
 ## 5. Layer 6: which visitors must learn the block (verified)
 
-**Pick the interface deliberately.** The experiment compiled both variants:
-
-| Declare `visitX` in | Classes that stop compiling until implemented |
-|---|---|
-| `IMbedV2Visitor` | **13**, including Calliope's C++ generator (`CalliopeCppVisitor`), because `ICalliopeVisitor extends IMbedV2Visitor` |
-| **`IMicrobitV2Visitor`** (recommended for micro:bit-only blocks) | **10**. They're all satisfied by **5 implementations**, because most are subclasses of the three abstract V2 bases. |
-
-The five implementations (verified code in §7):
+Declaring `V visitX(X x);` in **`RobotEdison/…/visitor/IEdisonVisitor.java`** breaks exactly **three** classes until
+they implement it (verified by compiling):
 
 | # | Class | Responsibility |
 |---|---|---|
-| 1 | `RobotMbed/…/visitor/validate/MbedV2ValidatorAndCollectorVisitor` | `requiredComponentVisited(block, child1, child2, …)` for **every** `Expr` child: it validates and collects nested blocks and reports empty sockets as `ERROR_MISSING_PARAMETER`. Also configuration checks (`addErrorToPhrase(…, "CONFIGURATION_ERROR_ACTOR_MISSING")`), `usedHardwareBuilder.addUsedActor/addUsedSensor(…)` (drives imports and tells a test harness what to mock), `usedMethodBuilder.addUsedMethod(…)` (helper functions), and `addToPhraseIfUnsupportedInSim(…)` (override in `MicrobitV2ValidatorAndCollectorVisitor`, which knows `isSim`). |
-| 2 | `RobotMbed/…/visitor/validate/MicrobitV2TypecheckVisitor` | `return Sig.of(<returnType>, <argTypes…>).typeCheckPhrases(block, this, <args…>);` |
-| 3 | `RobotMbed/…/visitor/codegen/MbedV2PythonVisitor` | The Python. Use `this.src.add(this.firmware + "…")` and `child.accept(this)`. Don't emit a leading newline; the caller does `nlIndent()`. New imports go in `MbedPythonVisitor.visitorGenerateImports` guarded by `UsedHardwareBean`, new globals in `visitorGenerateGlobalVariables`. |
-| 4 | `RobotMbed/…/visitor/codegen/MbedV2StackMachineVisitor` | Simulator ops: `makeNode(C.<OP>)…; return add(o);`, reuse an existing op, or `return null`. A new op also needs `C.java` + `interpreter.constants.ts` + a case in `interpreter.interpreter.ts` + behaviour in `interpreter.robotSimBehaviour.ts` / `robot.microbitv2.ts`. |
-| 5 | `RobotMbed/…/visitor/codegen/MbedV2RegenerateTextlyJavaVisitor` | Textly text form (a view only). Parsing textly back into the block additionally needs `TextlyJava.g4` + `Microbitv2TextlyJavaVisitor`. |
+| 1 | `RobotEdison/…/visitor/codegen/EdisonPythonVisitor` | The EdPy. Use `this.src.add("Ed.…(")` + `child.accept(this)`. Don't emit a leading newline; the caller does `nlIndent()`. Follow the Edison convention of emitting `nlIndent(); this.src.add("Ed.ReadClapSensor()")` after blocks that make noise or move, so the robot's own sound doesn't register as a clap. **Don't throw for learner-reachable input.** Exceptions become `SERVER_ERROR` (§8). |
+| 2 | `RobotEdison/…/visitor/validate/EdisonValidatorAndCollectorVisitor` | `requiredComponentVisited(block, children…)` validates and collects nested blocks, and gives `ERROR_MISSING_PARAMETER` for empty sockets. Also `usedMethodBuilder.addUsedMethod(EdisonMethods.X)` for helper functions, `usedHardwareBuilder.addUsedSensor(…)` for sensors, `addErrorToPhrase(block, "<KEY>")` to reject unsupported input (e.g. `NO_CONST_NOT_SUPPORTED`), and `addToPhraseIfUnsupportedInSim(block, isError, isSim)` for sim limits. |
+| 3 | `RobotEdison/…/visitor/codegen/EdisonStackMachineVisitor` | Simulator ops: `makeNode(C.<OP>)…; return add(o);`, or `return null` for a no-op. A new op also needs `C.java` + `interpreter.constants.ts` + an interpreter case + behaviour in `robot.edison.ts` / `interpreter.robotSimBehaviour.ts`. |
 
-Classes 1, 3, and 4 are shared with joycar and calliopev3, which inherit the new method. In the experiment their golden
-tests still passed.
+There's **no type checker** and **no textly** for Edison, so nothing else is needed. `RegenerateNepoWorker` uses the
+generic annotation-based `ast2xml`.
 
-**Optional: a helper function.** Add an enum constant to `RobotMbed/…/visitor/MicrobitMethods.java` and a
-`PYTHON: |` entry to `RobotMbed/src/main/resources/mbed.methods.yml`. Register it in the collector with
-`usedMethodBuilder.addUsedMethod(MicrobitMethods.X)`. Emit the call with
-`getBean(CodeGeneratorSetupBean.class).getHelperMethodGenerator().getHelperMethodName(MicrobitMethods.X)`.
+**Optional: a helper function.** Add an enum constant to `RobotEdison/…/visitor/EdisonMethods.java` and a YAML entry
+with a `PYTHON: |` implementation to `RobotEdison/src/main/resources/helperMethodsEdison.yml` (EdPy: integers only,
+no imports). Register it in the collector with `usedMethodBuilder.addUsedMethod(EdisonMethods.X)`. Emit the call with
+`getBean(CodeGeneratorSetupBean.class).getHelperMethodGenerator().getHelperMethodName(EdisonMethods.X)`. Helpers are
+emitted **before** the fixed setup block.
 
 ---
 
 ## 6. Layer 8: tests (verified sequence)
 
-| Step | Command / action | Observed result |
+| Step | Action | Observed result |
 |---|---|---|
-| 1 | Add the block to the toolbox, but no test program yet. Run `mvn -o -pl OpenRobertaServer -am test -Dtest=TestToolboxBlocksAreUsedInTestFiles -DfailIfNoTests=false` | **fails:** `block mbedActions_display_scroll_delay not found in common or specific tests for robot microbitv2` |
-| 2 | Add the golden program `OpenRobertaServer/src/test/resources/crossCompilerTests/robotSpecific/microbitv2/display_scroll_delay.xml` (export XML: program + the default config). Run `…-Dtest='TestToolboxBlocksAreUsedInTestFiles,ReuseIntegrationAsUnitTest#testAllRobotSpecificProgramsAsUnitTests'` | Toolbox test **passes**. The golden test **fails** as expected: `expected …/astGenerated/microbitv2/display_scroll_delay.ast could not be read`, the same for `.py`, and a collector mismatch. Actual outputs are written to `OpenRobertaServer/target/unitTests/_expected/robotSpecific/{astGenerated,targetLanguage,collectorResults}/microbitv2/`. The collector expectation is **auto-created in `src/test/resources`** with a first line `<-- This file was automatically generated, if the content is alright, remove this line -->`. |
-| 3 | Review the files, then copy `.ast` and `.py` from `target/unitTests/_expected/…` to `src/test/resources/crossCompilerTests/_expected/…`, and delete the header line of the collector `.txt`. Re-run. | **passes:** `succeeding regeneration/code generation/collector tests: 316` (the existing 315 + the new one, all robots) |
-| 4 | `python -m py_compile <generated .py>` | OK. The golden comparison ignores indentation, so this is the only syntax check in the loop. |
-
-The golden test automatically covers AST construction, the XML round trip (catches field names that don't survive
-`ast2xml`), Python, and the collector output. It doesn't run the Python.
+| 1 | Add the golden program `OpenRobertaServer/src/test/resources/crossCompilerTests/robotSpecific/edison/<name>.xml` (export XML: `robottype="edison"`, config = `<block type="robBrick_Edison-Brick" id="1" intask="true" deletable="false"/>`). Add the block to the toolbox. Run `mvn -pl OpenRobertaServer -am test -Dtest='TestToolboxBlocksAreUsedInTestFiles,ReuseIntegrationAsUnitTest#testAllRobotSpecificProgramsAsUnitTests' -DfailIfNoTests=false` | Toolbox test **passes**. The golden test **fails for both** `edisonv2/<name>` and `edisonv3/<name>` (regeneration, code generation, collector), because the expected files are missing. Actual outputs are written to `OpenRobertaServer/target/unitTests/_expected/robotSpecific/{astGenerated,targetLanguage,collectorResults}/{edisonv2,edisonv3}/`. Both collector files are **auto-created in `src/test/resources`** with a header line. |
+| 2 | Review the outputs. For each of `edisonv2` and `edisonv3`, copy `.ast` and `.py` into `src/test/resources/crossCompilerTests/_expected/robotSpecific/…/<robot>/`, and delete the header line of the collector `.txt`. Re-run. | **passes:** `succeeding regeneration/code generation/collector tests: 317` (315 + 2) |
+| 3 | `python -m py_compile <generated .py>` | OK. This is **Python 3** syntax only; EdPy validity is decided solely by the external Edison compiler. |
 
 ---
 
 ## 7. The complete verified example
 
-A micro:bit V2 statement block **"scroll text with delay"**: `mbedActions_display_scroll_delay`, with value inputs
-`OUT` (text) and `DELAY` (ms). It generates `microbit.display.scroll(str(<OUT>), delay=int(<DELAY>))`, a real
-MicroPython API. Everything below compiled and ran as shown.
+An Edison statement block **"play beep"**: `edisonActions_play_beep`, with one value input `TONE` (Number). It
+generates `Ed.PlayMyBeep(<tone>)` followed by the usual `Ed.ReadClapSensor()`, and isn't simulated. `Ed.PlayMyBeep`
+is taken from the EdPy API as documented by Edison; it wasn't run on a robot.
 
-**AST class** (new): `RobotMbed/src/main/java/de/fhg/iais/roberta/syntax/action/mbed/microbitV2/DisplayScrollDelayAction.java`
+**AST class** (new): `RobotEdison/src/main/java/de/fhg/iais/roberta/syntax/actors/edison/PlayBeepAction.java`
 
 ```java
-package de.fhg.iais.roberta.syntax.action.mbed.microbitV2;
+package de.fhg.iais.roberta.syntax.actors.edison;
 
 import de.fhg.iais.roberta.syntax.action.Action;
 import de.fhg.iais.roberta.syntax.lang.expr.Expr;
@@ -468,165 +379,138 @@ import de.fhg.iais.roberta.transformer.forField.NepoValue;
 import de.fhg.iais.roberta.typecheck.BlocklyType;
 import de.fhg.iais.roberta.util.ast.BlocklyProperties;
 
-@NepoPhrase(name = "DISPLAY_SCROLL_DELAY_ACTION", category = "ACTOR", blocklyNames = {"mbedActions_display_scroll_delay"})
-public final class DisplayScrollDelayAction extends Action {
+@NepoPhrase(category = "ACTOR", blocklyNames = {"edisonActions_play_beep"}, name = "PLAY_BEEP")
+public final class PlayBeepAction extends Action {
 
-    @NepoValue(name = "OUT", type = BlocklyType.STRING)
-    public final Expr msg;
+    @NepoValue(name = "TONE", type = BlocklyType.NUMBER)
+    public final Expr tone;
 
-    @NepoValue(name = "DELAY", type = BlocklyType.NUMBER)
-    public final Expr delay;
-
-    public DisplayScrollDelayAction(BlocklyProperties properties, Expr msg, Expr delay) {
+    public PlayBeepAction(BlocklyProperties properties, Expr tone) {
         super(properties);
-        this.msg = msg;
-        this.delay = delay;
+        this.tone = tone;
         setReadOnly();
     }
 }
 ```
 
-**Interface** (`IMicrobitV2Visitor.java`):
+**Interface** (`IEdisonVisitor.java`, plus the import):
 
 ```java
-public interface IMicrobitV2Visitor<V> extends IMbedV2Visitor<V> {
-
-    V visitDisplayScrollDelayAction(DisplayScrollDelayAction displayScrollDelayAction);
-}
+    V visitPlayBeepAction(PlayBeepAction playBeepAction);
 ```
 
-**Validator/collector** (`MbedV2ValidatorAndCollectorVisitor.java`):
+**EdPy generator** (`EdisonPythonVisitor.java`):
 
 ```java
 @Override
-public Void visitDisplayScrollDelayAction(DisplayScrollDelayAction displayScrollDelayAction) {
-    requiredComponentVisited(displayScrollDelayAction, displayScrollDelayAction.msg, displayScrollDelayAction.delay);
-    usedHardwareBuilder.addUsedActor(new UsedActor("", SC.DISPLAY));
+public Void visitPlayBeepAction(PlayBeepAction playBeepAction) {
+    this.src.add("Ed.PlayMyBeep(");
+    playBeepAction.tone.accept(this);
+    this.src.add(")");
+    nlIndent();
+    this.src.add("Ed.ReadClapSensor()");
     return null;
 }
 ```
 
-**Type check** (`MicrobitV2TypecheckVisitor.java`):
+**Validator/collector** (`EdisonValidatorAndCollectorVisitor.java`):
 
 ```java
 @Override
-public BlocklyType visitDisplayScrollDelayAction(DisplayScrollDelayAction displayScrollDelayAction) {
-    return Sig.of(BlocklyType.VOID, BlocklyType.PRIM, BlocklyType.NUMBER)
-        .typeCheckPhrases(displayScrollDelayAction, this, displayScrollDelayAction.msg, displayScrollDelayAction.delay);
-}
-```
-
-**Python** (`MbedV2PythonVisitor.java`):
-
-```java
-@Override
-public Void visitDisplayScrollDelayAction(DisplayScrollDelayAction displayScrollDelayAction) {
-    this.src.add(this.firmware + ".display.scroll(str(");
-    displayScrollDelayAction.msg.accept(this);
-    this.src.add("), delay=int(");
-    displayScrollDelayAction.delay.accept(this);
-    this.src.add("))");
+public Void visitPlayBeepAction(PlayBeepAction playBeepAction) {
+    requiredComponentVisited(playBeepAction, playBeepAction.tone);
+    addToPhraseIfUnsupportedInSim(playBeepAction, false, isSim);
     return null;
 }
 ```
 
-**Simulator** (`MbedV2StackMachineVisitor.java`). This reuses the existing op, and the delay is ignored in the sim:
+**Simulator** (`EdisonStackMachineVisitor.java`):
 
 ```java
 @Override
-public Void visitDisplayScrollDelayAction(DisplayScrollDelayAction displayScrollDelayAction) {
-    displayScrollDelayAction.msg.accept(this);
-    JSONObject o = makeNode(C.SHOW_TEXT_ACTION).put(C.MODE, "text");
-    return add(o);
+public Void visitPlayBeepAction(PlayBeepAction playBeepAction) {
+    return null; // not simulated; the validator adds a SIM_BLOCK_NOT_SUPPORTED warning
 }
 ```
 
-**Textly** (`MbedV2RegenerateTextlyJavaVisitor.java`). This is a view only, and it's lossy here, because the delay isn't
-shown:
+**Toolbox**: the `<block type="edisonActions_play_beep">…` entry from §3, inserted into `TOOLBOX_SOUND` of
+`edison.program.toolbox.expert.xml`, after `mbedActions_play_note`.
 
-```java
-@Override
-public Void visitDisplayScrollDelayAction(DisplayScrollDelayAction displayScrollDelayAction) {
-    this.src.nlI().add("microbitv2.showText(");
-    displayScrollDelayAction.msg.accept(this);
-    this.src.add(");");
-    return null;
-}
-```
-
-**Toolbox**: the `<block type="mbedActions_display_scroll_delay">…` entry from §3, inserted into `TOOLBOX_DISPLAY` of
-`program.toolbox.expert.xml`.
-
-**Golden program** (`robotSpecific/microbitv2/display_scroll_delay.xml`). This is the program part; the `<config>` part
-is the micro:bit V2 default configuration, copied from `display.xml`:
+**Golden program** (`robotSpecific/edison/play_beep.xml`), program part:
 
 ```xml
-<block type="mbedActions_display_scroll_delay" id="cbScroll01" intask="true">
-    <value name="OUT"><block type="text" id="cbText01" intask="true"><field name="TEXT">Hi</field></block></value>
-    <value name="DELAY"><block type="math_number" id="cbNum01" intask="true"><field name="NUM">80</field></block></value>
+<block type="robControls_start" id="pbStart01" intask="true" deletable="false">
+    <mutation declare="false"></mutation><field name="DEBUG">TRUE</field>
 </block>
-<block type="mbedActions_display_scroll_delay" id="cbScroll02" intask="true">
-    <value name="OUT">
-        <block type="robSensors_temperature_getSample" id="cbTemp01" intask="true">
-            <mutation mode="VALUE"></mutation>
-            <field name="MODE">VALUE</field><field name="SENSORPORT">_T</field><field name="SLOT"></field>
-            <hide name="SENSORPORT" value="_T"></hide>
+<block type="edisonActions_play_beep" id="pbBeep01" intask="true">
+    <value name="TONE"><block type="math_integer" id="pbNum01" intask="true"><field name="NUM">200</field></block></value>
+</block>
+<block type="edisonActions_play_beep" id="pbBeep02" intask="true">
+    <value name="TONE">
+        <block type="math_arithmetic" id="pbArith01" intask="true">
+            <field name="OP">ADD</field>
+            <value name="A"><block type="math_integer" id="pbNum02" intask="true"><field name="NUM">100</field></block></value>
+            <value name="B"><block type="math_integer" id="pbNum03" intask="true"><field name="NUM">50</field></block></value>
         </block>
     </value>
-    <value name="DELAY"><block type="math_number" id="cbNum02" intask="true"><field name="NUM">150</field></block></value>
 </block>
 ```
 
-**Observed results:**
+The config part is `<block_set robottype="edison" …><instance x="213" y="213"><block type="robBrick_Edison-Brick" id="1"
+intask="true" deletable="false"/></instance></block_set>`.
+
+**Observed results (verified):**
 
 ```python
-# showsource → COMPILERWORKFLOW_PROGRAM_GENERATION_SUCCESS
-def run():
-    global timer1
-    microbit.display.scroll(str("Hi"), delay=int(80))
-    microbit.display.scroll(str(microbit.temperature()), delay=int(150))
+# showsource → COMPILERWORKFLOW_PROGRAM_GENERATION_SUCCESS   (compile → COMPILERWORKFLOW_SUCCESS, same text)
+import Ed
+Ed.EdisonVersion = Ed.V2
+Ed.DistanceUnits = Ed.CM
+Ed.Tempo = Ed.TEMPO_SLOW
+obstacleDetectionOn = False
+Ed.LineTrackerLed(Ed.ON)
+Ed.ReadClapSensor()
+Ed.ReadLineState()
+Ed.TimeWait(250, Ed.TIME_MILLISECONDS)
+
+Ed.PlayMyBeep(200)
+Ed.ReadClapSensor()
+Ed.PlayMyBeep(100 + 50)
+Ed.ReadClapSensor()
 ```
 
 ```text
-AST dump:   DisplayScrollDelayAction[msg: StringConst[value: Hi], delay: NumConst[value: 80]]
-            DisplayScrollDelayAction[msg: SensorExpr [TemperatureSensor [_T, VALUE, - EMPTY_SLOT -]], delay: NumConst[value: 150]]
-Collector:  Sensors: [UsedSensor [_T, TEMPERATURE, VALUE]]  Actors: [UsedActor [, DISPLAY]]  Methods: []
-Sim ops:    … {"opc":"expr","expr":"STRING_CONST","value":"Hi"}, {"opc":"ShowTextAction","mode":"text"}, … {"opc":"GetSample","GetSample":"temperature","mode":"value"} …
-Textly:     microbitv2.showText("Hi");  microbitv2.showText(microbitv2.temperatureSensor());
-Without the second DELAY input → PROGRAM_INVALID_STATEMETNS, 1 error (ERROR_MISSING_PARAMETER); no Python generated.
-```
-
-**A refinement for production code.** `str("Hi")` is redundant. `MbedPythonVisitor.visitDisplayTextAction` shows the
-idiom for emitting string literals raw:
-
-```java
-if ( !msg.getKind().hasName("STRING_CONST") ) { src.add("str("); msg.accept(this); src.add(")"); } else { msg.accept(this); }
+AST dump:  PlayBeepAction[tone: NumConst[value: 200]]
+           PlayBeepAction[tone: Binary [ADD, NumConst[value: 100], NumConst[value: 50]]]
+Collector: Sensors: []  Actors: []  Methods: []
+Sim:       getsimulationcode succeeds; ops contain no action for the block;
+           regenerated XML carries the SIM_BLOCK_NOT_SUPPORTED warning
+Textly:    "- no textly -"
+Without the TONE input      → PROGRAM_INVALID_STATEMETNS, 1 error (ERROR_MISSING_PARAMETER); no EdPy
+With NUM 1.5 instead of 200 → the workflow throws IllegalArgumentException: Not an integer
 ```
 
 ---
 
 ## 8. Gotchas
 
-1. **String names are the only glue.** The Blockly type, the `blocklyNames` entry, the toolbox `type`, and the
-   field and value names must match exactly across JS, XML, and Java. The first sign of a mismatch is usually one of
-   these runtime errors: `blockly name is not found`, `Error: "<type>" is an unknown language block.`, or a missing
-   input turning into `ERROR_MISSING_PARAMETER`.
-2. **`NepoAnnotationValidTest` doesn't reliably check anything (verified).** Run alone, it executes **0 tests**. Its
-   parameter list comes from `AstFactory.getAstClasses()`, and the test never calls `AstFactory.loadBlocks()`. The
-   real guard is XML → AST parsing in the golden tests, so always add a golden program.
-3. **The blast radius of the interface choice:** `IMbedV2Visitor` also forces Calliope implementations (§5).
-4. **`requiredComponentVisited` is mandatory** for child expressions. Without it, nested sensors aren't collected (no
-   `UsedSensor`, missing imports), and empty sockets aren't reported.
-5. **Every workflow runs every visitor over all phrases.** The validator, type check, and textly regeneration run in
-   `showsource`/`run`, and the sim visitors in `getsimulationcode`. A missing implementation on a visitor that doesn't
-   declare the method surfaces at runtime as `DbcException("visit Method not found for phrase …")`.
-6. **Python is emitted inline and not validated.** The golden comparison ignores whitespace, so check syntax with
-   `python -m py_compile` or run the code against a stub `microbit` module.
-7. **Anything the Python visitor emits is also flashed to the device** (`run` workflow). Test-only scaffolding belongs
-   in a dedicated workflow or visitor, not in `MbedV2PythonVisitor`.
-8. **Top-level stacks not attached to the start block (`intask="false"`) aren't generated.** A "test case" block
-   meant to live as its own stack needs a dedicated generator path. A block with a statement body needs `@NepoBasic`.
-9. **Other boards may change behaviour.** Implementations in the shared `MbedV2*` bases are inherited by joycar and
-   calliopev3. That's accepted in this repo (see `CLAUDE.md`), but re-run the golden suite to see what changed.
-10. **Sim ops are mirrored by hand.** A new stack-machine op needs matching constants in `OpenRobertaRobot/…/util/basic/C.java`
-    and `OpenRobertaWeb/src/app/nepostackmachine/interpreter.constants.ts`.
+1. **String names are the only glue.** The Blockly type, the `blocklyNames`, the toolbox `type`, the field and value
+   names, and the **port strings** must match across JS, XML, and Java.
+2. **Generator exceptions aren't learner-friendly.** Anything thrown in `EdisonPythonVisitor` (`DbcException`,
+   `IllegalArgumentException("Not an integer")`) reaches the learner as `SERVER_ERROR`. Detect unsupported input in
+   `EdisonValidatorAndCollectorVisitor` with `addErrorToPhrase`, so it appears on the block.
+3. **Integers only.** Use `math_integer` in toolbox presets and golden programs. EdPy has no floats, and division is
+   integer division.
+4. **Changes affect `edisonv3` too.** It's the same plugin and the same visitors. Golden tests need expected files for
+   both robots.
+5. **`requiredComponentVisited` is mandatory** for child expressions. Without it, nested blocks aren't collected (no
+   helper functions registered, so the EdPy calls undefined functions) and empty sockets aren't reported.
+6. **Helper functions go before the setup block.** Names without a leading underscore (`max`, `min`, `sum`) shadow
+   builtins. Prefer `_name` for new helpers.
+7. **EdPy validity isn't checked locally.** The real compiler is Edison's external service, called from the browser
+   at run time. `py_compile`/pylint only check Python 3 syntax.
+8. **`NepoAnnotationValidTest` runs 0 tests alone.** The golden tests are the real guard.
+9. **Top-level stacks not attached to the start block (`intask="false"`) aren't generated.** A block with a statement
+   body needs `@NepoBasic`.
+10. **Sim ops are mirrored by hand** between `OpenRobertaRobot/…/util/basic/C.java` and
+    `OpenRobertaWeb/src/app/nepostackmachine/interpreter.constants.ts`.
