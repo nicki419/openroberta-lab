@@ -13,13 +13,22 @@ reports that as RunResult.status instead.
 
 
 class EdTestError(Exception):
-    """Base class. `line` and `source_line` point into the EdPy program, when known."""
+    """Base class.
 
-    def __init__(self, message, line=None, source_line=None):
+    kind          a machine-readable category: 'overflow', 'division_by_zero', 'index_out_of_range', 'type_error',
+                  'negative_value', 'recursion', 'step_limit', 'python_error', 'unsupported', 'edpy_incompatible', ...
+    line          the line in the EdPy program, when known; source_line is its text
+    positions     (lineno, end_lineno, col_offset, end_col_offset) of the program frames when the error happened,
+                  outermost first (col offsets in UTF-8 bytes, like CPython's); used to attribute the error to a block
+    """
+
+    def __init__(self, message, line=None, source_line=None, kind=None):
         super().__init__(message)
         self.message = message
         self.line = line
         self.source_line = source_line
+        self.kind = kind
+        self.positions = []
 
     def __str__(self):
         if self.line is None:

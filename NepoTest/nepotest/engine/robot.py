@@ -13,7 +13,7 @@ Sensor semantics follow EdPy's library (lib/edpy_code.py of EdPy 1.2.11):
 - line state, light levels and drive strain are plain state, read at the current time.
 
 Everything that isn't specified by EdPy or the firmware documents is an explicit, documented assumption (speeds, beep
-length, tempo, detection latency). See docs/ai/edpy-unit-testing.md, section "Fidelity".
+length, tempo, detection latency). See docs/ai/edpy-test-engine.md, section "Fidelity".
 """
 
 import math
@@ -82,6 +82,7 @@ class Robot(object):
 
         # observations
         self.trace = []
+        self.listeners = []  # set by EdProgram.run()/load(); notified of every Ed call
         self.sounds = []
         self.ir_sent = []
         self.setup = {}  # Ed.EdisonVersion / DistanceUnits / Tempo as set by the program
@@ -355,10 +356,10 @@ class Robot(object):
     @staticmethod
     def _check_speed(speed):
         if speed < 0:
-            raise EdPyRuntimeError('negative speed %d (the robot would misinterpret it)' % speed)
+            raise EdPyRuntimeError('negative speed %d (the robot would misinterpret it)' % speed, kind='negative_value')
         return min(speed, 10)
 
-    # ------------------------------------------------------------------ Ed API (called through edtest.ed_module)
+    # ------------------------------------------------------------------ Ed API (called through ed_module)
 
     def ed_LeftLed(self, state):
         self.leds['left'] = bool(state & 1)
@@ -392,7 +393,7 @@ class Robot(object):
     @staticmethod
     def _to_hundredths(time, units):
         if time < 0:
-            raise EdPyRuntimeError('negative time %d (the robot behaviour is unspecified)' % time)
+            raise EdPyRuntimeError('negative time %d (the robot behaviour is unspecified)' % time, kind='negative_value')
         # edpy_code.py: seconds * 100, or milliseconds / 10 (integer division, so 10 ms resolution)
         return time * 100 if (units & 1) == V.CONSTANTS['TIME_SECONDS'] else time // 10
 
@@ -404,12 +405,12 @@ class Robot(object):
 
     def ed_PlayTone(self, code, duration_ms):
         if duration_ms < 0:
-            raise EdPyRuntimeError('negative tone duration %d' % duration_ms)
+            raise EdPyRuntimeError('negative tone duration %d' % duration_ms, kind='negative_value')
         self._start_sound('tone', code, (duration_ms // 10) * 10)
 
     def ed_PlayTune(self, tune):
         if not isinstance(tune, TuneString):
-            raise EdPyRuntimeError('Ed.PlayTune needs a tune string')
+            raise EdPyRuntimeError('Ed.PlayTune needs a tune string', kind='type_error')
         # ASSUMPTION: a quarter note lasts Ed.Tempo ms (TEMPO_SLOW = 500 = NOTE_QUARTER)
         quarter_ms = self._tempo if self._tempo is not None else self.setup.get('Tempo', V.CONSTANTS['TEMPO_SLOW'])
         text, beats, error = tune.text(), 0.0, False
@@ -452,7 +453,7 @@ class Robot(object):
             signs = {c['FORWARD_RIGHT']: (1, 0), c['BACKWARD_RIGHT']: (-1, 0), c['FORWARD_LEFT']: (0, 1),
                      c['BACKWARD_LEFT']: (0, -1), c['SPIN_RIGHT']: (1, -1), c['SPIN_LEFT']: (-1, 1)}
             if direction not in signs:
-                raise EdPyRuntimeError('invalid drive direction %d' % direction)
+                raise EdPyRuntimeError('invalid drive direction %d' % direction, kind='invalid_arguments')
             dist = None
             if distance != 0:
                 # edpy_code.py Ed_Drive_CM: degrees, at most one revolution, small corrections, spins use half
@@ -537,4 +538,4 @@ class Robot(object):
         return self._rng.randint(0, 255)
 
     def unsupported(self, name):
-        raise UnsupportedInMock('Ed.%s is not modelled by the mock (the Lab never generates it)' % name)
+        raise UnsupportedInMock('Ed.%s is not modelled by the mock (the Lab never generates it)' % name, kind='unsupported')

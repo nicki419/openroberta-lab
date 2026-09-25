@@ -1,0 +1,77 @@
+{
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "$id": "https://github.com/OpenRoberta/openroberta-lab/NepoTest/schema/nepo-tests.schema.json",
+ "title": "nepotest test file",
+ "description": "Unit tests for a NEPO program of the Edison V2 (see docs/ai/nepo-unit-testing.md). nepotest.validate_spec checks the same rules plus names against the program.",
+ "type": "object",
+ "required": ["format", "version", "program", "tests"],
+ "properties": {
+  "format": {"const": "nepotest"},
+  "version": {"const": 1},
+  "program": {"type": "string", "description": "path of the NEPO export XML, relative to this file"},
+  "bundle": {"type": "string", "description": "path of the cached conversion (EdPy + source map), relative to this file"},
+  "defaults": {"type": "object", "properties": {"max_time_ms": {"type": "integer", "minimum": 1}, "max_steps": {"type": "integer", "minimum": 1}}, "additionalProperties": false},
+  "tests": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/test"}}
+ },
+ "$defs": {
+  "test": {
+   "type": "object",
+   "required": ["name", "expect"],
+   "additionalProperties": false,
+   "properties": {
+    "name": {"type": "string", "minLength": 1},
+    "description": {"type": "string"},
+    "origin": {"type": "string", "description": "who wrote the test, e.g. 'learner', 'teacher', 'ai:<model>'"},
+    "call": {"type": "string", "description": "a NEPO function name: call it instead of running the whole program"},
+    "args": {"type": "array", "items": {"$ref": "#/$defs/nepoValue"}},
+    "globals": {"type": "object", "additionalProperties": {"$ref": "#/$defs/nepoValue"}, "description": "global variables to set before the call"},
+    "world": {"type": "array", "items": {"$ref": "#/$defs/event"}},
+    "max_time_ms": {"type": "integer", "minimum": 1},
+    "max_steps": {"type": "integer", "minimum": 1},
+    "expect": {"$ref": "#/$defs/expect"}
+   },
+   "dependentRequired": {"args": ["call"], "globals": ["call"]}
+  },
+  "nepoValue": {"oneOf": [{"type": "integer", "minimum": -32768, "maximum": 32767}, {"type": "boolean"},
+                          {"type": "array", "items": {"type": "integer", "minimum": -32768, "maximum": 32767}}]},
+  "event": {
+   "type": "object",
+   "required": ["event"],
+   "properties": {
+    "event": {"enum": ["clap", "key", "obstacle", "light", "line", "remote", "ir_message", "strain"]},
+    "at": {"type": "number", "minimum": 0},
+    "from": {"type": "number", "minimum": 0},
+    "to": {"type": ["number", "null"], "minimum": 0},
+    "port": {"enum": ["PLAY", "REC", "FRONT", "LEFT", "RIGHT", "LLIGHT", "RLIGHT", "LINETRACKER"]},
+    "value": {"type": "integer"},
+    "code": {"type": "integer", "minimum": 0, "maximum": 7},
+    "color": {"enum": ["black", "white"]}
+   }
+  },
+  "valueMatcher": {"oneOf": [
+   {"type": ["integer", "number", "boolean", "string", "null", "array"]},
+   {"type": "object", "properties": {"min": {"type": "number"}, "max": {"type": "number"}}, "additionalProperties": false, "minProperties": 1},
+   {"type": "object", "properties": {"approx": {"type": "number"}, "tol": {"type": "number"}}, "required": ["approx"], "additionalProperties": false}
+  ]},
+  "matcher": {"type": "object", "minProperties": 1, "additionalProperties": {"$ref": "#/$defs/valueMatcher"},
+              "description": "keys of an action (block, block_id, function, port, mode, direction, power, distance_cm, degrees, power_left, power_right, frequency_hz, duration_ms, ms, value, file, sensor, t, t_end) or of a call (function, args, returns)"},
+  "expect": {
+   "type": "object",
+   "minProperties": 1,
+   "additionalProperties": false,
+   "properties": {
+    "returns": {"$ref": "#/$defs/valueMatcher"},
+    "status": {"enum": ["finished", "running", "time_limit", "step_limit"]},
+    "finished_within_ms": {"type": "number", "minimum": 0},
+    "variables": {"type": "object", "additionalProperties": {"$ref": "#/$defs/valueMatcher"}},
+    "actions": {"type": "array", "items": {"$ref": "#/$defs/matcher"}, "description": "found in this order, other actions may be in between"},
+    "actions_exactly": {"type": "array", "items": {"$ref": "#/$defs/matcher"}, "description": "all actions, in this order"},
+    "no_actions": {"type": "array", "items": {"$ref": "#/$defs/matcher"}},
+    "action_count": {"type": "object", "additionalProperties": {"$ref": "#/$defs/valueMatcher"}, "description": "block type -> number of executions"},
+    "calls": {"type": "array", "items": {"$ref": "#/$defs/matcher"}, "description": "NEPO function calls, in this order, others may be in between"},
+    "error": {"oneOf": [{"type": "null"}, {"type": "string"}, {"$ref": "#/$defs/matcher"}], "description": "null (default): no runtime error; a kind such as 'division_by_zero'; or a matcher on kind, block_id, block_type, function"},
+    "covers": {"type": "array", "items": {"type": "string"}, "description": "block ids that must be executed"}
+   }
+  }
+ }
+}

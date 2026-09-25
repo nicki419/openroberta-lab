@@ -6,11 +6,11 @@ from .values import INT_MAX, INT_MIN
 
 def _index(container, index, kind):
     if isinstance(index, bool) or not isinstance(index, int):
-        raise EdPyRuntimeError('%s index must be an int, got %r' % (kind, index))
+        raise EdPyRuntimeError('%s index must be an int, got %r' % (kind, index), kind='type_error')
     if not 0 <= index < len(container._data):
         # EdPy only range-checks constant indices; with a variable index the robot reads or writes other memory
         raise EdPyRuntimeError('%s index %d out of range 0..%d (the robot does no range check for variable indices)'
-                               % (kind, index, len(container._data) - 1))
+                               % (kind, index, len(container._data) - 1), kind='index_out_of_range')
     return index
 
 
@@ -22,9 +22,9 @@ class EdList(object):
     def __init__(self, size, initial=None):
         initial = list(initial or [])
         if isinstance(size, bool) or not isinstance(size, int) or size < 1:
-            raise EdPyRuntimeError('Ed.List size must be a positive int, got %r' % (size,))
+            raise EdPyRuntimeError('Ed.List size must be a positive int, got %r' % (size,), kind='invalid_list')
         if len(initial) > size:
-            raise EdPyRuntimeError('Ed.List initial values (%d) are more than its size (%d)' % (len(initial), size))
+            raise EdPyRuntimeError('Ed.List initial values (%d) are more than its size (%d)' % (len(initial), size), kind='invalid_list')
         for v in initial:
             _check_element(v)
         self._data = [int(v) for v in initial] + [0] * (size - len(initial))
@@ -65,9 +65,9 @@ def _check_element(value):
     if isinstance(value, bool):
         return int(value)
     if not isinstance(value, int):
-        raise EdPyRuntimeError('Ed.List elements must be ints, got %r' % (value,))
+        raise EdPyRuntimeError('Ed.List elements must be ints, got %r' % (value,), kind='type_error')
     if not INT_MIN <= value <= INT_MAX:
-        raise EdPyRuntimeError('Ed.List element %d is outside the 16-bit range' % value)
+        raise EdPyRuntimeError('Ed.List element %d is outside the 16-bit range' % value, kind='overflow')
     return value
 
 
@@ -78,11 +78,11 @@ class TuneString(object):
 
     def __init__(self, size, initial=''):
         if isinstance(size, bool) or not isinstance(size, int) or size < 1:
-            raise EdPyRuntimeError('Ed.TuneString size must be a positive int, got %r' % (size,))
+            raise EdPyRuntimeError('Ed.TuneString size must be a positive int, got %r' % (size,), kind='invalid_list')
         if not isinstance(initial, str):
-            raise EdPyRuntimeError('Ed.TuneString initial value must be a string constant')
+            raise EdPyRuntimeError('Ed.TuneString initial value must be a string constant', kind='invalid_list')
         if len(initial) > size:
-            raise EdPyRuntimeError('tune string literal (%d chars) is longer than its size (%d)' % (len(initial), size))
+            raise EdPyRuntimeError('tune string literal (%d chars) is longer than its size (%d)' % (len(initial), size), kind='invalid_list')
         self._data = list(initial) + ['\0'] * (size - len(initial))
 
     def __len__(self):
@@ -93,7 +93,7 @@ class TuneString(object):
 
     def __setitem__(self, index, value):
         if not isinstance(value, str) or len(value) != 1:
-            raise EdPyRuntimeError('tune string elements are chars (use chr()), got %r' % (value,))
+            raise EdPyRuntimeError('tune string elements are chars (use chr()), got %r' % (value,), kind='type_error')
         self._data[_index(self, index, 'tune string')] = value
 
     def text(self):

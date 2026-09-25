@@ -556,7 +556,8 @@ The table below shows what the **OpenRoberta side** encodes in response:
 | Unsupported common constructs | `testSpec.yml` excludes many common programs for Edison ("not supported", "AND/OR blocks not supported", "no real numeric type", "no strings"). These reasons are informational: Edison isn't in `ROBOTS_FOR_TARGET_LANGUAGE_GENERATION`, so the common programs never run for it. |
 | Blockly limits for `device === "edison"` | Variable types only Number, Boolean, Array_Number; `math_single` only ABS, NEG, POW10; `math_on_list` only SUM, MIN, MAX, AVERAGE; no WHOLE property |
 
-**Fidelity gaps between CPython + stub and a real Edison** (design inputs for the framework). The harness in `edpy-unit-testing.md` addresses gaps 1–6 and documents what it assumes:
+**Fidelity gaps between CPython + stub and a real Edison** (design inputs for the framework). The test engine (`edpy-test-engine.md`, used by the NEPO test framework in `nepo-unit-testing.md`) addresses gaps 1–6
+and documents what it assumes:
 1. Integer division semantics. Use floor semantics (`//`), per the EdPy spec. Negative runtime division on the
    firmware is unspecified.
 2. 16-bit overflow. The range is known; the wrap behaviour isn't specified.
@@ -599,6 +600,7 @@ The table below shows what the **OpenRoberta side** encodes in response:
 | Endpoint | Workflow | Returns |
 |---|---|---|
 | `/source` | `showsource` | `sourceCode` (EdPy) and the annotated `progXML` |
+| `/sourceForTest` | `showsource` | like `/source`, plus `sourceMap`: for each block id, its type and the char ranges of its EdPy code. It's recorded by `EdisonPythonVisitor.preVisitCheck`/`postVisitCheck` into a `SourceMapBean`, and used by the NEPO test framework (`nepo-unit-testing.md` §3). |
 | `/sourceSimulation` | `getsimulationcode` | `javaScriptProgram` (stack-machine JSON) |
 | `/run` | `run` | `compiledCode` (= the EdPy source), result `ROBOT_PUSH_RUN` |
 | `/runNative` | `runnative` | learner-edited EdPy passed through |
@@ -713,7 +715,7 @@ still be created with the hidden shortcuts Ctrl/Cmd+3 and Ctrl/Cmd+2 (`menu.cont
 | 27 | **verified (EdPy)** | The literal `-32768` is rejected (`out of range`); the usable literal range is ±32767. | EdPy optimiser |
 | 28 | **verified (EdPy)** | The `NO_CONST_NOT_SUPPORTED` rule for tone frequency exists because `8000000/<variable>` doesn't compile (`constant 8000000 is out of range`). | `EdisonValidatorAndCollectorVisitor.visitToneAction` |
 | 29 | **verified** | **AND/OR is eager on the robot and lazy in the simulator.** The EdPy `((a) & (b))` / `((a) \| (b))` evaluates both sides; the stack machine short-circuits. The results differ only when the right operand has a side effect, i.e. a user function that changes globals (verified in the EdPy assembly: `True \| f()` calls `f`). On the robot, eager evaluation also means every latched sensor operand (clap, keypad, obstacle) is read and cleared. The simulator's sensors don't latch at all (§11, gap 7). | `EdisonPythonVisitor.visitBinary`, `AbstractStackMachineVisitor.visitBinary` |
-| 30 | **prediction (mock)** | **A tune can end at once after tone blocks.** The tone block emits `Ed.PlayTone` + `Ed.TimeWait` and never reads `Ed.ReadMusicEnd()`, so the "tone finished" flag stays set. The next play-file block's `while Ed.ReadMusicEnd() == Ed.MUSIC_NOT_FINISHED` then ends immediately, and a following tune replaces the one still playing (golden `action.py`: 3 ms). This is derived from `edpy_code.py` (`ReadMusicEnd` reports and clears either flag); whether the firmware clears the flag when a new sound starts is unverified. | `EdisonPythonVisitor.visitToneAction` / `visitPlayFileAction`; `edpy-unit-testing.md` §8 |
+| 30 | **prediction (mock)** | **A tune can end at once after tone blocks.** The tone block emits `Ed.PlayTone` + `Ed.TimeWait` and never reads `Ed.ReadMusicEnd()`, so the "tone finished" flag stays set. The next play-file block's `while Ed.ReadMusicEnd() == Ed.MUSIC_NOT_FINISHED` then ends immediately, and a following tune replaces the one still playing (golden `action.py`: 3 ms). This is derived from `edpy_code.py` (`ReadMusicEnd` reports and clears either flag); whether the firmware clears the flag when a new sound starts is unverified. | `EdisonPythonVisitor.visitToneAction` / `visitPlayFileAction`; `edpy-test-engine.md` §8 |
 | 31 | **derived (`edpy_code.py`)** | **Both keys pressed before a read satisfy neither key block.** `Ed.ReadKeypad()` returns the OR of the pending key bits and clears them. After PLAY and REC, it returns 5, so `== Ed.KEYPAD_TRIANGLE` and `== Ed.KEYPAD_ROUND` are both false, and both presses are lost. | `EdisonPythonVisitor.visitKeysSensor` |
 
 Good test-candidate classes: integer arithmetic at the edges (division, negative numbers, values near ±32767); the
@@ -725,8 +727,9 @@ indices; blocks that are only valid in some modes (light LINE vs LIGHT).
 
 ## 14. Recipes
 
-**Unit-test the EdPy of a program in Python.** See `edpy-unit-testing.md`: `EdProgram.from_file(path)`, then
-`.load().call('f', …)` for learner functions or `.run(Robot().clap(at=1000))` for whole-program scenarios.
+**Unit-test a NEPO program.** See `nepo-unit-testing.md`: `python -m nepotest run tests.json` for a JSON test file, or
+`TestSubject.load('prog.xml').call('f', …)` / `.run(World().clap(1000))` in Python. The Lab converts the program
+(REST `sourceForTest`, §12.1); the engine underneath is described in `edpy-test-engine.md`.
 
 **See the EdPy for any NEPO program (no server).** Edison has no textly, so feed an export XML. Put the test in
 `OpenRobertaServer/src/test/java`, which has every plugin on the classpath. Delete it afterwards if it's only a probe.

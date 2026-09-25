@@ -30,7 +30,8 @@ Lab. It has three parts:
 2. The system automatically detects what in a program is worth testing (AI-assisted where useful).
 3. The system generates those test cases.
 
-The generated EdPy is the artefact under test. It's executed against a mocked `Ed` runtime.
+The generated EdPy is the artefact under test. It's executed against a mocked `Ed` runtime. This is implemented by
+**NepoTest** (`NepoTest/`, `docs/ai/nepo-unit-testing.md`).
 Keep this goal in mind when you make design choices.
 
 **Three facts shape any design** (all verified; details in the reference doc):
@@ -65,15 +66,20 @@ side: hand-written Edison blocks, generic blocks with Edison branches, data-driv
 messages, toolbox) and how to create a custom one (XML ↔ Java annotations, the three visitors to implement, tests). It
 includes a complete example block that was built and verified end to end. Read it before adding or changing any block.
 
-**`docs/ai/edpy-unit-testing.md`** explains how to **unit-test generated EdPy in Python**, and documents the working
-harness in `docs/ai/edpy-unit-testing/edtest` (standard library only). It covers:
-- a mock `Ed` module with EdPy's exact constants;
-- 16-bit and floor-division arithmetic, and EdPy's constant folding;
-- a virtual clock, and scripted latched sensors;
-- function-level tests (`load().call(...)`) and whole-program scenarios (`run(Robot()...)`);
-- which behaviour is verified, derived or assumed.
+**`docs/ai/nepo-unit-testing.md`** documents **NepoTest** (`NepoTest/`), the unit-test framework for learners' NEPO
+programs, which implements the project goal. It covers:
+- **conversion:** a running Lab converts the NEPO program (REST `/rest/projectWorkflow/sourceForTest`), which returns
+  the unchanged EdPy plus a **source map** (block id → EdPy ranges);
+- **tests in NEPO terms**, as JSON files (made for test editors and AI generators; schema in `NepoTest/schema/`) or
+  in Python: NEPO functions, variables, world events on NEPO ports, and the executed action blocks with NEPO values;
+- **results per block:** failures, runtime errors attributed to blocks, and block coverage;
+- `describe()`: a program summary with test hints, as input for AI test generation.
 
-Read it before building test tooling for the project goal.
+Read it before working on testing.
+
+**`docs/ai/edpy-test-engine.md`** documents the framework's engine (`NepoTest/nepotest/engine`). The engine runs
+generated EdPy under CPython with EdPy semantics: 16-bit ints, floor division, constant folding, a virtual clock, and
+latched sensors from EdPy's library. The document also lists which behaviour is verified, derived or assumed.
 
 ## Where the Edison V2 code lives (short map)
 
@@ -93,6 +99,8 @@ Read it before building test tooling for the project goal.
 | Golden-file tests (expected EdPy) | `OpenRobertaServer/src/test/resources/crossCompilerTests/_expected/robotSpecific/targetLanguage/{edisonv2,edisonv3}/*.py` |
 | Test runner for golden files | `OpenRobertaServer/src/test/java/.../integrationTest/ReuseIntegrationAsUnitTest.java` (configured by `crossCompilerTests/testSpec.yml`) |
 | Frontend (TypeScript sources) | `OpenRobertaWeb/src/**` (compiles into `OpenRobertaServer/staticResources`) |
+| **NEPO unit-test framework** (Python) | `NepoTest/` (`nepotest/`, `nepotest/engine/`, `examples/`, `tests/`, `schema/`) |
+| Source map for tests (block id → EdPy ranges) | `OpenRobertaRobot/…/bean/SourceMapBean`, filled by `EdisonPythonVisitor.preVisitCheck/postVisitCheck`, served by `ProjectWorkflowRestController` `/projectWorkflow/sourceForTest`; test `OpenRobertaServer/src/test/java/…/javaServer/EdisonSourceMapTest` |
 
 `…` = `src/main/java/de/fhg/iais/roberta`. Paths are repo-relative.
 
@@ -135,15 +143,21 @@ To check that generated EdPy really compiles, run the reference compiler in chec
 `docs/ai/edpy-reference.md` §2): `python EdPy.py -c en_lang.json <file.py>` → `{"error": false, …}`. All six Edison
 golden files pass (verified). Don't vendor EdPy into this repo without a licence review (GPL-2.0 vs Apache-2.0).
 
-To run generated EdPy and its unit tests under CPython 3.8+ (the Python harness, the example tests, and the harness
-against all golden programs):
+The NEPO unit-test framework (CPython 3.11+, standard library only; `docs/ai/nepo-unit-testing.md`):
 
 ```bash
-python -m unittest discover -s docs/ai/edpy-unit-testing -p "test_*.py" -t docs/ai/edpy-unit-testing
+cd NepoTest
+python -m unittest discover -s tests -t .              # framework + engine tests (live-Lab tests need a running Lab)
+python -m unittest discover -s examples -t .           # the example's Python tests
+python -m nepotest run examples/clap_counter.tests.json
 ```
 
-This passed on 2026-09-25 with 46 tests: one deliberate expected failure shows generator quirk #14, and one test is
-skipped unless `EDPY_HOME`/`EDPY_PYTHON` point to the reference compiler. The same tests also run with pytest.
+These passed on 2026-09-25: 65 + 8 tests, including the live-Lab tests and the reference-compiler check. Each suite has
+one deliberate expected failure, which shows generator quirk #14; the example test file reports it as its one failure.
+The live-Lab tests skip if no Lab answers at `$NEPOTEST_LAB` (default `http://localhost:1999`). The Level-0 check skips
+unless `EDPY_HOME`/`EDPY_PYTHON` point to the reference compiler. The same tests run with pytest. After generator
+changes, rebuild and restart the Lab, run `EdisonSourceMapTest` and `tests/test_lab_live.py`, and re-create the
+bundles (`python -m nepotest convert <xml> -o <bundle>`).
 
 Run the server locally: `./admin.sh -git-mode create-empty-db` once, then `./ora.sh start-from-git` → http://localhost:1999.
 On Windows use Git Bash. "Show source" works offline. Running a program on a real Edison needs the external Edison

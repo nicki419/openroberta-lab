@@ -1,6 +1,5 @@
-"""edtest: run and unit-test generated EdPy (Edison) programs under CPython 3.8+ against a mocked Ed runtime.
-
-See docs/ai/edpy-unit-testing.md. Reference implementation, no dependencies outside the standard library.
+"""The engine of nepotest: runs generated EdPy (Edison) under CPython 3.8+ against a mocked Ed runtime and a virtual
+robot. Standard library only. See docs/ai/edpy-test-engine.md.
 """
 
 from .containers import EdList, TuneString

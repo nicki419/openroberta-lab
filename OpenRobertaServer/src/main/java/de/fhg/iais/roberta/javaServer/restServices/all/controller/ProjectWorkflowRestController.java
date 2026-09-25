@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 
+import de.fhg.iais.roberta.bean.SourceMapBean;
 import de.fhg.iais.roberta.components.Project;
 import de.fhg.iais.roberta.generated.restEntities.BaseResponse;
 import de.fhg.iais.roberta.generated.restEntities.FullRestRequest;
@@ -70,6 +71,40 @@ public class ProjectWorkflowRestController {
         } catch ( Exception e ) {
             LOG.error("getSourceCode failed", e);
             Statistics.info("ProgramSource", "success", false);
+            return UtilForREST.makeBaseResponseForError(Key.SERVER_ERROR, httpSessionState, this.robotCommunicator);
+        } finally {
+            if ( dbSession != null ) {
+                dbSession.close();
+            }
+        }
+    }
+
+    /**
+     * like /source, but the response contains the source map, too: where the code of each block is in the generated source. Used by the unit test
+     * framework for NEPO programs (NepoTest/), to attribute what the generated program does at runtime to the blocks of the program.
+     */
+    @POST
+    @Path("/sourceForTest")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getSourceCodeForTest(@OraData DbSession dbSession, FullRestRequest fullRequest) {
+        HttpSessionState httpSessionState = UtilForREST.handleRequestInit(dbSession, LOG, fullRequest, true);
+        try {
+            ProjectWorkflowRequest wfRequest = ProjectWorkflowRequest.make(fullRequest.getData());
+            ProjectSourceForTestResponse response = ProjectSourceForTestResponse.makeForTest();
+            response.setProgXML(wfRequest.getProgXML()); // always return the program, even if the workflow fails
+
+            Project project = request2project(wfRequest, dbSession, httpSessionState, this.robotCommunicator, true, false);
+            ProjectService.executeWorkflow("showsource", project);
+            response.setCmd("sourceForTest");
+            response.setSourceCode(project.getSourceCodeBuilder().toString());
+            response.setProgXML(project.getProgramAsBlocklyXML());
+            response.setConfAnnos(new JSONObject(project.getConfAnnotationList()));
+            response.setSourceMap(sourceMapOf(project));
+            addProjectResultToResponse(response, project);
+            return UtilForREST.responseWithFrontendInfo(response, httpSessionState, this.robotCommunicator);
+        } catch ( Exception e ) {
+            LOG.error("getSourceCodeForTest failed", e);
             return UtilForREST.makeBaseResponseForError(Key.SERVER_ERROR, httpSessionState, this.robotCommunicator);
         } finally {
             if ( dbSession != null ) {
@@ -358,6 +393,17 @@ public class ProjectWorkflowRestController {
             project.setProgramNativeSource(progXml);
         }
         return project.build();
+    }
+
+    /**
+     * @return the source map of the generated code as JSON, or null, if the robot's code generator doesn't produce one (or didn't run)
+     */
+    private static JSONObject sourceMapOf(Project project) {
+        try {
+            return project.getWorkerResult(SourceMapBean.class).toJson();
+        } catch ( DbcException e ) {
+            return null;
+        }
     }
 
     public static Pair<String, String> splitExportXML(String exportXmlAsString) {

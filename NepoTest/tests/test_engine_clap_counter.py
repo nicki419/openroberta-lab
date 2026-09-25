@@ -1,6 +1,6 @@
 """Unit tests for the example learner program "clap counter".
 
-NEPO source: clap_counter.xml. Generated EdPy (by the Lab's EdisonPythonVisitor, unmodified): clap_counter.py.
+NEPO source: examples/clap_counter.xml. Generated EdPy (by the Lab's EdisonPythonVisitor, unmodified): tests/clap_counter.edpy.py.
 
     claps := 0, goal := 3
     while claps < goal: wait until clap; claps += 1
@@ -8,7 +8,8 @@ NEPO source: clap_counter.xml. Generated EdPy (by the Lab's EdisonPythonVisitor,
     drive forward, speed clampSpeed(150), 10 cm   clampSpeed(speed): 100 if > 100, 0 if < 0, else speed
     average(a, b) returns (a + b) / 2             (not called by the program)
 
-Run:  python -m unittest discover -s docs/ai/edpy-unit-testing -p "test_*.py" -t docs/ai/edpy-unit-testing
+Engine-level tests (Ed calls, EdPy names); the NEPO-level versions are in examples/. Run from NepoTest/:
+    python -m unittest discover -s tests -t .
 """
 
 import os
@@ -16,11 +17,11 @@ import sys
 import unittest
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, os.path.dirname(HERE))  # the directory that contains the edtest package
+sys.path.insert(0, os.path.dirname(HERE))  # NepoTest/
 
-from edtest import EdProgram, EdPyRuntimeError, Robot, edpy_check  # noqa: E402
+from nepotest.engine import EdProgram, EdPyRuntimeError, Robot, edpy_check  # noqa: E402
 
-PROGRAM = os.path.join(HERE, 'clap_counter.py')
+PROGRAM = os.path.join(HERE, 'clap_counter.edpy.py')  # the EdPy the Lab generates for examples/clap_counter.xml
 FORWARD, SPEED_10 = 1, 10
 
 

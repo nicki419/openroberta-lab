@@ -1,11 +1,14 @@
 package de.fhg.iais.roberta.visitor.codegen;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.List;
 
 import com.google.common.collect.ClassToInstanceMap;
 
 import de.fhg.iais.roberta.bean.CodeGeneratorSetupBean;
 import de.fhg.iais.roberta.bean.IProjectBean;
+import de.fhg.iais.roberta.bean.SourceMapBean;
 import de.fhg.iais.roberta.syntax.Phrase;
 import de.fhg.iais.roberta.syntax.action.light.LedAction;
 import de.fhg.iais.roberta.syntax.action.motor.MotorGetPowerAction;
@@ -62,6 +65,9 @@ import de.fhg.iais.roberta.visitor.lang.codegen.prog.AbstractPythonVisitor;
  */
 public class EdisonPythonVisitor extends AbstractPythonVisitor implements IEdisonVisitor<Void> {
 
+    private final SourceMapBean sourceMap;
+    private final Deque<Integer> sourceMapStarts = new ArrayDeque<>();
+
     /**
      * initialize the Python code generator visitor. The UsedHardwareCollector will provide the Python code generator with the used methods, used sensors/actors
      * and used variables. The used sensors/actors are disregarded in the edison robot, since all sensors/actors are fixed. The used methods are collected by
@@ -70,7 +76,46 @@ public class EdisonPythonVisitor extends AbstractPythonVisitor implements IEdiso
      * @param programPhrases to generate the code from
      */
     public EdisonPythonVisitor(List<List<Phrase>> programPhrases, ClassToInstanceMap<IProjectBean> beans) {
+        this(programPhrases, beans, null);
+    }
+
+    /**
+     * @param sourceMap if not null, filled with the source code range of every block (used by the unit test framework for NEPO programs)
+     */
+    public EdisonPythonVisitor(List<List<Phrase>> programPhrases, ClassToInstanceMap<IProjectBean> beans, SourceMapBean sourceMap) {
         super(programPhrases, beans);
+        this.sourceMap = sourceMap;
+    }
+
+    /**
+     * records where the code of a block starts. Doesn't generate code.
+     */
+    @Override
+    protected boolean preVisitCheck(Phrase phrase) {
+        if ( this.sourceMap == null || phrase.getProperty() == null || phrase.getProperty().blocklyId == null ) {
+            return false;
+        }
+        this.sourceMapStarts.push(this.src.getStringBuilder().length());
+        return true;
+    }
+
+    /**
+     * records where the code of a block ends, without surrounding whitespace. Doesn't generate code.
+     */
+    @Override
+    protected void postVisitCheck(Phrase phrase) {
+        StringBuilder sb = this.src.getStringBuilder();
+        int start = this.sourceMapStarts.pop();
+        int end = sb.length();
+        while ( start < end && Character.isWhitespace(sb.charAt(start)) ) {
+            start++;
+        }
+        while ( end > start && Character.isWhitespace(sb.charAt(end - 1)) ) {
+            end--;
+        }
+        if ( end > start ) {
+            this.sourceMap.addRange(phrase.getProperty().blocklyId, phrase.getProperty().blockType, start, end);
+        }
     }
 
     @Override

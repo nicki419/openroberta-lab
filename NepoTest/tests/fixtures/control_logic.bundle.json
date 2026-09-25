@@ -1,0 +1,708 @@
+{
+ "annotated_prog_xml": "<block_set robottype=\"edison\" xmlversion=\"3.1\" description=\"\" tags=\"\" xmlns=\"http://de.fhg.iais.roberta.blockly\"><instance x=\"285\" y=\"45\"><block type=\"robControls_start\" id=\"a#,YR4MPubak3AE1|Qd+\" intask=\"true\" deletable=\"false\"><mutation declare=\"true\"/><field name=\"DEBUG\">TRUE</field><statement name=\"ST\"><block type=\"robGlobalVariables_declare\" id=\"[MWT599#V7^VG!rK}FgS\" intask=\"true\" deletable=\"false\" movable=\"false\"><mutation next=\"true\" declaration_type=\"Number\"/><field name=\"VAR\">numberVar</field><field name=\"TYPE\">Number</field><value name=\"VALUE\"><block type=\"math_integer\" id=\".U-IG?n;-7%RXD+yx+}W\" intask=\"true\"><field name=\"NUM\">0</field></block></value></block><block type=\"robGlobalVariables_declare\" id=\"/ebu4.nV2DD9t|m;vlm_\" intask=\"true\" deletable=\"false\" movable=\"false\"><mutation next=\"true\" declaration_type=\"Boolean\"/><field name=\"VAR\">booleanVar</field><field name=\"TYPE\">Boolean</field><value name=\"VALUE\"><block type=\"logic_boolean\" id=\"sp}@m+ZUm5)DuZygn,aJ\" intask=\"true\"><field name=\"BOOL\">TRUE</field></block></value></block><block type=\"robGlobalVariables_declare\" id=\"c[^*yEDCy#L@BmGd^lfx\" intask=\"true\" deletable=\"false\" movable=\"false\"><mutation next=\"false\" declaration_type=\"Array_Number\"/><field name=\"VAR\">numberList</field><field name=\"TYPE\">Array_Number</field><value name=\"VALUE\"><block type=\"robLists_create_with\" id=\"b%h]@*Ma^ApQMK:XEP@}\" intask=\"true\"><mutation items=\"3\" list_type=\"Number\"/><field name=\"LIST_TYPE\">Number</field><value name=\"ADD0\"><block type=\"math_integer\" id=\"J`YQ^NVn_a.2r*7u:iNI\" intask=\"true\"><field name=\"NUM\">0</field></block></value><value name=\"ADD1\"><block type=\"math_integer\" id=\"q7?Fj=drf)3m@p!rsx7M\" intask=\"true\"><field name=\"NUM\">0</field></block></value><value name=\"ADD2\"><block type=\"math_integer\" id=\"j-w~vb{g[wy5y~Bvij5N\" intask=\"true\"><field name=\"NUM\">0</field></block></value></block></value></block></statement></block><block type=\"robProcedures_callnoreturn\" id=\"vFi%Wqr36Gmrruj;e^9U\" intask=\"true\"><mutation name=\"control\"/></block><block type=\"robProcedures_callnoreturn\" id=\"q2/1IwM,L=%a+4`HiLoG\" intask=\"true\"><mutation name=\"logic\"/></block></instance><instance x=\"924\" y=\"49\"><block type=\"robProcedures_defnoreturn\" id=\"`iPtmriKN8)5c1i9)|3I\" intask=\"true\"><mutation declare=\"false\"/><field name=\"NAME\">control</field><statement name=\"STACK\"><block type=\"robControls_if\" id=\"h1L0;)I~7;lX%Uc-=P|m\" intask=\"true\"><mutation elseif=\"1\"/><repetitions><value name=\"IF0\"><block type=\"variables_get\" id=\"N8iG~v=[h*h;;yMKjjCE\" intask=\"true\"><mutation datatype=\"Boolean\"/><field name=\"VAR\">booleanVar</field></block></value><value name=\"IF1\"><block type=\"variables_get\" id=\";81kF(?SIz8qI4kFVT0f\" intask=\"true\"><mutation datatype=\"Boolean\"/><field name=\"VAR\">booleanVar</field></block></value></repetitions></block><block type=\"robControls_ifElse\" id=\"Eq+~c8hq*weIs8),Kg#-\" intask=\"true\"><mutation elseif=\"1\" else=\"1\"/><repetitions><value name=\"IF0\"><block type=\"variables_get\" id=\"KU/*?:b22TeS}}+z{p~x\" intask=\"true\"><mutation datatype=\"Boolean\"/><field name=\"VAR\">booleanVar</field></block></value><value name=\"IF1\"><block type=\"variables_get\" id=\"{riH0[NT1ODhEPse;,+3\" intask=\"true\"><mutation datatype=\"Boolean\"/><field name=\"VAR\">booleanVar</field></block></value></repetitions></block><block type=\"robControls_loopForever\" id=\"Uw_!9GV3v!1cEIRFZu2z\" intask=\"true\"/><block type=\"controls_repeat_ext\" id=\"YYBu/J~UrwG7{Y#CHYly\" intask=\"true\"><value name=\"TIMES\"><block type=\"variables_get\" id=\"}XmptQ7X:56mH4%lY_Xs\" intask=\"true\"><mutation datatype=\"Number\"/><field name=\"VAR\">numberVar</field></block></value></block><block type=\"controls_whileUntil\" id=\".BtLXH_)gG2{_eTId4ds\" intask=\"true\"><field name=\"MODE\">UNTIL</field><value name=\"BOOL\"><block type=\"variables_get\" id=\"`TBkR-nQ?BvoKlj.)UR@\" intask=\"true\"><mutation datatype=\"Boolean\"/><field name=\"VAR\">booleanVar</field></block></value><statement name=\"DO\"><block type=\"controls_flow_statements\" id=\".O48!:qhQ#v7Dn.nkWmz\" intask=\"true\"><field name=\"FLOW\">BREAK</field></block></statement></block><block type=\"controls_whileUntil\" id=\"NkR^h0Y28;ahkBs!KN7h\" intask=\"true\"><field name=\"MODE\">WHILE</field><value name=\"BOOL\"><block type=\"variables_get\" id=\"B!f%9?;8`fmL4sI:)ug-\" intask=\"true\"><mutation datatype=\"Boolean\"/><field name=\"VAR\">booleanVar</field></block></value><statement name=\"DO\"><block type=\"controls_flow_statements\" id=\"A[.x8JmJhN,;ETL3wXk{\" intask=\"true\"><field name=\"FLOW\">CONTINUE</field></block></statement></block><block type=\"robControls_wait\" id=\"sg(Md-B*14]bS]O19zF-\" intask=\"true\"><mutation wait=\"1\"/><repetitions><value name=\"WAIT0\"><block type=\"variables_get\" id=\"kf%?bCWVn]AnRh@D7jqd\" intask=\"true\"><mutation datatype=\"Boolean\"/><field name=\"VAR\">booleanVar</field></block></value><value name=\"WAIT1\"><block type=\"variables_get\" id=\"8j6dm]~:k5o{tKJKrzl,\" intask=\"true\"><mutation datatype=\"Boolean\"/><field name=\"VAR\">booleanVar</field></block></value></repetitions></block><block type=\"robControls_wait_time\" id=\"P9y^N-J9ep3kJ039i%W|\" intask=\"true\"><value name=\"WAIT\"><block type=\"variables_get\" id=\"mv^;6@DBq+5Q~J+iE^;@\" intask=\"true\"><mutation datatype=\"Number\"/><field name=\"VAR\">numberVar</field></block></value></block><block type=\"robControls_wait_for\" id=\"N)XmPT[x0`J6#X%~f260\" intask=\"true\"><value name=\"WAIT0\"><block type=\"variables_get\" id=\"YrtQgri;0,@k~m0KU#0O\" intask=\"true\"><mutation datatype=\"Boolean\"/><field name=\"VAR\">booleanVar</field></block></value></block></statement></block></instance><instance x=\"1447\" y=\"49\"><block type=\"robProcedures_defnoreturn\" id=\"gi{d?YgIpL25O1)g4y@(\" intask=\"true\"><mutation declare=\"false\"/><field name=\"NAME\">logic</field><statement name=\"STACK\"><block type=\"variables_set\" id=\"%#.4F52,rv^]Ehy`EhA6\" intask=\"true\"><mutation datatype=\"Boolean\"/><field name=\"VAR\">booleanVar</field><value name=\"VALUE\"><block type=\"logic_compare\" id=\"Og_auu17rS--Z5_%Wic8\" intask=\"true\"><field name=\"OP\">EQ</field><value name=\"A\"><block type=\"variables_get\" id=\"%7Ba]yS}tOr98#,GyjzD\" intask=\"true\"><mutation datatype=\"Number\"/><field name=\"VAR\">numberVar</field></block></value><value name=\"B\"><block type=\"variables_get\" id=\"Yx:0l9-eM5R+^5fwc_2J\" intask=\"true\"><mutation datatype=\"Number\"/><field name=\"VAR\">numberVar</field></block></value></block></value></block><block type=\"variables_set\" id=\"g69F/7?yHsIg7Ya+I::D\" intask=\"true\"><mutation datatype=\"Boolean\"/><field name=\"VAR\">booleanVar</field><value name=\"VALUE\"><block type=\"logic_compare\" id=\"?Jb3hUQ7B{%=f8dfznjc\" intask=\"true\"><field name=\"OP\">NEQ</field><value name=\"A\"><block type=\"variables_get\" id=\"QIanRvVUaHEl)YUyQ=ke\" intask=\"true\"><mutation datatype=\"Number\"/><field name=\"VAR\">numberVar</field></block></value><value name=\"B\"><block type=\"variables_get\" id=\"0WXjn#|w_9.8_pt(iq9p\" intask=\"true\"><mutation datatype=\"Number\"/><field name=\"VAR\">numberVar</field></block></value></block></value></block><block type=\"variables_set\" id=\"/j#(]krO5_X.vIkl-U~R\" intask=\"true\"><mutation datatype=\"Boolean\"/><field name=\"VAR\">booleanVar</field><value name=\"VALUE\"><block type=\"logic_compare\" id=\"Z([SN==s*tN!NxhZ7F}1\" intask=\"true\"><field name=\"OP\">LT</field><value name=\"A\"><block type=\"variables_get\" id=\"4W6?HqY/FF~MCGtES,Xk\" intask=\"true\"><mutation datatype=\"Number\"/><field name=\"VAR\">numberVar</field></block></value><value name=\"B\"><block type=\"variables_get\" id=\"wj`#BIr(jz*@=~#OP}F~\" intask=\"true\"><mutation datatype=\"Number\"/><field name=\"VAR\">numberVar</field></block></value></block></value></block><block type=\"variables_set\" id=\"EWmVx/3oi!9Oyz::^51W\" intask=\"true\"><mutation datatype=\"Boolean\"/><field name=\"VAR\">booleanVar</field><value name=\"VALUE\"><block type=\"logic_compare\" id=\"u4;Z+?zT*nr=}({p@0yZ\" intask=\"true\"><field name=\"OP\">LTE</field><value name=\"A\"><block type=\"variables_get\" id=\"^72g48:hufl%rJ[8fGJ3\" intask=\"true\"><mutation datatype=\"Number\"/><field name=\"VAR\">numberVar</field></block></value><value name=\"B\"><block type=\"variables_get\" id=\"kefJ/@9xaUa}[P#|)/69\" intask=\"true\"><mutation datatype=\"Number\"/><field name=\"VAR\">numberVar</field></block></value></block></value></block><block type=\"variables_set\" id=\"nUdjB(0(31#s@ej#AhiB\" intask=\"true\"><mutation datatype=\"Boolean\"/><field name=\"VAR\">booleanVar</field><value name=\"VALUE\"><block type=\"logic_compare\" id=\"D`5c6H!4h)MlJCZc;2V!\" intask=\"true\"><field name=\"OP\">GT</field><value name=\"A\"><block type=\"variables_get\" id=\".MGdoZ,XYj:!{O`];dF7\" intask=\"true\"><mutation datatype=\"Number\"/><field name=\"VAR\">numberVar</field></block></value><value name=\"B\"><block type=\"variables_get\" id=\"Vr!j(=RfdPGE,G@)XcFv\" intask=\"true\"><mutation datatype=\"Number\"/><field name=\"VAR\">numberVar</field></block></value></block></value></block><block type=\"variables_set\" id=\"Knxv?WDi66j7iDKy3gG@\" intask=\"true\"><mutation datatype=\"Boolean\"/><field name=\"VAR\">booleanVar</field><value name=\"VALUE\"><block type=\"logic_compare\" id=\"h}{Svq|QZR*BEV+5cwe*\" intask=\"true\"><field name=\"OP\">GTE</field><value name=\"A\"><block type=\"variables_get\" id=\"+3*xIiEsSDixup4)77ex\" intask=\"true\"><mutation datatype=\"Number\"/><field name=\"VAR\">numberVar</field></block></value><value name=\"B\"><block type=\"variables_get\" id=\"iJz5zBhp~3P`?1`l/xY-\" intask=\"true\"><mutation datatype=\"Number\"/><field name=\"VAR\">numberVar</field></block></value></block></value></block><block type=\"variables_set\" id=\"Mg+KyKN!%y,m*nWFM1pm\" intask=\"true\"><mutation datatype=\"Boolean\"/><field name=\"VAR\">booleanVar</field><value name=\"VALUE\"><block type=\"logic_negate\" id=\"{Hbar-);[uwB0LdE#wLj\" intask=\"true\"><value name=\"BOOL\"><block type=\"variables_get\" id=\"L:yD]bVW?%q~E*sNH1bV\" intask=\"true\"><mutation datatype=\"Boolean\"/><field name=\"VAR\">booleanVar</field></block></value></block></value></block><block type=\"variables_set\" id=\"gv~KNh{TEj6OD;%hzDv?\" intask=\"true\"><mutation datatype=\"Boolean\"/><field name=\"VAR\">booleanVar</field><value name=\"VALUE\"><block type=\"logic_boolean\" id=\"^U3dS61`D:mjUtv/L;~9\" intask=\"true\"><field name=\"BOOL\">TRUE</field></block></value></block><block type=\"variables_set\" id=\"O.C#kM7K6U9K-F%y7[*s\" intask=\"true\"><mutation datatype=\"Boolean\"/><field name=\"VAR\">booleanVar</field><value name=\"VALUE\"><block type=\"logic_boolean\" id=\"W1K[Py{skWjFf?Yvz.bw\" intask=\"true\"><field name=\"BOOL\">FALSE</field></block></value></block></statement></block></instance></block_set>",
+ "cause": "ORA_COMPILERWORKFLOW_PROGRAM_GENERATION_SUCCESS",
+ "converted_at": "2026-09-25T19:07:59",
+ "edpy": "import Ed\nEd.EdisonVersion = Ed.V2\nEd.DistanceUnits = Ed.CM\nEd.Tempo = Ed.TEMPO_SLOW\nobstacleDetectionOn = False\nEd.LineTrackerLed(Ed.ON)\nEd.ReadClapSensor()\nEd.ReadLineState()\nEd.TimeWait(250, Ed.TIME_MILLISECONDS)\n\n___numberVar = 0\n___booleanVar = True\n___numberList = Ed.List(3, [0,0,0])\n\ndef ____control():\n    global ___numberVar, ___booleanVar, ___numberList\n    if ___booleanVar:\n        pass\n    elif ___booleanVar:\n        pass\n    if ___booleanVar:\n        pass\n    elif ___booleanVar:\n        pass\n    while True:\n        pass\n    for ___k0 in range(___numberVar):\n        pass\n    while not ___booleanVar:\n        break\n    while ___booleanVar:\n        continue\n    while True:\n        if ___booleanVar:\n            break\n        if ___booleanVar:\n            break\n        pass\n    Ed.TimeWait(___numberVar, Ed.TIME_MILLISECONDS)\n    while True:\n        if ___booleanVar:\n            break\n        pass\n\ndef ____logic():\n    global ___numberVar, ___booleanVar, ___numberList\n    ___booleanVar = ___numberVar == ___numberVar\n    ___booleanVar = ___numberVar != ___numberVar\n    ___booleanVar = ___numberVar < ___numberVar\n    ___booleanVar = ___numberVar <= ___numberVar\n    ___booleanVar = ___numberVar > ___numberVar\n    ___booleanVar = ___numberVar >= ___numberVar\n    ___booleanVar = not ___booleanVar\n    ___booleanVar = True\n    ___booleanVar = False\n\n\n____control()\n____logic()\n\n",
+ "format": "nepotest-bundle",
+ "lab": "http://localhost:1999",
+ "message": "ORA_COMPILERWORKFLOW_PROGRAM_GENERATION_SUCCESS",
+ "program_name": "control_logic",
+ "rc": "ok",
+ "robot": "edisonv2",
+ "source_map": {
+  "blocks": {
+   "%#.4F52,rv^]Ehy`EhA6": {
+    "ranges": [
+     [
+      992,
+      1005
+     ],
+     [
+      992,
+      1036
+     ]
+    ],
+    "type": "variables_set"
+   },
+   "%7Ba]yS}tOr98#,GyjzD": {
+    "ranges": [
+     [
+      1008,
+      1020
+     ]
+    ],
+    "type": "variables_get"
+   },
+   "+3*xIiEsSDixup4)77ex": {
+    "ranges": [
+     [
+      1251,
+      1263
+     ]
+    ],
+    "type": "variables_get"
+   },
+   ".BtLXH_)gG2{_eTId4ds": {
+    "ranges": [
+     [
+      599,
+      616
+     ],
+     [
+      593,
+      631
+     ]
+    ],
+    "type": "controls_whileUntil"
+   },
+   ".MGdoZ,XYj:!{O`];dF7": {
+    "ranges": [
+     [
+      1203,
+      1215
+     ]
+    ],
+    "type": "variables_get"
+   },
+   ".O48!:qhQ#v7Dn.nkWmz": {
+    "ranges": [
+     [
+      626,
+      631
+     ]
+    ],
+    "type": "controls_flow_statements"
+   },
+   ".U-IG?n;-7%RXD+yx+}W": {
+    "ranges": [
+     [
+      232,
+      233
+     ]
+    ],
+    "type": "math_integer"
+   },
+   "/ebu4.nV2DD9t|m;vlm_": {
+    "ranges": [
+     [
+      234,
+      254
+     ]
+    ],
+    "type": "robGlobalVariables_declare"
+   },
+   "/j#(]krO5_X.vIkl-U~R": {
+    "ranges": [
+     [
+      1090,
+      1103
+     ],
+     [
+      1090,
+      1133
+     ]
+    ],
+    "type": "variables_set"
+   },
+   "0WXjn#|w_9.8_pt(iq9p": {
+    "ranges": [
+     [
+      1073,
+      1085
+     ]
+    ],
+    "type": "variables_get"
+   },
+   "1": {
+    "ranges": [
+     [
+      217,
+      290
+     ],
+     [
+      626,
+      631
+     ],
+     [
+      665,
+      673
+     ],
+     [
+      369,
+      915
+     ],
+     [
+      992,
+      1368
+     ]
+    ],
+    "type": "STMT_LIST"
+   },
+   "4W6?HqY/FF~MCGtES,Xk": {
+    "ranges": [
+     [
+      1106,
+      1118
+     ]
+    ],
+    "type": "variables_get"
+   },
+   "8j6dm]~:k5o{tKJKrzl,": {
+    "ranges": [
+     [
+      745,
+      758
+     ]
+    ],
+    "type": "variables_get"
+   },
+   ";81kF(?SIz8qI4kFVT0f": {
+    "ranges": [
+     [
+      409,
+      422
+     ]
+    ],
+    "type": "variables_get"
+   },
+   "?Jb3hUQ7B{%=f8dfznjc": {
+    "ranges": [
+     [
+      1057,
+      1085
+     ]
+    ],
+    "type": "logic_compare"
+   },
+   "A[.x8JmJhN,;ETL3wXk{": {
+    "ranges": [
+     [
+      665,
+      673
+     ]
+    ],
+    "type": "controls_flow_statements"
+   },
+   "B!f%9?;8`fmL4sI:)ug-": {
+    "ranges": [
+     [
+      642,
+      655
+     ]
+    ],
+    "type": "variables_get"
+   },
+   "D`5c6H!4h)MlJCZc;2V!": {
+    "ranges": [
+     [
+      1203,
+      1230
+     ]
+    ],
+    "type": "logic_compare"
+   },
+   "EWmVx/3oi!9Oyz::^51W": {
+    "ranges": [
+     [
+      1138,
+      1151
+     ],
+     [
+      1138,
+      1182
+     ]
+    ],
+    "type": "variables_set"
+   },
+   "Eq+~c8hq*weIs8),Kg#-": {
+    "ranges": [
+     [
+      441,
+      508
+     ]
+    ],
+    "type": "robControls_ifElse"
+   },
+   "J`YQ^NVn_a.2r*7u:iNI": {
+    "ranges": [
+     [
+      283,
+      284
+     ]
+    ],
+    "type": "math_integer"
+   },
+   "KU/*?:b22TeS}}+z{p~x": {
+    "ranges": [
+     [
+      444,
+      457
+     ]
+    ],
+    "type": "variables_get"
+   },
+   "Knxv?WDi66j7iDKy3gG@": {
+    "ranges": [
+     [
+      1235,
+      1248
+     ],
+     [
+      1235,
+      1279
+     ]
+    ],
+    "type": "variables_set"
+   },
+   "L:yD]bVW?%q~E*sNH1bV": {
+    "ranges": [
+     [
+      1304,
+      1317
+     ]
+    ],
+    "type": "variables_get"
+   },
+   "Mg+KyKN!%y,m*nWFM1pm": {
+    "ranges": [
+     [
+      1284,
+      1297
+     ],
+     [
+      1284,
+      1317
+     ]
+    ],
+    "type": "variables_set"
+   },
+   "N)XmPT[x0`J6#X%~f260": {
+    "ranges": [
+     [
+      867,
+      902
+     ],
+     [
+      847,
+      915
+     ]
+    ],
+    "type": "robControls_wait_for"
+   },
+   "N8iG~v=[h*h;;yMKjjCE": {
+    "ranges": [
+     [
+      372,
+      385
+     ]
+    ],
+    "type": "variables_get"
+   },
+   "NkR^h0Y28;ahkBs!KN7h": {
+    "ranges": [
+     [
+      636,
+      673
+     ]
+    ],
+    "type": "controls_whileUntil"
+   },
+   "O.C#kM7K6U9K-F%y7[*s": {
+    "ranges": [
+     [
+      1347,
+      1360
+     ],
+     [
+      1347,
+      1368
+     ]
+    ],
+    "type": "variables_set"
+   },
+   "Og_auu17rS--Z5_%Wic8": {
+    "ranges": [
+     [
+      1008,
+      1036
+     ]
+    ],
+    "type": "logic_compare"
+   },
+   "P9y^N-J9ep3kJ039i%W|": {
+    "ranges": [
+     [
+      795,
+      842
+     ]
+    ],
+    "type": "robControls_wait_time"
+   },
+   "QIanRvVUaHEl)YUyQ=ke": {
+    "ranges": [
+     [
+      1057,
+      1069
+     ]
+    ],
+    "type": "variables_get"
+   },
+   "Uw_!9GV3v!1cEIRFZu2z": {
+    "ranges": [
+     [
+      519,
+      523
+     ],
+     [
+      513,
+      537
+     ]
+    ],
+    "type": "robControls_loopForever"
+   },
+   "Vr!j(=RfdPGE,G@)XcFv": {
+    "ranges": [
+     [
+      1218,
+      1230
+     ]
+    ],
+    "type": "variables_get"
+   },
+   "W1K[Py{skWjFf?Yvz.bw": {
+    "ranges": [
+     [
+      1363,
+      1368
+     ]
+    ],
+    "type": "logic_boolean"
+   },
+   "YYBu/J~UrwG7{Y#CHYly": {
+    "ranges": [
+     [
+      546,
+      551
+     ],
+     [
+      542,
+      588
+     ]
+    ],
+    "type": "controls_repeat_ext"
+   },
+   "YrtQgri;0,@k~m0KU#0O": {
+    "ranges": [
+     [
+      870,
+      883
+     ]
+    ],
+    "type": "variables_get"
+   },
+   "Yx:0l9-eM5R+^5fwc_2J": {
+    "ranges": [
+     [
+      1024,
+      1036
+     ]
+    ],
+    "type": "variables_get"
+   },
+   "Z([SN==s*tN!NxhZ7F}1": {
+    "ranges": [
+     [
+      1106,
+      1133
+     ]
+    ],
+    "type": "logic_compare"
+   },
+   "[MWT599#V7^VG!rK}FgS": {
+    "ranges": [
+     [
+      217,
+      233
+     ]
+    ],
+    "type": "robGlobalVariables_declare"
+   },
+   "^72g48:hufl%rJ[8fGJ3": {
+    "ranges": [
+     [
+      1154,
+      1166
+     ]
+    ],
+    "type": "variables_get"
+   },
+   "^U3dS61`D:mjUtv/L;~9": {
+    "ranges": [
+     [
+      1338,
+      1342
+     ]
+    ],
+    "type": "logic_boolean"
+   },
+   "`TBkR-nQ?BvoKlj.)UR@": {
+    "ranges": [
+     [
+      603,
+      616
+     ]
+    ],
+    "type": "variables_get"
+   },
+   "`iPtmriKN8)5c1i9)|3I": {
+    "ranges": [
+     [
+      292,
+      915
+     ]
+    ],
+    "type": "robProcedures_defnoreturn"
+   },
+   "a#,YR4MPubak3AE1|Qd+": {
+    "ranges": [
+     [
+      217,
+      1368
+     ]
+    ],
+    "type": "robControls_start"
+   },
+   "b%h]@*Ma^ApQMK:XEP@}": {
+    "ranges": [
+     [
+      271,
+      290
+     ]
+    ],
+    "type": "robLists_create_with"
+   },
+   "c[^*yEDCy#L@BmGd^lfx": {
+    "ranges": [
+     [
+      255,
+      290
+     ]
+    ],
+    "type": "robGlobalVariables_declare"
+   },
+   "g69F/7?yHsIg7Ya+I::D": {
+    "ranges": [
+     [
+      1041,
+      1054
+     ],
+     [
+      1041,
+      1085
+     ]
+    ],
+    "type": "variables_set"
+   },
+   "gi{d?YgIpL25O1)g4y@(": {
+    "ranges": [
+     [
+      917,
+      1368
+     ]
+    ],
+    "type": "robProcedures_defnoreturn"
+   },
+   "gv~KNh{TEj6OD;%hzDv?": {
+    "ranges": [
+     [
+      1322,
+      1335
+     ],
+     [
+      1322,
+      1342
+     ]
+    ],
+    "type": "variables_set"
+   },
+   "h1L0;)I~7;lX%Uc-=P|m": {
+    "ranges": [
+     [
+      369,
+      436
+     ]
+    ],
+    "type": "robControls_if"
+   },
+   "h}{Svq|QZR*BEV+5cwe*": {
+    "ranges": [
+     [
+      1251,
+      1279
+     ]
+    ],
+    "type": "logic_compare"
+   },
+   "iJz5zBhp~3P`?1`l/xY-": {
+    "ranges": [
+     [
+      1267,
+      1279
+     ]
+    ],
+    "type": "variables_get"
+   },
+   "j-w~vb{g[wy5y~Bvij5N": {
+    "ranges": [
+     [
+      287,
+      288
+     ]
+    ],
+    "type": "math_integer"
+   },
+   "kefJ/@9xaUa}[P#|)/69": {
+    "ranges": [
+     [
+      1170,
+      1182
+     ]
+    ],
+    "type": "variables_get"
+   },
+   "kf%?bCWVn]AnRh@D7jqd": {
+    "ranges": [
+     [
+      701,
+      714
+     ]
+    ],
+    "type": "variables_get"
+   },
+   "mv^;6@DBq+5Q~J+iE^;@": {
+    "ranges": [
+     [
+      807,
+      819
+     ]
+    ],
+    "type": "variables_get"
+   },
+   "nUdjB(0(31#s@ej#AhiB": {
+    "ranges": [
+     [
+      1187,
+      1200
+     ],
+     [
+      1187,
+      1230
+     ]
+    ],
+    "type": "variables_set"
+   },
+   "q2/1IwM,L=%a+4`HiLoG": {
+    "ranges": [
+     [
+      1385,
+      1396
+     ]
+    ],
+    "type": "robProcedures_callnoreturn"
+   },
+   "q7?Fj=drf)3m@p!rsx7M": {
+    "ranges": [
+     [
+      285,
+      286
+     ]
+    ],
+    "type": "math_integer"
+   },
+   "sg(Md-B*14]bS]O19zF-": {
+    "ranges": [
+     [
+      698,
+      733
+     ],
+     [
+      742,
+      777
+     ],
+     [
+      678,
+      790
+     ]
+    ],
+    "type": "robControls_wait"
+   },
+   "sp}@m+ZUm5)DuZygn,aJ": {
+    "ranges": [
+     [
+      250,
+      254
+     ]
+    ],
+    "type": "logic_boolean"
+   },
+   "u4;Z+?zT*nr=}({p@0yZ": {
+    "ranges": [
+     [
+      1154,
+      1182
+     ]
+    ],
+    "type": "logic_compare"
+   },
+   "vFi%Wqr36Gmrruj;e^9U": {
+    "ranges": [
+     [
+      1371,
+      1384
+     ]
+    ],
+    "type": "robProcedures_callnoreturn"
+   },
+   "wj`#BIr(jz*@=~#OP}F~": {
+    "ranges": [
+     [
+      1121,
+      1133
+     ]
+    ],
+    "type": "variables_get"
+   },
+   "{Hbar-);[uwB0LdE#wLj": {
+    "ranges": [
+     [
+      1300,
+      1317
+     ]
+    ],
+    "type": "logic_negate"
+   },
+   "{riH0[NT1ODhEPse;,+3": {
+    "ranges": [
+     [
+      481,
+      494
+     ]
+    ],
+    "type": "variables_get"
+   },
+   "}XmptQ7X:56mH4%lY_Xs": {
+    "ranges": [
+     [
+      561,
+      573
+     ]
+    ],
+    "type": "variables_get"
+   }
+  },
+  "version": 1
+ },
+ "version": 1,
+ "xml": "<export xmlns=\"http://de.fhg.iais.roberta.blockly\">\n    <program>\n        <block_set xmlns=\"http://de.fhg.iais.roberta.blockly\" robottype=\"edison\" xmlversion=\"3.1\" description=\"\" tags=\"\">\n            <instance x=\"285\" y=\"45\">\n                <block type=\"robControls_start\" id=\"a#,YR4MPubak3AE1|Qd+\" intask=\"true\" deletable=\"false\">\n                    <mutation declare=\"true\"></mutation>\n                    <field name=\"DEBUG\">TRUE</field>\n                    <statement name=\"ST\">\n                        <block type=\"robGlobalVariables_declare\" id=\"[MWT599#V7^VG!rK}FgS\" intask=\"true\" deletable=\"false\" movable=\"false\">\n                            <mutation next=\"true\" declaration_type=\"Number\"></mutation>\n                            <field name=\"VAR\">numberVar</field>\n                            <field name=\"TYPE\">Number</field>\n                            <value name=\"VALUE\">\n                                <block type=\"math_integer\" id=\".U-IG?n;-7%RXD+yx+}W\" intask=\"true\">\n                                    <field name=\"NUM\">0</field>\n                                </block>\n                            </value>\n                        </block>\n                        <block type=\"robGlobalVariables_declare\" id=\"/ebu4.nV2DD9t|m;vlm_\" intask=\"true\" deletable=\"false\" movable=\"false\">\n                            <mutation next=\"true\" declaration_type=\"Boolean\"></mutation>\n                            <field name=\"VAR\">booleanVar</field>\n                            <field name=\"TYPE\">Boolean</field>\n                            <value name=\"VALUE\">\n                                <block type=\"logic_boolean\" id=\"sp}@m+ZUm5)DuZygn,aJ\" intask=\"true\">\n                                    <field name=\"BOOL\">TRUE</field>\n                                </block>\n                            </value>\n                        </block>\n                        <block type=\"robGlobalVariables_declare\" id=\"c[^*yEDCy#L@BmGd^lfx\" intask=\"true\" deletable=\"false\" movable=\"false\">\n                            <mutation next=\"false\" declaration_type=\"Array_Number\"></mutation>\n                            <field name=\"VAR\">numberList</field>\n                            <field name=\"TYPE\">Array_Number</field>\n                            <value name=\"VALUE\">\n                                <block type=\"robLists_create_with\" id=\"b%h]@*Ma^ApQMK:XEP@}\" intask=\"true\">\n                                    <mutation items=\"3\" list_type=\"Number\"></mutation>\n                                    <field name=\"LIST_TYPE\">Number</field>\n                                    <value name=\"ADD0\">\n                                        <block type=\"math_integer\" id=\"J`YQ^NVn_a.2r*7u:iNI\" intask=\"true\">\n                                            <field name=\"NUM\">0</field>\n                                        </block>\n                                    </value>\n                                    <value name=\"ADD1\">\n                                        <block type=\"math_integer\" id=\"q7?Fj=drf)3m@p!rsx7M\" intask=\"true\">\n                                            <field name=\"NUM\">0</field>\n                                        </block>\n                                    </value>\n                                    <value name=\"ADD2\">\n                                        <block type=\"math_integer\" id=\"j-w~vb{g[wy5y~Bvij5N\" intask=\"true\">\n                                            <field name=\"NUM\">0</field>\n                                        </block>\n                                    </value>\n                                </block>\n                            </value>\n                        </block>\n                    </statement>\n                </block>\n                <block type=\"robProcedures_callnoreturn\" id=\"vFi%Wqr36Gmrruj;e^9U\" intask=\"true\">\n                    <mutation name=\"control\"></mutation>\n                </block>\n                <block type=\"robProcedures_callnoreturn\" id=\"q2/1IwM,L=%a+4`HiLoG\" intask=\"true\">\n                    <mutation name=\"logic\"></mutation>\n                </block>\n            </instance>\n            <instance x=\"924\" y=\"49\">\n                <block type=\"robProcedures_defnoreturn\" id=\"`iPtmriKN8)5c1i9)|3I\" intask=\"true\">\n                    <mutation declare=\"false\"></mutation>\n                    <field name=\"NAME\">control</field>\n                    <statement name=\"STACK\">\n                        <block type=\"robControls_if\" id=\"h1L0;)I~7;lX%Uc-=P|m\" intask=\"true\">\n                            <mutation elseif=\"1\"></mutation>\n                            <repetitions>\n                                <value name=\"IF0\">\n                                    <block type=\"variables_get\" id=\"N8iG~v=[h*h;;yMKjjCE\" intask=\"true\">\n                                        <mutation datatype=\"Boolean\"></mutation>\n                                        <field name=\"VAR\">booleanVar</field>\n                                    </block>\n                                </value>\n                                <value name=\"IF1\">\n                                    <block type=\"variables_get\" id=\";81kF(?SIz8qI4kFVT0f\" intask=\"true\">\n                                        <mutation datatype=\"Boolean\"></mutation>\n                                        <field name=\"VAR\">booleanVar</field>\n                                    </block>\n                                </value>\n                            </repetitions>\n                        </block>\n                        <block type=\"robControls_ifElse\" id=\"Eq+~c8hq*weIs8),Kg#-\" intask=\"true\">\n                            <mutation elseif=\"1\" else=\"1\"></mutation>\n                            <repetitions>\n                                <value name=\"IF0\">\n                                    <block type=\"variables_get\" id=\"KU/*?:b22TeS}}+z{p~x\" intask=\"true\">\n                                        <mutation datatype=\"Boolean\"></mutation>\n                                        <field name=\"VAR\">booleanVar</field>\n                                    </block>\n                                </value>\n                                <value name=\"IF1\">\n                                    <block type=\"variables_get\" id=\"{riH0[NT1ODhEPse;,+3\" intask=\"true\">\n                                        <mutation datatype=\"Boolean\"></mutation>\n                                        <field name=\"VAR\">booleanVar</field>\n                                    </block>\n                                </value>\n                            </repetitions>\n                        </block>\n                        <block type=\"robControls_loopForever\" id=\"Uw_!9GV3v!1cEIRFZu2z\" intask=\"true\"></block>\n                        <block type=\"controls_repeat_ext\" id=\"YYBu/J~UrwG7{Y#CHYly\" intask=\"true\">\n                            <value name=\"TIMES\">\n                                <block type=\"variables_get\" id=\"}XmptQ7X:56mH4%lY_Xs\" intask=\"true\">\n                                    <mutation datatype=\"Number\"></mutation>\n                                    <field name=\"VAR\">numberVar</field>\n                                </block>\n                            </value>\n                        </block>\n                        <block type=\"controls_whileUntil\" id=\".BtLXH_)gG2{_eTId4ds\" intask=\"true\">\n                            <field name=\"MODE\">UNTIL</field>\n                            <value name=\"BOOL\">\n                                <block type=\"variables_get\" id=\"`TBkR-nQ?BvoKlj.)UR@\" intask=\"true\">\n                                    <mutation datatype=\"Boolean\"></mutation>\n                                    <field name=\"VAR\">booleanVar</field>\n                                </block>\n                            </value>\n                            <statement name=\"DO\">\n                                <block type=\"controls_flow_statements\" id=\".O48!:qhQ#v7Dn.nkWmz\" intask=\"true\">\n                                    <field name=\"FLOW\">BREAK</field>\n                                </block>\n                            </statement>\n                        </block>\n                        <block type=\"controls_whileUntil\" id=\"NkR^h0Y28;ahkBs!KN7h\" intask=\"true\">\n                            <field name=\"MODE\">WHILE</field>\n                            <value name=\"BOOL\">\n                                <block type=\"variables_get\" id=\"B!f%9?;8`fmL4sI:)ug-\" intask=\"true\">\n                                    <mutation datatype=\"Boolean\"></mutation>\n                                    <field name=\"VAR\">booleanVar</field>\n                                </block>\n                            </value>\n                            <statement name=\"DO\">\n                                <block type=\"controls_flow_statements\" id=\"A[.x8JmJhN,;ETL3wXk{\" intask=\"true\">\n                                    <field name=\"FLOW\">CONTINUE</field>\n                                </block>\n                            </statement>\n                        </block>\n                        <block type=\"robControls_wait\" id=\"sg(Md-B*14]bS]O19zF-\" intask=\"true\">\n                            <mutation wait=\"1\"></mutation>\n                            <repetitions>\n                                <value name=\"WAIT0\">\n                                    <block type=\"variables_get\" id=\"kf%?bCWVn]AnRh@D7jqd\" intask=\"true\">\n                                        <mutation datatype=\"Boolean\"></mutation>\n                                        <field name=\"VAR\">booleanVar</field>\n                                    </block>\n                                </value>\n                                <value name=\"WAIT1\">\n                                    <block type=\"variables_get\" id=\"8j6dm]~:k5o{tKJKrzl,\" intask=\"true\">\n                                        <mutation datatype=\"Boolean\"></mutation>\n                                        <field name=\"VAR\">booleanVar</field>\n                                    </block>\n                                </value>\n                            </repetitions>\n                        </block>\n                        <block type=\"robControls_wait_time\" id=\"P9y^N-J9ep3kJ039i%W|\" intask=\"true\">\n                            <value name=\"WAIT\">\n                                <block type=\"variables_get\" id=\"mv^;6@DBq+5Q~J+iE^;@\" intask=\"true\">\n                                    <mutation datatype=\"Number\"></mutation>\n                                    <field name=\"VAR\">numberVar</field>\n                                </block>\n                            </value>\n                        </block>\n                        <block type=\"robControls_wait_for\" id=\"N)XmPT[x0`J6#X%~f260\" intask=\"true\">\n                            <value name=\"WAIT0\">\n                                <block type=\"variables_get\" id=\"YrtQgri;0,@k~m0KU#0O\" intask=\"true\">\n                                    <mutation datatype=\"Boolean\"></mutation>\n                                    <field name=\"VAR\">booleanVar</field>\n                                </block>\n                            </value>\n                        </block>\n                    </statement>\n                </block>\n            </instance>\n            <instance x=\"1447\" y=\"49\">\n                <block type=\"robProcedures_defnoreturn\" id=\"gi{d?YgIpL25O1)g4y@(\" intask=\"true\">\n                    <mutation declare=\"false\"></mutation>\n                    <field name=\"NAME\">logic</field>\n                    <statement name=\"STACK\">\n                        <block type=\"variables_set\" id=\"%#.4F52,rv^]Ehy`EhA6\" intask=\"true\">\n                            <mutation datatype=\"Boolean\"></mutation>\n                            <field name=\"VAR\">booleanVar</field>\n                            <value name=\"VALUE\">\n                                <block type=\"logic_compare\" id=\"Og_auu17rS--Z5_%Wic8\" intask=\"true\">\n                                    <field name=\"OP\">EQ</field>\n                                    <value name=\"A\">\n                                        <block type=\"variables_get\" id=\"%7Ba]yS}tOr98#,GyjzD\" intask=\"true\">\n                                            <mutation datatype=\"Number\"></mutation>\n                                            <field name=\"VAR\">numberVar</field>\n                                        </block>\n                                    </value>\n                                    <value name=\"B\">\n                                        <block type=\"variables_get\" id=\"Yx:0l9-eM5R+^5fwc_2J\" intask=\"true\">\n                                            <mutation datatype=\"Number\"></mutation>\n                                            <field name=\"VAR\">numberVar</field>\n                                        </block>\n                                    </value>\n                                </block>\n                            </value>\n                        </block>\n                        <block type=\"variables_set\" id=\"g69F/7?yHsIg7Ya+I::D\" intask=\"true\">\n                            <mutation datatype=\"Boolean\"></mutation>\n                            <field name=\"VAR\">booleanVar</field>\n                            <value name=\"VALUE\">\n                                <block type=\"logic_compare\" id=\"?Jb3hUQ7B{%=f8dfznjc\" intask=\"true\">\n                                    <field name=\"OP\">NEQ</field>\n                                    <value name=\"A\">\n                                        <block type=\"variables_get\" id=\"QIanRvVUaHEl)YUyQ=ke\" intask=\"true\">\n                                            <mutation datatype=\"Number\"></mutation>\n                                            <field name=\"VAR\">numberVar</field>\n                                        </block>\n                                    </value>\n                                    <value name=\"B\">\n                                        <block type=\"variables_get\" id=\"0WXjn#|w_9.8_pt(iq9p\" intask=\"true\">\n                                            <mutation datatype=\"Number\"></mutation>\n                                            <field name=\"VAR\">numberVar</field>\n                                        </block>\n                                    </value>\n                                </block>\n                            </value>\n                        </block>\n                        <block type=\"variables_set\" id=\"/j#(]krO5_X.vIkl-U~R\" intask=\"true\">\n                            <mutation datatype=\"Boolean\"></mutation>\n                            <field name=\"VAR\">booleanVar</field>\n                            <value name=\"VALUE\">\n                                <block type=\"logic_compare\" id=\"Z([SN==s*tN!NxhZ7F}1\" intask=\"true\">\n                                    <field name=\"OP\">LT</field>\n                                    <value name=\"A\">\n                                        <block type=\"variables_get\" id=\"4W6?HqY/FF~MCGtES,Xk\" intask=\"true\">\n                                            <mutation datatype=\"Number\"></mutation>\n                                            <field name=\"VAR\">numberVar</field>\n                                        </block>\n                                    </value>\n                                    <value name=\"B\">\n                                        <block type=\"variables_get\" id=\"wj`#BIr(jz*@=~#OP}F~\" intask=\"true\">\n                                            <mutation datatype=\"Number\"></mutation>\n                                            <field name=\"VAR\">numberVar</field>\n                                        </block>\n                                    </value>\n                                </block>\n                            </value>\n                        </block>\n                        <block type=\"variables_set\" id=\"EWmVx/3oi!9Oyz::^51W\" intask=\"true\">\n                            <mutation datatype=\"Boolean\"></mutation>\n                            <field name=\"VAR\">booleanVar</field>\n                            <value name=\"VALUE\">\n                                <block type=\"logic_compare\" id=\"u4;Z+?zT*nr=}({p@0yZ\" intask=\"true\">\n                                    <field name=\"OP\">LTE</field>\n                                    <value name=\"A\">\n                                        <block type=\"variables_get\" id=\"^72g48:hufl%rJ[8fGJ3\" intask=\"true\">\n                                            <mutation datatype=\"Number\"></mutation>\n                                            <field name=\"VAR\">numberVar</field>\n                                        </block>\n                                    </value>\n                                    <value name=\"B\">\n                                        <block type=\"variables_get\" id=\"kefJ/@9xaUa}[P#|)/69\" intask=\"true\">\n                                            <mutation datatype=\"Number\"></mutation>\n                                            <field name=\"VAR\">numberVar</field>\n                                        </block>\n                                    </value>\n                                </block>\n                            </value>\n                        </block>\n                        <block type=\"variables_set\" id=\"nUdjB(0(31#s@ej#AhiB\" intask=\"true\">\n                            <mutation datatype=\"Boolean\"></mutation>\n                            <field name=\"VAR\">booleanVar</field>\n                            <value name=\"VALUE\">\n                                <block type=\"logic_compare\" id=\"D`5c6H!4h)MlJCZc;2V!\" intask=\"true\">\n                                    <field name=\"OP\">GT</field>\n                                    <value name=\"A\">\n                                        <block type=\"variables_get\" id=\".MGdoZ,XYj:!{O`];dF7\" intask=\"true\">\n                                            <mutation datatype=\"Number\"></mutation>\n                                            <field name=\"VAR\">numberVar</field>\n                                        </block>\n                                    </value>\n                                    <value name=\"B\">\n                                        <block type=\"variables_get\" id=\"Vr!j(=RfdPGE,G@)XcFv\" intask=\"true\">\n                                            <mutation datatype=\"Number\"></mutation>\n                                            <field name=\"VAR\">numberVar</field>\n                                        </block>\n                                    </value>\n                                </block>\n                            </value>\n                        </block>\n                        <block type=\"variables_set\" id=\"Knxv?WDi66j7iDKy3gG@\" intask=\"true\">\n                            <mutation datatype=\"Boolean\"></mutation>\n                            <field name=\"VAR\">booleanVar</field>\n                            <value name=\"VALUE\">\n                                <block type=\"logic_compare\" id=\"h}{Svq|QZR*BEV+5cwe*\" intask=\"true\">\n                                    <field name=\"OP\">GTE</field>\n                                    <value name=\"A\">\n                                        <block type=\"variables_get\" id=\"+3*xIiEsSDixup4)77ex\" intask=\"true\">\n                                            <mutation datatype=\"Number\"></mutation>\n                                            <field name=\"VAR\">numberVar</field>\n                                        </block>\n                                    </value>\n                                    <value name=\"B\">\n                                        <block type=\"variables_get\" id=\"iJz5zBhp~3P`?1`l/xY-\" intask=\"true\">\n                                            <mutation datatype=\"Number\"></mutation>\n                                            <field name=\"VAR\">numberVar</field>\n                                        </block>\n                                    </value>\n                                </block>\n                            </value>\n                        </block>\n                        <block type=\"variables_set\" id=\"Mg+KyKN!%y,m*nWFM1pm\" intask=\"true\">\n                            <mutation datatype=\"Boolean\"></mutation>\n                            <field name=\"VAR\">booleanVar</field>\n                            <value name=\"VALUE\">\n                                <block type=\"logic_negate\" id=\"{Hbar-);[uwB0LdE#wLj\" intask=\"true\">\n                                    <value name=\"BOOL\">\n                                        <block type=\"variables_get\" id=\"L:yD]bVW?%q~E*sNH1bV\" intask=\"true\">\n                                            <mutation datatype=\"Boolean\"></mutation>\n                                            <field name=\"VAR\">booleanVar</field>\n                                        </block>\n                                    </value>\n                                </block>\n                            </value>\n                        </block>\n                        <block type=\"variables_set\" id=\"gv~KNh{TEj6OD;%hzDv?\" intask=\"true\">\n                            <mutation datatype=\"Boolean\"></mutation>\n                            <field name=\"VAR\">booleanVar</field>\n                            <value name=\"VALUE\">\n                                <block type=\"logic_boolean\" id=\"^U3dS61`D:mjUtv/L;~9\" intask=\"true\">\n                                    <field name=\"BOOL\">TRUE</field>\n                                </block>\n                            </value>\n                        </block>\n                        <block type=\"variables_set\" id=\"O.C#kM7K6U9K-F%y7[*s\" intask=\"true\">\n                            <mutation datatype=\"Boolean\"></mutation>\n                            <field name=\"VAR\">booleanVar</field>\n                            <value name=\"VALUE\">\n                                <block type=\"logic_boolean\" id=\"W1K[Py{skWjFf?Yvz.bw\" intask=\"true\">\n                                    <field name=\"BOOL\">FALSE</field>\n                                </block>\n                            </value>\n                        </block>\n                    </statement>\n                </block>\n            </instance>\n        </block_set>\n    </program>\n    <config>\n        <block_set robottype=\"edison\" xmlversion=\"3.1\" description=\"\" tags=\"\" xmlns=\"http://de.fhg.iais.roberta.blockly\">\n            <instance x=\"213\" y=\"213\">\n                <block type=\"robBrick_Edison-Brick\" id=\"1\" intask=\"true\" deletable=\"false\" />\n            </instance>\n        </block_set>\n    </config>\n</export>",
+ "xml_sha256": "0ee19c234c57371a11bd0663d85bb3719ab075ed04a265e86af7af20c9cf6206"
+}

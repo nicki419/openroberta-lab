@@ -1,0 +1,484 @@
+{
+ "annotated_prog_xml": "<block_set robottype=\"edison\" xmlversion=\"3.1\" description=\"\" tags=\"\" xmlns=\"http://de.fhg.iais.roberta.blockly\"><instance x=\"20\" y=\"20\"><block type=\"robControls_start\" id=\"cc06\" intask=\"true\" deletable=\"false\"><mutation declare=\"true\"/><field name=\"DEBUG\">FALSE</field><statement name=\"ST\"><block type=\"robGlobalVariables_declare\" id=\"cc03\" intask=\"true\" deletable=\"false\" movable=\"false\"><mutation next=\"true\" declaration_type=\"Number\"/><field name=\"VAR\">claps</field><field name=\"TYPE\">Number</field><value name=\"VALUE\"><block type=\"math_number\" id=\"cc02\" intask=\"true\"><field name=\"NUM\">0</field></block></value></block><block type=\"robGlobalVariables_declare\" id=\"cc05\" intask=\"true\" deletable=\"false\" movable=\"false\"><mutation next=\"false\" declaration_type=\"Number\"/><field name=\"VAR\">goal</field><field name=\"TYPE\">Number</field><value name=\"VALUE\"><block type=\"math_number\" id=\"cc04\" intask=\"true\"><field name=\"NUM\">3</field></block></value></block></statement></block><block type=\"controls_whileUntil\" id=\"cc14\" intask=\"true\"><field name=\"MODE\">WHILE</field><value name=\"BOOL\"><block type=\"logic_compare\" id=\"cc09\" intask=\"true\"><field name=\"OP\">LT</field><value name=\"A\"><block type=\"variables_get\" id=\"cc07\" intask=\"true\"><mutation datatype=\"Number\"/><field name=\"VAR\">claps</field></block></value><value name=\"B\"><block type=\"variables_get\" id=\"cc08\" intask=\"true\"><mutation datatype=\"Number\"/><field name=\"VAR\">goal</field></block></value></block></value><statement name=\"DO\"><block type=\"robControls_wait_for\" id=\"cc10\" intask=\"true\"><value name=\"WAIT0\"><block type=\"robSensors_sound_getSample\" id=\"cc01\" intask=\"true\"><mutation mode=\"SOUND\"/><field name=\"MODE\">SOUND</field><field name=\"SENSORPORT\"></field><field name=\"SLOT\"></field></block></value></block><block type=\"robMath_change\" id=\"cc13\" intask=\"true\"><value name=\"VAR\"><block type=\"variables_get\" id=\"cc11\" intask=\"true\"><mutation datatype=\"Number\"/><field name=\"VAR\">claps</field></block></value><value name=\"DELTA\"><block type=\"math_number\" id=\"cc12\" intask=\"true\"><field name=\"NUM\">1</field></block></value></block></statement></block><block type=\"robProcedures_callnoreturn\" id=\"cc16\" intask=\"true\"><mutation name=\"blink\"><arg name=\"times\" type=\"Number\"/></mutation><value name=\"ARG0\"><block type=\"variables_get\" id=\"cc15\" intask=\"true\"><mutation datatype=\"Number\"/><field name=\"VAR\">claps</field></block></value></block><block type=\"robActions_motorDiff_on_for\" id=\"cc20\" intask=\"true\"><field name=\"DIRECTION\">FOREWARD</field><value name=\"POWER\"><block type=\"robProcedures_callreturn\" id=\"cc18\" intask=\"true\"><mutation name=\"clampSpeed\" output_type=\"Number\"><arg name=\"speed\" type=\"Number\"/></mutation><value name=\"ARG0\"><block type=\"math_number\" id=\"cc17\" intask=\"true\"><field name=\"NUM\">150</field></block></value></block></value><value name=\"DISTANCE\"><block type=\"math_number\" id=\"cc19\" intask=\"true\"><field name=\"NUM\">10</field></block></value></block></instance><instance x=\"500\" y=\"20\"><block type=\"robProcedures_defreturn\" id=\"cc33\" intask=\"true\"><mutation declare=\"true\" return_type=\"Number\"/><field name=\"NAME\">clampSpeed</field><field name=\"TYPE\">Number</field><repetitions><statement name=\"ST\"><block type=\"robLocalVariables_declare\" id=\"cc32\" intask=\"true\" deletable=\"false\" movable=\"false\"><mutation next=\"false\" declaration_type=\"Number\"/><field name=\"VAR\">speed</field><field name=\"TYPE\">Number</field></block></statement><statement name=\"STACK\"><block type=\"robProcedures_ifreturn\" id=\"cc25\" intask=\"true\"><mutation value=\"1\"/><value name=\"CONDITION\"><block type=\"logic_compare\" id=\"cc23\" intask=\"true\"><field name=\"OP\">GT</field><value name=\"A\"><block type=\"variables_get\" id=\"cc21\" intask=\"true\"><mutation datatype=\"Number\"/><field name=\"VAR\">speed</field></block></value><value name=\"B\"><block type=\"math_number\" id=\"cc22\" intask=\"true\"><field name=\"NUM\">100</field></block></value></block></value><value name=\"VALUE\"><block type=\"math_number\" id=\"cc24\" intask=\"true\"><field name=\"NUM\">100</field></block></value></block><block type=\"robProcedures_ifreturn\" id=\"cc30\" intask=\"true\"><mutation value=\"1\"/><value name=\"CONDITION\"><block type=\"logic_compare\" id=\"cc28\" intask=\"true\"><field name=\"OP\">LT</field><value name=\"A\"><block type=\"variables_get\" id=\"cc26\" intask=\"true\"><mutation datatype=\"Number\"/><field name=\"VAR\">speed</field></block></value><value name=\"B\"><block type=\"math_number\" id=\"cc27\" intask=\"true\"><field name=\"NUM\">0</field></block></value></block></value><value name=\"VALUE\"><block type=\"math_number\" id=\"cc29\" intask=\"true\"><field name=\"NUM\">0</field></block></value></block></statement><value name=\"RETURN\"><block type=\"variables_get\" id=\"cc31\" intask=\"true\"><mutation datatype=\"Number\"/><field name=\"VAR\">speed</field></block></value></repetitions></block></instance><instance x=\"500\" y=\"300\"><block type=\"robProcedures_defreturn\" id=\"cc41\" intask=\"true\"><mutation declare=\"true\" return_type=\"Number\"/><field name=\"NAME\">average</field><field name=\"TYPE\">Number</field><repetitions><statement name=\"ST\"><block type=\"robLocalVariables_declare\" id=\"cc39\" intask=\"true\" deletable=\"false\" movable=\"false\"><mutation next=\"true\" declaration_type=\"Number\"/><field name=\"VAR\">a</field><field name=\"TYPE\">Number</field></block><block type=\"robLocalVariables_declare\" id=\"cc40\" intask=\"true\" deletable=\"false\" movable=\"false\"><mutation next=\"false\" declaration_type=\"Number\"/><field name=\"VAR\">b</field><field name=\"TYPE\">Number</field></block></statement><value name=\"RETURN\"><block type=\"math_arithmetic\" id=\"cc38\" intask=\"true\"><field name=\"OP\">DIVIDE</field><value name=\"A\"><block type=\"math_arithmetic\" id=\"cc36\" intask=\"true\"><field name=\"OP\">ADD</field><value name=\"A\"><block type=\"variables_get\" id=\"cc34\" intask=\"true\"><mutation datatype=\"Number\"/><field name=\"VAR\">a</field></block></value><value name=\"B\"><block type=\"variables_get\" id=\"cc35\" intask=\"true\"><mutation datatype=\"Number\"/><field name=\"VAR\">b</field></block></value></block></value><value name=\"B\"><block type=\"math_number\" id=\"cc37\" intask=\"true\"><field name=\"NUM\">2</field></block></value></block></value></repetitions></block></instance><instance x=\"500\" y=\"500\"><block type=\"robProcedures_defnoreturn\" id=\"cc51\" intask=\"true\"><mutation declare=\"true\"/><field name=\"NAME\">blink</field><statement name=\"ST\"><block type=\"robLocalVariables_declare\" id=\"cc50\" intask=\"true\" deletable=\"false\" movable=\"false\"><mutation next=\"false\" declaration_type=\"Number\"/><field name=\"VAR\">times</field><field name=\"TYPE\">Number</field></block></statement><statement name=\"STACK\"><block type=\"controls_repeat_ext\" id=\"cc49\" intask=\"true\"><value name=\"TIMES\"><block type=\"variables_get\" id=\"cc42\" intask=\"true\"><mutation datatype=\"Number\"/><field name=\"VAR\">times</field></block></value><statement name=\"DO\"><block type=\"actions_led_edison\" id=\"cc43\" intask=\"true\"><field name=\"ACTORPORT\">LLED</field><field name=\"MODE\">ON</field></block><block type=\"robControls_wait_time\" id=\"cc45\" intask=\"true\"><value name=\"WAIT\"><block type=\"math_number\" id=\"cc44\" intask=\"true\"><field name=\"NUM\">200</field></block></value></block><block type=\"actions_led_edison\" id=\"cc46\" intask=\"true\"><field name=\"ACTORPORT\">LLED</field><field name=\"MODE\">OFF</field></block><block type=\"robControls_wait_time\" id=\"cc48\" intask=\"true\"><value name=\"WAIT\"><block type=\"math_number\" id=\"cc47\" intask=\"true\"><field name=\"NUM\">200</field></block></value></block></statement></block></statement></block></instance></block_set>",
+ "cause": "ORA_COMPILERWORKFLOW_PROGRAM_GENERATION_SUCCESS",
+ "converted_at": "2026-09-25T19:05:17",
+ "edpy": "import Ed\n\ndef _diffDrive(direction, speed, distance):\n    _reverse = False\n    if speed < 0:\n        _reverse = True\n        _speed = _shorten(-speed)\n    else: \n        _speed = _shorten(speed)\n    if (_speed == 0): \n        Ed.Drive(Ed.STOP, 1, 1)\n    else: \n        Ed.Drive(_getDirection(direction, _reverse), _speed, distance)\n\ndef _getDirection(dir, reverse):\n    if reverse:\n        if (dir == Ed.FORWARD): \n            return Ed.BACKWARD\n        else: \n            return Ed.FORWARD\n    else: \n        return dir\n\ndef _shorten(num): \n    return ((num+5)/10)\n\nEd.EdisonVersion = Ed.V2\nEd.DistanceUnits = Ed.CM\nEd.Tempo = Ed.TEMPO_SLOW\nobstacleDetectionOn = False\nEd.LineTrackerLed(Ed.ON)\nEd.ReadClapSensor()\nEd.ReadLineState()\nEd.TimeWait(250, Ed.TIME_MILLISECONDS)\n\n___claps = 0\n___goal = 3\n\ndef ____clampSpeed(___speed):\n    global ___claps, ___goal\n    if ___speed > 100: return 100\n    if ___speed < 0: return 0\n    return ___speed\n\ndef ____average(___a, ___b):\n    global ___claps, ___goal\n    return ___a + ___b / 2\n\ndef ____blink(___times):\n    global ___claps, ___goal\n    for ___k0 in range(___times):\n        Ed.LeftLed(Ed.ON)\n        Ed.TimeWait(200, Ed.TIME_MILLISECONDS)\n        Ed.LeftLed(Ed.OFF)\n        Ed.TimeWait(200, Ed.TIME_MILLISECONDS)\n\n\nwhile ___claps < ___goal:\n    while True:\n        if (Ed.ReadClapSensor() == Ed.CLAP_DETECTED):\n            break\n        pass\n    ___claps += 1\n____blink(___claps)\n_diffDrive(Ed.FORWARD, ____clampSpeed(150), 10)\nEd.ReadClapSensor()\n\n",
+ "format": "nepotest-bundle",
+ "lab": "http://localhost:1999",
+ "message": "ORA_COMPILERWORKFLOW_PROGRAM_GENERATION_SUCCESS",
+ "program_name": "clap_counter",
+ "rc": "ok",
+ "robot": "edisonv2",
+ "source_map": {
+  "blocks": {
+   "1": {
+    "ranges": [
+     [
+      775,
+      799
+     ],
+     [
+      864,
+      923
+     ],
+     [
+      1127,
+      1265
+     ],
+     [
+      1089,
+      1265
+     ],
+     [
+      1298,
+      1412
+     ],
+     [
+      1423,
+      1431
+     ],
+     [
+      1471,
+      1474
+     ]
+    ],
+    "type": "STMT_LIST"
+   },
+   "cc01": {
+    "ranges": [
+     [
+      1321,
+      1362
+     ]
+    ],
+    "type": "robSensors_sound_getSample"
+   },
+   "cc02": {
+    "ranges": [
+     [
+      786,
+      787
+     ]
+    ],
+    "type": "math_number"
+   },
+   "cc03": {
+    "ranges": [
+     [
+      775,
+      787
+     ]
+    ],
+    "type": "robGlobalVariables_declare"
+   },
+   "cc04": {
+    "ranges": [
+     [
+      798,
+      799
+     ]
+    ],
+    "type": "math_number"
+   },
+   "cc05": {
+    "ranges": [
+     [
+      788,
+      799
+     ]
+    ],
+    "type": "robGlobalVariables_declare"
+   },
+   "cc06": {
+    "ranges": [
+     [
+      775,
+      1265
+     ]
+    ],
+    "type": "robControls_start"
+   },
+   "cc07": {
+    "ranges": [
+     [
+      1274,
+      1282
+     ]
+    ],
+    "type": "variables_get"
+   },
+   "cc08": {
+    "ranges": [
+     [
+      1285,
+      1292
+     ]
+    ],
+    "type": "variables_get"
+   },
+   "cc09": {
+    "ranges": [
+     [
+      1274,
+      1292
+     ]
+    ],
+    "type": "logic_compare"
+   },
+   "cc10": {
+    "ranges": [
+     [
+      1318,
+      1381
+     ],
+     [
+      1298,
+      1394
+     ]
+    ],
+    "type": "robControls_wait_for"
+   },
+   "cc11": {
+    "ranges": [
+     [
+      1399,
+      1407
+     ]
+    ],
+    "type": "variables_get"
+   },
+   "cc12": {
+    "ranges": [
+     [
+      1411,
+      1412
+     ]
+    ],
+    "type": "math_number"
+   },
+   "cc13": {
+    "ranges": [
+     [
+      1399,
+      1412
+     ]
+    ],
+    "type": "robMath_change"
+   },
+   "cc14": {
+    "ranges": [
+     [
+      1268,
+      1412
+     ]
+    ],
+    "type": "controls_whileUntil"
+   },
+   "cc15": {
+    "ranges": [
+     [
+      1423,
+      1431
+     ]
+    ],
+    "type": "variables_get"
+   },
+   "cc16": {
+    "ranges": [
+     [
+      1413,
+      1432
+     ]
+    ],
+    "type": "robProcedures_callnoreturn"
+   },
+   "cc17": {
+    "ranges": [
+     [
+      1471,
+      1474
+     ]
+    ],
+    "type": "math_number"
+   },
+   "cc18": {
+    "ranges": [
+     [
+      1456,
+      1475
+     ]
+    ],
+    "type": "robProcedures_callreturn"
+   },
+   "cc19": {
+    "ranges": [
+     [
+      1477,
+      1479
+     ]
+    ],
+    "type": "math_number"
+   },
+   "cc20": {
+    "ranges": [
+     [
+      1433,
+      1500
+     ]
+    ],
+    "type": "robActions_motorDiff_on_for"
+   },
+   "cc21": {
+    "ranges": [
+     [
+      867,
+      875
+     ]
+    ],
+    "type": "variables_get"
+   },
+   "cc22": {
+    "ranges": [
+     [
+      878,
+      881
+     ]
+    ],
+    "type": "math_number"
+   },
+   "cc23": {
+    "ranges": [
+     [
+      867,
+      881
+     ]
+    ],
+    "type": "logic_compare"
+   },
+   "cc24": {
+    "ranges": [
+     [
+      890,
+      893
+     ]
+    ],
+    "type": "math_number"
+   },
+   "cc25": {
+    "ranges": [
+     [
+      864,
+      893
+     ]
+    ],
+    "type": "robProcedures_ifreturn"
+   },
+   "cc26": {
+    "ranges": [
+     [
+      901,
+      909
+     ]
+    ],
+    "type": "variables_get"
+   },
+   "cc27": {
+    "ranges": [
+     [
+      912,
+      913
+     ]
+    ],
+    "type": "math_number"
+   },
+   "cc28": {
+    "ranges": [
+     [
+      901,
+      913
+     ]
+    ],
+    "type": "logic_compare"
+   },
+   "cc29": {
+    "ranges": [
+     [
+      922,
+      923
+     ]
+    ],
+    "type": "math_number"
+   },
+   "cc30": {
+    "ranges": [
+     [
+      898,
+      923
+     ]
+    ],
+    "type": "robProcedures_ifreturn"
+   },
+   "cc31": {
+    "ranges": [
+     [
+      935,
+      943
+     ]
+    ],
+    "type": "variables_get"
+   },
+   "cc33": {
+    "ranges": [
+     [
+      801,
+      943
+     ]
+    ],
+    "type": "robProcedures_defreturn"
+   },
+   "cc34": {
+    "ranges": [
+     [
+      1014,
+      1018
+     ]
+    ],
+    "type": "variables_get"
+   },
+   "cc35": {
+    "ranges": [
+     [
+      1021,
+      1025
+     ]
+    ],
+    "type": "variables_get"
+   },
+   "cc36": {
+    "ranges": [
+     [
+      1014,
+      1025
+     ]
+    ],
+    "type": "math_arithmetic"
+   },
+   "cc37": {
+    "ranges": [
+     [
+      1028,
+      1029
+     ]
+    ],
+    "type": "math_number"
+   },
+   "cc38": {
+    "ranges": [
+     [
+      1014,
+      1029
+     ]
+    ],
+    "type": "math_arithmetic"
+   },
+   "cc41": {
+    "ranges": [
+     [
+      945,
+      1029
+     ]
+    ],
+    "type": "robProcedures_defreturn"
+   },
+   "cc42": {
+    "ranges": [
+     [
+      1108,
+      1116
+     ]
+    ],
+    "type": "variables_get"
+   },
+   "cc43": {
+    "ranges": [
+     [
+      1127,
+      1144
+     ]
+    ],
+    "type": "actions_led_edison"
+   },
+   "cc44": {
+    "ranges": [
+     [
+      1165,
+      1168
+     ]
+    ],
+    "type": "math_number"
+   },
+   "cc45": {
+    "ranges": [
+     [
+      1153,
+      1191
+     ]
+    ],
+    "type": "robControls_wait_time"
+   },
+   "cc46": {
+    "ranges": [
+     [
+      1200,
+      1218
+     ]
+    ],
+    "type": "actions_led_edison"
+   },
+   "cc47": {
+    "ranges": [
+     [
+      1239,
+      1242
+     ]
+    ],
+    "type": "math_number"
+   },
+   "cc48": {
+    "ranges": [
+     [
+      1227,
+      1265
+     ]
+    ],
+    "type": "robControls_wait_time"
+   },
+   "cc49": {
+    "ranges": [
+     [
+      1093,
+      1098
+     ],
+     [
+      1089,
+      1265
+     ]
+    ],
+    "type": "controls_repeat_ext"
+   },
+   "cc51": {
+    "ranges": [
+     [
+      1031,
+      1265
+     ]
+    ],
+    "type": "robProcedures_defnoreturn"
+   }
+  },
+  "version": 1
+ },
+ "version": 1,
+ "xml": "<export xmlns=\"http://de.fhg.iais.roberta.blockly\">\n    <program>\n        <block_set xmlns=\"http://de.fhg.iais.roberta.blockly\" robottype=\"edison\" xmlversion=\"3.1\" description=\"\" tags=\"\">\n            <instance x=\"20\" y=\"20\">\n                <block type=\"robControls_start\" id=\"cc06\" intask=\"true\" deletable=\"false\">\n                    <mutation declare=\"true\"/>\n                    <field name=\"DEBUG\">FALSE</field>\n                    <statement name=\"ST\">\n                        <block type=\"robGlobalVariables_declare\" id=\"cc03\" intask=\"true\" deletable=\"false\" movable=\"false\">\n                            <mutation next=\"true\" declaration_type=\"Number\"/>\n                            <field name=\"VAR\">claps</field>\n                            <field name=\"TYPE\">Number</field>\n                            <value name=\"VALUE\">\n                                <block type=\"math_number\" id=\"cc02\" intask=\"true\">\n                                    <field name=\"NUM\">0</field>\n                                </block>\n                            </value>\n                        </block>\n                        <block type=\"robGlobalVariables_declare\" id=\"cc05\" intask=\"true\" deletable=\"false\" movable=\"false\">\n                            <mutation next=\"false\" declaration_type=\"Number\"/>\n                            <field name=\"VAR\">goal</field>\n                            <field name=\"TYPE\">Number</field>\n                            <value name=\"VALUE\">\n                                <block type=\"math_number\" id=\"cc04\" intask=\"true\">\n                                    <field name=\"NUM\">3</field>\n                                </block>\n                            </value>\n                        </block>\n                    </statement>\n                </block>\n                <block type=\"controls_whileUntil\" id=\"cc14\" intask=\"true\">\n                    <field name=\"MODE\">WHILE</field>\n                    <value name=\"BOOL\">\n                        <block type=\"logic_compare\" id=\"cc09\" intask=\"true\">\n                            <field name=\"OP\">LT</field>\n                            <value name=\"A\">\n                                <block type=\"variables_get\" id=\"cc07\" intask=\"true\">\n                                    <mutation datatype=\"Number\"/>\n                                    <field name=\"VAR\">claps</field>\n                                </block>\n                            </value>\n                            <value name=\"B\">\n                                <block type=\"variables_get\" id=\"cc08\" intask=\"true\">\n                                    <mutation datatype=\"Number\"/>\n                                    <field name=\"VAR\">goal</field>\n                                </block>\n                            </value>\n                        </block>\n                    </value>\n                    <statement name=\"DO\">\n                        <block type=\"robControls_wait_for\" id=\"cc10\" intask=\"true\">\n                            <value name=\"WAIT0\">\n                                <block type=\"robSensors_sound_getSample\" id=\"cc01\" intask=\"true\">\n                                    <mutation mode=\"SOUND\"/>\n                                    <field name=\"MODE\">SOUND</field>\n                                    <field name=\"SENSORPORT\"/>\n                                    <field name=\"SLOT\"/>\n                                </block>\n                            </value>\n                        </block>\n                        <block type=\"robMath_change\" id=\"cc13\" intask=\"true\">\n                            <value name=\"VAR\">\n                                <block type=\"variables_get\" id=\"cc11\" intask=\"true\">\n                                    <mutation datatype=\"Number\"/>\n                                    <field name=\"VAR\">claps</field>\n                                </block>\n                            </value>\n                            <value name=\"DELTA\">\n                                <block type=\"math_number\" id=\"cc12\" intask=\"true\">\n                                    <field name=\"NUM\">1</field>\n                                </block>\n                            </value>\n                        </block>\n                    </statement>\n                </block>\n                <block type=\"robProcedures_callnoreturn\" id=\"cc16\" intask=\"true\">\n                    <mutation name=\"blink\">\n                        <arg name=\"times\" type=\"Number\"/>\n                    </mutation>\n                    <value name=\"ARG0\">\n                        <block type=\"variables_get\" id=\"cc15\" intask=\"true\">\n                            <mutation datatype=\"Number\"/>\n                            <field name=\"VAR\">claps</field>\n                        </block>\n                    </value>\n                </block>\n                <block type=\"robActions_motorDiff_on_for\" id=\"cc20\" intask=\"true\">\n                    <field name=\"DIRECTION\">FOREWARD</field>\n                    <value name=\"POWER\">\n                        <block type=\"robProcedures_callreturn\" id=\"cc18\" intask=\"true\">\n                            <mutation name=\"clampSpeed\" output_type=\"Number\">\n                                <arg name=\"speed\" type=\"Number\"/>\n                            </mutation>\n                            <value name=\"ARG0\">\n                                <block type=\"math_number\" id=\"cc17\" intask=\"true\">\n                                    <field name=\"NUM\">150</field>\n                                </block>\n                            </value>\n                        </block>\n                    </value>\n                    <value name=\"DISTANCE\">\n                        <block type=\"math_number\" id=\"cc19\" intask=\"true\">\n                            <field name=\"NUM\">10</field>\n                        </block>\n                    </value>\n                </block>\n            </instance>\n            <instance x=\"500\" y=\"20\">\n                <block type=\"robProcedures_defreturn\" id=\"cc33\" intask=\"true\">\n                    <mutation declare=\"true\" return_type=\"Number\"/>\n                    <field name=\"NAME\">clampSpeed</field>\n                    <field name=\"TYPE\">Number</field>\n                    <repetitions>\n                        <statement name=\"ST\">\n                            <block type=\"robLocalVariables_declare\" id=\"cc32\" intask=\"true\" deletable=\"false\" movable=\"false\">\n                                <mutation next=\"false\" declaration_type=\"Number\"/>\n                                <field name=\"VAR\">speed</field>\n                                <field name=\"TYPE\">Number</field>\n                            </block>\n                        </statement>\n                        <statement name=\"STACK\">\n                            <block type=\"robProcedures_ifreturn\" id=\"cc25\" intask=\"true\">\n                                <mutation value=\"1\"/>\n                                <value name=\"CONDITION\">\n                                    <block type=\"logic_compare\" id=\"cc23\" intask=\"true\">\n                                        <field name=\"OP\">GT</field>\n                                        <value name=\"A\">\n                                            <block type=\"variables_get\" id=\"cc21\" intask=\"true\">\n                                                <mutation datatype=\"Number\"/>\n                                                <field name=\"VAR\">speed</field>\n                                            </block>\n                                        </value>\n                                        <value name=\"B\">\n                                            <block type=\"math_number\" id=\"cc22\" intask=\"true\">\n                                                <field name=\"NUM\">100</field>\n                                            </block>\n                                        </value>\n                                    </block>\n                                </value>\n                                <value name=\"VALUE\">\n                                    <block type=\"math_number\" id=\"cc24\" intask=\"true\">\n                                        <field name=\"NUM\">100</field>\n                                    </block>\n                                </value>\n                            </block>\n                            <block type=\"robProcedures_ifreturn\" id=\"cc30\" intask=\"true\">\n                                <mutation value=\"1\"/>\n                                <value name=\"CONDITION\">\n                                    <block type=\"logic_compare\" id=\"cc28\" intask=\"true\">\n                                        <field name=\"OP\">LT</field>\n                                        <value name=\"A\">\n                                            <block type=\"variables_get\" id=\"cc26\" intask=\"true\">\n                                                <mutation datatype=\"Number\"/>\n                                                <field name=\"VAR\">speed</field>\n                                            </block>\n                                        </value>\n                                        <value name=\"B\">\n                                            <block type=\"math_number\" id=\"cc27\" intask=\"true\">\n                                                <field name=\"NUM\">0</field>\n                                            </block>\n                                        </value>\n                                    </block>\n                                </value>\n                                <value name=\"VALUE\">\n                                    <block type=\"math_number\" id=\"cc29\" intask=\"true\">\n                                        <field name=\"NUM\">0</field>\n                                    </block>\n                                </value>\n                            </block>\n                        </statement>\n                        <value name=\"RETURN\">\n                            <block type=\"variables_get\" id=\"cc31\" intask=\"true\">\n                                <mutation datatype=\"Number\"/>\n                                <field name=\"VAR\">speed</field>\n                            </block>\n                        </value>\n                    </repetitions>\n                </block>\n            </instance>\n            <instance x=\"500\" y=\"300\">\n                <block type=\"robProcedures_defreturn\" id=\"cc41\" intask=\"true\">\n                    <mutation declare=\"true\" return_type=\"Number\"/>\n                    <field name=\"NAME\">average</field>\n                    <field name=\"TYPE\">Number</field>\n                    <repetitions>\n                        <statement name=\"ST\">\n                            <block type=\"robLocalVariables_declare\" id=\"cc39\" intask=\"true\" deletable=\"false\" movable=\"false\">\n                                <mutation next=\"true\" declaration_type=\"Number\"/>\n                                <field name=\"VAR\">a</field>\n                                <field name=\"TYPE\">Number</field>\n                            </block>\n                            <block type=\"robLocalVariables_declare\" id=\"cc40\" intask=\"true\" deletable=\"false\" movable=\"false\">\n                                <mutation next=\"false\" declaration_type=\"Number\"/>\n                                <field name=\"VAR\">b</field>\n                                <field name=\"TYPE\">Number</field>\n                            </block>\n                        </statement>\n                        <value name=\"RETURN\">\n                            <block type=\"math_arithmetic\" id=\"cc38\" intask=\"true\">\n                                <field name=\"OP\">DIVIDE</field>\n                                <value name=\"A\">\n                                    <block type=\"math_arithmetic\" id=\"cc36\" intask=\"true\">\n                                        <field name=\"OP\">ADD</field>\n                                        <value name=\"A\">\n                                            <block type=\"variables_get\" id=\"cc34\" intask=\"true\">\n                                                <mutation datatype=\"Number\"/>\n                                                <field name=\"VAR\">a</field>\n                                            </block>\n                                        </value>\n                                        <value name=\"B\">\n                                            <block type=\"variables_get\" id=\"cc35\" intask=\"true\">\n                                                <mutation datatype=\"Number\"/>\n                                                <field name=\"VAR\">b</field>\n                                            </block>\n                                        </value>\n                                    </block>\n                                </value>\n                                <value name=\"B\">\n                                    <block type=\"math_number\" id=\"cc37\" intask=\"true\">\n                                        <field name=\"NUM\">2</field>\n                                    </block>\n                                </value>\n                            </block>\n                        </value>\n                    </repetitions>\n                </block>\n            </instance>\n            <instance x=\"500\" y=\"500\">\n                <block type=\"robProcedures_defnoreturn\" id=\"cc51\" intask=\"true\">\n                    <mutation declare=\"true\"/>\n                    <field name=\"NAME\">blink</field>\n                    <statement name=\"ST\">\n                        <block type=\"robLocalVariables_declare\" id=\"cc50\" intask=\"true\" deletable=\"false\" movable=\"false\">\n                            <mutation next=\"false\" declaration_type=\"Number\"/>\n                            <field name=\"VAR\">times</field>\n                            <field name=\"TYPE\">Number</field>\n                        </block>\n                    </statement>\n                    <statement name=\"STACK\">\n                        <block type=\"controls_repeat_ext\" id=\"cc49\" intask=\"true\">\n                            <value name=\"TIMES\">\n                                <block type=\"variables_get\" id=\"cc42\" intask=\"true\">\n                                    <mutation datatype=\"Number\"/>\n                                    <field name=\"VAR\">times</field>\n                                </block>\n                            </value>\n                            <statement name=\"DO\">\n                                <block type=\"actions_led_edison\" id=\"cc43\" intask=\"true\">\n                                    <field name=\"ACTORPORT\">LLED</field>\n                                    <field name=\"MODE\">ON</field>\n                                </block>\n                                <block type=\"robControls_wait_time\" id=\"cc45\" intask=\"true\">\n                                    <value name=\"WAIT\">\n                                        <block type=\"math_number\" id=\"cc44\" intask=\"true\">\n                                            <field name=\"NUM\">200</field>\n                                        </block>\n                                    </value>\n                                </block>\n                                <block type=\"actions_led_edison\" id=\"cc46\" intask=\"true\">\n                                    <field name=\"ACTORPORT\">LLED</field>\n                                    <field name=\"MODE\">OFF</field>\n                                </block>\n                                <block type=\"robControls_wait_time\" id=\"cc48\" intask=\"true\">\n                                    <value name=\"WAIT\">\n                                        <block type=\"math_number\" id=\"cc47\" intask=\"true\">\n                                            <field name=\"NUM\">200</field>\n                                        </block>\n                                    </value>\n                                </block>\n                            </statement>\n                        </block>\n                    </statement>\n                </block>\n            </instance>\n        </block_set>\n    </program>\n    <config>\n        <block_set xmlns=\"http://de.fhg.iais.roberta.blockly\" robottype=\"edison\" xmlversion=\"3.1\" description=\"\" tags=\"\">\n            <instance x=\"213\" y=\"213\">\n                <block type=\"robBrick_Edison-Brick\" id=\"1\" intask=\"true\" deletable=\"false\"/>\n            </instance>\n        </block_set>\n    </config>\n</export>\n",
+ "xml_sha256": "95c923740900578d2d538749937ca8fa56ca5c30a46489b5c31a40f3185d82de"
+}

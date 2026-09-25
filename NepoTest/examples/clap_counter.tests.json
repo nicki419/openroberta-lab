@@ -1,0 +1,74 @@
+{
+ "format": "nepotest",
+ "version": 1,
+ "program": "clap_counter.xml",
+ "bundle": "clap_counter.bundle.json",
+ "defaults": {"max_time_ms": 10000},
+ "tests": [
+  {
+   "name": "clampSpeed keeps 42",
+   "call": "clampSpeed", "args": [42],
+   "expect": {"returns": 42}
+  },
+  {
+   "name": "clampSpeed limits 150 to 100",
+   "call": "clampSpeed", "args": [150],
+   "expect": {"returns": 100}
+  },
+  {
+   "name": "clampSpeed raises -5 to 0",
+   "call": "clampSpeed", "args": [-5],
+   "expect": {"returns": 0}
+  },
+  {
+   "name": "average of 4 and 6 is 5",
+   "description": "Fails: the generator drops the parentheses of (a + b) / 2 (quirk #14), so the robot computes a + b / 2 = 7.",
+   "call": "average", "args": [4, 6],
+   "expect": {"returns": 5}
+  },
+  {
+   "name": "blink 2 times switches the left LED on and off twice",
+   "call": "blink", "args": [2],
+   "expect": {
+    "actions_exactly": [
+     {"block": "actions_led_edison", "port": "LLED", "mode": "ON"},
+     {"block": "robControls_wait_time", "ms": 200},
+     {"block": "actions_led_edison", "port": "LLED", "mode": "OFF"},
+     {"block": "robControls_wait_time", "ms": 200},
+     {"block": "actions_led_edison", "port": "LLED", "mode": "ON"},
+     {"block": "robControls_wait_time", "ms": 200},
+     {"block": "actions_led_edison", "port": "LLED", "mode": "OFF"},
+     {"block": "robControls_wait_time", "ms": 200}
+    ]
+   }
+  },
+  {
+   "name": "three claps: blink three times, then drive 10 cm at full power",
+   "world": [{"event": "clap", "at": 1000}, {"event": "clap", "at": 2000}, {"event": "clap", "at": 3000}],
+   "expect": {
+    "status": "finished",
+    "variables": {"claps": 3},
+    "calls": [{"function": "blink", "args": [3]}, {"function": "clampSpeed", "args": [150], "returns": 100}],
+    "action_count": {"actions_led_edison": 6},
+    "actions": [
+     {"block": "robControls_wait_for", "t_end": {"min": 3000, "max": 3001}},
+     {"block": "robActions_motorDiff_on_for", "direction": "FOREWARD", "power": 100, "distance_cm": 10}
+    ]
+   }
+  },
+  {
+   "name": "with two claps the robot keeps waiting and never drives",
+   "world": [{"event": "clap", "at": 1000}, {"event": "clap", "at": 2000}],
+   "expect": {
+    "status": "running",
+    "variables": {"claps": 2},
+    "no_actions": [{"block": "robActions_motorDiff_on_for"}, {"block": "actions_led_edison"}]
+   }
+  },
+  {
+   "name": "a clap at the very start is swallowed by the setup block",
+   "world": [{"event": "clap", "at": 0}, {"event": "clap", "at": 1000}, {"event": "clap", "at": 2000}],
+   "expect": {"status": "running", "variables": {"claps": 2}}
+  }
+ ]
+}

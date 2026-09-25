@@ -300,8 +300,9 @@ Writing to a constant → `Ed.Py constant … can not be written`.
 
 ## 8. Building a mock `Ed` runtime: a checklist from the sources
 
-A complete, tested implementation of this checklist is `docs/ai/edpy-unit-testing/edtest`. It's documented in
-`edpy-unit-testing.md`, including which behaviour is verified, derived from `edpy_code.py`, or assumed.
+A complete, tested implementation of this checklist is the engine of the NEPO test framework,
+`NepoTest/nepotest/engine`. It's documented in `edpy-test-engine.md`, including which behaviour is verified, derived
+from `edpy_code.py`, or assumed.
 
 1. **Constants:** use the exact values from §5.2. Program logic compares against them, e.g.
    `Ed.ReadKeypad() == Ed.KEYPAD_ROUND` means `== 4`.

@@ -361,12 +361,43 @@ def transform(tree):
     return problems
 
 
-def check_and_transform(source, filename):
-    """Parses, checks and transforms. Returns (tree, problems)."""
+def _is_runtime_stmt(stmt):
+    return (isinstance(stmt, ast.Expr) and isinstance(stmt.value, ast.Call) and isinstance(stmt.value.func, ast.Attribute)
+            and isinstance(stmt.value.func.value, ast.Name) and stmt.value.func.value.id == RUNTIME)
+
+
+def instrument_statements(tree):
+    """Inserts `__edtest__.stmt(k)` before every statement of the program (not before `global` and not before the
+    statements the transformer added). Returns the positions of the statements: a list, index k ->
+    (lineno, end_lineno, col_offset, end_col_offset), with col offsets in UTF-8 bytes like CPython's."""
+    positions = []
+
+    def suite(body):
+        result = []
+        for stmt in body:
+            for field in ('body', 'orelse'):
+                if isinstance(getattr(stmt, field, None), list) and not isinstance(stmt, ast.Module):
+                    setattr(stmt, field, suite(getattr(stmt, field)))
+            if not isinstance(stmt, ast.Global) and not _is_runtime_stmt(stmt):
+                hook = ast.Expr(value=ast.Call(func=ast.Attribute(value=ast.Name(id=RUNTIME, ctx=ast.Load()), attr='stmt',
+                                                                  ctx=ast.Load()), args=[ast.Constant(value=len(positions))], keywords=[]))
+                positions.append((stmt.lineno, stmt.end_lineno, stmt.col_offset, stmt.end_col_offset))
+                result.append(ast.copy_location(hook, stmt))
+            result.append(stmt)
+        return result
+
+    tree.body = suite(tree.body)
+    ast.fix_missing_locations(tree)
+    return positions
+
+
+def check_and_transform(source, filename, instrument=False):
+    """Parses, checks and transforms. Returns (tree, problems, statement positions or None)."""
     try:
         tree = ast.parse(source, filename)
     except SyntaxError as e:
-        raise EdPyCompatibilityError('Syntax error: %s' % e.msg, e.lineno, e.text)
+        raise EdPyCompatibilityError('Syntax error: %s' % e.msg, e.lineno, e.text, kind='syntax')
     problems = check(tree)
     problems += transform(tree)
-    return tree, sorted(problems, key=lambda p: (p[0] or 0))
+    statements = instrument_statements(tree) if instrument else None
+    return tree, sorted(problems, key=lambda p: (p[0] or 0)), statements

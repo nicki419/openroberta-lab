@@ -1,7 +1,7 @@
 """The harness against the six Edison golden programs (all constructs the generator emits in its own tests).
 
 This is also a regression test for the harness: if the generator changes, these tests show whether the mock still
-understands its output. Expected outcomes were derived by reading each program; see docs/ai/edpy-unit-testing.md.
+understands its output. Expected outcomes were derived by reading each program; see docs/ai/edpy-test-engine.md.
 """
 
 import glob
@@ -12,9 +12,9 @@ import unittest
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.dirname(HERE))
 
-from edtest import EdProgram, EdPyRuntimeError, Robot  # noqa: E402
+from nepotest.engine import EdProgram, EdPyRuntimeError, Robot  # noqa: E402
 
-REPO = os.path.abspath(os.path.join(HERE, '..', '..', '..', '..'))
+REPO = os.path.abspath(os.path.join(HERE, '..', '..'))
 GOLDEN = os.path.join(REPO, 'OpenRobertaServer', 'src', 'test', 'resources', 'crossCompilerTests', '_expected',
                       'robotSpecific', 'targetLanguage', 'edisonv2')
 

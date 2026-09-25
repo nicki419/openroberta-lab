@@ -1,0 +1,925 @@
+{
+ "annotated_prog_xml": "<block_set robottype=\"edison\" xmlversion=\"3.1\" description=\"\" tags=\"\" xmlns=\"http://de.fhg.iais.roberta.blockly\"><instance x=\"285\" y=\"45\"><block type=\"robControls_start\" id=\"a#,YR4MPubak3AE1|Qd+\" intask=\"true\" deletable=\"false\"><mutation declare=\"true\"/><field name=\"DEBUG\">TRUE</field><statement name=\"ST\"><block type=\"robGlobalVariables_declare\" id=\"[MWT599#V7^VG!rK}FgS\" intask=\"true\" deletable=\"false\" movable=\"false\"><mutation next=\"true\" declaration_type=\"Number\"/><field name=\"VAR\">numberVar</field><field name=\"TYPE\">Number</field><value name=\"VALUE\"><block type=\"math_integer\" id=\".U-IG?n;-7%RXD+yx+}W\" intask=\"true\"><field name=\"NUM\">0</field></block></value></block><block type=\"robGlobalVariables_declare\" id=\"/ebu4.nV2DD9t|m;vlm_\" intask=\"true\" deletable=\"false\" movable=\"false\"><mutation next=\"true\" declaration_type=\"Boolean\"/><field name=\"VAR\">booleanVar</field><field name=\"TYPE\">Boolean</field><value name=\"VALUE\"><block type=\"logic_boolean\" id=\"sp}@m+ZUm5)DuZygn,aJ\" intask=\"true\"><field name=\"BOOL\">TRUE</field></block></value></block><block type=\"robGlobalVariables_declare\" id=\"c[^*yEDCy#L@BmGd^lfx\" intask=\"true\" deletable=\"false\" movable=\"false\"><mutation next=\"false\" declaration_type=\"Array_Number\"/><field name=\"VAR\">numberList</field><field name=\"TYPE\">Array_Number</field><value name=\"VALUE\"><block type=\"robLists_create_with\" id=\"b%h]@*Ma^ApQMK:XEP@}\" intask=\"true\"><mutation items=\"3\" list_type=\"Number\"/><field name=\"LIST_TYPE\">Number</field><value name=\"ADD0\"><block type=\"math_integer\" id=\"J`YQ^NVn_a.2r*7u:iNI\" intask=\"true\"><field name=\"NUM\">0</field></block></value><value name=\"ADD1\"><block type=\"math_integer\" id=\"q7?Fj=drf)3m@p!rsx7M\" intask=\"true\"><field name=\"NUM\">0</field></block></value><value name=\"ADD2\"><block type=\"math_integer\" id=\"j-w~vb{g[wy5y~Bvij5N\" intask=\"true\"><field name=\"NUM\">0</field></block></value></block></value></block></statement></block><block type=\"robProcedures_callnoreturn\" id=\"Q~BA(~#p,b;[ci1QKohK\" intask=\"true\"><mutation name=\"sensors\"/></block><block type=\"robProcedures_callnoreturn\" id=\"fi3p6r)ax-yDZs+oKNu2\" intask=\"true\"><mutation name=\"sensorWaitUntil\"/></block></instance><instance x=\"474\" y=\"223\"><block type=\"robProcedures_defnoreturn\" id=\"1`9aWXt+,/cn?V?fWIoy\" intask=\"true\"><mutation declare=\"false\"/><field name=\"NAME\">sensors</field><statement name=\"STACK\"><block type=\"variables_set\" id=\"~^Mp|-*/~cOsee(}!JE6\" intask=\"true\"><mutation datatype=\"Boolean\"/><field name=\"VAR\">booleanVar</field><value name=\"VALUE\"><block type=\"robSensors_key_getSample\" id=\"YC6]kmawcVtMpR~|hO,7\" intask=\"true\"><mutation mode=\"PRESSED\"/><field name=\"MODE\">PRESSED</field><field name=\"SENSORPORT\">PLAY</field><field name=\"SLOT\"></field></block></value></block><block type=\"variables_set\" id=\"}zV-S+{;asDFP?I-3kUD\" intask=\"true\"><mutation datatype=\"Boolean\"/><field name=\"VAR\">booleanVar</field><value name=\"VALUE\"><block type=\"robSensors_key_getSample\" id=\"N~l3cm~MIW#qKx:SHpWA\" intask=\"true\"><mutation mode=\"PRESSED\"/><field name=\"MODE\">PRESSED</field><field name=\"SENSORPORT\">REC</field><field name=\"SLOT\"></field></block></value></block><block type=\"variables_set\" id=\"7nA4M5g(:@}-icg}/DgE\" intask=\"true\"><mutation datatype=\"Boolean\"/><field name=\"VAR\">booleanVar</field><value name=\"VALUE\"><block type=\"robSensors_infrared_getSample\" id=\"_?0|f!hQ,p,FDYsh^kuB\" intask=\"true\"><mutation mode=\"OBSTACLE\"/><field name=\"MODE\">OBSTACLE</field><field name=\"SENSORPORT\">LEFT</field><field name=\"SLOT\"></field></block></value></block><block type=\"variables_set\" id=\"1z,v?1{i8}W8~!;ve~Fm\" intask=\"true\"><mutation datatype=\"Boolean\"/><field name=\"VAR\">booleanVar</field><value name=\"VALUE\"><block type=\"robSensors_infrared_getSample\" id=\"s[*[k1_kQ;8-LHsCIxT,\" intask=\"true\"><mutation mode=\"OBSTACLE\"/><field name=\"MODE\">OBSTACLE</field><field name=\"SENSORPORT\">RIGHT</field><field name=\"SLOT\"></field></block></value></block><block type=\"variables_set\" id=\"Q%P]K,UW8YrKune%h@WN\" intask=\"true\"><mutation datatype=\"Boolean\"/><field name=\"VAR\">booleanVar</field><value name=\"VALUE\"><block type=\"robSensors_infrared_getSample\" id=\"(;Ch2k1s!9bYeu~sS:[(\" intask=\"true\"><mutation mode=\"OBSTACLE\"/><field name=\"MODE\">OBSTACLE</field><field name=\"SENSORPORT\">FRONT</field><field name=\"SLOT\"></field></block></value></block><block type=\"variables_set\" id=\"443,Erzh=5+PYKP}:}m^\" intask=\"true\"><mutation datatype=\"Number\"/><field name=\"VAR\">numberVar</field><value name=\"VALUE\"><block type=\"robSensors_irseeker_getSample\" id=\"DX|SMxqG5{e^|=V@NECr\" intask=\"true\"><mutation mode=\"RCCODE\"/><field name=\"MODE\">RCCODE</field><field name=\"SENSORPORT\"></field><field name=\"SLOT\"></field></block></value></block><block type=\"variables_set\" id=\"v|z)Pix(pWRl-hKUdXrp\" intask=\"true\"><mutation datatype=\"Number\"/><field name=\"VAR\">numberVar</field><value name=\"VALUE\"><block type=\"robSensors_light_getSample\" id=\"B|SsT[C]B?%pm+@_quj@\" intask=\"true\"><mutation mode=\"LIGHT\"/><field name=\"MODE\">LIGHT</field><field name=\"SENSORPORT\">LLIGHT</field><field name=\"SLOT\"></field></block></value></block><block type=\"variables_set\" id=\"t-hk^#{rS31q2E~4a[Wk\" intask=\"true\"><mutation datatype=\"Number\"/><field name=\"VAR\">numberVar</field><value name=\"VALUE\"><block type=\"robSensors_light_getSample\" id=\"]N+-!U9Rz~*Gn(GRn!+=\" intask=\"true\"><mutation mode=\"LIGHT\"/><field name=\"MODE\">LIGHT</field><field name=\"SENSORPORT\">RLIGHT</field><field name=\"SLOT\"></field></block></value></block><block type=\"variables_set\" id=\"Kwz^zxL+{!a?}}s9Y}3D\" intask=\"true\"><mutation datatype=\"Number\"/><field name=\"VAR\">numberVar</field><value name=\"VALUE\"><block type=\"robSensors_light_getSample\" id=\"xMkol-:R1k|36irO4=oL\" intask=\"true\"><mutation mode=\"LIGHT\"/><field name=\"MODE\">LIGHT</field><field name=\"SENSORPORT\">LINETRACKER</field><field name=\"SLOT\"></field></block></value></block><block type=\"variables_set\" id=\"SQ*wN?:DkhkE#7bcKPt!\" intask=\"true\"><mutation datatype=\"Boolean\"/><field name=\"VAR\">booleanVar</field><value name=\"VALUE\"><block type=\"robSensors_light_getSample\" id=\"myCcB?c}HXY6FzIp/,:q\" intask=\"true\"><mutation mode=\"LINE\"/><field name=\"MODE\">LINE</field><field name=\"SENSORPORT\">LINETRACKER</field><field name=\"SLOT\"></field></block></value></block><block type=\"variables_set\" id=\"PYnD-UojBx!x)5B!Ny+~\" intask=\"true\"><mutation datatype=\"Boolean\"/><field name=\"VAR\">booleanVar</field><value name=\"VALUE\"><block type=\"robSensors_sound_getSample\" id=\")/^`C4:Luo:t1mfDQeg;\" intask=\"true\"><mutation mode=\"SOUND\"/><field name=\"MODE\">SOUND</field><field name=\"SENSORPORT\"></field><field name=\"SLOT\"></field></block></value></block><block type=\"edisonSensors_sensor_reset\" id=\"!RKhD%Nu/KvolGi0)u1Z\" intask=\"true\"><field name=\"SENSOR\">OBSTACLEDETECTOR</field></block><block type=\"edisonSensors_sensor_reset\" id=\"wu|JSFw,!e`XeLMyKW[v\" intask=\"true\"><field name=\"SENSOR\">KEYPAD</field></block><block type=\"edisonSensors_sensor_reset\" id=\"5=J)zK#E}.nm])/@!.ge\" intask=\"true\"><field name=\"SENSOR\">SOUND</field></block><block type=\"edisonSensors_sensor_reset\" id=\"=ZHQFZrN.3X|tpdT-d]@\" intask=\"true\"><field name=\"SENSOR\">RCCODE</field></block></statement></block></instance><instance x=\"1013\" y=\"216\"><block type=\"robProcedures_defnoreturn\" id=\"*2aD_I;.b}d~^=0U7/{j\" intask=\"true\"><mutation declare=\"false\"/><field name=\"NAME\">sensorWaitUntil</field><statement name=\"STACK\"><block type=\"robControls_wait_for\" id=\"hDVj/E%(Pg/;`YH#WAkB\" intask=\"true\"><value name=\"WAIT0\"><block type=\"logic_compare\" id=\"R%*Tq2zGD,O+unE6I]28\" intask=\"true\"><field name=\"OP\">EQ</field><value name=\"A\"><block type=\"robSensors_getSample\" id=\"E_%3pH2h+{;2u)/4YbBB\" intask=\"true\"><mutation input=\"KEY_PRESSED\"/><field name=\"SENSORTYPE\">KEY_PRESSED</field><field name=\"SENSORPORT\">PLAY</field><field name=\"SLOT\"></field></block></value><value name=\"B\"><block type=\"logic_boolean\" id=\"Pj]W7H#bz]D1gE%y?PN8\" intask=\"true\"><field name=\"BOOL\">TRUE</field></block></value></block></value></block><block type=\"robControls_wait_for\" id=\"Z%eT[!.iZ|QpC+^tr*Gs\" intask=\"true\"><value name=\"WAIT0\"><block type=\"logic_compare\" id=\";*HU7,UCE^.^{56x*~M*\" intask=\"true\"><field name=\"OP\">EQ</field><value name=\"A\"><block type=\"robSensors_getSample\" id=\"H/fOpX-SsQJu7igI`r}0\" intask=\"true\"><mutation input=\"KEY_PRESSED\"/><field name=\"SENSORTYPE\">KEY_PRESSED</field><field name=\"SENSORPORT\">REC</field><field name=\"SLOT\"></field></block></value><value name=\"B\"><block type=\"logic_boolean\" id=\"93*aI=Yy3otFPwALc3W)\" intask=\"true\"><field name=\"BOOL\">TRUE</field></block></value></block></value></block><block type=\"robControls_wait_for\" id=\"{b#/HFKXaHD!z;Gncq.|\" intask=\"true\"><value name=\"WAIT0\"><block type=\"logic_compare\" id=\"Z77eP^O;?IDMrS%@2B#B\" intask=\"true\"><field name=\"OP\">EQ</field><value name=\"A\"><block type=\"robSensors_getSample\" id=\"bWxf42Gt/Ca]l,}V-;mW\" intask=\"true\"><mutation input=\"INFRARED_OBSTACLE\"/><field name=\"SENSORTYPE\">INFRARED_OBSTACLE</field><field name=\"SENSORPORT\">LEFT</field><field name=\"SLOT\"></field></block></value><value name=\"B\"><block type=\"logic_boolean\" id=\"JTv%cl06Y)vzMDnK}3v~\" intask=\"true\"><field name=\"BOOL\">TRUE</field></block></value></block></value></block><block type=\"robControls_wait_for\" id=\"8oU{cRIOJsj#gh.FN[.u\" intask=\"true\"><value name=\"WAIT0\"><block type=\"logic_compare\" id=\"tO.n#I~F{Ys#HG2:soFf\" intask=\"true\"><field name=\"OP\">EQ</field><value name=\"A\"><block type=\"robSensors_getSample\" id=\";b,xC|#R/IM*(wso4lnc\" intask=\"true\"><mutation input=\"INFRARED_OBSTACLE\"/><field name=\"SENSORTYPE\">INFRARED_OBSTACLE</field><field name=\"SENSORPORT\">RIGHT</field><field name=\"SLOT\"></field></block></value><value name=\"B\"><block type=\"logic_boolean\" id=\"WG9{Ia+O/);54WsfKk%K\" intask=\"true\"><field name=\"BOOL\">TRUE</field></block></value></block></value></block><block type=\"robControls_wait_for\" id=\"9{Du*,Rqf@l-p?SrFqHk\" intask=\"true\"><value name=\"WAIT0\"><block type=\"logic_compare\" id=\"5I^]!OAuDE5m(]B1Z=Fs\" intask=\"true\"><field name=\"OP\">EQ</field><value name=\"A\"><block type=\"robSensors_getSample\" id=\"8RT@#e/z3))V6Jv^pGws\" intask=\"true\"><mutation input=\"INFRARED_OBSTACLE\"/><field name=\"SENSORTYPE\">INFRARED_OBSTACLE</field><field name=\"SENSORPORT\">FRONT</field><field name=\"SLOT\"></field></block></value><value name=\"B\"><block type=\"logic_boolean\" id=\"X#~~%umZHxr5zpxxk~pQ\" intask=\"true\"><field name=\"BOOL\">TRUE</field></block></value></block></value></block><block type=\"robControls_wait_for\" id=\"gh~t/e9en{nkH7zH)rXW\" intask=\"true\"><value name=\"WAIT0\"><block type=\"logic_compare\" id=\"YL]F6[lJ-nm`s0(-G^6d\" intask=\"true\"><field name=\"OP\">LT</field><value name=\"A\"><block type=\"robSensors_getSample\" id=\"r7{gs)BN-3Pv~5MF!#qA\" intask=\"true\"><mutation input=\"IRSEEKER_RCCODE\"/><field name=\"SENSORTYPE\">IRSEEKER_RCCODE</field><field name=\"SENSORPORT\"></field><field name=\"SLOT\"></field></block></value><value name=\"B\"><block type=\"math_number\" id=\"*iK?YTx|GXdMd;c:(*m;\" intask=\"true\"><field name=\"NUM\">30</field></block></value></block></value></block><block type=\"robControls_wait_for\" id=\"MnCTyvhqqo|kpvs0tXR;\" intask=\"true\"><value name=\"WAIT0\"><block type=\"logic_compare\" id=\"QBeHKh]M]nC{7O/af9*;\" intask=\"true\"><field name=\"OP\">LT</field><value name=\"A\"><block type=\"robSensors_getSample\" id=\"#!=D/p9j+g|5g`!x~Hb/\" intask=\"true\"><mutation input=\"LIGHT_LIGHT\"/><field name=\"SENSORTYPE\">LIGHT_LIGHT</field><field name=\"SENSORPORT\">LLIGHT</field><field name=\"SLOT\"></field></block></value><value name=\"B\"><block type=\"math_number\" id=\"YI-jw#2aHM#;Hskc*bBO\" intask=\"true\"><field name=\"NUM\">30</field></block></value></block></value></block><block type=\"robControls_wait_for\" id=\"-]]F@D.ptddg%Gi}?Y#q\" intask=\"true\"><value name=\"WAIT0\"><block type=\"logic_compare\" id=\"o4kzjW;I-Uy];B;Wd@jY\" intask=\"true\"><field name=\"OP\">LT</field><value name=\"A\"><block type=\"robSensors_getSample\" id=\"`ft|r@q4r{k=8L1Z4ymc\" intask=\"true\"><mutation input=\"LIGHT_LIGHT\"/><field name=\"SENSORTYPE\">LIGHT_LIGHT</field><field name=\"SENSORPORT\">RLIGHT</field><field name=\"SLOT\"></field></block></value><value name=\"B\"><block type=\"math_number\" id=\"5c[OhxcNA3k4WbjU?{Sx\" intask=\"true\"><field name=\"NUM\">30</field></block></value></block></value></block><block type=\"robControls_wait_for\" id=\"-f-_@:S=(yabZt3%h|b6\" intask=\"true\"><value name=\"WAIT0\"><block type=\"logic_compare\" id=\"/LvoQ3DmZk]U0e)M4M^(\" intask=\"true\"><field name=\"OP\">LT</field><value name=\"A\"><block type=\"robSensors_getSample\" id=\"%lho|7)]yx([pJ=DruU3\" intask=\"true\"><mutation input=\"LIGHT_LIGHT\"/><field name=\"SENSORTYPE\">LIGHT_LIGHT</field><field name=\"SENSORPORT\">LINETRACKER</field><field name=\"SLOT\"></field></block></value><value name=\"B\"><block type=\"math_number\" id=\"P!%t;Zvw86=GH~_EZp)K\" intask=\"true\"><field name=\"NUM\">30</field></block></value></block></value></block><block type=\"robControls_wait_for\" id=\"x0|{`3q.TtRL[5!a+:ip\" intask=\"true\"><value name=\"WAIT0\"><block type=\"logic_compare\" id=\"0AXJh(BIg^G%Zj*[|cP?\" intask=\"true\"><field name=\"OP\">EQ</field><value name=\"A\"><block type=\"robSensors_getSample\" id=\"O8G.UaDO[/Cuh.wJuS2(\" intask=\"true\"><mutation input=\"LIGHT_LINE\"/><field name=\"SENSORTYPE\">LIGHT_LINE</field><field name=\"SENSORPORT\">LINETRACKER</field><field name=\"SLOT\"></field></block></value><value name=\"B\"><block type=\"logic_boolean\" id=\"mY;[~J7/U*1?4Y9MpT*+\" intask=\"true\"><field name=\"BOOL\">TRUE</field></block></value></block></value></block><block type=\"robControls_wait_for\" id=\"}3fRj0FJmua`0f{;`=Oq\" intask=\"true\"><value name=\"WAIT0\"><block type=\"logic_compare\" id=\"C(z%670pnIFR@)Lz!_=)\" intask=\"true\"><field name=\"OP\">EQ</field><value name=\"A\"><block type=\"robSensors_getSample\" id=\"rr-GkLXGy2:%.[xC#tWB\" intask=\"true\"><mutation input=\"SOUND_SOUND\"/><field name=\"SENSORTYPE\">SOUND_SOUND</field><field name=\"SENSORPORT\"></field><field name=\"SLOT\"></field></block></value><value name=\"B\"><block type=\"logic_boolean\" id=\"GiY!7eBZSrmi_?QJzIO]\" intask=\"true\"><field name=\"BOOL\">TRUE</field></block></value></block></value></block></statement></block></instance></block_set>",
+ "cause": "ORA_COMPILERWORKFLOW_PROGRAM_GENERATION_SUCCESS",
+ "converted_at": "2026-09-25T19:08:01",
+ "edpy": "import Ed\n\ndef _irSeek(mode):\n    global obstacleDetectionOn\n    if (obstacleDetectionOn == True):\n        Ed.ObstacleDetectionBeam(Ed.OFF)\n        obstacleDetectionOn = False\n    if (mode == 0): \n        return Ed.ReadIRData()\n    elif (mode == 1): \n        return Ed.ReadRemote()\n\ndef _obstacleDetection(mode):\n    global obstacleDetectionOn\n    if (obstacleDetectionOn == False):\n        Ed.ObstacleDetectionBeam(Ed.ON)\n        obstacleDetectionOn = True\n    return Ed.ReadObstacleDetection() == mode\n\nEd.EdisonVersion = Ed.V2\nEd.DistanceUnits = Ed.CM\nEd.Tempo = Ed.TEMPO_SLOW\nobstacleDetectionOn = False\nEd.LineTrackerLed(Ed.ON)\nEd.ReadClapSensor()\nEd.ReadLineState()\nEd.TimeWait(250, Ed.TIME_MILLISECONDS)\n\n___numberVar = 0\n___booleanVar = True\n___numberList = Ed.List(3, [0,0,0])\n\ndef ____sensors():\n    global ___numberVar, ___booleanVar, ___numberList\n    ___booleanVar = (Ed.ReadKeypad() == Ed.KEYPAD_TRIANGLE)\n    ___booleanVar = (Ed.ReadKeypad() == Ed.KEYPAD_ROUND)\n    ___booleanVar = _obstacleDetection(Ed.OBSTACLE_LEFT)\n    ___booleanVar = _obstacleDetection(Ed.OBSTACLE_RIGHT)\n    ___booleanVar = _obstacleDetection(Ed.OBSTACLE_AHEAD)\n    ___numberVar = _irSeek(1)\n    ___numberVar = Ed.ReadLeftLightLevel() / 10\n    ___numberVar = Ed.ReadRightLightLevel() / 10\n    ___numberVar = Ed.ReadLineTracker() / 10\n    ___booleanVar = (Ed.ReadLineState() == Ed.LINE_ON_BLACK)\n    ___booleanVar = (Ed.ReadClapSensor() == Ed.CLAP_DETECTED)\n    Ed.ReadObstacleDetection()\n    Ed.ReadKeypad()\n    Ed.ReadClapSensor()\n    Ed.ReadRemote()\n    Ed.ReadIRData()\n\ndef ____sensorWaitUntil():\n    global ___numberVar, ___booleanVar, ___numberList\n    while True:\n        if ((Ed.ReadKeypad() == Ed.KEYPAD_TRIANGLE)) == True:\n            break\n        pass\n    while True:\n        if ((Ed.ReadKeypad() == Ed.KEYPAD_ROUND)) == True:\n            break\n        pass\n    while True:\n        if (_obstacleDetection(Ed.OBSTACLE_LEFT)) == True:\n            break\n        pass\n    while True:\n        if (_obstacleDetection(Ed.OBSTACLE_RIGHT)) == True:\n            break\n        pass\n    while True:\n        if (_obstacleDetection(Ed.OBSTACLE_AHEAD)) == True:\n            break\n        pass\n    while True:\n        if (_irSeek(1)) < 30:\n            break\n        pass\n    while True:\n        if (Ed.ReadLeftLightLevel() / 10) < 30:\n            break\n        pass\n    while True:\n        if (Ed.ReadRightLightLevel() / 10) < 30:\n            break\n        pass\n    while True:\n        if (Ed.ReadLineTracker() / 10) < 30:\n            break\n        pass\n    while True:\n        if ((Ed.ReadLineState() == Ed.LINE_ON_BLACK)) == True:\n            break\n        pass\n    while True:\n        if ((Ed.ReadClapSensor() == Ed.CLAP_DETECTED)) == True:\n            break\n        pass\n\n\n____sensors()\n____sensorWaitUntil()\n\n",
+ "format": "nepotest-bundle",
+ "lab": "http://localhost:1999",
+ "message": "ORA_COMPILERWORKFLOW_PROGRAM_GENERATION_SUCCESS",
+ "program_name": "sensors",
+ "rc": "ok",
+ "robot": "edisonv2",
+ "source_map": {
+  "blocks": {
+   "!RKhD%Nu/KvolGi0)u1Z": {
+    "ranges": [
+     [
+      1449,
+      1475
+     ]
+    ],
+    "type": "edisonSensors_sensor_reset"
+   },
+   "#!=D/p9j+g|5g`!x~Hb/": {
+    "ranges": [
+     [
+      2282,
+      2310
+     ],
+     [
+      2281,
+      2311
+     ]
+    ],
+    "type": "robSensors_getSample"
+   },
+   "%lho|7)]yx([pJ=DruU3": {
+    "ranges": [
+     [
+      2473,
+      2498
+     ],
+     [
+      2472,
+      2499
+     ]
+    ],
+    "type": "robSensors_getSample"
+   },
+   "(;Ch2k1s!9bYeu~sS:[(": {
+    "ranges": [
+     [
+      1112,
+      1149
+     ]
+    ],
+    "type": "robSensors_infrared_getSample"
+   },
+   ")/^`C4:Luo:t1mfDQeg;": {
+    "ranges": [
+     [
+      1403,
+      1444
+     ]
+    ],
+    "type": "robSensors_sound_getSample"
+   },
+   "*2aD_I;.b}d~^=0U7/{j": {
+    "ranges": [
+     [
+      1561,
+      2757
+     ]
+    ],
+    "type": "robProcedures_defnoreturn"
+   },
+   "*iK?YTx|GXdMd;c:(*m;": {
+    "ranges": [
+     [
+      2219,
+      2221
+     ]
+    ],
+    "type": "math_number"
+   },
+   "-]]F@D.ptddg%Gi}?Y#q": {
+    "ranges": [
+     [
+      2373,
+      2431
+     ],
+     [
+      2353,
+      2444
+     ]
+    ],
+    "type": "robControls_wait_for"
+   },
+   "-f-_@:S=(yabZt3%h|b6": {
+    "ranges": [
+     [
+      2469,
+      2523
+     ],
+     [
+      2449,
+      2536
+     ]
+    ],
+    "type": "robControls_wait_for"
+   },
+   ".U-IG?n;-7%RXD+yx+}W": {
+    "ranges": [
+     [
+      727,
+      728
+     ]
+    ],
+    "type": "math_integer"
+   },
+   "/LvoQ3DmZk]U0e)M4M^(": {
+    "ranges": [
+     [
+      2472,
+      2504
+     ]
+    ],
+    "type": "logic_compare"
+   },
+   "/ebu4.nV2DD9t|m;vlm_": {
+    "ranges": [
+     [
+      729,
+      749
+     ]
+    ],
+    "type": "robGlobalVariables_declare"
+   },
+   "0AXJh(BIg^G%Zj*[|cP?": {
+    "ranges": [
+     [
+      2564,
+      2614
+     ]
+    ],
+    "type": "logic_compare"
+   },
+   "1": {
+    "ranges": [
+     [
+      712,
+      785
+     ],
+     [
+      864,
+      1559
+     ],
+     [
+      1646,
+      2757
+     ]
+    ],
+    "type": "STMT_LIST"
+   },
+   "1`9aWXt+,/cn?V?fWIoy": {
+    "ranges": [
+     [
+      787,
+      1559
+     ]
+    ],
+    "type": "robProcedures_defnoreturn"
+   },
+   "1z,v?1{i8}W8~!;ve~Fm": {
+    "ranges": [
+     [
+      1038,
+      1051
+     ],
+     [
+      1038,
+      1091
+     ]
+    ],
+    "type": "variables_set"
+   },
+   "443,Erzh=5+PYKP}:}m^": {
+    "ranges": [
+     [
+      1154,
+      1166
+     ],
+     [
+      1154,
+      1179
+     ]
+    ],
+    "type": "variables_set"
+   },
+   "5=J)zK#E}.nm])/@!.ge": {
+    "ranges": [
+     [
+      1500,
+      1519
+     ]
+    ],
+    "type": "edisonSensors_sensor_reset"
+   },
+   "5I^]!OAuDE5m(]B1Z=Fs": {
+    "ranges": [
+     [
+      2097,
+      2144
+     ]
+    ],
+    "type": "logic_compare"
+   },
+   "5c[OhxcNA3k4WbjU?{Sx": {
+    "ranges": [
+     [
+      2410,
+      2412
+     ]
+    ],
+    "type": "math_number"
+   },
+   "7nA4M5g(:@}-icg}/DgE": {
+    "ranges": [
+     [
+      981,
+      994
+     ],
+     [
+      981,
+      1033
+     ]
+    ],
+    "type": "variables_set"
+   },
+   "8RT@#e/z3))V6Jv^pGws": {
+    "ranges": [
+     [
+      2098,
+      2135
+     ],
+     [
+      2097,
+      2136
+     ]
+    ],
+    "type": "robSensors_getSample"
+   },
+   "8oU{cRIOJsj#gh.FN[.u": {
+    "ranges": [
+     [
+      1987,
+      2056
+     ],
+     [
+      1967,
+      2069
+     ]
+    ],
+    "type": "robControls_wait_for"
+   },
+   "93*aI=Yy3otFPwALc3W)": {
+    "ranges": [
+     [
+      1820,
+      1824
+     ]
+    ],
+    "type": "logic_boolean"
+   },
+   "9{Du*,Rqf@l-p?SrFqHk": {
+    "ranges": [
+     [
+      2094,
+      2163
+     ],
+     [
+      2074,
+      2176
+     ]
+    ],
+    "type": "robControls_wait_for"
+   },
+   ";*HU7,UCE^.^{56x*~M*": {
+    "ranges": [
+     [
+      1778,
+      1824
+     ]
+    ],
+    "type": "logic_compare"
+   },
+   ";b,xC|#R/IM*(wso4lnc": {
+    "ranges": [
+     [
+      1991,
+      2028
+     ],
+     [
+      1990,
+      2029
+     ]
+    ],
+    "type": "robSensors_getSample"
+   },
+   "=ZHQFZrN.3X|tpdT-d]@": {
+    "ranges": [
+     [
+      1524,
+      1559
+     ]
+    ],
+    "type": "edisonSensors_sensor_reset"
+   },
+   "B|SsT[C]B?%pm+@_quj@": {
+    "ranges": [
+     [
+      1199,
+      1227
+     ]
+    ],
+    "type": "robSensors_light_getSample"
+   },
+   "C(z%670pnIFR@)Lz!_=)": {
+    "ranges": [
+     [
+      2674,
+      2725
+     ]
+    ],
+    "type": "logic_compare"
+   },
+   "DX|SMxqG5{e^|=V@NECr": {
+    "ranges": [
+     [
+      1169,
+      1179
+     ]
+    ],
+    "type": "robSensors_irseeker_getSample"
+   },
+   "E_%3pH2h+{;2u)/4YbBB": {
+    "ranges": [
+     [
+      1670,
+      1709
+     ],
+     [
+      1669,
+      1710
+     ]
+    ],
+    "type": "robSensors_getSample"
+   },
+   "GiY!7eBZSrmi_?QJzIO]": {
+    "ranges": [
+     [
+      2721,
+      2725
+     ]
+    ],
+    "type": "logic_boolean"
+   },
+   "H/fOpX-SsQJu7igI`r}0": {
+    "ranges": [
+     [
+      1779,
+      1815
+     ],
+     [
+      1778,
+      1816
+     ]
+    ],
+    "type": "robSensors_getSample"
+   },
+   "JTv%cl06Y)vzMDnK}3v~": {
+    "ranges": [
+     [
+      1926,
+      1930
+     ]
+    ],
+    "type": "logic_boolean"
+   },
+   "J`YQ^NVn_a.2r*7u:iNI": {
+    "ranges": [
+     [
+      778,
+      779
+     ]
+    ],
+    "type": "math_integer"
+   },
+   "Kwz^zxL+{!a?}}s9Y}3D": {
+    "ranges": [
+     [
+      1281,
+      1293
+     ],
+     [
+      1281,
+      1321
+     ]
+    ],
+    "type": "variables_set"
+   },
+   "MnCTyvhqqo|kpvs0tXR;": {
+    "ranges": [
+     [
+      2278,
+      2335
+     ],
+     [
+      2258,
+      2348
+     ]
+    ],
+    "type": "robControls_wait_for"
+   },
+   "N~l3cm~MIW#qKx:SHpWA": {
+    "ranges": [
+     [
+      940,
+      976
+     ]
+    ],
+    "type": "robSensors_key_getSample"
+   },
+   "O8G.UaDO[/Cuh.wJuS2(": {
+    "ranges": [
+     [
+      2565,
+      2605
+     ],
+     [
+      2564,
+      2606
+     ]
+    ],
+    "type": "robSensors_getSample"
+   },
+   "P!%t;Zvw86=GH~_EZp)K": {
+    "ranges": [
+     [
+      2502,
+      2504
+     ]
+    ],
+    "type": "math_number"
+   },
+   "PYnD-UojBx!x)5B!Ny+~": {
+    "ranges": [
+     [
+      1387,
+      1400
+     ],
+     [
+      1387,
+      1444
+     ]
+    ],
+    "type": "variables_set"
+   },
+   "Pj]W7H#bz]D1gE%y?PN8": {
+    "ranges": [
+     [
+      1714,
+      1718
+     ]
+    ],
+    "type": "logic_boolean"
+   },
+   "Q%P]K,UW8YrKune%h@WN": {
+    "ranges": [
+     [
+      1096,
+      1109
+     ],
+     [
+      1096,
+      1149
+     ]
+    ],
+    "type": "variables_set"
+   },
+   "QBeHKh]M]nC{7O/af9*;": {
+    "ranges": [
+     [
+      2281,
+      2316
+     ]
+    ],
+    "type": "logic_compare"
+   },
+   "Q~BA(~#p,b;[ci1QKohK": {
+    "ranges": [
+     [
+      2760,
+      2773
+     ]
+    ],
+    "type": "robProcedures_callnoreturn"
+   },
+   "R%*Tq2zGD,O+unE6I]28": {
+    "ranges": [
+     [
+      1669,
+      1718
+     ]
+    ],
+    "type": "logic_compare"
+   },
+   "SQ*wN?:DkhkE#7bcKPt!": {
+    "ranges": [
+     [
+      1326,
+      1339
+     ],
+     [
+      1326,
+      1382
+     ]
+    ],
+    "type": "variables_set"
+   },
+   "WG9{Ia+O/);54WsfKk%K": {
+    "ranges": [
+     [
+      2033,
+      2037
+     ]
+    ],
+    "type": "logic_boolean"
+   },
+   "X#~~%umZHxr5zpxxk~pQ": {
+    "ranges": [
+     [
+      2140,
+      2144
+     ]
+    ],
+    "type": "logic_boolean"
+   },
+   "YC6]kmawcVtMpR~|hO,7": {
+    "ranges": [
+     [
+      880,
+      919
+     ]
+    ],
+    "type": "robSensors_key_getSample"
+   },
+   "YI-jw#2aHM#;Hskc*bBO": {
+    "ranges": [
+     [
+      2314,
+      2316
+     ]
+    ],
+    "type": "math_number"
+   },
+   "YL]F6[lJ-nm`s0(-G^6d": {
+    "ranges": [
+     [
+      2204,
+      2221
+     ]
+    ],
+    "type": "logic_compare"
+   },
+   "Z%eT[!.iZ|QpC+^tr*Gs": {
+    "ranges": [
+     [
+      1775,
+      1843
+     ],
+     [
+      1755,
+      1856
+     ]
+    ],
+    "type": "robControls_wait_for"
+   },
+   "Z77eP^O;?IDMrS%@2B#B": {
+    "ranges": [
+     [
+      1884,
+      1930
+     ]
+    ],
+    "type": "logic_compare"
+   },
+   "[MWT599#V7^VG!rK}FgS": {
+    "ranges": [
+     [
+      712,
+      728
+     ]
+    ],
+    "type": "robGlobalVariables_declare"
+   },
+   "]N+-!U9Rz~*Gn(GRn!+=": {
+    "ranges": [
+     [
+      1247,
+      1276
+     ]
+    ],
+    "type": "robSensors_light_getSample"
+   },
+   "_?0|f!hQ,p,FDYsh^kuB": {
+    "ranges": [
+     [
+      997,
+      1033
+     ]
+    ],
+    "type": "robSensors_infrared_getSample"
+   },
+   "`ft|r@q4r{k=8L1Z4ymc": {
+    "ranges": [
+     [
+      2377,
+      2406
+     ],
+     [
+      2376,
+      2407
+     ]
+    ],
+    "type": "robSensors_getSample"
+   },
+   "a#,YR4MPubak3AE1|Qd+": {
+    "ranges": [
+     [
+      712,
+      2757
+     ]
+    ],
+    "type": "robControls_start"
+   },
+   "b%h]@*Ma^ApQMK:XEP@}": {
+    "ranges": [
+     [
+      766,
+      785
+     ]
+    ],
+    "type": "robLists_create_with"
+   },
+   "bWxf42Gt/Ca]l,}V-;mW": {
+    "ranges": [
+     [
+      1885,
+      1921
+     ],
+     [
+      1884,
+      1922
+     ]
+    ],
+    "type": "robSensors_getSample"
+   },
+   "c[^*yEDCy#L@BmGd^lfx": {
+    "ranges": [
+     [
+      750,
+      785
+     ]
+    ],
+    "type": "robGlobalVariables_declare"
+   },
+   "fi3p6r)ax-yDZs+oKNu2": {
+    "ranges": [
+     [
+      2774,
+      2795
+     ]
+    ],
+    "type": "robProcedures_callnoreturn"
+   },
+   "gh~t/e9en{nkH7zH)rXW": {
+    "ranges": [
+     [
+      2201,
+      2240
+     ],
+     [
+      2181,
+      2253
+     ]
+    ],
+    "type": "robControls_wait_for"
+   },
+   "hDVj/E%(Pg/;`YH#WAkB": {
+    "ranges": [
+     [
+      1666,
+      1737
+     ],
+     [
+      1646,
+      1750
+     ]
+    ],
+    "type": "robControls_wait_for"
+   },
+   "j-w~vb{g[wy5y~Bvij5N": {
+    "ranges": [
+     [
+      782,
+      783
+     ]
+    ],
+    "type": "math_integer"
+   },
+   "mY;[~J7/U*1?4Y9MpT*+": {
+    "ranges": [
+     [
+      2610,
+      2614
+     ]
+    ],
+    "type": "logic_boolean"
+   },
+   "myCcB?c}HXY6FzIp/,:q": {
+    "ranges": [
+     [
+      1342,
+      1382
+     ]
+    ],
+    "type": "robSensors_light_getSample"
+   },
+   "o4kzjW;I-Uy];B;Wd@jY": {
+    "ranges": [
+     [
+      2376,
+      2412
+     ]
+    ],
+    "type": "logic_compare"
+   },
+   "q7?Fj=drf)3m@p!rsx7M": {
+    "ranges": [
+     [
+      780,
+      781
+     ]
+    ],
+    "type": "math_integer"
+   },
+   "r7{gs)BN-3Pv~5MF!#qA": {
+    "ranges": [
+     [
+      2205,
+      2215
+     ],
+     [
+      2204,
+      2216
+     ]
+    ],
+    "type": "robSensors_getSample"
+   },
+   "rr-GkLXGy2:%.[xC#tWB": {
+    "ranges": [
+     [
+      2675,
+      2716
+     ],
+     [
+      2674,
+      2717
+     ]
+    ],
+    "type": "robSensors_getSample"
+   },
+   "s[*[k1_kQ;8-LHsCIxT,": {
+    "ranges": [
+     [
+      1054,
+      1091
+     ]
+    ],
+    "type": "robSensors_infrared_getSample"
+   },
+   "sp}@m+ZUm5)DuZygn,aJ": {
+    "ranges": [
+     [
+      745,
+      749
+     ]
+    ],
+    "type": "logic_boolean"
+   },
+   "t-hk^#{rS31q2E~4a[Wk": {
+    "ranges": [
+     [
+      1232,
+      1244
+     ],
+     [
+      1232,
+      1276
+     ]
+    ],
+    "type": "variables_set"
+   },
+   "tO.n#I~F{Ys#HG2:soFf": {
+    "ranges": [
+     [
+      1990,
+      2037
+     ]
+    ],
+    "type": "logic_compare"
+   },
+   "v|z)Pix(pWRl-hKUdXrp": {
+    "ranges": [
+     [
+      1184,
+      1196
+     ],
+     [
+      1184,
+      1227
+     ]
+    ],
+    "type": "variables_set"
+   },
+   "wu|JSFw,!e`XeLMyKW[v": {
+    "ranges": [
+     [
+      1480,
+      1495
+     ]
+    ],
+    "type": "edisonSensors_sensor_reset"
+   },
+   "x0|{`3q.TtRL[5!a+:ip": {
+    "ranges": [
+     [
+      2561,
+      2633
+     ],
+     [
+      2541,
+      2646
+     ]
+    ],
+    "type": "robControls_wait_for"
+   },
+   "xMkol-:R1k|36irO4=oL": {
+    "ranges": [
+     [
+      1296,
+      1321
+     ]
+    ],
+    "type": "robSensors_light_getSample"
+   },
+   "{b#/HFKXaHD!z;Gncq.|": {
+    "ranges": [
+     [
+      1881,
+      1949
+     ],
+     [
+      1861,
+      1962
+     ]
+    ],
+    "type": "robControls_wait_for"
+   },
+   "}3fRj0FJmua`0f{;`=Oq": {
+    "ranges": [
+     [
+      2671,
+      2744
+     ],
+     [
+      2651,
+      2757
+     ]
+    ],
+    "type": "robControls_wait_for"
+   },
+   "}zV-S+{;asDFP?I-3kUD": {
+    "ranges": [
+     [
+      924,
+      937
+     ],
+     [
+      924,
+      976
+     ]
+    ],
+    "type": "variables_set"
+   },
+   "~^Mp|-*/~cOsee(}!JE6": {
+    "ranges": [
+     [
+      864,
+      877
+     ],
+     [
+      864,
+      919
+     ]
+    ],
+    "type": "variables_set"
+   }
+  },
+  "version": 1
+ },
+ "version": 1,
+ "xml": "<?xml version=\"1.0\"?>\n<export xmlns=\"http://de.fhg.iais.roberta.blockly\">\n  <program>\n    <block_set xmlns=\"http://de.fhg.iais.roberta.blockly\" robottype=\"edison\" xmlversion=\"3.1\" description=\"\" tags=\"\">\n      <instance x=\"285\" y=\"45\">\n        <block type=\"robControls_start\" id=\"a#,YR4MPubak3AE1|Qd+\" intask=\"true\" deletable=\"false\">\n          <mutation declare=\"true\"/>\n          <field name=\"DEBUG\">TRUE</field>\n          <statement name=\"ST\">\n            <block type=\"robGlobalVariables_declare\" id=\"[MWT599#V7^VG!rK}FgS\" intask=\"true\" deletable=\"false\" movable=\"false\">\n              <mutation next=\"true\" declaration_type=\"Number\"/>\n              <field name=\"VAR\">numberVar</field>\n              <field name=\"TYPE\">Number</field>\n              <value name=\"VALUE\">\n                <block type=\"math_integer\" id=\".U-IG?n;-7%RXD+yx+}W\" intask=\"true\">\n                  <field name=\"NUM\">0</field>\n                </block>\n              </value>\n            </block>\n            <block type=\"robGlobalVariables_declare\" id=\"/ebu4.nV2DD9t|m;vlm_\" intask=\"true\" deletable=\"false\" movable=\"false\">\n              <mutation next=\"true\" declaration_type=\"Boolean\"/>\n              <field name=\"VAR\">booleanVar</field>\n              <field name=\"TYPE\">Boolean</field>\n              <value name=\"VALUE\">\n                <block type=\"logic_boolean\" id=\"sp}@m+ZUm5)DuZygn,aJ\" intask=\"true\">\n                  <field name=\"BOOL\">TRUE</field>\n                </block>\n              </value>\n            </block>\n            <block type=\"robGlobalVariables_declare\" id=\"c[^*yEDCy#L@BmGd^lfx\" intask=\"true\" deletable=\"false\" movable=\"false\">\n              <mutation next=\"false\" declaration_type=\"Array_Number\"/>\n              <field name=\"VAR\">numberList</field>\n              <field name=\"TYPE\">Array_Number</field>\n              <value name=\"VALUE\">\n                <block type=\"robLists_create_with\" id=\"b%h]@*Ma^ApQMK:XEP@}\" intask=\"true\">\n                  <mutation items=\"3\" list_type=\"Number\"/>\n                  <field name=\"LIST_TYPE\">Number</field>\n                  <value name=\"ADD0\">\n                    <block type=\"math_integer\" id=\"J`YQ^NVn_a.2r*7u:iNI\" intask=\"true\">\n                      <field name=\"NUM\">0</field>\n                    </block>\n                  </value>\n                  <value name=\"ADD1\">\n                    <block type=\"math_integer\" id=\"q7?Fj=drf)3m@p!rsx7M\" intask=\"true\">\n                      <field name=\"NUM\">0</field>\n                    </block>\n                  </value>\n                  <value name=\"ADD2\">\n                    <block type=\"math_integer\" id=\"j-w~vb{g[wy5y~Bvij5N\" intask=\"true\">\n                      <field name=\"NUM\">0</field>\n                    </block>\n                  </value>\n                </block>\n              </value>\n            </block>\n          </statement>\n        </block>\n        <block type=\"robProcedures_callnoreturn\" id=\"Q~BA(~#p,b;[ci1QKohK\" intask=\"true\">\n          <mutation name=\"sensors\"/>\n        </block>\n        <block type=\"robProcedures_callnoreturn\" id=\"fi3p6r)ax-yDZs+oKNu2\" intask=\"true\">\n          <mutation name=\"sensorWaitUntil\"/>\n        </block>\n      </instance>\n      <instance x=\"474\" y=\"223\">\n        <block type=\"robProcedures_defnoreturn\" id=\"1`9aWXt+,/cn?V?fWIoy\" intask=\"true\">\n          <mutation declare=\"false\"/>\n          <field name=\"NAME\">sensors</field>\n          <statement name=\"STACK\">\n            <block type=\"variables_set\" id=\"~^Mp|-*/~cOsee(}!JE6\" intask=\"true\">\n              <mutation datatype=\"Boolean\"/>\n              <field name=\"VAR\">booleanVar</field>\n              <value name=\"VALUE\">\n                <block type=\"robSensors_key_getSample\" id=\"YC6]kmawcVtMpR~|hO,7\" intask=\"true\">\n                  <mutation mode=\"PRESSED\"/>\n                  <field name=\"MODE\">PRESSED</field>\n                  <field name=\"SENSORPORT\">PLAY</field>\n                  <field name=\"SLOT\"/>\n                </block>\n              </value>\n            </block>\n            <block type=\"variables_set\" id=\"}zV-S+{;asDFP?I-3kUD\" intask=\"true\">\n              <mutation datatype=\"Boolean\"/>\n              <field name=\"VAR\">booleanVar</field>\n              <value name=\"VALUE\">\n                <block type=\"robSensors_key_getSample\" id=\"N~l3cm~MIW#qKx:SHpWA\" intask=\"true\">\n                  <mutation mode=\"PRESSED\"/>\n                  <field name=\"MODE\">PRESSED</field>\n                  <field name=\"SENSORPORT\">REC</field>\n                  <field name=\"SLOT\"/>\n                </block>\n              </value>\n            </block>\n            <block type=\"variables_set\" id=\"7nA4M5g(:@}-icg}/DgE\" intask=\"true\">\n              <mutation datatype=\"Boolean\"/>\n              <field name=\"VAR\">booleanVar</field>\n              <value name=\"VALUE\">\n                <block type=\"robSensors_infrared_getSample\" id=\"_?0|f!hQ,p,FDYsh^kuB\" intask=\"true\">\n                  <mutation mode=\"OBSTACLE\"/>\n                  <field name=\"MODE\">OBSTACLE</field>\n                  <field name=\"SENSORPORT\">LEFT</field>\n                  <field name=\"SLOT\"/>\n                </block>\n              </value>\n            </block>\n            <block type=\"variables_set\" id=\"1z,v?1{i8}W8~!;ve~Fm\" intask=\"true\">\n              <mutation datatype=\"Boolean\"/>\n              <field name=\"VAR\">booleanVar</field>\n              <value name=\"VALUE\">\n                <block type=\"robSensors_infrared_getSample\" id=\"s[*[k1_kQ;8-LHsCIxT,\" intask=\"true\">\n                  <mutation mode=\"OBSTACLE\"/>\n                  <field name=\"MODE\">OBSTACLE</field>\n                  <field name=\"SENSORPORT\">RIGHT</field>\n                  <field name=\"SLOT\"/>\n                </block>\n              </value>\n            </block>\n            <block type=\"variables_set\" id=\"Q%P]K,UW8YrKune%h@WN\" intask=\"true\">\n              <mutation datatype=\"Boolean\"/>\n              <field name=\"VAR\">booleanVar</field>\n              <value name=\"VALUE\">\n                <block type=\"robSensors_infrared_getSample\" id=\"(;Ch2k1s!9bYeu~sS:[(\" intask=\"true\">\n                  <mutation mode=\"OBSTACLE\"/>\n                  <field name=\"MODE\">OBSTACLE</field>\n                  <field name=\"SENSORPORT\">FRONT</field>\n                  <field name=\"SLOT\"/>\n                </block>\n              </value>\n            </block>\n            <block type=\"variables_set\" id=\"443,Erzh=5+PYKP}:}m^\" intask=\"true\">\n              <mutation datatype=\"Number\"/>\n              <field name=\"VAR\">numberVar</field>\n              <value name=\"VALUE\">\n                <block type=\"robSensors_irseeker_getSample\" id=\"DX|SMxqG5{e^|=V@NECr\" intask=\"true\">\n                  <mutation mode=\"RCCODE\"/>\n                  <field name=\"MODE\">RCCODE</field>\n                  <field name=\"SENSORPORT\"/>\n                  <field name=\"SLOT\"/>\n                </block>\n              </value>\n            </block>\n            <block type=\"variables_set\" id=\"v|z)Pix(pWRl-hKUdXrp\" intask=\"true\">\n              <mutation datatype=\"Number\"/>\n              <field name=\"VAR\">numberVar</field>\n              <value name=\"VALUE\">\n                <block type=\"robSensors_light_getSample\" id=\"B|SsT[C]B?%pm+@_quj@\" intask=\"true\">\n                  <mutation mode=\"LIGHT\"/>\n                  <field name=\"MODE\">LIGHT</field>\n                  <field name=\"SENSORPORT\">LLIGHT</field>\n                  <field name=\"SLOT\"/>\n                </block>\n              </value>\n            </block>\n            <block type=\"variables_set\" id=\"t-hk^#{rS31q2E~4a[Wk\" intask=\"true\">\n              <mutation datatype=\"Number\"/>\n              <field name=\"VAR\">numberVar</field>\n              <value name=\"VALUE\">\n                <block type=\"robSensors_light_getSample\" id=\"]N+-!U9Rz~*Gn(GRn!+=\" intask=\"true\">\n                  <mutation mode=\"LIGHT\"/>\n                  <field name=\"MODE\">LIGHT</field>\n                  <field name=\"SENSORPORT\">RLIGHT</field>\n                  <field name=\"SLOT\"/>\n                </block>\n              </value>\n            </block>\n            <block type=\"variables_set\" id=\"Kwz^zxL+{!a?}}s9Y}3D\" intask=\"true\">\n              <mutation datatype=\"Number\"/>\n              <field name=\"VAR\">numberVar</field>\n              <value name=\"VALUE\">\n                <block type=\"robSensors_light_getSample\" id=\"xMkol-:R1k|36irO4=oL\" intask=\"true\">\n                  <mutation mode=\"LIGHT\"/>\n                  <field name=\"MODE\">LIGHT</field>\n                  <field name=\"SENSORPORT\">LINETRACKER</field>\n                  <field name=\"SLOT\"/>\n                </block>\n              </value>\n            </block>\n            <block type=\"variables_set\" id=\"SQ*wN?:DkhkE#7bcKPt!\" intask=\"true\">\n              <mutation datatype=\"Boolean\"/>\n              <field name=\"VAR\">booleanVar</field>\n              <value name=\"VALUE\">\n                <block type=\"robSensors_light_getSample\" id=\"myCcB?c}HXY6FzIp/,:q\" intask=\"true\">\n                  <mutation mode=\"LINE\"/>\n                  <field name=\"MODE\">LINE</field>\n                  <field name=\"SENSORPORT\">LINETRACKER</field>\n                  <field name=\"SLOT\"/>\n                </block>\n              </value>\n            </block>\n            <block type=\"variables_set\" id=\"PYnD-UojBx!x)5B!Ny+~\" intask=\"true\">\n              <mutation datatype=\"Boolean\"/>\n              <field name=\"VAR\">booleanVar</field>\n              <value name=\"VALUE\">\n                <block type=\"robSensors_sound_getSample\" id=\")/^`C4:Luo:t1mfDQeg;\" intask=\"true\">\n                  <mutation mode=\"SOUND\"/>\n                  <field name=\"MODE\">SOUND</field>\n                  <field name=\"SENSORPORT\"/>\n                  <field name=\"SLOT\"/>\n                </block>\n              </value>\n            </block>\n            <block type=\"edisonSensors_sensor_reset\" id=\"!RKhD%Nu/KvolGi0)u1Z\" intask=\"true\">\n              <field name=\"SENSOR\">OBSTACLEDETECTOR</field>\n            </block>\n            <block type=\"edisonSensors_sensor_reset\" id=\"wu|JSFw,!e`XeLMyKW[v\" intask=\"true\">\n              <field name=\"SENSOR\">KEYPAD</field>\n            </block>\n            <block type=\"edisonSensors_sensor_reset\" id=\"5=J)zK#E}.nm])/@!.ge\" intask=\"true\">\n              <field name=\"SENSOR\">SOUND</field>\n            </block>\n            <block type=\"edisonSensors_sensor_reset\" id=\"=ZHQFZrN.3X|tpdT-d]@\" intask=\"true\">\n              <field name=\"SENSOR\">RCCODE</field>\n            </block>\n          </statement>\n        </block>\n      </instance>\n      <instance x=\"1013\" y=\"216\">\n        <block type=\"robProcedures_defnoreturn\" id=\"*2aD_I;.b}d~^=0U7/{j\" intask=\"true\">\n          <mutation declare=\"false\"/>\n          <field name=\"NAME\">sensorWaitUntil</field>\n          <statement name=\"STACK\">\n            <block type=\"robControls_wait_for\" id=\"hDVj/E%(Pg/;`YH#WAkB\" intask=\"true\">\n              <value name=\"WAIT0\">\n                <block type=\"logic_compare\" id=\"R%*Tq2zGD,O+unE6I]28\" intask=\"true\">\n                  <field name=\"OP\">EQ</field>\n                  <value name=\"A\">\n                    <block type=\"robSensors_getSample\" id=\"E_%3pH2h+{;2u)/4YbBB\" intask=\"true\">\n                      <mutation input=\"KEY_PRESSED\"/>\n                      <field name=\"SENSORTYPE\">KEY_PRESSED</field>\n                      <field name=\"SENSORPORT\">PLAY</field>\n                      <field name=\"SLOT\"/>\n                    </block>\n                  </value>\n                  <value name=\"B\">\n                    <block type=\"logic_boolean\" id=\"Pj]W7H#bz]D1gE%y?PN8\" intask=\"true\">\n                      <field name=\"BOOL\">TRUE</field>\n                    </block>\n                  </value>\n                </block>\n              </value>\n            </block>\n            <block type=\"robControls_wait_for\" id=\"Z%eT[!.iZ|QpC+^tr*Gs\" intask=\"true\">\n              <value name=\"WAIT0\">\n                <block type=\"logic_compare\" id=\";*HU7,UCE^.^{56x*~M*\" intask=\"true\">\n                  <field name=\"OP\">EQ</field>\n                  <value name=\"A\">\n                    <block type=\"robSensors_getSample\" id=\"H/fOpX-SsQJu7igI`r}0\" intask=\"true\">\n                      <mutation input=\"KEY_PRESSED\"/>\n                      <field name=\"SENSORTYPE\">KEY_PRESSED</field>\n                      <field name=\"SENSORPORT\">REC</field>\n                      <field name=\"SLOT\"/>\n                    </block>\n                  </value>\n                  <value name=\"B\">\n                    <block type=\"logic_boolean\" id=\"93*aI=Yy3otFPwALc3W)\" intask=\"true\">\n                      <field name=\"BOOL\">TRUE</field>\n                    </block>\n                  </value>\n                </block>\n              </value>\n            </block>\n            <block type=\"robControls_wait_for\" id=\"{b#/HFKXaHD!z;Gncq.|\" intask=\"true\">\n              <value name=\"WAIT0\">\n                <block type=\"logic_compare\" id=\"Z77eP^O;?IDMrS%@2B#B\" intask=\"true\">\n                  <field name=\"OP\">EQ</field>\n                  <value name=\"A\">\n                    <block type=\"robSensors_getSample\" id=\"bWxf42Gt/Ca]l,}V-;mW\" intask=\"true\">\n                      <mutation input=\"INFRARED_OBSTACLE\"/>\n                      <field name=\"SENSORTYPE\">INFRARED_OBSTACLE</field>\n                      <field name=\"SENSORPORT\">LEFT</field>\n                      <field name=\"SLOT\"/>\n                    </block>\n                  </value>\n                  <value name=\"B\">\n                    <block type=\"logic_boolean\" id=\"JTv%cl06Y)vzMDnK}3v~\" intask=\"true\">\n                      <field name=\"BOOL\">TRUE</field>\n                    </block>\n                  </value>\n                </block>\n              </value>\n            </block>\n            <block type=\"robControls_wait_for\" id=\"8oU{cRIOJsj#gh.FN[.u\" intask=\"true\">\n              <value name=\"WAIT0\">\n                <block type=\"logic_compare\" id=\"tO.n#I~F{Ys#HG2:soFf\" intask=\"true\">\n                  <field name=\"OP\">EQ</field>\n                  <value name=\"A\">\n                    <block type=\"robSensors_getSample\" id=\";b,xC|#R/IM*(wso4lnc\" intask=\"true\">\n                      <mutation input=\"INFRARED_OBSTACLE\"/>\n                      <field name=\"SENSORTYPE\">INFRARED_OBSTACLE</field>\n                      <field name=\"SENSORPORT\">RIGHT</field>\n                      <field name=\"SLOT\"/>\n                    </block>\n                  </value>\n                  <value name=\"B\">\n                    <block type=\"logic_boolean\" id=\"WG9{Ia+O/);54WsfKk%K\" intask=\"true\">\n                      <field name=\"BOOL\">TRUE</field>\n                    </block>\n                  </value>\n                </block>\n              </value>\n            </block>\n            <block type=\"robControls_wait_for\" id=\"9{Du*,Rqf@l-p?SrFqHk\" intask=\"true\">\n              <value name=\"WAIT0\">\n                <block type=\"logic_compare\" id=\"5I^]!OAuDE5m(]B1Z=Fs\" intask=\"true\">\n                  <field name=\"OP\">EQ</field>\n                  <value name=\"A\">\n                    <block type=\"robSensors_getSample\" id=\"8RT@#e/z3))V6Jv^pGws\" intask=\"true\">\n                      <mutation input=\"INFRARED_OBSTACLE\"/>\n                      <field name=\"SENSORTYPE\">INFRARED_OBSTACLE</field>\n                      <field name=\"SENSORPORT\">FRONT</field>\n                      <field name=\"SLOT\"/>\n                    </block>\n                  </value>\n                  <value name=\"B\">\n                    <block type=\"logic_boolean\" id=\"X#~~%umZHxr5zpxxk~pQ\" intask=\"true\">\n                      <field name=\"BOOL\">TRUE</field>\n                    </block>\n                  </value>\n                </block>\n              </value>\n            </block>\n            <block type=\"robControls_wait_for\" id=\"gh~t/e9en{nkH7zH)rXW\" intask=\"true\">\n              <value name=\"WAIT0\">\n                <block type=\"logic_compare\" id=\"YL]F6[lJ-nm`s0(-G^6d\" intask=\"true\">\n                  <field name=\"OP\">LT</field>\n                  <value name=\"A\">\n                    <block type=\"robSensors_getSample\" id=\"r7{gs)BN-3Pv~5MF!#qA\" intask=\"true\">\n                      <mutation input=\"IRSEEKER_RCCODE\"/>\n                      <field name=\"SENSORTYPE\">IRSEEKER_RCCODE</field>\n                      <field name=\"SENSORPORT\"/>\n                      <field name=\"SLOT\"/>\n                    </block>\n                  </value>\n                  <value name=\"B\">\n                    <block type=\"math_number\" id=\"*iK?YTx|GXdMd;c:(*m;\" intask=\"true\">\n                      <field name=\"NUM\">30</field>\n                    </block>\n                  </value>\n                </block>\n              </value>\n            </block>\n            <block type=\"robControls_wait_for\" id=\"MnCTyvhqqo|kpvs0tXR;\" intask=\"true\">\n              <value name=\"WAIT0\">\n                <block type=\"logic_compare\" id=\"QBeHKh]M]nC{7O/af9*;\" intask=\"true\">\n                  <field name=\"OP\">LT</field>\n                  <value name=\"A\">\n                    <block type=\"robSensors_getSample\" id=\"#!=D/p9j+g|5g`!x~Hb/\" intask=\"true\">\n                      <mutation input=\"LIGHT_LIGHT\"/>\n                      <field name=\"SENSORTYPE\">LIGHT_LIGHT</field>\n                      <field name=\"SENSORPORT\">LLIGHT</field>\n                      <field name=\"SLOT\"/>\n                    </block>\n                  </value>\n                  <value name=\"B\">\n                    <block type=\"math_number\" id=\"YI-jw#2aHM#;Hskc*bBO\" intask=\"true\">\n                      <field name=\"NUM\">30</field>\n                    </block>\n                  </value>\n                </block>\n              </value>\n            </block>\n            <block type=\"robControls_wait_for\" id=\"-]]F@D.ptddg%Gi}?Y#q\" intask=\"true\">\n              <value name=\"WAIT0\">\n                <block type=\"logic_compare\" id=\"o4kzjW;I-Uy];B;Wd@jY\" intask=\"true\">\n                  <field name=\"OP\">LT</field>\n                  <value name=\"A\">\n                    <block type=\"robSensors_getSample\" id=\"`ft|r@q4r{k=8L1Z4ymc\" intask=\"true\">\n                      <mutation input=\"LIGHT_LIGHT\"/>\n                      <field name=\"SENSORTYPE\">LIGHT_LIGHT</field>\n                      <field name=\"SENSORPORT\">RLIGHT</field>\n                      <field name=\"SLOT\"/>\n                    </block>\n                  </value>\n                  <value name=\"B\">\n                    <block type=\"math_number\" id=\"5c[OhxcNA3k4WbjU?{Sx\" intask=\"true\">\n                      <field name=\"NUM\">30</field>\n                    </block>\n                  </value>\n                </block>\n              </value>\n            </block>\n            <block type=\"robControls_wait_for\" id=\"-f-_@:S=(yabZt3%h|b6\" intask=\"true\">\n              <value name=\"WAIT0\">\n                <block type=\"logic_compare\" id=\"/LvoQ3DmZk]U0e)M4M^(\" intask=\"true\">\n                  <field name=\"OP\">LT</field>\n                  <value name=\"A\">\n                    <block type=\"robSensors_getSample\" id=\"%lho|7)]yx([pJ=DruU3\" intask=\"true\">\n                      <mutation input=\"LIGHT_LIGHT\"/>\n                      <field name=\"SENSORTYPE\">LIGHT_LIGHT</field>\n                      <field name=\"SENSORPORT\">LINETRACKER</field>\n                      <field name=\"SLOT\"/>\n                    </block>\n                  </value>\n                  <value name=\"B\">\n                    <block type=\"math_number\" id=\"P!%t;Zvw86=GH~_EZp)K\" intask=\"true\">\n                      <field name=\"NUM\">30</field>\n                    </block>\n                  </value>\n                </block>\n              </value>\n            </block>\n            <block type=\"robControls_wait_for\" id=\"x0|{`3q.TtRL[5!a+:ip\" intask=\"true\">\n              <value name=\"WAIT0\">\n                <block type=\"logic_compare\" id=\"0AXJh(BIg^G%Zj*[|cP?\" intask=\"true\">\n                  <field name=\"OP\">EQ</field>\n                  <value name=\"A\">\n                    <block type=\"robSensors_getSample\" id=\"O8G.UaDO[/Cuh.wJuS2(\" intask=\"true\">\n                      <mutation input=\"LIGHT_LINE\"/>\n                      <field name=\"SENSORTYPE\">LIGHT_LINE</field>\n                      <field name=\"SENSORPORT\">LINETRACKER</field>\n                      <field name=\"SLOT\"/>\n                    </block>\n                  </value>\n                  <value name=\"B\">\n                    <block type=\"logic_boolean\" id=\"mY;[~J7/U*1?4Y9MpT*+\" intask=\"true\">\n                      <field name=\"BOOL\">TRUE</field>\n                    </block>\n                  </value>\n                </block>\n              </value>\n            </block>\n            <block type=\"robControls_wait_for\" id=\"}3fRj0FJmua`0f{;`=Oq\" intask=\"true\">\n              <value name=\"WAIT0\">\n                <block type=\"logic_compare\" id=\"C(z%670pnIFR@)Lz!_=)\" intask=\"true\">\n                  <field name=\"OP\">EQ</field>\n                  <value name=\"A\">\n                    <block type=\"robSensors_getSample\" id=\"rr-GkLXGy2:%.[xC#tWB\" intask=\"true\">\n                      <mutation input=\"SOUND_SOUND\"/>\n                      <field name=\"SENSORTYPE\">SOUND_SOUND</field>\n                      <field name=\"SENSORPORT\"/>\n                      <field name=\"SLOT\"/>\n                    </block>\n                  </value>\n                  <value name=\"B\">\n                    <block type=\"logic_boolean\" id=\"GiY!7eBZSrmi_?QJzIO]\" intask=\"true\">\n                      <field name=\"BOOL\">TRUE</field>\n                    </block>\n                  </value>\n                </block>\n              </value>\n            </block>\n          </statement>\n        </block>\n      </instance>\n    </block_set>\n  </program>\n  <config>\n    <block_set xmlns=\"http://de.fhg.iais.roberta.blockly\" robottype=\"edison\" xmlversion=\"3.1\" description=\"\" tags=\"\">\n      <instance x=\"213\" y=\"213\">\n        <block type=\"robBrick_Edison-Brick\" id=\"1\" intask=\"true\" deletable=\"false\"/>\n      </instance>\n    </block_set>\n  </config>\n</export>\n",
+ "xml_sha256": "9bac67ef85ee2ea6c7a12ded32aed11341df28f955ef7ef305daff3dd75e2e36"
+}

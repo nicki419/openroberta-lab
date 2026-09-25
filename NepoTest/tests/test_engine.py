@@ -1,15 +1,15 @@
-"""Self-tests of the harness: they pin the EdPy semantics the mock implements (see docs/ai/edpy-unit-testing.md).
+"""Self-tests of the engine: they pin the EdPy semantics the mock implements (see docs/ai/edpy-test-engine.md).
 
-Run:  python -m unittest discover -s docs/ai/edpy-unit-testing -p "test_*.py" -t docs/ai/edpy-unit-testing
+Run from NepoTest/:  python -m unittest discover -s tests -t .
 """
 
 import os
 import sys
 import unittest
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # NepoTest/
 
-from edtest import (EdProgram, EdPyCompatibilityError, EdPyRuntimeError, Robot, StepLimitExceeded,  # noqa: E402
+from nepotest.engine import (EdProgram, EdPyCompatibilityError, EdPyRuntimeError, Robot, StepLimitExceeded,  # noqa: E402
                     UnsupportedInMock)
 
 SETUP = '''import Ed

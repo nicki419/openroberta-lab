@@ -27,19 +27,20 @@ FUNC_PREFIX = '____'
 class Runtime(object):
     """The `__edtest__` object the transformed program calls for arithmetic, loop ticks and the setup marker."""
 
-    def __init__(self, robot, overflow='raise'):
+    def __init__(self, robot, overflow='raise', listeners=()):
         if overflow not in ('raise', 'wrap'):
             raise ValueError("overflow must be 'raise' or 'wrap'")
         self.robot = robot
         self.overflow = overflow
+        self.listeners = list(listeners)
 
     def binop(self, op, a, b):
         _operand(a, op)
         _operand(b, op)
         if op in ('Div', 'FloorDiv', 'Mod') and b == 0:
-            raise EdPyRuntimeError('division by zero (%s %s 0); the robot behaviour is unspecified' % (a, _SYMBOL[op]))
+            raise EdPyRuntimeError('division by zero (%s %s 0); the robot behaviour is unspecified' % (a, _SYMBOL[op]), kind='division_by_zero')
         if op in ('LShift', 'RShift') and not 0 <= b <= 15:
-            raise EdPyRuntimeError('shift count %d out of range (the firmware raises OutOfRange)' % b)
+            raise EdPyRuntimeError('shift count %d out of range (the firmware raises OutOfRange)' % b, kind='shift_out_of_range')
         # Div and FloorDiv are floor division: the EdPy spec, and Python 2 on the Edison website
         return self._fit(FOLD[op](a, b), '%s %s %s' % (a, _SYMBOL[op], b))
 
@@ -58,13 +59,20 @@ class Runtime(object):
         if self.overflow == 'wrap':
             return ((value - V.INT_MIN) & 0xFFFF) + V.INT_MIN
         raise EdPyRuntimeError('16-bit overflow: %s = %d, outside -32768..32767 (the robot behaviour is unspecified)'
-                               % (expr, value))
+                               % (expr, value), kind='overflow')
 
     def tick(self):
         self.robot._tick()
 
     def setup_done(self):
         self.robot._mark_setup_done()
+
+    def stmt(self, index):
+        """inserted before every statement by EdProgram(instrument=True); index into EdProgram.statements"""
+        for listener in self.listeners:
+            on_statement = getattr(listener, 'on_statement', None)
+            if on_statement is not None:
+                on_statement(index)
 
 
 _SYMBOL = {'Add': '+', 'Sub': '-', 'Mult': '*', 'Div': '/', 'FloorDiv': '//', 'Mod': '%', 'LShift': '<<', 'RShift': '>>',
@@ -73,9 +81,9 @@ _SYMBOL = {'Add': '+', 'Sub': '-', 'Mult': '*', 'Div': '/', 'FloorDiv': '//', 'M
 
 def _operand(v, op):
     if isinstance(v, (EdList, TuneString)):
-        raise EdPyRuntimeError("operator '%s' used on a list or tune string" % _SYMBOL.get(op, op))
+        raise EdPyRuntimeError("operator '%s' used on a list or tune string" % _SYMBOL.get(op, op), kind='type_error')
     if not isinstance(v, int):
-        raise EdPyRuntimeError("operator '%s' used on %r, EdPy only has ints" % (_SYMBOL.get(op, op), v))
+        raise EdPyRuntimeError("operator '%s' used on %r, EdPy only has ints" % (_SYMBOL.get(op, op), v), kind='type_error')
 
 
 class RunResult(object):
@@ -154,7 +162,7 @@ class Session(object):
             return self.program._guarded(lambda: fn(*ed_args))
         except StopProgram as stop:
             raise StepLimitExceeded('%s() did not return within %s' % (
-                name, '%d steps' % max_steps if stop.reason == 'step_limit' else '%d ms of virtual time' % max_time_ms))
+                name, '%d steps' % max_steps if stop.reason == 'step_limit' else '%d ms of virtual time' % max_time_ms), kind='step_limit')
         finally:
             self.robot._set_budget(None, None)
 
@@ -178,14 +186,14 @@ class EdProgram(object):
     strict=False keeps them in `problems` and runs anyway (CPython may still fail on them).
     """
 
-    def __init__(self, source, filename='<edpy>', strict=True):
+    def __init__(self, source, filename='<edpy>', strict=True, instrument=False):
         self.source = source
         self.filename = filename
         self.lines = source.splitlines()
-        tree, self.problems = check_and_transform(source, filename)
+        tree, self.problems, self.statements = check_and_transform(source, filename, instrument)
         if strict and self.problems:
             line, msg = self.problems[0]
-            err = EdPyCompatibilityError(msg, line, self._source_line(line))
+            err = EdPyCompatibilityError(msg, line, self._source_line(line), kind='edpy_incompatible')
             err.problems = self.problems
             raise err
         self._analyse(tree)
@@ -193,9 +201,9 @@ class EdProgram(object):
         linecache.cache[filename] = (len(source), None, [l + '\n' for l in self.lines], filename)
 
     @classmethod
-    def from_file(cls, path, strict=True):
+    def from_file(cls, path, strict=True, instrument=False):
         with open(path, encoding='utf-8') as f:
-            return cls(f.read(), filename=str(path), strict=strict)
+            return cls(f.read(), filename=str(path), strict=strict, instrument=instrument)
 
     # ------------------------------------------------------------------ structure of a generated program
 
@@ -237,39 +245,44 @@ class EdProgram(object):
 
     # ------------------------------------------------------------------ running
 
-    def run(self, robot=None, max_time_ms=60000, max_steps=2000000, overflow='raise'):
-        """Runs the whole program. Returns a RunResult; raises EdTestError subclasses for real problems."""
+    def run(self, robot=None, max_time_ms=60000, max_steps=2000000, overflow='raise', listeners=()):
+        """Runs the whole program. Returns a RunResult; raises EdTestError subclasses for real problems.
+
+        listeners: objects with any of on_statement(index), on_ed_call(call, frame), on_prelude_done(namespace)"""
         robot = robot or Robot()
-        ns = self._namespace(robot, overflow)
+        ns = self._namespace(robot, overflow, listeners)
         robot._begin(max_time_ms, max_steps)
         status = 'finished'
         try:
             self._guarded(lambda: exec(self._prelude, ns))
+            _notify(listeners, 'on_prelude_done', ns)
             self._guarded(lambda: exec(self._main, ns))
         except StopProgram as stop:
             status = stop.reason
         return RunResult(status, robot, self._variables(ns))
 
-    def load(self, robot=None, overflow='raise', max_time_ms=60000, max_steps=2000000):
+    def load(self, robot=None, overflow='raise', max_time_ms=60000, max_steps=2000000, listeners=()):
         """Runs only the prelude (helpers, setup block, global declarations, function definitions). Returns a Session."""
         robot = robot or Robot()
-        ns = self._namespace(robot, overflow)
+        ns = self._namespace(robot, overflow, listeners)
         robot._begin(max_time_ms, max_steps)
         try:
             self._guarded(lambda: exec(self._prelude, ns))
         except StopProgram as stop:
-            raise StepLimitExceeded('the program prelude did not finish (%s)' % stop.reason)
+            raise StepLimitExceeded('the program prelude did not finish (%s)' % stop.reason, kind='step_limit')
+        _notify(listeners, 'on_prelude_done', ns)
         robot._set_budget(None, None)
         return Session(self, robot, ns)
 
-    def _namespace(self, robot, overflow):
+    def _namespace(self, robot, overflow, listeners=()):
         ed = EdModule(robot)
-        runtime = Runtime(robot, overflow)
+        runtime = Runtime(robot, overflow, listeners)
+        robot.listeners = list(listeners)
 
         def edpy_import(name, globals=None, locals=None, fromlist=(), level=0):
             if name == 'Ed' and not fromlist and level == 0:
                 return ed
-            raise EdPyCompatibilityError('only the Ed module can be imported')
+            raise EdPyCompatibilityError('only the Ed module can be imported', kind='import')
 
         builtins = {'abs': runtime.abs, 'len': len, 'ord': ord, 'chr': chr, 'range': range,
                     'True': True, 'False': False, 'None': None, '__import__': edpy_import}
@@ -282,17 +295,36 @@ class EdProgram(object):
         except StopProgram:
             raise
         except EdTestError as e:
+            tb = sys.exc_info()[2]
             if e.line is None:
-                e.line = self._line_of(sys.exc_info()[2])
+                e.line = self._line_of(tb)
                 e.source_line = self._source_line(e.line)
+            if not e.positions:
+                e.positions = self._positions_of(tb)
             raise
         except RecursionError as e:
-            line = self._line_of(sys.exc_info()[2])
-            raise EdPyRuntimeError('recursion too deep (CPython limit; the robot stack is smaller and unknown)',
-                                   line, self._source_line(line)) from e
+            tb = sys.exc_info()[2]
+            line = self._line_of(tb)
+            err = EdPyRuntimeError('recursion too deep (CPython limit; the robot stack is smaller and unknown)',
+                                   line, self._source_line(line), kind='recursion')
+            err.positions = self._positions_of(tb)
+            raise err from e
         except Exception as e:
-            line = self._line_of(sys.exc_info()[2])
-            raise EdPyRuntimeError('%s: %s' % (type(e).__name__, e), line, self._source_line(line)) from e
+            tb = sys.exc_info()[2]
+            line = self._line_of(tb)
+            err = EdPyRuntimeError('%s: %s' % (type(e).__name__, e), line, self._source_line(line), kind='python_error')
+            err.positions = self._positions_of(tb)
+            raise err from e
+
+    def _positions_of(self, tb):
+        """(lineno, end_lineno, col_offset, end_col_offset) of each program frame in the traceback, outermost first"""
+        positions = []
+        while tb is not None:
+            code = tb.tb_frame.f_code
+            if code.co_filename == self.filename:
+                positions.append(instruction_position(code, tb.tb_lasti))
+            tb = tb.tb_next
+        return [p for p in positions if p is not None]
 
     def _line_of(self, tb):
         line = None
@@ -306,6 +338,25 @@ class EdProgram(object):
         if line is None or not 1 <= line <= len(self.lines):
             return None
         return self.lines[line - 1]
+
+
+def _notify(listeners, event, *args):
+    for listener in listeners:
+        method = getattr(listener, event, None)
+        if method is not None:
+            method(*args)
+
+
+def instruction_position(code, lasti):
+    """source position (lineno, end_lineno, col_offset, end_col_offset) of the instruction at byte offset lasti, or None
+    (needs CPython 3.11+, which has code.co_positions())"""
+    positions = getattr(code, 'co_positions', None)
+    if positions is None or lasti < 0:
+        return None
+    for i, pos in enumerate(positions()):
+        if i == lasti // 2:
+            return pos if pos[0] is not None else None
+    return None
 
 
 def _is_runtime_call(stmt, method):

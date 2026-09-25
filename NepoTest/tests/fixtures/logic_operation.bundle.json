@@ -1,0 +1,493 @@
+{
+ "annotated_prog_xml": "<block_set robottype=\"edison\" xmlversion=\"3.1\" description=\"\" tags=\"\" xmlns=\"http://de.fhg.iais.roberta.blockly\"><instance x=\"285\" y=\"45\"><block type=\"robControls_start\" id=\"lo05\" intask=\"true\" deletable=\"false\"><mutation declare=\"true\"/><field name=\"DEBUG\">TRUE</field><statement name=\"ST\"><block type=\"robGlobalVariables_declare\" id=\"lo02\" intask=\"true\" deletable=\"false\" movable=\"false\"><mutation next=\"true\" declaration_type=\"Number\"/><field name=\"VAR\">numberVar</field><field name=\"TYPE\">Number</field><value name=\"VALUE\"><block type=\"math_integer\" id=\"lo01\" intask=\"true\"><field name=\"NUM\">3</field></block></value></block><block type=\"robGlobalVariables_declare\" id=\"lo04\" intask=\"true\" deletable=\"false\" movable=\"false\"><mutation next=\"false\" declaration_type=\"Boolean\"/><field name=\"VAR\">booleanVar</field><field name=\"TYPE\">Boolean</field><value name=\"VALUE\"><block type=\"logic_boolean\" id=\"lo03\" intask=\"true\"><field name=\"BOOL\">TRUE</field></block></value></block></statement></block><block type=\"variables_set\" id=\"lo09\" intask=\"true\"><mutation datatype=\"Boolean\"/><field name=\"VAR\">booleanVar</field><value name=\"VALUE\"><block type=\"logic_operation\" id=\"lo08\" intask=\"true\"><field name=\"OP\">AND</field><value name=\"A\"><block type=\"variables_get\" id=\"lo06\" intask=\"true\"><mutation datatype=\"Boolean\"/><field name=\"VAR\">booleanVar</field></block></value><value name=\"B\"><block type=\"logic_boolean\" id=\"lo07\" intask=\"true\"><field name=\"BOOL\">FALSE</field></block></value></block></value></block><block type=\"variables_set\" id=\"lo15\" intask=\"true\"><mutation datatype=\"Boolean\"/><field name=\"VAR\">booleanVar</field><value name=\"VALUE\"><block type=\"logic_operation\" id=\"lo14\" intask=\"true\"><field name=\"OP\">OR</field><value name=\"A\"><block type=\"logic_compare\" id=\"lo12\" intask=\"true\"><field name=\"OP\">LT</field><value name=\"A\"><block type=\"variables_get\" id=\"lo10\" intask=\"true\"><mutation datatype=\"Number\"/><field name=\"VAR\">numberVar</field></block></value><value name=\"B\"><block type=\"math_integer\" id=\"lo11\" intask=\"true\"><field name=\"NUM\">5</field></block></value></block></value><value name=\"B\"><block type=\"variables_get\" id=\"lo13\" intask=\"true\"><mutation datatype=\"Boolean\"/><field name=\"VAR\">booleanVar</field></block></value></block></value></block><block type=\"variables_set\" id=\"lo26\" intask=\"true\"><mutation datatype=\"Boolean\"/><field name=\"VAR\">booleanVar</field><value name=\"VALUE\"><block type=\"logic_operation\" id=\"lo25\" intask=\"true\"><field name=\"OP\">AND</field><value name=\"A\"><block type=\"logic_operation\" id=\"lo23\" intask=\"true\"><field name=\"OP\">OR</field><value name=\"A\"><block type=\"logic_operation\" id=\"lo20\" intask=\"true\"><field name=\"OP\">AND</field><value name=\"A\"><block type=\"variables_get\" id=\"lo16\" intask=\"true\"><mutation datatype=\"Boolean\"/><field name=\"VAR\">booleanVar</field></block></value><value name=\"B\"><block type=\"logic_compare\" id=\"lo19\" intask=\"true\"><field name=\"OP\">EQ</field><value name=\"A\"><block type=\"variables_get\" id=\"lo17\" intask=\"true\"><mutation datatype=\"Number\"/><field name=\"VAR\">numberVar</field></block></value><value name=\"B\"><block type=\"math_integer\" id=\"lo18\" intask=\"true\"><field name=\"NUM\">3</field></block></value></block></value></block></value><value name=\"B\"><block type=\"logic_negate\" id=\"lo22\" intask=\"true\"><value name=\"BOOL\"><block type=\"variables_get\" id=\"lo21\" intask=\"true\"><mutation datatype=\"Boolean\"/><field name=\"VAR\">booleanVar</field></block></value></block></value></block></value><value name=\"B\"><block type=\"logic_boolean\" id=\"lo24\" intask=\"true\"><field name=\"BOOL\">TRUE</field></block></value></block></value></block><block type=\"variables_set\" id=\"lo31\" intask=\"true\"><mutation datatype=\"Boolean\"/><field name=\"VAR\">booleanVar</field><value name=\"VALUE\"><block type=\"logic_negate\" id=\"lo30\" intask=\"true\"><value name=\"BOOL\"><block type=\"logic_operation\" id=\"lo29\" intask=\"true\"><field name=\"OP\">OR</field><value name=\"A\"><block type=\"variables_get\" id=\"lo27\" intask=\"true\"><mutation datatype=\"Boolean\"/><field name=\"VAR\">booleanVar</field></block></value><value name=\"B\"><block type=\"variables_get\" id=\"lo28\" intask=\"true\"><mutation datatype=\"Boolean\"/><field name=\"VAR\">booleanVar</field></block></value></block></value></block></value></block><block type=\"robControls_if\" id=\"lo36\" intask=\"true\"><value name=\"IF0\"><block type=\"logic_operation\" id=\"lo34\" intask=\"true\"><field name=\"OP\">AND</field><value name=\"A\"><block type=\"robSensors_key_getSample\" id=\"lo32\" intask=\"true\"><mutation mode=\"PRESSED\"/><field name=\"MODE\">PRESSED</field><field name=\"SENSORPORT\">PLAY</field><field name=\"SLOT\"></field></block></value><value name=\"B\"><block type=\"robSensors_infrared_getSample\" id=\"lo33\" intask=\"true\"><mutation mode=\"OBSTACLE\"/><field name=\"MODE\">OBSTACLE</field><field name=\"SENSORPORT\">FRONT</field><field name=\"SLOT\"></field></block></value></block></value><statement name=\"DO0\"><block type=\"actions_led_edison\" id=\"lo35\" intask=\"true\"><field name=\"ACTORPORT\">LLED</field><field name=\"MODE\">ON</field></block></statement></block><block type=\"controls_whileUntil\" id=\"lo44\" intask=\"true\"><field name=\"MODE\">WHILE</field><value name=\"BOOL\"><block type=\"logic_operation\" id=\"lo41\" intask=\"true\"><field name=\"OP\">OR</field><value name=\"A\"><block type=\"variables_get\" id=\"lo37\" intask=\"true\"><mutation datatype=\"Boolean\"/><field name=\"VAR\">booleanVar</field></block></value><value name=\"B\"><block type=\"logic_compare\" id=\"lo40\" intask=\"true\"><field name=\"OP\">GT</field><value name=\"A\"><block type=\"variables_get\" id=\"lo38\" intask=\"true\"><mutation datatype=\"Number\"/><field name=\"VAR\">numberVar</field></block></value><value name=\"B\"><block type=\"math_integer\" id=\"lo39\" intask=\"true\"><field name=\"NUM\">10</field></block></value></block></value></block></value><statement name=\"DO\"><block type=\"variables_set\" id=\"lo43\" intask=\"true\"><mutation datatype=\"Boolean\"/><field name=\"VAR\">booleanVar</field><value name=\"VALUE\"><block type=\"logic_boolean\" id=\"lo42\" intask=\"true\"><field name=\"BOOL\">FALSE</field></block></value></block></statement></block><block type=\"robControls_wait_for\" id=\"lo48\" intask=\"true\"><value name=\"WAIT0\"><block type=\"logic_operation\" id=\"lo47\" intask=\"true\"><field name=\"OP\">OR</field><value name=\"A\"><block type=\"robSensors_sound_getSample\" id=\"lo45\" intask=\"true\"><mutation mode=\"SOUND\"/><field name=\"MODE\">SOUND</field><field name=\"SENSORPORT\"></field><field name=\"SLOT\"></field></block></value><value name=\"B\"><block type=\"robSensors_key_getSample\" id=\"lo46\" intask=\"true\"><mutation mode=\"PRESSED\"/><field name=\"MODE\">PRESSED</field><field name=\"SENSORPORT\">REC</field><field name=\"SLOT\"></field></block></value></block></value></block></instance></block_set>",
+ "cause": "ORA_COMPILERWORKFLOW_PROGRAM_GENERATION_SUCCESS",
+ "converted_at": "2026-09-25T19:07:59",
+ "edpy": "import Ed\n\ndef _obstacleDetection(mode):\n    global obstacleDetectionOn\n    if (obstacleDetectionOn == False):\n        Ed.ObstacleDetectionBeam(Ed.ON)\n        obstacleDetectionOn = True\n    return Ed.ReadObstacleDetection() == mode\n\nEd.EdisonVersion = Ed.V2\nEd.DistanceUnits = Ed.CM\nEd.Tempo = Ed.TEMPO_SLOW\nobstacleDetectionOn = False\nEd.LineTrackerLed(Ed.ON)\nEd.ReadClapSensor()\nEd.ReadLineState()\nEd.TimeWait(250, Ed.TIME_MILLISECONDS)\n\n___numberVar = 3\n___booleanVar = True\n\n___booleanVar = ((___booleanVar) & (False))\n___booleanVar = ((___numberVar < 5) | (___booleanVar))\n___booleanVar = ((((((___booleanVar) & (___numberVar == 3))) | (not ___booleanVar))) & (True))\n___booleanVar = not (((___booleanVar) | (___booleanVar)))\nif (((Ed.ReadKeypad() == Ed.KEYPAD_TRIANGLE)) & (_obstacleDetection(Ed.OBSTACLE_AHEAD))):\n    Ed.LeftLed(Ed.ON)\nwhile ((___booleanVar) | (___numberVar > 10)):\n    ___booleanVar = False\nwhile True:\n    if (((Ed.ReadClapSensor() == Ed.CLAP_DETECTED)) | ((Ed.ReadKeypad() == Ed.KEYPAD_ROUND))):\n        break\n    pass\n\n",
+ "format": "nepotest-bundle",
+ "lab": "http://localhost:1999",
+ "message": "ORA_COMPILERWORKFLOW_PROGRAM_GENERATION_SUCCESS",
+ "program_name": "logic_operation",
+ "rc": "ok",
+ "robot": "edisonv2",
+ "source_map": {
+  "blocks": {
+   "1": {
+    "ranges": [
+     [
+      440,
+      477
+     ],
+     [
+      825,
+      842
+     ],
+     [
+      894,
+      915
+     ]
+    ],
+    "type": "STMT_LIST"
+   },
+   "lo01": {
+    "ranges": [
+     [
+      455,
+      456
+     ]
+    ],
+    "type": "math_integer"
+   },
+   "lo02": {
+    "ranges": [
+     [
+      440,
+      456
+     ]
+    ],
+    "type": "robGlobalVariables_declare"
+   },
+   "lo03": {
+    "ranges": [
+     [
+      473,
+      477
+     ]
+    ],
+    "type": "logic_boolean"
+   },
+   "lo04": {
+    "ranges": [
+     [
+      457,
+      477
+     ]
+    ],
+    "type": "robGlobalVariables_declare"
+   },
+   "lo05": {
+    "ranges": [
+     [
+      440,
+      477
+     ]
+    ],
+    "type": "robControls_start"
+   },
+   "lo06": {
+    "ranges": [
+     [
+      497,
+      510
+     ]
+    ],
+    "type": "variables_get"
+   },
+   "lo07": {
+    "ranges": [
+     [
+      515,
+      520
+     ]
+    ],
+    "type": "logic_boolean"
+   },
+   "lo08": {
+    "ranges": [
+     [
+      495,
+      522
+     ]
+    ],
+    "type": "logic_operation"
+   },
+   "lo09": {
+    "ranges": [
+     [
+      479,
+      492
+     ],
+     [
+      479,
+      522
+     ]
+    ],
+    "type": "variables_set"
+   },
+   "lo10": {
+    "ranges": [
+     [
+      541,
+      553
+     ]
+    ],
+    "type": "variables_get"
+   },
+   "lo11": {
+    "ranges": [
+     [
+      556,
+      557
+     ]
+    ],
+    "type": "math_integer"
+   },
+   "lo12": {
+    "ranges": [
+     [
+      541,
+      557
+     ]
+    ],
+    "type": "logic_compare"
+   },
+   "lo13": {
+    "ranges": [
+     [
+      562,
+      575
+     ]
+    ],
+    "type": "variables_get"
+   },
+   "lo14": {
+    "ranges": [
+     [
+      539,
+      577
+     ]
+    ],
+    "type": "logic_operation"
+   },
+   "lo15": {
+    "ranges": [
+     [
+      523,
+      536
+     ],
+     [
+      523,
+      577
+     ]
+    ],
+    "type": "variables_set"
+   },
+   "lo16": {
+    "ranges": [
+     [
+      600,
+      613
+     ]
+    ],
+    "type": "variables_get"
+   },
+   "lo17": {
+    "ranges": [
+     [
+      618,
+      630
+     ]
+    ],
+    "type": "variables_get"
+   },
+   "lo18": {
+    "ranges": [
+     [
+      634,
+      635
+     ]
+    ],
+    "type": "math_integer"
+   },
+   "lo19": {
+    "ranges": [
+     [
+      618,
+      635
+     ]
+    ],
+    "type": "logic_compare"
+   },
+   "lo20": {
+    "ranges": [
+     [
+      598,
+      637
+     ]
+    ],
+    "type": "logic_operation"
+   },
+   "lo21": {
+    "ranges": [
+     [
+      646,
+      659
+     ]
+    ],
+    "type": "variables_get"
+   },
+   "lo22": {
+    "ranges": [
+     [
+      642,
+      659
+     ]
+    ],
+    "type": "logic_negate"
+   },
+   "lo23": {
+    "ranges": [
+     [
+      596,
+      661
+     ]
+    ],
+    "type": "logic_operation"
+   },
+   "lo24": {
+    "ranges": [
+     [
+      666,
+      670
+     ]
+    ],
+    "type": "logic_boolean"
+   },
+   "lo25": {
+    "ranges": [
+     [
+      594,
+      672
+     ]
+    ],
+    "type": "logic_operation"
+   },
+   "lo26": {
+    "ranges": [
+     [
+      578,
+      591
+     ],
+     [
+      578,
+      672
+     ]
+    ],
+    "type": "variables_set"
+   },
+   "lo27": {
+    "ranges": [
+     [
+      696,
+      709
+     ]
+    ],
+    "type": "variables_get"
+   },
+   "lo28": {
+    "ranges": [
+     [
+      714,
+      727
+     ]
+    ],
+    "type": "variables_get"
+   },
+   "lo29": {
+    "ranges": [
+     [
+      694,
+      729
+     ]
+    ],
+    "type": "logic_operation"
+   },
+   "lo30": {
+    "ranges": [
+     [
+      689,
+      730
+     ]
+    ],
+    "type": "logic_negate"
+   },
+   "lo31": {
+    "ranges": [
+     [
+      673,
+      686
+     ],
+     [
+      673,
+      730
+     ]
+    ],
+    "type": "variables_set"
+   },
+   "lo32": {
+    "ranges": [
+     [
+      736,
+      775
+     ]
+    ],
+    "type": "robSensors_key_getSample"
+   },
+   "lo33": {
+    "ranges": [
+     [
+      780,
+      817
+     ]
+    ],
+    "type": "robSensors_infrared_getSample"
+   },
+   "lo34": {
+    "ranges": [
+     [
+      734,
+      819
+     ]
+    ],
+    "type": "logic_operation"
+   },
+   "lo35": {
+    "ranges": [
+     [
+      825,
+      842
+     ]
+    ],
+    "type": "actions_led_edison"
+   },
+   "lo36": {
+    "ranges": [
+     [
+      731,
+      842
+     ]
+    ],
+    "type": "robControls_if"
+   },
+   "lo37": {
+    "ranges": [
+     [
+      851,
+      864
+     ]
+    ],
+    "type": "variables_get"
+   },
+   "lo38": {
+    "ranges": [
+     [
+      869,
+      881
+     ]
+    ],
+    "type": "variables_get"
+   },
+   "lo39": {
+    "ranges": [
+     [
+      884,
+      886
+     ]
+    ],
+    "type": "math_integer"
+   },
+   "lo40": {
+    "ranges": [
+     [
+      869,
+      886
+     ]
+    ],
+    "type": "logic_compare"
+   },
+   "lo41": {
+    "ranges": [
+     [
+      849,
+      888
+     ]
+    ],
+    "type": "logic_operation"
+   },
+   "lo42": {
+    "ranges": [
+     [
+      910,
+      915
+     ]
+    ],
+    "type": "logic_boolean"
+   },
+   "lo43": {
+    "ranges": [
+     [
+      894,
+      907
+     ],
+     [
+      894,
+      915
+     ]
+    ],
+    "type": "variables_set"
+   },
+   "lo44": {
+    "ranges": [
+     [
+      843,
+      915
+     ]
+    ],
+    "type": "controls_whileUntil"
+   },
+   "lo45": {
+    "ranges": [
+     [
+      937,
+      978
+     ]
+    ],
+    "type": "robSensors_sound_getSample"
+   },
+   "lo46": {
+    "ranges": [
+     [
+      983,
+      1019
+     ]
+    ],
+    "type": "robSensors_key_getSample"
+   },
+   "lo47": {
+    "ranges": [
+     [
+      935,
+      1021
+     ]
+    ],
+    "type": "logic_operation"
+   },
+   "lo48": {
+    "ranges": [
+     [
+      932,
+      1036
+     ],
+     [
+      916,
+      1045
+     ]
+    ],
+    "type": "robControls_wait_for"
+   }
+  },
+  "version": 1
+ },
+ "version": 1,
+ "xml": "<export xmlns=\"http://de.fhg.iais.roberta.blockly\">\n    <program>\n        <block_set xmlns=\"http://de.fhg.iais.roberta.blockly\" robottype=\"edison\" xmlversion=\"3.1\" description=\"\" tags=\"\">\n            <instance x=\"285\" y=\"45\">\n                <block type=\"robControls_start\" id=\"lo05\" intask=\"true\" deletable=\"false\"><mutation declare=\"true\"></mutation><field name=\"DEBUG\">TRUE</field><statement name=\"ST\"><block type=\"robGlobalVariables_declare\" id=\"lo02\" intask=\"true\" deletable=\"false\" movable=\"false\"><mutation next=\"true\" declaration_type=\"Number\"></mutation><field name=\"VAR\">numberVar</field><field name=\"TYPE\">Number</field><value name=\"VALUE\"><block type=\"math_integer\" id=\"lo01\" intask=\"true\"><field name=\"NUM\">3</field></block></value></block><block type=\"robGlobalVariables_declare\" id=\"lo04\" intask=\"true\" deletable=\"false\" movable=\"false\"><mutation next=\"false\" declaration_type=\"Boolean\"></mutation><field name=\"VAR\">booleanVar</field><field name=\"TYPE\">Boolean</field><value name=\"VALUE\"><block type=\"logic_boolean\" id=\"lo03\" intask=\"true\"><field name=\"BOOL\">TRUE</field></block></value></block></statement></block>\n                <block type=\"variables_set\" id=\"lo09\" intask=\"true\"><mutation datatype=\"Boolean\"></mutation><field name=\"VAR\">booleanVar</field><value name=\"VALUE\"><block type=\"logic_operation\" id=\"lo08\" intask=\"true\"><field name=\"OP\">AND</field><value name=\"A\"><block type=\"variables_get\" id=\"lo06\" intask=\"true\"><mutation datatype=\"Boolean\"></mutation><field name=\"VAR\">booleanVar</field></block></value><value name=\"B\"><block type=\"logic_boolean\" id=\"lo07\" intask=\"true\"><field name=\"BOOL\">FALSE</field></block></value></block></value></block>\n                <block type=\"variables_set\" id=\"lo15\" intask=\"true\"><mutation datatype=\"Boolean\"></mutation><field name=\"VAR\">booleanVar</field><value name=\"VALUE\"><block type=\"logic_operation\" id=\"lo14\" intask=\"true\"><field name=\"OP\">OR</field><value name=\"A\"><block type=\"logic_compare\" id=\"lo12\" intask=\"true\"><field name=\"OP\">LT</field><value name=\"A\"><block type=\"variables_get\" id=\"lo10\" intask=\"true\"><mutation datatype=\"Number\"></mutation><field name=\"VAR\">numberVar</field></block></value><value name=\"B\"><block type=\"math_integer\" id=\"lo11\" intask=\"true\"><field name=\"NUM\">5</field></block></value></block></value><value name=\"B\"><block type=\"variables_get\" id=\"lo13\" intask=\"true\"><mutation datatype=\"Boolean\"></mutation><field name=\"VAR\">booleanVar</field></block></value></block></value></block>\n                <block type=\"variables_set\" id=\"lo26\" intask=\"true\"><mutation datatype=\"Boolean\"></mutation><field name=\"VAR\">booleanVar</field><value name=\"VALUE\"><block type=\"logic_operation\" id=\"lo25\" intask=\"true\"><field name=\"OP\">AND</field><value name=\"A\"><block type=\"logic_operation\" id=\"lo23\" intask=\"true\"><field name=\"OP\">OR</field><value name=\"A\"><block type=\"logic_operation\" id=\"lo20\" intask=\"true\"><field name=\"OP\">AND</field><value name=\"A\"><block type=\"variables_get\" id=\"lo16\" intask=\"true\"><mutation datatype=\"Boolean\"></mutation><field name=\"VAR\">booleanVar</field></block></value><value name=\"B\"><block type=\"logic_compare\" id=\"lo19\" intask=\"true\"><field name=\"OP\">EQ</field><value name=\"A\"><block type=\"variables_get\" id=\"lo17\" intask=\"true\"><mutation datatype=\"Number\"></mutation><field name=\"VAR\">numberVar</field></block></value><value name=\"B\"><block type=\"math_integer\" id=\"lo18\" intask=\"true\"><field name=\"NUM\">3</field></block></value></block></value></block></value><value name=\"B\"><block type=\"logic_negate\" id=\"lo22\" intask=\"true\"><value name=\"BOOL\"><block type=\"variables_get\" id=\"lo21\" intask=\"true\"><mutation datatype=\"Boolean\"></mutation><field name=\"VAR\">booleanVar</field></block></value></block></value></block></value><value name=\"B\"><block type=\"logic_boolean\" id=\"lo24\" intask=\"true\"><field name=\"BOOL\">TRUE</field></block></value></block></value></block>\n                <block type=\"variables_set\" id=\"lo31\" intask=\"true\"><mutation datatype=\"Boolean\"></mutation><field name=\"VAR\">booleanVar</field><value name=\"VALUE\"><block type=\"logic_negate\" id=\"lo30\" intask=\"true\"><value name=\"BOOL\"><block type=\"logic_operation\" id=\"lo29\" intask=\"true\"><field name=\"OP\">OR</field><value name=\"A\"><block type=\"variables_get\" id=\"lo27\" intask=\"true\"><mutation datatype=\"Boolean\"></mutation><field name=\"VAR\">booleanVar</field></block></value><value name=\"B\"><block type=\"variables_get\" id=\"lo28\" intask=\"true\"><mutation datatype=\"Boolean\"></mutation><field name=\"VAR\">booleanVar</field></block></value></block></value></block></value></block>\n                <block type=\"robControls_if\" id=\"lo36\" intask=\"true\"><value name=\"IF0\"><block type=\"logic_operation\" id=\"lo34\" intask=\"true\"><field name=\"OP\">AND</field><value name=\"A\"><block type=\"robSensors_key_getSample\" id=\"lo32\" intask=\"true\"><mutation mode=\"PRESSED\"/><field name=\"MODE\">PRESSED</field><field name=\"SENSORPORT\">PLAY</field><field name=\"SLOT\"/></block></value><value name=\"B\"><block type=\"robSensors_infrared_getSample\" id=\"lo33\" intask=\"true\"><mutation mode=\"OBSTACLE\"/><field name=\"MODE\">OBSTACLE</field><field name=\"SENSORPORT\">FRONT</field><field name=\"SLOT\"/></block></value></block></value><statement name=\"DO0\"><block type=\"actions_led_edison\" id=\"lo35\" intask=\"true\"><field name=\"ACTORPORT\">LLED</field><field name=\"MODE\">ON</field></block></statement></block>\n                <block type=\"controls_whileUntil\" id=\"lo44\" intask=\"true\"><field name=\"MODE\">WHILE</field><value name=\"BOOL\"><block type=\"logic_operation\" id=\"lo41\" intask=\"true\"><field name=\"OP\">OR</field><value name=\"A\"><block type=\"variables_get\" id=\"lo37\" intask=\"true\"><mutation datatype=\"Boolean\"></mutation><field name=\"VAR\">booleanVar</field></block></value><value name=\"B\"><block type=\"logic_compare\" id=\"lo40\" intask=\"true\"><field name=\"OP\">GT</field><value name=\"A\"><block type=\"variables_get\" id=\"lo38\" intask=\"true\"><mutation datatype=\"Number\"></mutation><field name=\"VAR\">numberVar</field></block></value><value name=\"B\"><block type=\"math_integer\" id=\"lo39\" intask=\"true\"><field name=\"NUM\">10</field></block></value></block></value></block></value><statement name=\"DO\"><block type=\"variables_set\" id=\"lo43\" intask=\"true\"><mutation datatype=\"Boolean\"></mutation><field name=\"VAR\">booleanVar</field><value name=\"VALUE\"><block type=\"logic_boolean\" id=\"lo42\" intask=\"true\"><field name=\"BOOL\">FALSE</field></block></value></block></statement></block>\n                <block type=\"robControls_wait_for\" id=\"lo48\" intask=\"true\"><value name=\"WAIT0\"><block type=\"logic_operation\" id=\"lo47\" intask=\"true\"><field name=\"OP\">OR</field><value name=\"A\"><block type=\"robSensors_sound_getSample\" id=\"lo45\" intask=\"true\"><mutation mode=\"SOUND\"/><field name=\"MODE\">SOUND</field><field name=\"SENSORPORT\"/><field name=\"SLOT\"/></block></value><value name=\"B\"><block type=\"robSensors_key_getSample\" id=\"lo46\" intask=\"true\"><mutation mode=\"PRESSED\"/><field name=\"MODE\">PRESSED</field><field name=\"SENSORPORT\">REC</field><field name=\"SLOT\"/></block></value></block></value></block>\n            </instance>\n        </block_set>\n    </program>\n    <config>\n        <block_set robottype=\"edison\" xmlversion=\"3.1\" description=\"\" tags=\"\" xmlns=\"http://de.fhg.iais.roberta.blockly\">\n            <instance x=\"213\" y=\"213\">\n                <block type=\"robBrick_Edison-Brick\" id=\"1\" intask=\"true\" deletable=\"false\"/>\n            </instance>\n        </block_set>\n    </config>\n</export>\n",
+ "xml_sha256": "ad117f409f734ddbc5043517648ed95eebd206f6c668a285da7270660d183190"
+}
