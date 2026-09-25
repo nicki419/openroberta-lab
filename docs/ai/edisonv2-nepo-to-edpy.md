@@ -6,8 +6,10 @@
 > **Goal context:** a learner-facing unit-testing framework for NEPO programs on the Edison V2, with automated or
 > AI-assisted detection and generation of test cases. The generated EdPy is the artefact under test.
 > **Status:** written 2026-09-25 against branch `work` @ `a87f69b37` (version `5.2.33-SNAPSHOT`). Statements marked
-> **verified** were checked by running code (probe tests, golden-file runs, CPython with a stub `Ed` module). Other
-> statements come from reading code.
+> **verified** were checked by running code: probe tests, golden-file runs, CPython with a stub `Ed` module, and the
+> real **EdPy 1.2.11 compiler** run locally. Other statements come from reading code.
+> **Companion docs:** `docs/ai/edpy-reference.md` (the EdPy language, the exact `Ed` API with constant values, the
+> compiler and how to run it locally, firmware facts) and `docs/ai/nepo-custom-blocks.md`.
 
 Paths are repo-relative. `…/` abbreviates `src/main/java/de/fhg/iais/roberta/` inside a module.
 
@@ -159,6 +161,8 @@ See §5. **Exceptions thrown here aren't block annotations.** The REST controlle
    - Network failure: `Compiler … not available, please try it again later!`.
 4. **No EdPy compiler exists in this repo** (no JS port, no Python package, no test). The server-side download
    endpoint `RobotDownloadProgram` has an `edison` → `.wav` case that never sets a file path. It's broken or unused.
+   The **reference compiler** (<https://github.com/Bdanilko/EdPy>, GPL-2.0) can be run locally in check mode. That was
+   verified with version 1.2.11 on a portable Python 3.6; see `edpy-reference.md` §2.
 5. For comparison, `edisonv3` uses `Edisonv3Connection` (WebUSB, `…/open_roberta/compile`, returns hex).
 
 ---
@@ -222,10 +226,14 @@ Generation order:
   either execute the file as a script under a step or time budget, or transform the source (e.g. wrap the top-level
   statements in a function) before importing.
 - **Division differs.** EdPy / Python 2 `7 / 2 == 3`; CPython 3 `7 / 2 == 3.5`. Under CPython 3 the program must be
-  rewritten (`/` → `//`) or run by a Python 2-compatible interpreter. Python 2 floors (`-7/2 == -4`); whether the
-  Edison floors or truncates negatives isn't documented in this repo, so treat it as an **open fidelity question**.
-- **Integer width differs.** EdPy integers are 16-bit on the robot (the generator comment on `PlayNoteAction` notes
-  that values "get too big for Edison"). CPython ints never overflow. Tests around large values need an explicit
+  rewritten (`/` → `//`) or run by a Python 2-compatible interpreter.
+  - The EdPy spec defines `/` as floor division (`-7/2 == -4`), and Python `//` matches it.
+  - The compiler's constant folding truncates under Python 3 and floors under Python 2.7.
+  - The firmware's rounding for negative runtime division isn't documented anywhere; it's still an open question.
+
+  Details are in `edpy-reference.md` §4.3.
+- **Integer width differs.** EdPy integers are signed 16-bit (literals ±32767, verified with the compiler). CPython
+  ints never overflow, and runtime overflow on the robot isn't specified. Tests around large values need an explicit
   model.
 - **Builtins are replaced.** The helpers `max`, `min`, and `sum` shadow the builtins within the program module.
 - **Globals are introspectable.** Variables are module attributes `___<name>`, and functions `____<name>` can be
@@ -401,7 +409,7 @@ without rejection.
 - `controls_flow_statements` (break/continue): inside a wait-in-loop it emits `raise BreakOutOfALoop`, and **that
   class is never defined** in Edison output.
 - `math_round`: legacy integer tricks (§13).
-- `robActions_assert` / `robActions_debug`: via hidden shortcuts, they emit `print`.
+- `robActions_assert` / `robActions_debug`: via hidden shortcuts, they emit `print`, which EdPy rejects (verified).
 - Anything else that `AbstractPythonVisitor` handles generically (`math.*`, `random.*`, `str()`, `"".join`, list
   `.pop`/`.insert`) is emitted **without rejection**, even though it isn't valid EdPy.
 
@@ -410,8 +418,9 @@ without rejection.
 ## 9. The `Ed` runtime API the generated code uses (what a mock must provide)
 
 This is the complete list for the current generator: the union of `EdisonPythonVisitor`, `helperMethodsEdison.yml`,
-and all golden files. The semantics are from Edison's EdPy documentation, which is external, *not* in this repo.
-Check it there before relying on exact values.
+and all golden files. **Exact constant values, signatures, and semantics** (read-and-clear sensors, blocking vs
+non-blocking, units) come from the EdPy source and are in `edpy-reference.md` §5–§8. A mock must use those values,
+because generated code compares against them (e.g. `Ed.KEYPAD_ROUND == 4`).
 
 | Group | Name | Kind | Emitted forms |
 |---|---|---|---|
@@ -515,14 +524,26 @@ mvn -o -pl OpenRobertaServer test -Dtest=ReuseIntegrationAsUnitTest -DfailIfNoTe
 | `RobotEdison/src/test` | **No Java tests.** `resources/collector/all_helper_methods.xml` is orphaned; no test references it. |
 | `OpenRobertaWeb` | Nothing Edison-related (`testData/` and the headless stack-machine runner are WeDo-only). |
 
-**No test anywhere compiles EdPy or calls the Edison service.** Whether generated EdPy is accepted by the real
-compiler is untested.
+**No test in this repo compiles EdPy or calls the Edison service.** A manual local check with the reference compiler
+showed that **all five golden files pass EdPy 1.2.11** (`EdPy.py -c` → `{"error": false}`), but nothing automates
+that. Wiring such a check into the build or the test framework is an open option. Mind the GPL licence of EdPy (see
+`edpy-reference.md`).
 
 ---
 
 ## 11. EdPy restrictions and what they mean for a mock
 
-What the OpenRoberta side encodes (the real compiler's rules aren't in the repo):
+The authoritative rules are in the EdPy compiler; see `edpy-reference.md` §3–§4 and its error catalogue §9. Its
+key rules:
+- ints are signed 16-bit (literals ±32767)
+- no floats and no strings except tune strings
+- a variable's type is fixed on first assignment
+- only `import Ed`
+- no `print`, `raise`, or `**`; `and`/`or` don't work
+- a comment-only body is a syntax error
+- `Ed.EdisonVersion`/`DistanceUnits`/`Tempo` must be set once, in main code
+
+The table below shows what the **OpenRoberta side** encodes in response:
 
 | Restriction | Where it shows up |
 |---|---|
@@ -534,12 +555,24 @@ What the OpenRoberta side encodes (the real compiler's rules aren't in the repo)
 | Blockly limits for `device === "edison"` | Variable types only Number, Boolean, Array_Number; `math_single` only ABS, NEG, POW10; `math_on_list` only SUM, MIN, MAX, AVERAGE; no WHOLE property |
 
 **Fidelity gaps between CPython + stub and a real Edison** (design inputs for the framework):
-1. Integer division semantics (`/`), and negative rounding.
-2. 16-bit overflow.
+1. Integer division semantics. Use floor semantics (`//`), per the EdPy spec. Negative runtime division on the
+   firmware is unspecified.
+2. 16-bit overflow. The range is known; the wrap behaviour isn't specified.
 3. Top-level execution on import.
-4. Real-time behaviour: `Ed.TimeWait`, driving for a distance, `while Ed.ReadMusicEnd() == Ed.MUSIC_NOT_FINISHED: pass` busy waits. These need a virtual clock and a scripted world model.
-5. Sensor semantics: the "read to reset" style (`Ed.ReadClapSensor()` both reads and clears), and the line tracker only reporting correctly after starting on a white surface.
-6. Syntax the real compiler rejects, which CPython happily runs. The only authority is the external service.
+4. Real-time behaviour:
+   - `Ed.TimeWait` blocks, with 10 ms resolution.
+   - Driving for a limited distance blocks.
+   - `PlayTone`/`PlayTune` **don't** block, so the generated code busy-waits
+     `while Ed.ReadMusicEnd() == Ed.MUSIC_NOT_FINISHED: pass`, or calls `TimeWait`.
+
+   These need a virtual clock and a scripted world model.
+5. Sensor semantics, now confirmed from `edpy_code.py`:
+   - clap, keypad, obstacle, remote, IR data, and line change are **latched events cleared by reading**;
+   - line state and light levels are plain state;
+   - see `edpy-reference.md` §5.1 and §8.
+6. Programs CPython runs but EdPy rejects, e.g. builtin `sum`, `print`, `and`/`or`, and floats. **Run the local EdPy
+   check (`EdPy.py -c`) before executing a program in a mock.** It's the same compiler family as the Edison service,
+   although the service's deployed version is unknown.
 
 ---
 
@@ -586,8 +619,10 @@ program, not the EdPy.
 `robActions_assert`, `robActions_debug`, and `robActions_serial_print` are **in no Edison toolbox**. Assert and debug can
 still be created with the hidden shortcuts Ctrl/Cmd+3 and Ctrl/Cmd+2 (`menu.controller.ts`).
 - The validator doesn't reject them.
-- The generator emits `print(...)`, and for assert `if not <cmp>: print("Assertion failed: ", …)`. Whether EdPy
-  accepts `print` is decided only by the external compiler. The robot has no text output anyway.
+- The generator emits `print(...)`, and for assert `if not <cmp>: print("Assertion failed: ", …)`. **EdPy rejects
+  it** (`Unknown function print`, verified), so any program containing these blocks can't be run on the robot. The
+  robot has no text output anyway. A learner-facing assertion mechanism therefore has to live outside the EdPy
+  program, in the test harness or the mock, or compile to something EdPy accepts.
 - In the simulator they work: `console.assert`/`console.log` in the browser, with no UI.
 
 ### 12.5 Where a learner test feature can hook in (facts, not a design)
@@ -603,8 +638,11 @@ still be created with the hidden shortcuts Ctrl/Cmd+3 and Ctrl/Cmd+2 (`menu.cont
   1. EdPy under CPython with a mock `Ed`, after a source transformation that neutralises top-level execution and fixes
      `/` (§5, §11).
   2. The stack-machine interpreter with a scripted robot behaviour (the simulator's world model).
-  3. The real Edison compiler through the external service. That's syntax validation only, it needs network access,
-     and it sends learner code to a third party.
+  3. **The EdPy reference compiler run locally** (`EdPy.py -c`, verified). It gives compile validity with exact
+     error messages and line numbers, and can be mapped to blocks through line → phrase bookkeeping. It's
+     GPL-licensed and runs only on Python 2.7/3.6. See `edpy-reference.md` §2.
+  4. The Edison service itself. That's syntax validation plus a WAV, it needs network access, and it sends learner
+     code to a third party.
 
 ---
 
@@ -624,11 +662,11 @@ still be created with the hidden shortcuts Ctrl/Cmd+3 and Ctrl/Cmd+2 (`menu.cont
 | 10 | code | `robot.program.default.nn` points to a missing file. | `edison.properties` |
 | 11 | code | The server-side WAV download endpoint never sets a file path. | `RobotDownloadProgram` (`case "edison"`) |
 | 12 | code | `RobotEdison/src/test/resources/collector/all_helper_methods.xml` is unused. | |
-| 13 | code | assert/debug (hidden shortcuts) generate `print(...)`, which the robot can't display. | `AbstractPythonVisitor` |
+| 13 | **verified (EdPy)** | assert, debug, and serial print generate `print(...)`, which **never compiles**: EdPy → `Unknown function print`. The validator doesn't warn. | `AbstractPythonVisitor` |
 
 | 14 | **verified bug** | **Division drops operand parentheses.** NEPO `(10+20)/(2+3)` → `10 + 20 / 2 + 3` (23 instead of 6). | `EdisonPythonVisitor.visitBinary` (DIVIDE branch skips `generateSubExpr`) |
-| 15 | **verified bug** | **AVERAGE without SUM:** `sum(___l) / len(___l)` is emitted, but no `sum` helper is. It's undefined in EdPy, and CPython silently uses its builtin, so a CPython mock would *hide* this bug. | `EdisonPythonVisitor.visitMathOnListFunct` vs the collector (adds only `AVERAGE`) |
-| 16 | **verified bug** | **A comment-only body is invalid Python.** `if True:` + `# only a comment` → `IndentationError`. This applies to if/loop bodies always, and to function bodies when there are no global variables. The golden `text_messages_functions.py` hides it because `global …` precedes the comment. | `AbstractPythonVisitor` (`pass` is only added for *empty* bodies) |
+| 15 | **verified bug (EdPy)** | **AVERAGE without SUM:** `sum(___l) / len(___l)` is emitted, but no `sum` helper is. EdPy rejects it with `Unknown function sum`, while CPython silently uses its builtin, so a CPython mock would *hide* this bug. | `EdisonPythonVisitor.visitMathOnListFunct` vs the collector (adds only `AVERAGE`) |
+| 16 | **verified bug (EdPy)** | **A comment-only body is invalid.** `if True:` + `# only a comment` → CPython `IndentationError`, and EdPy → `Syntax error`. This applies to if/loop bodies always, and to function bodies when there are no global variables. The golden `text_messages_functions.py` hides it because `global …` precedes the comment. | `AbstractPythonVisitor` (`pass` is only added for *empty* bodies) |
 | 17 | code | `robActions_play_tone` emits the DURATION expression twice, and FREQUENCE must be a literal (`NO_CONST_NOT_SUPPORTED`). | `EdisonPythonVisitor.visitToneAction` |
 | 18 | code | `_motorOn` compares with `Ed.MOTOR_LEFT/RIGHT`, but the generator passes literals `0`/`1`, so it depends on those constant values. | `helperMethodsEdison.yml` MOTORON |
 | 19 | code | `_shorten` doesn't clamp (power 1000 → speed 100). `_diffCurve` ignores the right wheel's sign when both speeds are equal. | `helperMethodsEdison.yml` |
@@ -636,6 +674,11 @@ still be created with the hidden shortcuts Ctrl/Cmd+3 and Ctrl/Cmd+2 (`menu.cont
 | 21 | code | The validator throws `DbcException("block is not implemented")` for motor get/set power and get/set volume (not in the toolbox). A `math_single` function without a helper (e.g. imported SIN) gives a NullPointerException. | `EdisonValidatorAndCollectorVisitor`, `HelperMethodGenerator` |
 | 22 | code | `___soundfile1…5` (play file) live in the user-variable namespace. They collide with user variables named `soundfile1…5`. | `EdisonPythonVisitor.visitPlayFileAction` |
 | 23 | code | Many generic constructs are emitted without rejection when imported (`math.*`, `random.*`, `str()`, `and`/`or`, list `.pop`/`.insert`), although they aren't valid EdPy. The validator enforces almost no EdPy limits. | `EdisonValidatorAndCollectorVisitor` |
+| 24 | **verified bug (EdPy)** | **A tone frequency ≤ 244 Hz fails on the robot.** `8000000/244` folds to 32786, and EdPy rejects it with `constant 32786 is out of range`. The Lab's validator accepts it. For the note block the cut-off is 123 Hz, but its picker starts at 261.6 Hz. | `EdisonPythonVisitor.visitToneAction`, `EdisonValidatorAndCollectorVisitor.visitToneAction` |
+| 25 | **verified (EdPy)** | **Tone frequency 0** passes the Lab's validator and **crashes the EdPy compiler** (division by zero in constant folding). | same |
+| 26 | spec | **Pitch shift:** the firmware tone code is `32e6/Hz` (1–5 kHz), and the Lab emits `8000000/f` (tone) or `4000000/f` (note). A NEPO tone sounds at 4·f and a note at 8·f, apparently deliberately, to reach the buzzer's range. A test asserting the pitch must model this. | `edpy-reference.md` §6–§7 |
+| 27 | **verified (EdPy)** | The literal `-32768` is rejected (`out of range`); the usable literal range is ±32767. | EdPy optimiser |
+| 28 | **verified (EdPy)** | The `NO_CONST_NOT_SUPPORTED` rule for tone frequency exists because `8000000/<variable>` doesn't compile (`constant 8000000 is out of range`). | `EdisonValidatorAndCollectorVisitor.visitToneAction` |
 
 Good test-candidate classes: integer arithmetic at the edges (division, negative numbers, values near ±32767); the
 helper functions (empty lists, negative exponents, primes); drive, curve, and turn with distance vs unlimited; sensor
@@ -670,6 +713,11 @@ Run it: `mvn -o -pl OpenRobertaServer test -Dtest=<YourTest> -DfailIfNoTests=fal
 2. **Don't import the program directly.** It executes. Load the source, then transform it: rewrite `/` → `//`, and
    wrap or guard the top-level statements.
 3. Execute it with a time or step budget.
+
+**Check generated EdPy with the real compiler (verified).** Set up EdPy 1.2.11 on Python 3.6 or 2.7 as in
+`edpy-reference.md` §2. Then run `python EdPy.py -c en_lang.json <file.py>` from `EdPy/src`. The output is JSON:
+`{"error": false, "messages": [], …}`, or `"messages": ["ERR: file:<line>:<col>: …"]`. A non-JSON traceback means the
+compiler itself crashed.
 
 **Add a golden test program:**
 1. Save an export XML (`robottype="edison"`, `xmlversion="3.1"`, config = the single `robBrick_Edison-Brick` block) as

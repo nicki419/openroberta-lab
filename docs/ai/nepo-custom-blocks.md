@@ -357,15 +357,22 @@ emitted **before** the fixed setup block.
 |---|---|---|
 | 1 | Add the golden program `OpenRobertaServer/src/test/resources/crossCompilerTests/robotSpecific/edison/<name>.xml` (export XML: `robottype="edison"`, config = `<block type="robBrick_Edison-Brick" id="1" intask="true" deletable="false"/>`). Add the block to the toolbox. Run `mvn -pl OpenRobertaServer -am test -Dtest='TestToolboxBlocksAreUsedInTestFiles,ReuseIntegrationAsUnitTest#testAllRobotSpecificProgramsAsUnitTests' -DfailIfNoTests=false` | Toolbox test **passes**. The golden test **fails for both** `edisonv2/<name>` and `edisonv3/<name>` (regeneration, code generation, collector), because the expected files are missing. Actual outputs are written to `OpenRobertaServer/target/unitTests/_expected/robotSpecific/{astGenerated,targetLanguage,collectorResults}/{edisonv2,edisonv3}/`. Both collector files are **auto-created in `src/test/resources`** with a header line. |
 | 2 | Review the outputs. For each of `edisonv2` and `edisonv3`, copy `.ast` and `.py` into `src/test/resources/crossCompilerTests/_expected/robotSpecific/…/<robot>/`, and delete the header line of the collector `.txt`. Re-run. | **passes:** `succeeding regeneration/code generation/collector tests: 317` (315 + 2) |
-| 3 | `python -m py_compile <generated .py>` | OK. This is **Python 3** syntax only; EdPy validity is decided solely by the external Edison compiler. |
+| 3 | `python EdPy.py -c en_lang.json <generated .py>` with the reference compiler (setup: `edpy-reference.md` §2) | `{"error": false, "messages": [], "wavFilename": null}` (verified for `play_beep.py`). This is the real EdPy check. `python -m py_compile` would only check Python 3 syntax and accepts much that EdPy rejects. |
 
 ---
 
 ## 7. The complete verified example
 
 An Edison statement block **"play beep"**: `edisonActions_play_beep`, with one value input `TONE` (Number). It
-generates `Ed.PlayMyBeep(<tone>)` followed by the usual `Ed.ReadClapSensor()`, and isn't simulated. `Ed.PlayMyBeep`
-is taken from the EdPy API as documented by Edison; it wasn't run on a robot.
+generates `Ed.PlayMyBeep(<tone>)` followed by the usual `Ed.ReadClapSensor()`, and isn't simulated.
+
+- The generated program **compiles with the real EdPy 1.2.11 compiler** (verified with `EdPy.py -c`).
+- It wasn't run on a robot.
+- Per `edpy-reference.md`, `Ed.PlayMyBeep`'s argument is a **frequency code** (`32,000,000 / Hz`, sensible range
+  about 6400–32000 for 1–5 kHz), and the beep always lasts 50 ms.
+- The example value `200` is therefore outside the documented buzzer range. A production block should take Hz and
+  convert, e.g. emit `Ed.PlayMyBeep(32000000/<literal>)` and require a literal, as the tone block does, because a
+  variable can't hold `32000000`.
 
 **AST class** (new): `RobotEdison/src/main/java/de/fhg/iais/roberta/syntax/actors/edison/PlayBeepAction.java`
 
@@ -507,8 +514,10 @@ With NUM 1.5 instead of 200 → the workflow throws IllegalArgumentException: No
    helper functions registered, so the EdPy calls undefined functions) and empty sockets aren't reported.
 6. **Helper functions go before the setup block.** Names without a leading underscore (`max`, `min`, `sum`) shadow
    builtins. Prefer `_name` for new helpers.
-7. **EdPy validity isn't checked locally.** The real compiler is Edison's external service, called from the browser
-   at run time. `py_compile`/pylint only check Python 3 syntax.
+7. **EdPy validity isn't checked by the build.** At run time, the real compilation happens in Edison's external
+   service. Check new output manually with the reference compiler (`EdPy.py -c`, see `edpy-reference.md`).
+   `py_compile`/pylint only check Python 3 syntax. Emitting `print`, floats, strings, `and`/`or`, `**`, or calls to
+   functions that aren't defined in the program all compile in CPython but fail in EdPy.
 8. **`NepoAnnotationValidTest` runs 0 tests alone.** The golden tests are the real guard.
 9. **Top-level stacks not attached to the start block (`intask="false"`) aren't generated.** A block with a statement
    body needs `@NepoBasic`.

@@ -39,7 +39,9 @@ Keep this goal in mind when you make design choices.
 - EdPy is **integer-only Python 2**. Under CPython 3, `/` becomes float division, and ints never overflow, whereas
   EdPy integers are 16-bit. A CPython-based mock doesn't reproduce EdPy semantics as-is.
 - **The real EdPy compiler isn't in this repo.** The browser posts the source to Edison's external web service
-  (`https://api.edisonrobotics.net/`), which returns a WAV file. Nothing local can check that a program is valid EdPy.
+  (`https://api.edisonrobotics.net/`), which returns a WAV file. The **reference compiler**
+  (<https://github.com/Bdanilko/EdPy>, GPL-2.0, v1.2.11) can be run locally in check mode on Python 2.7/3.6 (verified).
+  It's the authority on what EdPy accepts; CPython accepts far more (`print`, builtin `sum`, floats, `and`/`or`, …).
 
 ## Read this before touching code generation
 
@@ -48,6 +50,15 @@ validation/collection → EdPy → external compiler → WAV), the anatomy of th
 surface a mock must provide, the fixed ports, a block-by-block inventory, EdPy restrictions, the existing test
 infrastructure, Lab integration points, and known quirks and test candidates. Read the relevant sections before you
 change the generator or build test tooling.
+
+**`docs/ai/edpy-reference.md`** documents **EdPy** itself, from the upstream compiler source and specs:
+- the language rules (16-bit ints, no floats or strings, fixed-type variables, what compiles and what doesn't);
+- the exact `Ed` API with constant values and semantics (read-and-clear sensors, blocking calls, units);
+- the compiler's 45 error messages, and firmware facts;
+- how to run the compiler locally;
+- a checklist for building a mock `Ed`.
+
+Read it before building a mock runtime or deciding what a generated program may contain.
 
 **`docs/ai/nepo-custom-blocks.md`** is the guide to **NEPO blocks** for the Edison: how they're defined (the Blockly
 side: hand-written Edison blocks, generic blocks with Edison branches, data-driven sensor blocks, hard-coded ports,
@@ -110,6 +121,10 @@ The golden-file runner writes what it actually generated to `OpenRobertaServer/t
 Integration tests (`-PrunIT`, `@Category(IntegrationTest.class)`) aren't needed for Edison generator work. For the
 Edison, "compile" only checks that the source is non-empty, and pylint checks Python 3 syntax, not EdPy.
 
+To check that generated EdPy really compiles, run the reference compiler in check mode (setup in
+`docs/ai/edpy-reference.md` §2): `python EdPy.py -c en_lang.json <file.py>` → `{"error": false, …}`. All five Edison
+golden files pass (verified). Don't vendor EdPy into this repo without a licence review (GPL-2.0 vs Apache-2.0).
+
 Run the server locally: `./admin.sh -git-mode create-empty-db` once, then `./ora.sh start-from-git` → http://localhost:1999.
 On Windows use Git Bash. "Show source" works offline. Running a program on a real Edison needs the external Edison
 compile service and the EdComm audio cable.
@@ -133,6 +148,8 @@ compile service and the EdComm audio cable.
   header line, and re-run.
 - **Golden files record current behaviour, not correct behaviour.** Several generator quirks are baked into them (see
   §13 of the reference). Don't treat `_expected/` as a specification when you derive or generate tests.
+- Nothing in the default build checks that generated EdPy is valid. When you change the generator, run the EdPy
+  check on the output (see Build and test).
 - Keep the code style of the surrounding code (formatter: `Resources/formatter/openRobertaIdea.xml`; spaces inside
   `if ( … )` parentheses).
 - Git: work happens on branch `work`; the upstream default branch is `develop`. Don't commit or push unless asked.
