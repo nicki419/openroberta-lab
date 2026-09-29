@@ -75,8 +75,56 @@
       "properties": {"match": {"$ref": "#/$defs/matcher"}, "count": {"$ref": "#/$defs/valueMatcher"}}}, "description": "number of actions matching each matcher"}]},
     "calls": {"type": "array", "items": {"$ref": "#/$defs/matcher"}, "description": "NEPO function calls, in this order, others may be in between"},
     "error": {"oneOf": [{"type": "null"}, {"type": "string"}, {"$ref": "#/$defs/matcher"}], "description": "null (default): no runtime error; 'any'; a kind such as 'division_by_zero'; or a matcher on kind, block_id, block_type, function"},
-    "covers": {"type": "array", "items": {"type": "string"}, "description": "block ids that must be executed"}
+    "covers": {"type": "array", "items": {"type": "string"}, "description": "block ids that must be executed"},
+    "states": {"type": "array", "items": {"$ref": "#/$defs/stateExpectation"}, "description": "what the robot is doing, and when (nepotest/states.py)"},
+    "distance_cm": {"$ref": "#/$defs/valueMatcher", "description": "at the end: the distance driven, mean of both wheels, backward negative"},
+    "heading_deg": {"$ref": "#/$defs/valueMatcher", "description": "at the end: the change of heading, counterclockwise (left) positive"},
+    "end_position": {"type": "object", "additionalProperties": false,
+      "properties": {"ahead_cm": {"type": "number"}, "left_cm": {"type": "number"}, "tol_cm": {"type": "number", "minimum": 0}},
+      "description": "at the end: where the robot is relative to its start (ahead = its first heading, left of it), within tol_cm"}
    }
-  }
+  },
+  "state": {"oneOf": [
+    {"type": "object", "required": ["motor"], "additionalProperties": false,
+     "properties": {"motor": {"enum": ["left", "right", "both"]}, "is": {"enum": ["forward", "backward", "running", "stopped"]},
+                    "power": {"$ref": "#/$defs/valueMatcher", "description": "a number: rounded like the robot does (45 to 54 mean 50); a matcher: the power it runs at"}}},
+    {"type": "object", "required": ["robot"], "additionalProperties": false,
+     "properties": {"robot": {"enum": ["forward", "backward", "turn_left", "turn_right", "curve_left", "curve_right", "still"]},
+                    "power": {"$ref": "#/$defs/valueMatcher", "description": "only for forward, backward and the turns"}}},
+    {"type": "object", "required": ["led"], "additionalProperties": false,
+     "properties": {"led": {"enum": ["left", "right", "both", "either"]}, "is": {"enum": ["on", "off"]}}},
+    {"type": "object", "required": ["sound"], "additionalProperties": false,
+     "properties": {"sound": {"enum": ["silent", "any", "tone", "file", "beep"]}, "frequency_hz": {"$ref": "#/$defs/valueMatcher", "description": "only for tone: the NEPO frequency"}}},
+    {"type": "object", "required": ["variable", "value"], "additionalProperties": false,
+     "properties": {"variable": {"type": "string"}, "value": {"$ref": "#/$defs/valueMatcher"}}},
+    {"type": "object", "required": ["all"], "additionalProperties": false, "properties": {"all": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/state"}}}},
+    {"type": "object", "required": ["any"], "additionalProperties": false, "properties": {"any": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/state"}}}},
+    {"type": "object", "required": ["not"], "additionalProperties": false, "properties": {"not": {"$ref": "#/$defs/state"}}}
+  ]},
+  "window": {"type": "object", "additionalProperties": false,
+    "properties": {"from": {"type": "number", "minimum": 0}, "to": {"type": "number", "minimum": 0}},
+    "description": "ms of program time; left out: from the program's start (after the setup block) / to the end of the run"},
+  "stateEvent": {"type": "object", "required": ["event"], "additionalProperties": false,
+    "properties": {"event": {"enum": ["clap", "key", "obstacle", "line", "remote", "ir_message"]}, "port": {"type": "string"},
+                   "edge": {"enum": ["start", "end"], "description": "obstacle: when it appears (default) or disappears"},
+                   "color": {"enum": ["black", "white"], "description": "line: when the line tracker starts to see this color"}}},
+  "condition": {"oneOf": [
+    {"type": "object", "required": ["obstacle"], "additionalProperties": false, "properties": {"obstacle": {"enum": ["FRONT", "LEFT", "RIGHT", "any"]}}},
+    {"type": "object", "required": ["line"], "additionalProperties": false, "properties": {"line": {"enum": ["black", "white"]}}},
+    {"type": "object", "required": ["light", "value"], "additionalProperties": false,
+     "properties": {"light": {"enum": ["LLIGHT", "RLIGHT", "LINETRACKER"]}, "value": {"$ref": "#/$defs/valueMatcher"}}}
+  ]},
+  "stateExpectation": {"type": "object", "required": ["state"],
+    "properties": {"state": {"$ref": "#/$defs/state"},
+                   "at": {"oneOf": [{"const": "end"}, {"type": "number", "minimum": 0}]},
+                   "always": {"$ref": "#/$defs/window"}, "never": {"$ref": "#/$defs/window"}, "sometime": {"$ref": "#/$defs/window"},
+                   "after": {"$ref": "#/$defs/stateEvent"}, "within_ms": {"type": "number", "minimum": 0}, "each": {"type": "boolean"},
+                   "while": {"$ref": "#/$defs/condition"}, "delay_ms": {"type": "number", "minimum": 0},
+                   "for_ms": {"$ref": "#/$defs/valueMatcher", "description": "the time the state held, in total"},
+                   "starts": {"$ref": "#/$defs/valueMatcher", "description": "how often the state began"}},
+    "additionalProperties": false,
+    "oneOf": [{"required": ["at"]}, {"required": ["always"]}, {"required": ["never"]}, {"required": ["sometime"]},
+              {"required": ["after", "within_ms"]}, {"required": ["while"]}, {"required": ["for_ms"]}, {"required": ["starts"]}],
+    "description": "exactly one timing; within_ms and each go with after, delay_ms with while"}
  }
 }

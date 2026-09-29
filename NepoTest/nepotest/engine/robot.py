@@ -29,6 +29,17 @@ Call.__doc__ = 'One Ed call: start time (ms), function name without "Ed.", argum
 
 Sound = namedtuple('Sound', 'start end kind code freq_hz tune')
 
+StateChange = namedtuple('StateChange', 't key value cause kind')
+StateChange.__doc__ = """One change of the robot's state, in Robot.state_log (only real changes are logged).
+
+key/value: 'motor.left' / 'motor.right' -> (sign, level): sign +1 forward, -1 backward, 0 stopped; level 0-10 (0 while
+moving = SPEED_FULL); 'led.left' / 'led.right' -> bool; 'sound' -> None (silent) or (kind, code) with kind 'beep',
+'mybeep', 'tone' or 'tune'. Observers may log more keys (the framework logs 'var.<name>').
+cause: index in Robot.trace of the Ed call that caused it (for 'end': the call that started the drive or sound).
+kind: 'set' (by an Ed call), 'end' (a distance drive or a sound has finished by itself), or an observer's kind."""
+
+INITIAL_STATE = {'motor.left': (0, 0), 'motor.right': (0, 0), 'led.left': False, 'led.right': False, 'sound': None}
+
 # Ed calls that change the robot or the world (everything else only reads)
 ACTIONS = frozenset(['LeftLed', 'RightLed', 'LineTrackerLed', 'ObstacleDetectionBeam', 'SendIRData', 'PlayBeep', 'PlayMyBeep',
                      'PlayTone', 'PlayTune', 'ChangeTempo', 'Drive', 'DriveLeftMotor', 'DriveRightMotor', 'TimeWait',
@@ -52,12 +63,13 @@ _MUSIC_TUNE_BIT = 0x02
 
 
 class _Wheel(object):
-    __slots__ = ('sign', 'level', 'remaining')
+    __slots__ = ('sign', 'level', 'remaining', 'cause')
 
     def __init__(self):
         self.sign = 0  # +1 forward, -1 backward, 0 stopped
         self.level = 0
         self.remaining = None  # cm still to drive, None = unlimited
+        self.cause = None  # trace index of the call that set the wheel
 
 
 class Robot(object):
@@ -82,6 +94,9 @@ class Robot(object):
 
         # observations
         self.trace = []
+        self.state_log = []  # [StateChange], in the order they were logged (not always by time: sort by t)
+        self._state = dict(INITIAL_STATE)  # the current value of every logged key
+        self._sound_cause = None
         self.listeners = []  # set by EdProgram.run()/load(); notified of every Ed call
         self.sounds = []
         self.ir_sent = []
@@ -204,6 +219,21 @@ class Robot(object):
     def action_names(self, include_setup=False):
         return [c.name for c in self.actions(include_setup)]
 
+    def log_state(self, key, value, kind='set', t=None, cause=None):
+        """Logs a state change (see StateChange) if `value` differs from the current value of `key`. The robot logs its
+        motors, LEDs and sound; observers can log their own keys (the framework logs variables as 'var.<name>').
+        t defaults to now; cause defaults to the Ed call in progress (the last trace entry) for kind 'set'."""
+        if key in self._state and self._state[key] == value:
+            return
+        self._state[key] = value
+        if cause is None and kind == 'set' and self.trace:
+            cause = len(self.trace) - 1
+        self.state_log.append(StateChange(self.now if t is None else t, key, value, cause, kind))
+
+    def state(self, key):
+        """the current value of a logged key (see StateChange), None if it was never logged"""
+        return self._state.get(key)
+
     def led_timeline(self, side):
         """[(t, on)] for 'left' or 'right' LED, from the trace."""
         name = {'left': 'LeftLed', 'right': 'RightLed'}[side]
@@ -283,6 +313,7 @@ class Robot(object):
         self._integrate_motors(target - start)
         if self._sound is not None and self._sound.end <= target:
             self._music |= _MUSIC_TUNE_BIT if self._sound.kind == 'tune' else _MUSIC_TONE_BIT
+            self.log_state('sound', None, kind='end', t=self._sound.end, cause=self._sound_cause)
             self._sound = None
         while self._events and self._events[0][0] <= target:
             _, _, kind, value = self._events.pop(0)
@@ -317,8 +348,11 @@ class Robot(object):
         w = self._wheels[side]
         w.sign, w.level = sign, level
         w.remaining = distance_cm if sign else None
+        w.cause = len(self.trace) - 1 if self.trace else None
+        self.log_state('motor.' + side, (sign, level if sign else 0))
 
     def _integrate_motors(self, dt):
+        t = self.now
         while dt > 1e-9 and self.moving:
             step = dt
             for w in self._wheels.values():
@@ -328,12 +362,14 @@ class Robot(object):
             for side, w in self._wheels.items():
                 travel[side] = w.sign * self._speed(w.level) * step if w.sign else 0.0
             self._move_pose(travel['left'], travel['right'])
+            t += step
             for side, w in self._wheels.items():
                 self.odometer_cm[side] += travel[side]
                 if w.sign and w.remaining is not None:
                     w.remaining -= abs(travel[side])
                     if w.remaining <= 1e-9:
                         w.sign, w.remaining = 0, None
+                        self.log_state('motor.' + side, (0, 0), kind='end', t=t, cause=w.cause)
             dt -= step
 
     def _move_pose(self, dl, dr):
@@ -363,9 +399,11 @@ class Robot(object):
 
     def ed_LeftLed(self, state):
         self.leds['left'] = bool(state & 1)
+        self.log_state('led.left', self.leds['left'])
 
     def ed_RightLed(self, state):
         self.leds['right'] = bool(state & 1)
+        self.log_state('led.right', self.leds['right'])
 
     def ed_LineTrackerLed(self, state):
         self.line_tracker_led = bool(state & 1)
@@ -436,6 +474,8 @@ class Robot(object):
         s = Sound(self.now, self.now + duration_ms, kind, code, freq, tune)
         self._sound = s  # a new sound replaces a playing one
         self.sounds.append(s)
+        self._sound_cause = len(self.trace) - 1 if self.trace else None
+        self.log_state('sound', (kind, code), cause=self._sound_cause)
 
     def ed_Drive(self, direction, speed, distance):
         speed = self._check_speed(speed)

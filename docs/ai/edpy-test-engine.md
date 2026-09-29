@@ -469,6 +469,17 @@ what the framework does with the source map (`nepo-unit-testing.md`).
   - `clear_music_end_on_play` (default False, like `edpy_code.py`): whether starting a sound clears an unread
     "finished" flag. It's unknown for the firmware (§8).
 - **IR send:** recorded in `robot.ir_sent`.
+- **State log:** `robot.state_log` is a list of `StateChange(t, key, value, cause, kind)`, one per real change of
+  - `motor.left` / `motor.right` → `(sign, level)`: sign +1 forward, −1 backward, 0 stopped; level 0–10;
+  - `led.left` / `led.right` → bool;
+  - `sound` → `None`, or `(kind, code)` with kind `beep`, `mybeep`, `tone`, `tune`.
+
+  `cause` is the index in `robot.trace` of the Ed call that caused it. `kind` is `set` (by an Ed call), or `end` when a
+  distance drive or a sound finishes by itself; then `t` is the exact moment within the time step, and `cause` is the
+  call that started it. Entries are appended in the order they're found, not always by time, so sort by `t`.
+  `robot.log_state(key, value, kind, t, cause)` is public: the framework logs the program's variables there
+  (`var.<name>`). `robot.state(key)` is the current value. The framework's NEPO-level view of it is
+  `nepotest/states.py` (`nepo-unit-testing.md` §4.10).
 
 ### 6.5 Setup variables
 
@@ -520,7 +531,10 @@ framework, the engine has three opt-in hooks (`EdProgram(..., instrument=True)` 
 |---|---|---|
 | `on_statement(index)` | before every statement of the program (`EdProgram.statements[index]` = its position) | block executions, statement coverage |
 | `on_ed_call(trace_index, frame)` | at every Ed call, with the calling frame | attributing Ed calls to blocks (via code positions), helper arguments |
-| `on_prelude_done(namespace)` | after helpers, setup, declarations and function definitions ran | wrapping NEPO functions to record calls |
+| `on_prelude_done(namespace)` | after helpers, setup, declarations and function definitions ran | wrapping NEPO functions to record calls; sampling global variables |
+
+Besides the hooks, `robot.state_log` (§6.4) records every change of the motors, LEDs and sound, for the framework's
+state timeline.
 
 Every engine error has a `kind` (`overflow`, `division_by_zero`, `index_out_of_range`, ...) and `positions`: the code
 positions of the program frames when it happened, which the framework maps to the failing block.
@@ -539,6 +553,7 @@ items are implemented in the framework: see `nepo-unit-testing.md`.
 - **A new NEPO block that emits a new `Ed` function:**
   - implement `ed_<Name>` in `robot.py` (semantics from `edpy_code.py`);
   - add it to `ACTIONS` if it changes something;
+  - log the state it changes with `self.log_state(...)` (§6.4), if a test should see it;
   - its signature is already in `values.py` if EdPy knows it;
   - add a self-test.
 - **Calibrating:** measure a real Edison V2 (cm/s per speed level, beep length, tune timing, whether a new sound

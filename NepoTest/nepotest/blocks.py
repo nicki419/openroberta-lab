@@ -26,10 +26,26 @@ The blocks (all types start with `nepoTest_`; the frontend defines them in nepoT
     nepoTest_expect_count     OP COUNT, input ACTION  this action happened OP COUNT times
     nepoTest_expect_called    FUNCTION                this NEPO function was called
     nepoTest_expect_error     KIND                    this runtime error happened (any, division_by_zero, ...)
+    nepoTest_expect_state_end     input STATE                     the state holds at the end
+    nepoTest_expect_state_at      input STATE, AT                 ... at AT ms
+    nepoTest_expect_state_during  input STATE, QUANT FROM TO      always / never / sometime, from FROM to TO ms (empty: the run)
+    nepoTest_expect_state_after   input STATE, WITHIN EACH EVENT  within WITHIN ms after each/the first EVENT of "given"
+    nepoTest_expect_state_while   input COND, DELAY, input STATE  while the condition holds (after DELAY ms)
+    nepoTest_expect_state_for     input STATE, OP MS              for at least / at most / about MS ms in total
+    nepoTest_expect_state_count   input STATE, OP COUNT           the state begins OP COUNT times
+    nepoTest_expect_distance      DISTANCE DIR TOL                the robot drove DISTANCE cm forward/backward (± TOL)
+    nepoTest_expect_turned        DEGREES DIR TOL                 the robot turned DEGREES right/left (± TOL)
+    nepoTest_expect_position      AHEAD AHEAD_DIR SIDE SIDE_DIR TOL   it ended there, relative to its start (± TOL cm)
+    nepoTest_expect_finish_within SECONDS                         the program finished within SECONDS s
   ACTION (value blocks; an empty input or ANY means "any")
     nepoTest_action_led PORT MODE | _drive DIR, POWER DISTANCE | _turn DIR, POWER DEGREES
     _curve DIR, POWER_LEFT POWER_RIGHT DISTANCE | _motor PORT, POWER | _stop | _tone FREQUENCY DURATION
     _sound_file FILE | _ir_send VALUE | _wait MS
+  STATE (value blocks, see states.py; an empty power or frequency means "any")
+    nepoTest_state_motor PORT IS, POWER | _robot MOVE, POWER | _led PORT IS | _sound SOUND, FREQUENCY
+    _variable VAR OP, VALUE | _logic OP, A B | _not STATE
+  CONDITION (value blocks: the world of "given")
+    nepoTest_cond_obstacle PORT | _line COLOR | _light PORT OP VALUE
 
 Values in inputs are NEPO literal blocks: math_number, math_integer, logic_boolean, robLists_create_with of numbers.
 A saved program keeps its test suite as extra <instance>s in its block_set (split_program separates them).
@@ -38,6 +54,7 @@ A saved program keeps its test suite as extra <instance>s in its block_set (spli
 import re
 import xml.etree.ElementTree as ET
 
+from . import states as ST
 from .nepo import NS, Block
 
 PREFIX = 'nepoTest_'
@@ -182,6 +199,143 @@ def _action_matcher(block, problems):
     return m
 
 
+def _state(block, problems, program):
+    """a state value block as a state of states.py, or None"""
+    t = block.type
+    if t == 'nepoTest_state_motor':
+        s = {'motor': block.fields.get('PORT', 'left'), 'is': block.fields.get('IS', 'forward')}
+        power = _literal(block, 'POWER', problems, required=False)
+        if power is not None:
+            if s['is'] == 'stopped':
+                problems.add(block, 'a stopped motor has no power: leave "at ... %" empty')
+            elif isinstance(power, bool) or not isinstance(power, int) or power < 0:
+                problems.add(block, 'the power is a number from 0 to 100')
+            else:
+                s['power'] = power
+        return s
+    if t == 'nepoTest_state_robot':
+        s = {'robot': block.fields.get('MOVE', 'forward')}
+        power = _literal(block, 'POWER', problems, required=False)
+        if power is not None:
+            if s['robot'] not in ST.MOVES_WITH_POWER:
+                problems.add(block, '"at ... %" only works with "drives" and "turns"')
+            elif isinstance(power, bool) or not isinstance(power, int) or power < 0:
+                problems.add(block, 'the power is a number from 0 to 100')
+            else:
+                s['power'] = power
+        return s
+    if t == 'nepoTest_state_led':
+        return {'led': block.fields.get('PORT', 'left'), 'is': block.fields.get('IS', 'on')}
+    if t == 'nepoTest_state_sound':
+        s = {'sound': block.fields.get('SOUND', 'tone')}
+        frequency = _literal(block, 'FREQUENCY', problems, required=False)
+        if frequency is not None:
+            if s['sound'] != 'tone':
+                problems.add(block, 'a frequency only works with "plays a tone"')
+            else:
+                s['frequency_hz'] = {'approx': frequency, 'tol': 1}
+        return s
+    if t == 'nepoTest_state_variable':
+        var = block.fields.get('VAR')
+        if program is not None and var not in [v.name for v in program.variables]:
+            problems.add(block, 'the program has no variable "%s"' % var)
+        return {'variable': var, 'value': _compare(block.fields.get('OP', 'EQ'), _literal(block, 'VALUE', problems), block, problems)}
+    if t == 'nepoTest_state_logic':
+        op = 'all' if block.fields.get('OP', 'AND') == 'AND' else 'any'
+        parts = [_state_input(block, name, problems, program) for name in ('A', 'B')]
+        if any(p is None for p in parts):
+            return None
+        flat = []
+        for p in parts:
+            flat += p[op] if op in p else [p]
+        return {op: flat}
+    if t == 'nepoTest_state_not':
+        inner = _state_input(block, 'STATE', problems, program)
+        return None if inner is None else {'not': inner}
+    problems.add(block, 'this is not a state block')
+    return None
+
+
+def _state_input(block, name, problems, program):
+    inner = block.values.get(name)
+    if inner is None:
+        problems.add(block, 'put a state block into every input of this block')
+        return None
+    return _state(inner, problems, program)
+
+
+def _condition(block, problems):
+    t = block.type
+    if t == 'nepoTest_cond_obstacle':
+        port = block.fields.get('PORT', 'FRONT')
+        return {'obstacle': 'any' if port == ANY else port}
+    if t == 'nepoTest_cond_line':
+        return {'line': block.fields.get('COLOR', 'black')}
+    if t == 'nepoTest_cond_light':
+        return {'light': block.fields.get('PORT', 'LLIGHT'),
+                'value': _compare(block.fields.get('OP', 'GT'), _int_field(block, 'VALUE', problems), block, problems)}
+    problems.add(block, 'this is not a condition block')
+    return None
+
+
+# the events of "expect ... within ... ms after ..."
+AFTER_EVENTS = {
+    'clap': {'event': 'clap'}, 'key': {'event': 'key'}, 'obstacle_start': {'event': 'obstacle', 'edge': 'start'},
+    'obstacle_end': {'event': 'obstacle', 'edge': 'end'}, 'line_black': {'event': 'line', 'color': 'black'},
+    'line_white': {'event': 'line', 'color': 'white'}, 'remote': {'event': 'remote'}, 'ir_message': {'event': 'ir_message'},
+}
+STATE_EXPECTS = ('nepoTest_expect_state_end', 'nepoTest_expect_state_at', 'nepoTest_expect_state_during', 'nepoTest_expect_state_after',
+                 'nepoTest_expect_state_while', 'nepoTest_expect_state_for', 'nepoTest_expect_state_count')
+_FAR = 10 ** 9  # "until the end" when a world condition is checked before the run
+
+
+def _state_expect(b, problems, program, world):
+    """one "expect <state> <timing>" block as an entry of "states", or None"""
+    inner = b.values.get('STATE')
+    if inner is None:
+        problems.add(b, 'put a state block into "expect"')
+        return None
+    state = _state(inner, problems, program)
+    if state is None:
+        return None
+    t = b.type
+    if t == 'nepoTest_expect_state_end':
+        return {'state': state, 'at': 'end'}
+    if t == 'nepoTest_expect_state_at':
+        return {'state': state, 'at': _int_field(b, 'AT', problems)}
+    if t == 'nepoTest_expect_state_during':
+        window = {}
+        for field, key in (('FROM', 'from'), ('TO', 'to')):
+            if (b.fields.get(field) or '').strip():
+                window[key] = _int_field(b, field, problems)
+        if 'from' in window and 'to' in window and window['from'] > window['to']:
+            problems.add(b, '"from" must not be after "to"')
+        quantifier = b.fields.get('QUANT', 'always')
+        return {'state': state, quantifier if quantifier in ST.QUANTIFIERS else 'always': window}
+    if t == 'nepoTest_expect_state_after':
+        event = dict(AFTER_EVENTS.get(b.fields.get('EVENT', 'clap'), AFTER_EVENTS['clap']))
+        if not ST.event_times(event, world):
+            problems.add(b, 'there is no "%s" under "given" of this test' % ST.describe_event(event))
+        return {'state': state, 'within_ms': _int_field(b, 'WITHIN', problems), 'after': event, 'each': b.fields.get('EACH', 'each') == 'each'}
+    if t == 'nepoTest_expect_state_while':
+        cond_block = b.values.get('COND')
+        if cond_block is None:
+            problems.add(b, 'put a condition block into "while"')
+            return None
+        cond = _condition(cond_block, problems)
+        if cond is None:
+            return None
+        if not ST.condition_intervals(cond, world, _FAR):
+            problems.add(b, '"%s" never happens: add it under "given"' % ST.describe_condition(cond))
+        return {'state': state, 'while': cond, 'delay_ms': _int_field(b, 'DELAY', problems)}
+    if t == 'nepoTest_expect_state_for':
+        ms = _int_field(b, 'MS', problems)
+        op = b.fields.get('OP', 'GTE')
+        matcher = {'min': ms} if op == 'GTE' else {'max': ms} if op == 'LTE' else {'approx': ms, 'tol': max(10, ms // 20)}
+        return {'state': state, 'for_ms': matcher}
+    return {'state': state, 'starts': _compare(b.fields.get('OP', 'EQ'), _int_field(b, 'COUNT', problems), b, problems)}
+
+
 def _chain(block, name):
     return [b for b in block.statements.get(name, []) if not b.disabled]
 
@@ -255,10 +409,34 @@ def _translate_test(test_block, program, problems):
         else:
             problems.add(test_block, 'test "%s": "variable is" only works with "call function"' % name)
 
-    actions = []
+    actions, states = [], []
+
+    def once(block, key, value):
+        if key in expect:
+            problems.add(block, 'only one such block per test')
+        expect[key] = value
+
     for b in _chain(test_block, 'THEN'):
         t = b.type
-        if t == 'nepoTest_expect_result':
+        if t in STATE_EXPECTS:
+            entry = _state_expect(b, problems, program, world)
+            if entry is not None:
+                states.append(entry)
+        elif t == 'nepoTest_expect_distance':
+            sign = -1 if b.fields.get('DIR', 'forward') == 'backward' else 1
+            once(b, 'distance_cm', {'approx': sign * _int_field(b, 'DISTANCE', problems), 'tol': _int_field(b, 'TOL', problems)})
+        elif t == 'nepoTest_expect_turned':
+            sign = -1 if b.fields.get('DIR', 'right') == 'right' else 1  # heading: counterclockwise (left) is positive
+            once(b, 'heading_deg', {'approx': sign * _int_field(b, 'DEGREES', problems), 'tol': _int_field(b, 'TOL', problems)})
+        elif t == 'nepoTest_expect_position':
+            ahead = _int_field(b, 'AHEAD', problems) * (-1 if b.fields.get('AHEAD_DIR', 'ahead') == 'behind' else 1)
+            left = _int_field(b, 'SIDE', problems) * (-1 if b.fields.get('SIDE_DIR', 'left') == 'right' else 1)
+            once(b, 'end_position', {'ahead_cm': ahead, 'left_cm': left, 'tol_cm': _int_field(b, 'TOL', problems)})
+        elif t == 'nepoTest_expect_finish_within':
+            if is_call:
+                problems.add(b, '"expect the program to finish within" only works with "run the program"')
+            once(b, 'finished_within_ms', _int_field(b, 'SECONDS', problems, minimum=1) * 1000)
+        elif t == 'nepoTest_expect_result':
             if not is_call:
                 problems.add(b, '"expect the result" only works with "call function"')
             expect['returns'] = _compare(b.fields.get('OP', 'EQ'), _literal(b, 'VALUE', problems), b, problems)
@@ -304,6 +482,8 @@ def _translate_test(test_block, program, problems):
             problems.add(b, 'this block does not belong under "then"')
     if actions:
         expect['actions'] = actions
+    if states:
+        expect['states'] = states
     if not expect:
         problems.add(test_block, 'test "%s": put at least one expectation under "then"' % name)
     test['expect'] = expect

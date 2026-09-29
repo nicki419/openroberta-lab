@@ -16,6 +16,7 @@ from .lab import Bundle, LabClient
 from .nepo import NepoProgram
 from .observer import Observer, nepo_value
 from .sourcemap import SourceMap
+from .states import Timeline, pose_of
 from .world import World
 
 
@@ -82,9 +83,11 @@ class Coverage(object):
 
 
 class Observation(object):
-    """What a call or run did, in NEPO terms."""
+    """What a call or run did, in NEPO terms. timeline: the robot's state over time (states.Timeline; variables only
+    with track_variables=True); pose: where the robot ended, relative to its start (states.pose_of)."""
 
     def __init__(self, subject, observer, error):
+        observer.finish()
         self.subject = subject
         self.robot = observer.robot
         self.error = error
@@ -93,6 +96,8 @@ class Observation(object):
         self.sensor_reads = observer.sensor_reads()
         self.coverage = Coverage(subject, observer.covered_blocks())
         self.time_ms = self.robot.now
+        self.timeline = Timeline.of(self.robot, observer)
+        self.pose = pose_of(self.robot)
 
     def actions_of(self, block_type):
         return [a for a in self.actions if a['block'] == block_type]
@@ -212,15 +217,17 @@ class TestSubject(object):
     def call(self, function, *args, **kwargs):
         """Calls NEPO function `function` with NEPO values, after the program's setup and declarations (its main
         program doesn't run). Options: globals={name: value} (set before the call), world=World(...),
-        max_steps=100000, max_time_ms=60000, robot_options={...} (see engine Robot)."""
+        max_steps=100000, max_time_ms=60000, robot_options={...} (see engine Robot), track_variables=False (record
+        the global variables over time, for variable states)."""
         world = kwargs.pop('world', None) or World()
         globals_ = kwargs.pop('globals', None) or {}
         max_steps = kwargs.pop('max_steps', 100000)
         max_time_ms = kwargs.pop('max_time_ms', 60000)
+        track_variables = kwargs.pop('track_variables', False)
         robot = world.build_robot(**kwargs.pop('robot_options', {}))
         if kwargs:
             raise TypeError('unexpected arguments %r' % sorted(kwargs))
-        observer = Observer(self, robot)
+        observer = Observer(self, robot, track_variables=track_variables)
         session = self.edprogram.load(robot, listeners=[observer])
         for name, value in globals_.items():
             session[name] = value
@@ -233,10 +240,11 @@ class TestSubject(object):
             error = self._nepo_error(e)
         return CallResult(self, observer, returned, dict((k, nepo_value(v)) for k, v in session.vars.items()), error)
 
-    def run(self, world=None, max_time_ms=60000, max_steps=2000000, overflow='raise', robot_options=None):
-        """Runs the whole program against `world`."""
+    def run(self, world=None, max_time_ms=60000, max_steps=2000000, overflow='raise', robot_options=None, track_variables=False):
+        """Runs the whole program against `world`. track_variables: record the global variables over time (for
+        variable states; it costs a little per statement)."""
         robot = (world or World()).build_robot(**(robot_options or {}))
-        observer = Observer(self, robot)
+        observer = Observer(self, robot, track_variables=track_variables)
         observer.main_ran = True
         error, status, variables = None, 'error', {}
         holder = {}

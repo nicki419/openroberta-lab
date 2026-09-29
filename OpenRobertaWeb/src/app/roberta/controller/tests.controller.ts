@@ -545,7 +545,11 @@ function runTests(): void {
             const $details = $('<ul class="nepoTestDetails"></ul>');
             (report.failures || []).forEach(function (f) {
                 if (!(f.expect === 'error' && f.expected === null && report.error)) {
-                    $details.append($('<li></li>').text(describeFailure(f))); // an unexpected runtime error is shown once, below
+                    const $f = $('<li></li>').text(describeFailure(f)); // an unexpected runtime error is shown once, below
+                    if (f.block_id) {
+                        $f.attr('data-block', f.block_id).attr('data-workspace', 'program').addClass('linked'); // the block that caused the state
+                    }
+                    $details.append($f);
                 }
             });
             if (report.error) {
@@ -569,7 +573,9 @@ function runTests(): void {
 function describeFailure(f: any): string {
     const show = (v) => (v === undefined ? '—' : JSON.stringify(v));
     let s = f.expect + ': ' + show(f.expected) + ' ≠ ' + show(f.actual);
-    if (f.message) {
+    if (f.message && f.described) {
+        s = f.message; // it says what was expected and what happened (states, distances)
+    } else if (f.message) {
         s = f.expect + ': ' + f.message + ' (' + show(f.expected) + ')';
     }
     return s.length > 400 ? s.substring(0, 400) + '…' : s;

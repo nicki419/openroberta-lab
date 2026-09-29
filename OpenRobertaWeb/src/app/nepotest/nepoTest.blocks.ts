@@ -97,11 +97,94 @@ const MESSAGES: { [lang: string]: { [key: string]: string } } = {
         NEPOTEST_NUMBER: 'number',
         NEPOTEST_VALUE: 'value',
         NEPOTEST_ACTION_TOOLTIP: 'An action of the robot. Empty inputs and "any" match everything.',
+        NEPOTEST_AT_THE_END: 'at the end',
+        NEPOTEST_WINDOW_FROM: 'from',
+        NEPOTEST_TO: 'to',
+        NEPOTEST_ALWAYS: 'always',
+        NEPOTEST_NEVER: 'never',
+        NEPOTEST_SOMETIME: 'at some point',
+        NEPOTEST_WITHIN: 'within',
+        NEPOTEST_MS_AFTER: 'ms after',
+        NEPOTEST_EACH: 'each',
+        NEPOTEST_THE_FIRST: 'the first',
+        NEPOTEST_EV_CLAP: 'clap',
+        NEPOTEST_EV_KEY: 'key press',
+        NEPOTEST_EV_OBSTACLE_START: 'obstacle appears',
+        NEPOTEST_EV_OBSTACLE_END: 'obstacle disappears',
+        NEPOTEST_EV_LINE_BLACK: 'line tracker sees black',
+        NEPOTEST_EV_LINE_WHITE: 'line tracker sees white',
+        NEPOTEST_EV_REMOTE: 'remote code',
+        NEPOTEST_EV_IR: 'IR message',
+        NEPOTEST_EXPECT_WHILE: 'expect while',
+        NEPOTEST_AFTER: 'after',
+        NEPOTEST_MS_COLON: 'ms:',
+        NEPOTEST_FOR_TOTAL: 'for',
+        NEPOTEST_AT_LEAST: 'at least',
+        NEPOTEST_AT_MOST: 'at most',
+        NEPOTEST_ABOUT: 'about',
+        NEPOTEST_MS_IN_TOTAL: 'ms in total',
+        NEPOTEST_TO_BEGIN: 'to begin',
+        NEPOTEST_DROVE: 'expect the robot to have driven',
+        NEPOTEST_DROVE_END: '',
+        NEPOTEST_TURNED: 'expect the robot to have turned',
+        NEPOTEST_TURNED_END: '',
+        NEPOTEST_TURN_RIGHT: 'right',
+        NEPOTEST_TURN_LEFT: 'left',
+        NEPOTEST_ENDS: 'expect the robot to end',
+        NEPOTEST_AHEAD: 'ahead',
+        NEPOTEST_BEHIND: 'behind',
+        NEPOTEST_AND_POS: 'and',
+        NEPOTEST_TO_THE_LEFT: 'to the left',
+        NEPOTEST_TO_THE_RIGHT: 'to the right',
+        NEPOTEST_OF_ITS_START: 'of its start',
+        NEPOTEST_CM: 'cm',
+        NEPOTEST_FINISH_WITHIN: 'expect the program to finish within',
+        NEPOTEST_FINISH_WITHIN_END: '',
+        NEPOTEST_LEFT_MOTOR: 'left motor',
+        NEPOTEST_RIGHT_MOTOR: 'right motor',
+        NEPOTEST_BOTH_MOTORS: 'both motors',
+        NEPOTEST_RUNNING_ANY: 'running',
+        NEPOTEST_STOPPED: 'stopped',
+        NEPOTEST_AT_POWER: 'at',
+        NEPOTEST_THE_ROBOT: 'the robot',
+        NEPOTEST_DRIVES_FORWARD: 'drives forward',
+        NEPOTEST_DRIVES_BACKWARD: 'drives backward',
+        NEPOTEST_TURNS_LEFT: 'turns left',
+        NEPOTEST_TURNS_RIGHT: 'turns right',
+        NEPOTEST_CURVES_LEFT: 'curves left',
+        NEPOTEST_CURVES_RIGHT: 'curves right',
+        NEPOTEST_STANDS_STILL: 'stands still',
+        NEPOTEST_LEFT_LED: 'left LED',
+        NEPOTEST_RIGHT_LED: 'right LED',
+        NEPOTEST_BOTH_LEDS: 'both LEDs',
+        NEPOTEST_EITHER_LED: 'either LED',
+        NEPOTEST_IS_SILENT: 'is silent',
+        NEPOTEST_PLAYS_SOUND: 'plays a sound',
+        NEPOTEST_PLAYS_TONE: 'plays a tone',
+        NEPOTEST_PLAYS_FILE: 'plays a sound file',
+        NEPOTEST_HZ: 'Hz',
+        NEPOTEST_AND: 'and',
+        NEPOTEST_OR: 'or',
+        NEPOTEST_NOT: 'not',
+        NEPOTEST_STATE_TOOLTIP: 'What the robot is doing at a moment. Put it into an "expect" block that says when.',
+        NEPOTEST_STATE_MOTOR_TOOLTIP: 'A motor. The robot has 10 speed steps: 45 to 54 % all run at 50 %. Empty %: any power.',
+        NEPOTEST_STATE_ROBOT_TOOLTIP: 'The whole robot. Turns: the wheels run in opposite directions. Curves: at different speeds, or one wheel stands.',
+        NEPOTEST_STATE_SOUND_TOOLTIP: 'The sound the robot makes. Empty Hz: any tone.',
+        NEPOTEST_COND_TOOLTIP: 'What happens around the robot, as it is set under "given".',
+        NEPOTEST_EXPECT_STATE_TOOLTIP: 'This state must hold at that moment.',
+        NEPOTEST_EXPECT_DURING_TOOLTIP: 'Empty "from" and "to": the whole run, after the robot started up.',
+        NEPOTEST_EXPECT_AFTER_TOOLTIP: 'A reaction: at some moment within this time after the event (set under "given"), the state must hold.',
+        NEPOTEST_EXPECT_WHILE_TOOLTIP: 'While the condition holds (set under "given"), the state must hold, beginning this many ms later.',
+        NEPOTEST_EXPECT_FOR_TOOLTIP: 'How long the state held, added up over the run. "about": ± 5 %.',
+        NEPOTEST_EXPECT_COUNT_TOOLTIP: 'How often the state began, e.g. how often an LED was switched on.',
+        NEPOTEST_EXPECT_MEASURE_TOOLTIP:
+            'Measured at the end. After "drive ... cm" and "turn ... °" blocks this is exact; after drives stopped by a wait it depends on the assumed speed.',
         TOOLBOX_NEPOTEST_TESTS: 'Tests',
         TOOLBOX_NEPOTEST_GIVEN: 'Given',
         TOOLBOX_NEPOTEST_WHEN: 'When',
         TOOLBOX_NEPOTEST_THEN: 'Expect',
         TOOLBOX_NEPOTEST_ACTIONS: 'Actions',
+        TOOLBOX_NEPOTEST_STATES: 'States',
         TOOLBOX_NEPOTEST_VALUES: 'Values',
     },
     de: {
@@ -178,11 +261,94 @@ const MESSAGES: { [lang: string]: { [key: string]: string } } = {
         NEPOTEST_NUMBER: 'Nummer',
         NEPOTEST_VALUE: 'Wert',
         NEPOTEST_ACTION_TOOLTIP: 'Eine Aktion des Roboters. Leere Eingänge und „beliebig“ passen zu allem.',
+        NEPOTEST_AT_THE_END: 'am Ende',
+        NEPOTEST_WINDOW_FROM: 'von',
+        NEPOTEST_TO: 'bis',
+        NEPOTEST_ALWAYS: 'immer',
+        NEPOTEST_NEVER: 'nie',
+        NEPOTEST_SOMETIME: 'irgendwann',
+        NEPOTEST_WITHIN: 'innerhalb von',
+        NEPOTEST_MS_AFTER: 'ms nach',
+        NEPOTEST_EACH: 'jedem',
+        NEPOTEST_THE_FIRST: 'dem ersten',
+        NEPOTEST_EV_CLAP: 'Klatschen',
+        NEPOTEST_EV_KEY: 'Tastendruck',
+        NEPOTEST_EV_OBSTACLE_START: 'Auftauchen eines Hindernisses',
+        NEPOTEST_EV_OBSTACLE_END: 'Verschwinden eines Hindernisses',
+        NEPOTEST_EV_LINE_BLACK: 'Wechsel auf Schwarz (Linienfolger)',
+        NEPOTEST_EV_LINE_WHITE: 'Wechsel auf Weiß (Linienfolger)',
+        NEPOTEST_EV_REMOTE: 'Fernbedienungscode',
+        NEPOTEST_EV_IR: 'Empfang einer IR-Nachricht',
+        NEPOTEST_EXPECT_WHILE: 'erwarte, solange',
+        NEPOTEST_AFTER: 'nach',
+        NEPOTEST_MS_COLON: 'ms:',
+        NEPOTEST_FOR_TOTAL: 'insgesamt',
+        NEPOTEST_AT_LEAST: 'mindestens',
+        NEPOTEST_AT_MOST: 'höchstens',
+        NEPOTEST_ABOUT: 'etwa',
+        NEPOTEST_MS_IN_TOTAL: 'ms lang',
+        NEPOTEST_TO_BEGIN: 'beginnt',
+        NEPOTEST_DROVE: 'erwarte, dass der Roboter',
+        NEPOTEST_DROVE_END: 'gefahren ist',
+        NEPOTEST_TURNED: 'erwarte, dass der Roboter sich',
+        NEPOTEST_TURNED_END: 'gedreht hat',
+        NEPOTEST_TURN_RIGHT: 'nach rechts',
+        NEPOTEST_TURN_LEFT: 'nach links',
+        NEPOTEST_ENDS: 'erwarte, dass der Roboter',
+        NEPOTEST_AHEAD: 'vor',
+        NEPOTEST_BEHIND: 'hinter',
+        NEPOTEST_AND_POS: 'und',
+        NEPOTEST_TO_THE_LEFT: 'links',
+        NEPOTEST_TO_THE_RIGHT: 'rechts',
+        NEPOTEST_OF_ITS_START: 'von seinem Start endet',
+        NEPOTEST_CM: 'cm',
+        NEPOTEST_FINISH_WITHIN: 'erwarte, dass das Programm innerhalb von',
+        NEPOTEST_FINISH_WITHIN_END: 'endet',
+        NEPOTEST_LEFT_MOTOR: 'linker Motor',
+        NEPOTEST_RIGHT_MOTOR: 'rechter Motor',
+        NEPOTEST_BOTH_MOTORS: 'beide Motoren',
+        NEPOTEST_RUNNING_ANY: 'läuft',
+        NEPOTEST_STOPPED: 'steht',
+        NEPOTEST_AT_POWER: 'mit',
+        NEPOTEST_THE_ROBOT: 'der Roboter',
+        NEPOTEST_DRIVES_FORWARD: 'fährt vorwärts',
+        NEPOTEST_DRIVES_BACKWARD: 'fährt rückwärts',
+        NEPOTEST_TURNS_LEFT: 'dreht sich nach links',
+        NEPOTEST_TURNS_RIGHT: 'dreht sich nach rechts',
+        NEPOTEST_CURVES_LEFT: 'fährt eine Linkskurve',
+        NEPOTEST_CURVES_RIGHT: 'fährt eine Rechtskurve',
+        NEPOTEST_STANDS_STILL: 'steht still',
+        NEPOTEST_LEFT_LED: 'linke LED',
+        NEPOTEST_RIGHT_LED: 'rechte LED',
+        NEPOTEST_BOTH_LEDS: 'beide LEDs',
+        NEPOTEST_EITHER_LED: 'eine der LEDs',
+        NEPOTEST_IS_SILENT: 'ist still',
+        NEPOTEST_PLAYS_SOUND: 'spielt einen Klang',
+        NEPOTEST_PLAYS_TONE: 'spielt einen Ton',
+        NEPOTEST_PLAYS_FILE: 'spielt eine Klangdatei',
+        NEPOTEST_HZ: 'Hz',
+        NEPOTEST_AND: 'und',
+        NEPOTEST_OR: 'oder',
+        NEPOTEST_NOT: 'nicht',
+        NEPOTEST_STATE_TOOLTIP: 'Was der Roboter in einem Moment tut. Lege es in einen „erwarte“-Block, der sagt, wann.',
+        NEPOTEST_STATE_MOTOR_TOOLTIP: 'Ein Motor. Der Roboter hat 10 Geschwindigkeitsstufen: 45 bis 54 % laufen alle mit 50 %. Leeres %: beliebige Leistung.',
+        NEPOTEST_STATE_ROBOT_TOOLTIP: 'Der ganze Roboter. Drehen: die Räder laufen gegeneinander. Kurve: verschieden schnell, oder ein Rad steht.',
+        NEPOTEST_STATE_SOUND_TOOLTIP: 'Der Klang des Roboters. Leeres Hz: beliebiger Ton.',
+        NEPOTEST_COND_TOOLTIP: 'Was um den Roboter passiert, so wie es unter „gegeben“ steht.',
+        NEPOTEST_EXPECT_STATE_TOOLTIP: 'Dieser Zustand muss in diesem Moment gelten.',
+        NEPOTEST_EXPECT_DURING_TOOLTIP: 'Leeres „von“ und „bis“: der ganze Lauf, nachdem der Roboter gestartet ist.',
+        NEPOTEST_EXPECT_AFTER_TOOLTIP: 'Eine Reaktion: irgendwann innerhalb dieser Zeit nach dem Ereignis (unter „gegeben“) muss der Zustand gelten.',
+        NEPOTEST_EXPECT_WHILE_TOOLTIP: 'Solange die Bedingung gilt (unter „gegeben“), muss der Zustand gelten, beginnend so viele ms später.',
+        NEPOTEST_EXPECT_FOR_TOOLTIP: 'Wie lange der Zustand galt, über den ganzen Lauf zusammengezählt. „etwa“: ± 5 %.',
+        NEPOTEST_EXPECT_COUNT_TOOLTIP: 'Wie oft der Zustand begann, z. B. wie oft eine LED eingeschaltet wurde.',
+        NEPOTEST_EXPECT_MEASURE_TOOLTIP:
+            'Am Ende gemessen. Nach „fahre … cm“ und „drehe … °“ genau; nach Fahrten, die ein Warten beendet, hängt es von der angenommenen Geschwindigkeit ab.',
         TOOLBOX_NEPOTEST_TESTS: 'Tests',
         TOOLBOX_NEPOTEST_GIVEN: 'Gegeben',
         TOOLBOX_NEPOTEST_WHEN: 'Wenn',
         TOOLBOX_NEPOTEST_THEN: 'Erwarte',
         TOOLBOX_NEPOTEST_ACTIONS: 'Aktionen',
+        TOOLBOX_NEPOTEST_STATES: 'Zustände',
         TOOLBOX_NEPOTEST_VALUES: 'Werte',
     },
 };
@@ -192,12 +358,17 @@ export function setLanguage(lang: string): void {
     const en = MESSAGES.en;
     const other = MESSAGES[lang] || {};
     for (const key of Object.keys(en)) {
-        Blockly.Msg[key] = other[key] || en[key];
+        Blockly.Msg[key] = other[key] !== undefined ? other[key] : en[key];
     }
 }
 
+/** a message; some are empty on purpose (a German sentence end that English doesn't need), and appendField('') adds nothing */
 function msg(key: string): string {
-    return Blockly.Msg[key] || MESSAGES.en[key] || key;
+    const m = Blockly.Msg[key];
+    if (m !== undefined && m !== null) {
+        return m;
+    }
+    return MESSAGES.en[key] !== undefined ? MESSAGES.en[key] : key;
 }
 
 const GIVEN = 'nepoTestGiven';
@@ -205,9 +376,19 @@ const WHEN = 'nepoTestWhen';
 const THEN = 'nepoTestThen';
 const RUN = 'nepoTestRun';
 const ACTION = 'nepoTestAction';
+const STATE = 'nepoTestState';
+const CONDITION = 'nepoTestCondition';
 
 function number(value: string | number): any {
     return new Blockly.FieldTextInput(String(value), Blockly.FieldTextInput.nonnegativeIntegerValidator);
+}
+
+/** a whole number field that may be empty (empty: "not set") */
+function optionalNumber(value: string | number): any {
+    return new Blockly.FieldTextInput(String(value), function (text: string) {
+        text = String(text).trim();
+        return text === '' ? '' : Blockly.FieldTextInput.nonnegativeIntegerValidator(text);
+    });
 }
 
 function dropdown(options: string[][]): any {
@@ -311,6 +492,61 @@ function then(block: any): void {
     block.setColour(Blockly.CAT_LOGIC_RGB);
     block.setPreviousStatement(true, THEN);
     block.setNextStatement(true, THEN);
+}
+
+/** a state block: a value of type STATE, for the "expect <state> ..." blocks */
+function stateBlock(block: any, tooltip = 'NEPOTEST_STATE_TOOLTIP'): void {
+    block.setColour(Blockly.CAT_VARIABLE_RGB);
+    block.setOutput(true, STATE);
+    block.setTooltip(msg(tooltip));
+    block.setInputsInline(true);
+}
+
+/**
+ * shows an optional value input (and its unit, the dummy input UNIT) only where it applies: no power for "stands still", no Hz for "is
+ * silent". An input with a block in it stays visible, so nothing is hidden that the translator would complain about. Called from init and
+ * from onchange (dropdown changes, blocks loaded from XML); toolbox presets in the flyout keep the shape of the block's defaults.
+ */
+function showOptional(block: any, name: string, applies: boolean): void {
+    const input = block.getInput(name);
+    if (!input) {
+        return;
+    }
+    const show = applies || !!(input.connection && input.connection.targetBlock());
+    if (input.isVisible() !== show) {
+        input.setVisible(show);
+        const unit = block.getInput('UNIT');
+        unit && unit.setVisible(show);
+        if (block.rendered) {
+            block.render();
+        }
+    }
+}
+
+const POWER_MOVES = ['forward', 'backward', 'turn_left', 'turn_right'];
+
+/** a condition block: the world of "given", for "expect while" */
+function conditionBlock(block: any): void {
+    block.setColour(Blockly.CAT_SENSOR_RGB);
+    block.setOutput(true, CONDITION);
+    block.setTooltip(msg('NEPOTEST_COND_TOOLTIP'));
+}
+
+/** "expect <state>" plus the timing fields `rest` adds to the dummy input after it */
+function stateExpect(block: any, tooltip: string, rest?: (input: any) => void): void {
+    then(block);
+    block.setTooltip(msg(tooltip));
+    block.appendValueInput('STATE').setCheck(STATE).appendField(msg('NEPOTEST_EXPECT'));
+    const input = block.appendDummyInput();
+    if (rest) {
+        rest(input);
+    }
+    block.setInputsInline(true);
+}
+
+function measureBlock(block: any): void {
+    then(block);
+    block.setTooltip(msg('NEPOTEST_EXPECT_MEASURE_TOOLTIP'));
 }
 
 const DEFINITIONS: { [type: string]: any } = {
@@ -724,6 +960,368 @@ const DEFINITIONS: { [type: string]: any } = {
             optionalInputs(this, [['MS', 'NEPOTEST_MS']]);
         },
     },
+
+    // ---------------------------------------------------------------- "expect <state> <timing>" (under "then")
+    nepoTest_expect_state_end: {
+        init: function () {
+            stateExpect(this, 'NEPOTEST_EXPECT_STATE_TOOLTIP', (input) => input.appendField(msg('NEPOTEST_AT_THE_END')));
+        },
+    },
+    nepoTest_expect_state_at: {
+        init: function () {
+            stateExpect(this, 'NEPOTEST_EXPECT_STATE_TOOLTIP', (input) =>
+                input.appendField(msg('NEPOTEST_AT')).appendField(number(2000), 'AT').appendField(msg('NEPOTEST_MS'))
+            );
+        },
+    },
+    nepoTest_expect_state_during: {
+        init: function () {
+            stateExpect(this, 'NEPOTEST_EXPECT_DURING_TOOLTIP', (input) =>
+                input
+                    .appendField(
+                        dropdown([
+                            ['NEPOTEST_ALWAYS', 'always'],
+                            ['NEPOTEST_NEVER', 'never'],
+                            ['NEPOTEST_SOMETIME', 'sometime'],
+                        ]),
+                        'QUANT'
+                    )
+                    .appendField(msg('NEPOTEST_WINDOW_FROM'))
+                    .appendField(optionalNumber(''), 'FROM')
+                    .appendField(msg('NEPOTEST_TO'))
+                    .appendField(optionalNumber(''), 'TO')
+                    .appendField(msg('NEPOTEST_MS'))
+            );
+        },
+    },
+    nepoTest_expect_state_after: {
+        init: function () {
+            stateExpect(this, 'NEPOTEST_EXPECT_AFTER_TOOLTIP', (input) =>
+                input
+                    .appendField(msg('NEPOTEST_WITHIN'))
+                    .appendField(number(200), 'WITHIN')
+                    .appendField(msg('NEPOTEST_MS_AFTER'))
+                    .appendField(
+                        dropdown([
+                            ['NEPOTEST_EACH', 'each'],
+                            ['NEPOTEST_THE_FIRST', 'first'],
+                        ]),
+                        'EACH'
+                    )
+                    .appendField(
+                        dropdown([
+                            ['NEPOTEST_EV_CLAP', 'clap'],
+                            ['NEPOTEST_EV_KEY', 'key'],
+                            ['NEPOTEST_EV_OBSTACLE_START', 'obstacle_start'],
+                            ['NEPOTEST_EV_OBSTACLE_END', 'obstacle_end'],
+                            ['NEPOTEST_EV_LINE_BLACK', 'line_black'],
+                            ['NEPOTEST_EV_LINE_WHITE', 'line_white'],
+                            ['NEPOTEST_EV_REMOTE', 'remote'],
+                            ['NEPOTEST_EV_IR', 'ir_message'],
+                        ]),
+                        'EVENT'
+                    )
+            );
+        },
+    },
+    nepoTest_expect_state_while: {
+        init: function () {
+            then(this);
+            this.setTooltip(msg('NEPOTEST_EXPECT_WHILE_TOOLTIP'));
+            this.appendValueInput('COND').setCheck(CONDITION).appendField(msg('NEPOTEST_EXPECT_WHILE'));
+            this.appendValueInput('STATE')
+                .setCheck(STATE)
+                .appendField(msg('NEPOTEST_AFTER'))
+                .appendField(number(100), 'DELAY')
+                .appendField(msg('NEPOTEST_MS_COLON'));
+            this.setInputsInline(true);
+        },
+    },
+    nepoTest_expect_state_for: {
+        init: function () {
+            stateExpect(this, 'NEPOTEST_EXPECT_FOR_TOOLTIP', (input) =>
+                input
+                    .appendField(msg('NEPOTEST_FOR_TOTAL'))
+                    .appendField(
+                        dropdown([
+                            ['NEPOTEST_AT_LEAST', 'GTE'],
+                            ['NEPOTEST_AT_MOST', 'LTE'],
+                            ['NEPOTEST_ABOUT', 'ABOUT'],
+                        ]),
+                        'OP'
+                    )
+                    .appendField(number(1000), 'MS')
+                    .appendField(msg('NEPOTEST_MS_IN_TOTAL'))
+            );
+        },
+    },
+    nepoTest_expect_state_count: {
+        init: function () {
+            stateExpect(this, 'NEPOTEST_EXPECT_COUNT_TOOLTIP', (input) =>
+                input.appendField(msg('NEPOTEST_TO_BEGIN')).appendField(comparison(), 'OP').appendField(number(1), 'COUNT').appendField(msg('NEPOTEST_TIMES'))
+            );
+        },
+    },
+    nepoTest_expect_distance: {
+        init: function () {
+            measureBlock(this);
+            this.appendDummyInput()
+                .appendField(msg('NEPOTEST_DROVE'))
+                .appendField(number(20), 'DISTANCE')
+                .appendField(msg('NEPOTEST_CM'))
+                .appendField(
+                    dropdown([
+                        ['NEPOTEST_FORWARD', 'forward'],
+                        ['NEPOTEST_BACKWARD', 'backward'],
+                    ]),
+                    'DIR'
+                )
+                .appendField(msg('NEPOTEST_DROVE_END'))
+                .appendField('±')
+                .appendField(number(1), 'TOL')
+                .appendField(msg('NEPOTEST_CM'));
+        },
+    },
+    nepoTest_expect_turned: {
+        init: function () {
+            measureBlock(this);
+            this.appendDummyInput()
+                .appendField(msg('NEPOTEST_TURNED'))
+                .appendField(number(90), 'DEGREES')
+                .appendField('°')
+                .appendField(
+                    dropdown([
+                        ['NEPOTEST_TURN_RIGHT', 'right'],
+                        ['NEPOTEST_TURN_LEFT', 'left'],
+                    ]),
+                    'DIR'
+                )
+                .appendField(msg('NEPOTEST_TURNED_END'))
+                .appendField('±')
+                .appendField(number(5), 'TOL')
+                .appendField('°');
+        },
+    },
+    nepoTest_expect_position: {
+        init: function () {
+            measureBlock(this);
+            this.appendDummyInput()
+                .appendField(msg('NEPOTEST_ENDS'))
+                .appendField(number(0), 'AHEAD')
+                .appendField(msg('NEPOTEST_CM'))
+                .appendField(
+                    dropdown([
+                        ['NEPOTEST_AHEAD', 'ahead'],
+                        ['NEPOTEST_BEHIND', 'behind'],
+                    ]),
+                    'AHEAD_DIR'
+                )
+                .appendField(msg('NEPOTEST_AND_POS'))
+                .appendField(number(0), 'SIDE')
+                .appendField(msg('NEPOTEST_CM'))
+                .appendField(
+                    dropdown([
+                        ['NEPOTEST_TO_THE_LEFT', 'left'],
+                        ['NEPOTEST_TO_THE_RIGHT', 'right'],
+                    ]),
+                    'SIDE_DIR'
+                )
+                .appendField(msg('NEPOTEST_OF_ITS_START'))
+                .appendField('±')
+                .appendField(number(2), 'TOL')
+                .appendField(msg('NEPOTEST_CM'));
+        },
+    },
+    nepoTest_expect_finish_within: {
+        init: function () {
+            then(this);
+            this.appendDummyInput()
+                .appendField(msg('NEPOTEST_FINISH_WITHIN'))
+                .appendField(number(5), 'SECONDS')
+                .appendField(msg('NEPOTEST_SECONDS'))
+                .appendField(msg('NEPOTEST_FINISH_WITHIN_END'));
+        },
+    },
+
+    // ---------------------------------------------------------------- states (values for "expect <state> ...")
+    nepoTest_state_motor: {
+        init: function () {
+            stateBlock(this, 'NEPOTEST_STATE_MOTOR_TOOLTIP');
+            this.appendDummyInput()
+                .appendField(
+                    dropdown([
+                        ['NEPOTEST_LEFT_MOTOR', 'left'],
+                        ['NEPOTEST_RIGHT_MOTOR', 'right'],
+                        ['NEPOTEST_BOTH_MOTORS', 'both'],
+                    ]),
+                    'PORT'
+                )
+                .appendField(
+                    dropdown([
+                        ['NEPOTEST_FORWARD', 'forward'],
+                        ['NEPOTEST_BACKWARD', 'backward'],
+                        ['NEPOTEST_RUNNING_ANY', 'running'],
+                        ['NEPOTEST_STOPPED', 'stopped'],
+                    ]),
+                    'IS'
+                );
+            this.appendValueInput('POWER').setCheck('Number').appendField(msg('NEPOTEST_AT_POWER'));
+            this.appendDummyInput('UNIT').appendField('%');
+            this.onchange();
+        },
+        onchange: function () {
+            showOptional(this, 'POWER', this.getFieldValue('IS') !== 'stopped');
+        },
+    },
+    nepoTest_state_robot: {
+        init: function () {
+            stateBlock(this, 'NEPOTEST_STATE_ROBOT_TOOLTIP');
+            this.appendDummyInput()
+                .appendField(msg('NEPOTEST_THE_ROBOT'))
+                .appendField(
+                    dropdown([
+                        ['NEPOTEST_DRIVES_FORWARD', 'forward'],
+                        ['NEPOTEST_DRIVES_BACKWARD', 'backward'],
+                        ['NEPOTEST_TURNS_LEFT', 'turn_left'],
+                        ['NEPOTEST_TURNS_RIGHT', 'turn_right'],
+                        ['NEPOTEST_CURVES_LEFT', 'curve_left'],
+                        ['NEPOTEST_CURVES_RIGHT', 'curve_right'],
+                        ['NEPOTEST_STANDS_STILL', 'still'],
+                    ]),
+                    'MOVE'
+                );
+            this.appendValueInput('POWER').setCheck('Number').appendField(msg('NEPOTEST_AT_POWER'));
+            this.appendDummyInput('UNIT').appendField('%');
+            this.onchange();
+        },
+        onchange: function () {
+            showOptional(this, 'POWER', POWER_MOVES.indexOf(this.getFieldValue('MOVE')) >= 0);
+        },
+    },
+    nepoTest_state_led: {
+        init: function () {
+            stateBlock(this);
+            this.appendDummyInput()
+                .appendField(
+                    dropdown([
+                        ['NEPOTEST_LEFT_LED', 'left'],
+                        ['NEPOTEST_RIGHT_LED', 'right'],
+                        ['NEPOTEST_BOTH_LEDS', 'both'],
+                        ['NEPOTEST_EITHER_LED', 'either'],
+                    ]),
+                    'PORT'
+                )
+                .appendField(
+                    dropdown([
+                        ['NEPOTEST_ON', 'on'],
+                        ['NEPOTEST_OFF', 'off'],
+                    ]),
+                    'IS'
+                );
+        },
+    },
+    nepoTest_state_sound: {
+        init: function () {
+            stateBlock(this, 'NEPOTEST_STATE_SOUND_TOOLTIP');
+            this.appendDummyInput()
+                .appendField(msg('NEPOTEST_THE_ROBOT'))
+                .appendField(
+                    dropdown([
+                        ['NEPOTEST_PLAYS_TONE', 'tone'],
+                        ['NEPOTEST_PLAYS_SOUND', 'any'],
+                        ['NEPOTEST_PLAYS_FILE', 'file'],
+                        ['NEPOTEST_IS_SILENT', 'silent'],
+                    ]),
+                    'SOUND'
+                );
+            this.appendValueInput('FREQUENCY').setCheck('Number');
+            this.appendDummyInput('UNIT').appendField(msg('NEPOTEST_HZ'));
+            this.onchange();
+        },
+        onchange: function () {
+            showOptional(this, 'FREQUENCY', this.getFieldValue('SOUND') === 'tone');
+        },
+    },
+    nepoTest_state_variable: {
+        init: function () {
+            stateBlock(this);
+            this.appendValueInput('VALUE')
+                .appendField(msg('NEPOTEST_VARIABLE'))
+                .appendField(new Blockly.FieldDropdown(variableNames), 'VAR')
+                .appendField(comparison(), 'OP');
+        },
+    },
+    nepoTest_state_logic: {
+        init: function () {
+            stateBlock(this);
+            this.appendValueInput('A').setCheck(STATE);
+            this.appendValueInput('B')
+                .setCheck(STATE)
+                .appendField(
+                    dropdown([
+                        ['NEPOTEST_AND', 'AND'],
+                        ['NEPOTEST_OR', 'OR'],
+                    ]),
+                    'OP'
+                );
+        },
+    },
+    nepoTest_state_not: {
+        init: function () {
+            stateBlock(this);
+            this.appendValueInput('STATE').setCheck(STATE).appendField(msg('NEPOTEST_NOT'));
+        },
+    },
+
+    // ---------------------------------------------------------------- conditions (the world, for "expect while")
+    nepoTest_cond_obstacle: {
+        init: function () {
+            conditionBlock(this);
+            this.appendDummyInput()
+                .appendField(msg('NEPOTEST_OBSTACLE'))
+                .appendField(
+                    dropdown([
+                        ['FRONT', 'FRONT'],
+                        ['LEFT', 'LEFT'],
+                        ['RIGHT', 'RIGHT'],
+                        ['NEPOTEST_ANY', 'ANY'],
+                    ]),
+                    'PORT'
+                );
+        },
+    },
+    nepoTest_cond_line: {
+        init: function () {
+            conditionBlock(this);
+            this.appendDummyInput()
+                .appendField(msg('NEPOTEST_LINE'))
+                .appendField(
+                    dropdown([
+                        ['NEPOTEST_BLACK', 'black'],
+                        ['NEPOTEST_WHITE', 'white'],
+                    ]),
+                    'COLOR'
+                );
+        },
+    },
+    nepoTest_cond_light: {
+        init: function () {
+            conditionBlock(this);
+            this.appendDummyInput()
+                .appendField(msg('NEPOTEST_LIGHT'))
+                .appendField(
+                    new Blockly.FieldDropdown([
+                        ['LLIGHT', 'LLIGHT'],
+                        ['RLIGHT', 'RLIGHT'],
+                        ['LINETRACKER', 'LINETRACKER'],
+                    ]),
+                    'PORT'
+                )
+                .appendField(comparison(), 'OP')
+                .appendField(number(50), 'VALUE')
+                .appendField('%');
+        },
+    },
 };
 
 function paramsOf(functionName: string): { name: string; type: string }[] {
@@ -737,6 +1335,7 @@ const CATEGORIES: { [name: string]: [string, string] } = {
     NEPOTEST_WHEN: ['CAT_CONTROL_RGB', 'media-play-outline'],
     NEPOTEST_THEN: ['CAT_LOGIC_RGB', 'input-checked'],
     NEPOTEST_ACTIONS: ['CAT_ACTION_RGB', 'action'],
+    NEPOTEST_STATES: ['CAT_VARIABLE_RGB', 'variable'],
     NEPOTEST_VALUES: ['CAT_MATH_RGB', 'math'],
 };
 
@@ -760,6 +1359,11 @@ function num(value: number): string {
 export function toolbox(): string {
     const cat = (name: string, blocks: string) => '<category name="TOOLBOX_' + name + '" svg="true">' + blocks + '</category>';
     const b = (type: string, inner = '') => '<block type="' + type + '">' + inner + '</block>';
+    const f = (name: string, value: string) => '<field name="' + name + '">' + value + '</field>';
+    const v = (name: string, inner: string) => '<value name="' + name + '">' + inner + '</value>';
+    const motor = b('nepoTest_state_motor', f('PORT', 'left') + f('IS', 'forward') + v('POWER', num(50)));
+    const still = b('nepoTest_state_robot', f('MOVE', 'still'));
+    const ledOn = b('nepoTest_state_led', f('PORT', 'left') + f('IS', 'on'));
     return (
         '<toolbox_set id="nepoTestToolbox" style="display: none">' +
         cat(
@@ -788,7 +1392,18 @@ export function toolbox(): string {
                 b('nepoTest_expect_no_action', '<value name="ACTION">' + b('nepoTest_action_drive') + '</value>') +
                 b('nepoTest_expect_count', '<value name="ACTION">' + b('nepoTest_action_led') + '</value>') +
                 b('nepoTest_expect_called') +
-                b('nepoTest_expect_error')
+                b('nepoTest_expect_error') +
+                b('nepoTest_expect_state_end', v('STATE', motor)) +
+                b('nepoTest_expect_state_at', v('STATE', still)) +
+                b('nepoTest_expect_state_during', v('STATE', ledOn)) +
+                b('nepoTest_expect_state_after', f('EVENT', 'obstacle_start') + v('STATE', still)) +
+                b('nepoTest_expect_state_while', v('COND', b('nepoTest_cond_obstacle', f('PORT', 'FRONT'))) + v('STATE', still)) +
+                b('nepoTest_expect_state_for', v('STATE', ledOn)) +
+                b('nepoTest_expect_state_count', v('STATE', ledOn)) +
+                b('nepoTest_expect_distance') +
+                b('nepoTest_expect_turned') +
+                b('nepoTest_expect_position') +
+                b('nepoTest_expect_finish_within')
         ) +
         cat(
             'NEPOTEST_ACTIONS',
@@ -802,6 +1417,19 @@ export function toolbox(): string {
                 b('nepoTest_action_sound_file') +
                 b('nepoTest_action_ir_send') +
                 b('nepoTest_action_wait')
+        ) +
+        cat(
+            'NEPOTEST_STATES',
+            motor +
+                b('nepoTest_state_robot', f('MOVE', 'forward')) +
+                ledOn +
+                b('nepoTest_state_sound', f('SOUND', 'tone')) +
+                b('nepoTest_state_variable', v('VALUE', num(0))) +
+                b('nepoTest_state_logic') +
+                b('nepoTest_state_not') +
+                b('nepoTest_cond_obstacle', f('PORT', 'FRONT')) +
+                b('nepoTest_cond_line') +
+                b('nepoTest_cond_light', f('OP', 'GT'))
         ) +
         cat('NEPOTEST_VALUES', num(0) + b('logic_boolean') + b('robLists_create_with', '<mutation items="3"></mutation>')) +
         '</toolbox_set>'

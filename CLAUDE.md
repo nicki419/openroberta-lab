@@ -72,6 +72,10 @@ programs, which implements the project goal. It covers:
   the unchanged EdPy plus a **source map** (block id → EdPy ranges);
 - **tests in NEPO terms**, as JSON files (made for test editors and AI generators; schema in `NepoTest/schema/`) or
   in Python: NEPO functions, variables, world events on NEPO ports, and the executed action blocks with NEPO values;
+- **robot states over time:** what the motors (in the robot's 10 % speed steps), LEDs, sound and variables do, and
+  when (at the end, at a time, always / never / at some point, within … ms after a world event, while a world condition
+  holds); and where the robot ended (distance, turn, position). Implemented in `NepoTest/nepotest/states.py` on the
+  engine's state log;
 - **results per block:** failures, runtime errors attributed to blocks, and block coverage;
 - `describe()`: a program summary with test hints, as input for AI test generation.
 
@@ -158,12 +162,15 @@ python -m unittest discover -s tests -t .              # framework + engine test
 python -m unittest discover -s examples -t .           # the example's Python tests
 python -m nepotest run examples/clap_counter.tests.json
 python -m nepotest run examples/clap_counter_with_tests.xml   # a program with a suite from the Tests tab
+python -m nepotest run examples/patrol.tests.json      # state tests (patrol_with_tests.xml: the same as test blocks)
 ```
 
-These passed on 2026-09-25: 76 + 8 tests, including the live-Lab tests and the reference-compiler check. Each suite has
-one deliberate expected failure, which shows generator quirk #14; the example test file reports it as its one failure.
+These passed on 2026-09-29: 101 + 8 tests, including the live-Lab tests, the reference-compiler check and the schema
+check. Each suite has one deliberate expected failure, which shows generator quirk #14. Each example test file reports
+one deliberate failure: quirk #14 (clap counter), and a square driven while the obstacle is still there (patrol).
 The live-Lab tests skip if no Lab answers at `$NEPOTEST_LAB` (default `http://localhost:1999`). The Level-0 check skips
-unless `EDPY_HOME`/`EDPY_PYTHON` point to the reference compiler. The same tests run with pytest. After generator
+unless `EDPY_HOME`/`EDPY_PYTHON` point to the reference compiler, and the schema check unless `jsonschema` is
+installed. The tests also ran with pytest on 2026-09-25. After generator
 changes, rebuild and restart the Lab, run `EdisonSourceMapTest` and `tests/test_lab_live.py`, and re-create the
 bundles (`python -m nepotest convert <xml> -o <bundle>`).
 

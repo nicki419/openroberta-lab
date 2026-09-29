@@ -102,6 +102,9 @@ def _report(results, args):
     for t in results['tests']:
         print('%-7s %s' % (t['outcome'].upper(), t['name']))
         for f in t['failures']:
+            if f.get('described'):  # the message says what was expected and what happened
+                print('        %s: %s' % (f['expect'], f['message']))
+                continue
             print('        %s: expected %s, got %s%s' % (f['expect'], json.dumps(f['expected']), json.dumps(f['actual'])[:300],
                                                        ' (%s)' % f['message'] if f['message'] else ''))
         if t['outcome'] == 'error':

@@ -158,6 +158,111 @@ class FormatAdditionsTest(unittest.TestCase):
                          {'not': 'passed', 'not fails': 'failed', 'any error': 'passed', 'count': 'passed', 'count range': 'failed'})
 
 
+PATROL_WITH_TESTS = os.path.join(EXAMPLES, 'patrol_with_tests.xml')
+PATROL_BUNDLE = os.path.join(EXAMPLES, 'patrol.bundle.json')
+
+
+def b(type_, fields='', values='', block_id=None):
+    """block XML: fields {'NAME': 'value'} or a string, values {'NAME': '<block .../>'}"""
+    f = ''.join('<field name="%s">%s</field>' % kv for kv in fields.items()) if isinstance(fields, dict) else fields
+    v = ''.join('<value name="%s">%s</value>' % kv for kv in (values or {}).items())
+    return '<block type="%s" id="%s">%s%s</block>' % (type_, block_id or type_[len('nepoTest_'):], f, v)
+
+
+RUN_10 = '<statement name="WHEN">%s</statement>' % b('nepoTest_when_run', {'SECONDS': '10'})
+
+
+def then(*blocks):
+    return '<statement name="THEN">%s</statement>' % ''.join(blocks)
+
+
+class StateBlocksTest(unittest.TestCase):
+    """the state expectations of the Tests tab: "expect <state> <timing>", measurements, state and condition blocks"""
+
+    def problems(self, xml):
+        return [(p['block_id'], p['message']) for p in translate(xml)[1]]
+
+    def test_the_example_suite_runs_like_the_json_example(self):
+        program, tests = split_program(read(PATROL_WITH_TESTS))
+        spec, problems = translate(tests, NepoProgram(program))
+        self.assertEqual(problems, [])
+        subject = TestSubject.from_bundle(PATROL_BUNDLE)
+        self.assertEqual(validate_spec(spec, subject), [])
+        results = run_spec(spec, subject)
+        self.assertEqual(results['summary'], {'passed': 6, 'failed': 1, 'error': 0})
+        by_name = dict((t['name'], t) for t in spec['tests'])
+        first = by_name['drives forward until the obstacle, then stops within 100 ms']['expect']['states']
+        self.assertEqual(first, [
+            {'state': {'robot': 'forward', 'power': 50}, 'at': 1500},
+            {'state': {'robot': 'still'}, 'within_ms': 100, 'after': {'event': 'obstacle', 'edge': 'start'}, 'each': True},
+            {'state': {'led': 'left', 'is': 'on'}, 'always': {'from': 300, 'to': 2000}},
+            {'state': {'led': 'left', 'is': 'off'}, 'at': 'end'}])
+        square = by_name['the square ends where it started']['expect']
+        self.assertEqual((square['end_position'], square['heading_deg'], square['distance_cm']),
+                         ({'ahead_cm': 0, 'left_cm': 0, 'tol_cm': 1}, {'approx': -360, 'tol': 5}, {'approx': 80, 'tol': 1}))
+        self.assertEqual(square['states'][2], {'state': {'any': [{'robot': 'curve_left'}, {'robot': 'curve_right'}]}, 'never': {}})
+        beep = by_name['beeps once, at 440 Hz, for 200 ms']['expect']['states']
+        self.assertEqual(beep[0], {'state': {'sound': 'tone', 'frequency_hz': {'approx': 440, 'tol': 1}}, 'starts': 1})
+        self.assertEqual(beep[1]['for_ms'], {'approx': 200, 'tol': 10})  # "about": 5 %, at least 10 ms
+        last = by_name['at the end, only the left motor ran']['expect']
+        self.assertEqual(last['finished_within_ms'], 15000)
+
+    def test_problems(self):
+        motor_stopped_50 = b('nepoTest_state_motor', {'PORT': 'left', 'IS': 'stopped'}, {'POWER': b('math_number', {'NUM': '50'}, block_id='n')}, 'm')
+        cases = [
+            (b('nepoTest_expect_state_end', block_id='e'), ('e', 'put a state block into "expect"')),
+            (b('nepoTest_expect_state_end', values={'STATE': motor_stopped_50}), ('m', 'a stopped motor has no power: leave "at ... %" empty')),
+            (b('nepoTest_expect_state_end', values={'STATE': b('nepoTest_state_robot', {'MOVE': 'still'},
+                                                               {'POWER': b('math_number', {'NUM': '5'}, block_id='n')}, 'r')}),
+             ('r', '"at ... %" only works with "drives" and "turns"')),
+            (b('nepoTest_expect_state_end', values={'STATE': b('nepoTest_state_sound', {'SOUND': 'silent'},
+                                                               {'FREQUENCY': b('math_number', {'NUM': '440'}, block_id='n')}, 's')}),
+             ('s', 'a frequency only works with "plays a tone"')),
+            (b('nepoTest_expect_state_end', values={'STATE': b('nepoTest_state_logic', {'OP': 'AND'},
+                                                               {'A': b('nepoTest_state_led', {'PORT': 'left', 'IS': 'on'})}, 'l')}),
+             ('l', 'put a state block into every input of this block')),
+            (b('nepoTest_expect_state_after', {'WITHIN': '100', 'EACH': 'each', 'EVENT': 'clap'},
+               {'STATE': b('nepoTest_state_robot', {'MOVE': 'still'})}, 'a'), ('a', 'there is no "clap" under "given" of this test')),
+            (b('nepoTest_expect_state_while', {'DELAY': '50'}, {'COND': b('nepoTest_cond_obstacle', {'PORT': 'FRONT'}),
+                                                                'STATE': b('nepoTest_state_robot', {'MOVE': 'still'})}, 'w'),
+             ('w', '"an obstacle is there (FRONT)" never happens: add it under "given"')),
+            (b('nepoTest_expect_distance', {'DISTANCE': '10', 'DIR': 'forward', 'TOL': '1'}) +
+             b('nepoTest_expect_distance', {'DISTANCE': '20', 'DIR': 'forward', 'TOL': '1'}, block_id='d2'), ('d2', 'only one such block per test')),
+        ]
+        for then_xml, expected in cases:
+            with self.subTest(expected=expected):
+                self.assertIn(expected, self.problems(suite(('t', RUN_10 + then(then_xml)))))
+        call = '<statement name="WHEN">%s</statement>' % b('nepoTest_when_call', {'FUNCTION': 'curveLeft'})
+        self.assertIn(('f', '"expect the program to finish within" only works with "run the program"'),
+                      self.problems(suite(('t', call + then(b('nepoTest_expect_finish_within', {'SECONDS': '5'}, block_id='f'))))))
+
+    def test_timings_and_conditions(self):
+        still = b('nepoTest_state_robot', {'MOVE': 'still'})
+        given = '<statement name="GIVEN">%s%s</statement>' % (
+            b('nepoTest_given_line', {'AT': '500', 'COLOR': 'black'}), b('nepoTest_given_light', {'AT': '0', 'PORT': 'LLIGHT', 'VALUE': '70'}))
+        xml = suite(('t', given + RUN_10 + then(
+            b('nepoTest_expect_state_during', {'QUANT': 'never', 'FROM': '100', 'TO': ''}, {'STATE': still}),
+            b('nepoTest_expect_state_after', {'WITHIN': '50', 'EACH': 'first', 'EVENT': 'line_black'}, {'STATE': still}),
+            b('nepoTest_expect_state_while', {'DELAY': '0'}, {'COND': b('nepoTest_cond_light', {'PORT': 'LLIGHT', 'OP': 'GT', 'VALUE': '50'}),
+                                                               'STATE': still}),
+            b('nepoTest_expect_state_for', {'OP': 'LTE', 'MS': '300'}, {'STATE': still}),
+            b('nepoTest_expect_state_count', {'OP': 'GTE', 'COUNT': '2'}, {'STATE': still}),
+            b('nepoTest_expect_turned', {'DEGREES': '90', 'DIR': 'left', 'TOL': '3'}),
+            b('nepoTest_expect_position', {'AHEAD': '10', 'AHEAD_DIR': 'behind', 'SIDE': '5', 'SIDE_DIR': 'right', 'TOL': '2'}))))
+        spec, problems = translate(xml)
+        self.assertEqual(problems, [])
+        expect = spec['tests'][0]['expect']
+        self.assertEqual([sorted(k for k in e if k != 'state') for e in expect['states']],
+                         [['never'], ['after', 'each', 'within_ms'], ['delay_ms', 'while'], ['for_ms'], ['starts']])
+        self.assertEqual(expect['states'][0]['never'], {'from': 100})
+        self.assertEqual(expect['states'][1]['after'], {'event': 'line', 'color': 'black'})
+        self.assertEqual(expect['states'][2]['while'], {'light': 'LLIGHT', 'value': {'min': 51}})
+        self.assertEqual((expect['states'][3]['for_ms'], expect['states'][4]['starts']), ({'max': 300}, {'min': 2}))
+        self.assertEqual((expect['heading_deg'], expect['end_position']),
+                         ({'approx': 90, 'tol': 3}, {'ahead_cm': -10, 'left_cm': -5, 'tol_cm': 2}))
+        self.assertEqual(validate_spec(spec), [])
+
+
 class CliTest(unittest.TestCase):
     def test_validate_a_program_with_tests(self):
         with contextlib.redirect_stdout(io.StringIO()) as out:

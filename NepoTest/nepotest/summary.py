@@ -12,6 +12,8 @@ from .nepo import ACTION_TYPES, FUNCTION_CALL_TYPES, SENSOR_TYPES
 
 COMPARE_SYMBOL = {'EQ': '==', 'NEQ': '!=', 'LT': '<', 'LTE': '<=', 'GT': '>', 'GTE': '>='}
 LOOP_TYPES = ('controls_whileUntil', 'controls_repeat_ext', 'robControls_loopForever', 'controls_for', 'controls_forEach')
+MOVEMENT_TYPES = ('robActions_motorDiff_on', 'robActions_motorDiff_on_for', 'robActions_motorDiff_turn', 'robActions_motorDiff_turn_for',
+                  'robActions_motorDiff_curve', 'robActions_motorDiff_curve_for', 'robActions_motor_on')
 
 
 def _sensor_info(b):
@@ -107,7 +109,20 @@ def _hints(program):
             sensors = [_sensor_info(s) for s in b.walk() if s.type in SENSOR_TYPES]
             add('wait_for_sensor', b, 'waits until ' + ' / '.join(_expr(b.values[k]) for k in sorted(b.values)),
                 {'scenarios': ['the event never happens', 'it happens once', 'it happens twice between two reads',
-                               'it happens during the setup block (first 250 ms)'], 'sensors': sensors})
+                               'it happens during the setup block (first 250 ms)'], 'sensors': sensors,
+                 'expect': 'the reaction: a state "within_ms" "after" the event, or "while" the condition holds'})
+        elif b.type in MOVEMENT_TYPES:
+            suggested = {'expect': 'states of the robot or its motors (at the end, at a time, never), and after distance '
+                                   'drives and turns distance_cm, heading_deg, end_position'}
+            for name in ('POWER', 'POWER_LEFT', 'POWER_RIGHT'):
+                power = b.values[name].literal() if name in b.values else None
+                if isinstance(power, int) and not isinstance(power, bool):
+                    level = min(abs(power + (5 if power >= 0 else -5)) // 10, 10)
+                    if level == 0:
+                        suggested['note'] = 'power %d is below 5 %%: the motor stops' % power
+                    elif level * 10 != abs(power):
+                        suggested['note'] = 'power %d runs at %d %% (the robot has 10 %% steps)' % (power, level * 10)
+            add('movement', b, b.type, suggested)
         elif b.type in LOOP_TYPES:
             add('loop', b, b.type, {'iterations': [0, 1, 'many'], 'note': 'a loop that never ends leaves the run with status "running"'})
         elif b.type == 'logic_operation':

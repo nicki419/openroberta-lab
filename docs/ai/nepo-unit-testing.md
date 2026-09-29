@@ -6,7 +6,9 @@ for the robot. The EdPy runs against a virtual robot, and everything it does is 
 - what the action blocks did (power in %, distance in cm, frequency in Hz);
 - which NEPO functions were called, with which arguments and results;
 - which runtime error happened in which block;
-- which blocks no test executed.
+- which blocks no test executed;
+- what the robot was doing over time (motors in the robot's speed steps, LEDs, sound, variables), and where it ended
+  (distance, turn, position): **states** and **measurements** (§4.10).
 
 Tests are written in NEPO terms too. They're either a JSON file (made for test editors and **AI test generators**) or
 Python code. Learners build them from **NEPO test blocks** in the Lab's **Tests tab**, which runs them in the browser
@@ -20,7 +22,8 @@ learner's NEPO program (Lab XML)
 bundle: EdPy (the unchanged robot code) + source map (block id -> EdPy ranges) + the Lab's annotated XML
    |  nepotest.engine: EdPy semantics, virtual clock, scripted world    (edpy-test-engine.md)
    v
-observer: statements and Ed calls -> block executions -> actions, function calls, coverage, errors per block (§6)
+observer: statements and Ed calls -> block executions -> actions, function calls, coverage, errors per block (§6),
+          and the robot's state over time (§4.10)
    |
    v
 test file (JSON) or Python API  ->  results (JSON): outcome and failures per test, block ids, coverage (§4.8)
@@ -29,14 +32,14 @@ test file (JSON) or Python API  ->  results (JSON): outcome and failures per tes
 Code: `NepoTest/` (Python, standard library only, CPython **3.11+**). Server side: `SourceMapBean`, the recording in
 `EdisonPythonVisitor`, and the REST service `sourceForTest` (§3.2).
 
-**Status (2026-09-25):**
-- **Python:** 76 tests in `NepoTest/tests` and 8 in `NepoTest/examples` pass with `unittest` and pytest 9.1.1. They
-  include the live-Lab tests against a server built from this repository, and the Level-0 check with the reference
-  EdPy compiler.
+**Status (2026-09-29):**
+- **Python:** 101 tests in `NepoTest/tests` and 8 in `NepoTest/examples` pass with `unittest`. They include the
+  live-Lab tests against a server built from this repository, the Level-0 check with the reference EdPy compiler, and
+  the schema check of the example files (with `jsonschema` installed).
 - **Java:** `EdisonSourceMapTest` (4 tests) and `NepoTestSuitePersistenceTest` pass, and the golden files are
   unchanged (317/317).
-- **Browser:** the same suite, built from test blocks, runs in the Lab's Tests tab under Pyodide with identical results
-  (`nepo-test-blocks.md`).
+- **Browser:** the same suites, built from test blocks (`clap_counter_with_tests.xml`, `patrol_with_tests.xml`), run in
+  the Lab's Tests tab under Pyodide with identical results (`nepo-test-blocks.md`).
 - **Timings** measured on a laptop:
 
   | Step | Time |
@@ -60,6 +63,7 @@ python -m nepotest describe examples/clap_counter.xml         # what's in the pr
 python -m nepotest convert  examples/clap_counter.xml         # -> examples/clap_counter.bundle.json
 python -m nepotest run      examples/clap_counter.tests.json  # run a test file
 python -m nepotest run      examples/clap_counter_with_tests.xml   # run the test suite saved in a program (Tests tab)
+python -m nepotest run      examples/patrol.tests.json        # state tests: motors, LEDs, sound, reactions, the square
 python -m unittest discover -s tests -t .                      # the framework's own tests
 ```
 
@@ -116,6 +120,8 @@ functions  clampSpeed(speed) returns: if speed > 100 return 100; if speed < 0 re
 | **action** | one execution of an action block, with the NEPO values it used (§4.7) |
 | **call record** | one call of a NEPO function: arguments, result, times |
 | **coverage** | which generated blocks executed, across one or many tests (§6.5) |
+| **state** | what the robot is doing at a moment: its motors, LEDs, sound, and the program's variables (§4.10) |
+| **timeline** | the robot's states over a run, as moments (a start time and a snapshot); measurements are taken at its end |
 | **status** | of a run: `finished`, or still running when the budget ran out (`time_limit`, `step_limit`), or `error` |
 | **error** | a runtime problem (16-bit overflow, division by zero, list index out of range, …) with the block where it happened |
 | **virtual time** | milliseconds from program start. Nothing runs in real time; a 60-second scenario takes milliseconds. |
@@ -293,6 +299,10 @@ Times are virtual ms from program start.
 | `calls` | both | these NEPO function calls happened in this order (`function`, `args`, `returns`) |
 | `error` | both | `null` (the default: no runtime error allowed), `"any"`, an error **kind**, or a matcher on `kind`, `block_id`, `block_type`, `function` |
 | `covers` | both | these block ids were executed |
+| `states` | both | what the robot is doing, and when: `[{"state": ..., <timing>}]` (§4.10) |
+| `distance_cm` | both | at the end: the distance driven, mean of both wheels, backward negative (§4.10) |
+| `heading_deg` | both | at the end: the change of heading, counterclockwise (left) positive (§4.10) |
+| `end_position` | both | at the end: `{"ahead_cm", "left_cm", "tol_cm"}`, relative to the start (§4.10) |
 
 Runtime error kinds: `overflow`, `division_by_zero`, `index_out_of_range`, `shift_out_of_range`, `negative_value`,
 `type_error`, `recursion`, `step_limit` (a call that doesn't return), `invalid_arguments`, `invalid_list`,
@@ -373,8 +383,107 @@ so tests and AI generators can copy them from the program. All these decoders we
   `returns`/`args` without `call`.
 - `validate_spec(spec, subject)` also checks that functions and variables exist, and that the number of arguments
   fits.
+- State expectations are checked completely: the state kinds and their values, exactly one timing per entry, the
+  events and conditions, the variable names, and `finished_within_ms` only on runs.
 - The CLI refuses to run an invalid file. Validate generated tests **before** running them, and give the problems
   back to the generator.
+
+### 4.10 States and measurements
+
+Actions say what the program *commanded*. States say what the robot *is doing* at a moment, and a timing says when it
+must hold. This tests the robot's behaviour, not the program's commands: "the left motor runs at 50 %" holds whichever
+blocks made it so.
+
+```json
+{"name": "drives forward until the obstacle, then stops within 100 ms",
+ "world": [{"event": "obstacle", "port": "FRONT", "from": 2000, "to": 2500}],
+ "expect": {"states": [
+   {"state": {"robot": "forward", "power": 50}, "at": 1500},
+   {"state": {"robot": "still"}, "after": {"event": "obstacle"}, "within_ms": 100},
+   {"state": {"led": "left", "is": "on"}, "always": {"from": 300, "to": 2000}},
+   {"state": {"led": "left", "is": "off"}, "at": "end"}]}}
+```
+
+**States** (`m`: a value or a matcher, §4.6):
+
+| State | Holds when |
+|---|---|
+| `{"motor": "left" / "right" / "both", "is": "forward" / "backward" / "running" / "stopped", "power": m}` | the motor(s) run that way; `power` optional, only for a running motor |
+| `{"robot": ..., "power": m}` | the wheels together: `forward`, `backward` (same speed), `turn_left`, `turn_right` (opposite directions), `curve_left`, `curve_right` (different speeds, or one wheel stands; the front swings left or right, also when reversing), `still`. `power` only for drives and turns. |
+| `{"led": "left" / "right" / "both" / "either", "is": "on" / "off"}` | the LED(s) |
+| `{"sound": "silent" / "any" / "tone" / "file" / "beep", "frequency_hz": m}` | the sound playing. `tone`: the tone and note blocks, with the NEPO frequency (the buzzer itself plays 4× or 8× that, quirk #26). `file`: a sound file (a tune). |
+| `{"variable": "x", "value": m}` | a global variable of the program, over time (not only at the end) |
+| `{"all": [...]}`, `{"any": [...]}`, `{"not": <state>}` | combinations |
+
+**Power is compared in the robot's steps.** The Edison has speed levels 1 to 10. A NEPO power p becomes level
+`(p + 5) / 10`, rounded down (`_shorten`). A power below 5 % stops the motor, a negative power reverses it, and a level
+above 10 runs at 10. A state reports the power as level × 10. A plain number in `power` is rounded the same way:
+45 to 54 all mean 50, and 150 means 100. A matcher (`{"min": 45}`) compares with the power the robot runs at. So tests
+catch what the robot really does: "motor on at 3 %" leaves the motor stopped.
+
+**Timings** (exactly one per entry):
+
+| Key | Passes if the state holds ... |
+|---|---|
+| `"at": "end"` | when the run ends: the program finished, the budget ran out, or the called function returned |
+| `"at": ms` | at that time, after all changes at that time |
+| `"always": {"from": a, "to": b}` | the whole time in the window. Both keys are optional: from the program's own start (after the setup block, ≈ 254 ms) to the end. |
+| `"never": {...}`, `"sometime": {...}` | at no time, or at some moment, in the window |
+| `"after": <event>, "within_ms": n, "each": true` | at some moment within n ms after each of these world events (`"each": false`: the first one). A reaction test. |
+| `"while": <condition>, "delay_ms": n` | the whole time the world condition holds, from n ms after it began |
+| `"for_ms": m` | for that long in total, added up over the run |
+| `"starts": m` | that many times: how often it began (from not holding to holding), e.g. blinks |
+
+- **Events** (for `after`): `clap`, `key` (optional `port`), `obstacle` (optional `port`; `"edge": "start"` (default)
+  or `"end"`), `line` (`"color"`: the moments the line tracker starts to see it), `remote`, `ir_message`.
+- **Conditions** (for `while`): `{"obstacle": "FRONT" / "LEFT" / "RIGHT" / "any"}`, `{"line": "black" / "white"}`
+  (white until the first line event), `{"light": port, "value": m}` (0 until the first light event).
+- Both come from the test's `world`. An event that isn't there, or a condition that never holds, is a failure that
+  says so (the Tests tab reports it before the run).
+
+**The timeline** (`nepotest/states.py`):
+- The engine logs every change of the motors, LEDs and sound, with its time and the Ed call that caused it
+  (`Robot.state_log`, `edpy-test-engine.md` §6.4). The observer adds which block made each call, and, if a test has
+  variable states, every change of a global variable (sampled before every statement; it costs a little, so it's on
+  only for those tests).
+- Moments: a start time and a snapshot, each lasting until the next one.
+- **The changes one block makes within 10 ms are one change** (`MERGE_MS`). The curve helper starts the wheels with two
+  calls 1 ms apart, and stops the second wheel 1 ms after the first has driven its distance. Nobody means the 1 ms
+  pivot in between.
+- **Computation takes no time**, so `x := 1; x := 2` happen at the same virtual time. The value 1 still makes a moment
+  of zero length: "at some point x = 1" holds. States of the robot ignore zero-length moments that didn't change them.
+
+**Failures say what was expected and what happened**, in words, and `block_id` is the program block that made the
+relevant change (the Tests tab links it). From the example file:
+
+```
+states[0]: while an obstacle is there (FRONT), from 2000 ms: expected (after 50 ms): the robot stands still,
+           but at 2207 ms the robot drives forward at 50 % (since 2207 ms)
+```
+
+**Measurements** at the end of the run, relative to the start (the robot faces ahead; left is to its left):
+
+| Key | Measures |
+|---|---|
+| `distance_cm` | the mean of both wheels' travel, backward negative (a turn on the spot adds nothing) |
+| `heading_deg` | the change of heading, counterclockwise (left) positive, not wrapped: a square driven to the right gives −360 |
+| `end_position` | `{"ahead_cm": a, "left_cm": l, "tol_cm": t}`: the robot ended within t cm of that point |
+
+Every test report has `pose`: `{"x_cm", "y_cm", "heading_deg", "distance_cm"}` (x ahead, y left).
+
+**How reliable they are** (see `edpy-test-engine.md` §7):
+- **Robust:** "at the end", always / never / at some point, counts, and reactions to events. Distances and turns after
+  "drive … cm" and "turn … °" blocks follow EdPy's tick maths.
+- **Approximate:** when a distance drive ends, and every absolute time after it (the wheel speed is an assumption:
+  2.5 cm/s per level). The same holds for the distance of a drive that a wait stops. Durations include 1 ms per Ed
+  call, so an LED switched on for "200 ms" is on for 202 ms. Use ranges, or "about" in the blocks (± 5 %, at least
+  10 ms).
+- **Not modelled:** what the robot does after the program ends, and the world's geometry (§9).
+
+**The example:** `examples/patrol.xml` drives until an obstacle, beeps, drives a 20 cm square with a counter, and runs
+the left motor alone. Its functions are `square(side)`, `blink(times)` and `curveLeft()`. `patrol.tests.json` has 7
+state tests. One fails on purpose: after the beep, the program drives the square at once, into the obstacle that is
+still there. `patrol_with_tests.xml` is the same suite made of test blocks.
 
 ---
 
@@ -397,7 +506,10 @@ run.status, run.finished, run.running, run.variables, run.actions, run.calls, ru
 run.sensor_reads           # {block_id: {'type', 'reads', 'values': {value: count}}}
 run.coverage.uncovered     # block ids; coverage.merge(other) across tests; coverage.to_json()
 run.format_actions()       # readable timeline
-run.robot                  # the engine's virtual robot (trace, pose, sounds...), for low-level checks
+run.timeline               # the robot's state over time (§4.10): .at(t).state, .moments, .spans(a, b), .format()
+run.pose                   # {'x_cm', 'y_cm', 'heading_deg', 'distance_cm'} at the end
+subject.run(world, track_variables=True)   # also record the global variables over time (for variable states)
+run.robot                  # the engine's virtual robot (trace, state_log, pose, sounds...), for low-level checks
 
 subject.describe()         # the program summary with test hints (§7.2)
 subject.check_with_edpy()  # Level 0: the reference EdPy compiler's verdict
@@ -511,7 +623,8 @@ Test hints are static heuristics, not proofs:
 | `division` | `/` or remainder with a non-literal divisor | a zero divisor (`error: "division_by_zero"`) |
 | `integer_division` | every `/` | a case where the result isn't whole (7 / 2 = 3) |
 | `list_index` | list get/set with a computed index | −1, 0, length−1, length |
-| `wait_for_sensor` | "wait until" | the event never, once, twice between two reads, during the setup block |
+| `wait_for_sensor` | "wait until" | the event never, once, twice between two reads, during the setup block; the reaction as a state (`after`, `while`) |
+| `movement` | drive, turn, curve and motor blocks | states of the robot or its motors, and distance, turn and end position (§4.10). A note if a literal power stops the motor (below 5 %) or runs at a different step (45 → 50 %). |
 | `loop` | loops | 0, 1, many iterations; forever loops end as `running` |
 | `eager_and_or` | AND/OR with a sensor or a function call on the right | both sides are always evaluated (quirk #29) |
 | `output` | tone blocks | the buzzer plays 4× the NEPO frequency (quirk #26) |
@@ -527,6 +640,9 @@ status, and errors.
 - **Script events after the setup block** (t > 254 ms) unless you are testing it, and **one latched event per read**.
 - **Programs with a forever loop never finish:** use `"status": "running"` and a small `max_time_ms`.
 - **Prefer order and values** (`actions`, `calls`, `variables`) over absolute times. Use ranges for times.
+- **Test behaviour with `states`:** what the robot does at the end, never / at some point, and reactions (`after`,
+  `while`) are robust. Absolute times after a distance drive depend on the assumed wheel speed. Give `power` as the
+  NEPO value a program would use; it's compared in the robot's 10 % steps.
 - **Mark authorship** with `origin`.
 - **A failure isn't always the learner's fault.** Known generator quirks (`edisonv2-nepo-to-edpy.md` §13) make correct
   NEPO programs behave differently. Example: `(a + b) / 2` computes `a + b / 2` (quirk #14). A generator, or the Lab
@@ -554,7 +670,9 @@ blocks. Other options:
   - add its type to `ACTION_TYPES` (`nepo.py`) and a branch to `decode_action` (`observer.py`), with NEPO fields plus
     helper parameters or Ed call arguments;
   - add it to the table in §4.7;
-  - if it emits a new `Ed` function, the engine needs it too (`edpy-test-engine.md` §11).
+  - if it emits a new `Ed` function, the engine needs it too (`edpy-test-engine.md` §11);
+  - if it changes the robot's state, log that in the engine (`Robot.log_state`) and map it to NEPO terms in
+    `states._nepo_state`, so state expectations see it.
 - **A new sensor block:** add it to `SENSOR_TYPES`, and, if the world needs a new kind of event, add that to
   `world.py` (JSON name, NEPO ports, mapping to the engine's robot).
 - **New test hints:** `summary.py`, `_hints()`. Keep hints about *where* and *what to vary*, with suggested values.
@@ -574,6 +692,9 @@ blocks. Other options:
   in `edpy-test-engine.md` §7. They're configurable, and uncalibrated against a real Edison.
 - **What isn't modelled:** events (`Ed.RegisterEventHandler`, never generated), the distance counters, and physical
   collisions. An obstacle doesn't stop the robot; the robot only reports it.
+- **The world is scripted by time, not by position.** The line tracker sees what `world` says at that moment, wherever
+  the robot has driven. So "follows the line" or "stops 5 cm before the wall" can't be tested for real. That needs a
+  map world: lines and walls as shapes, and sensors read from the robot's pose, which the engine already computes.
 - **Test data:** there are no floats and no strings in tests, because NEPO programs for the Edison have none.
 - **Only the Edison has a source map.** `sourceForTest` works for every robot but returns a map only for the Edison.
 - **Python:** the framework needs CPython 3.11+ (`co_positions`). The engine alone runs on 3.8+.
@@ -595,14 +716,17 @@ NepoTest/
     world.py                  World: NEPO-level events -> engine robot
     observer.py               block executions, Ed call attribution, function calls, actions, coverage
     subject.py                TestSubject, CallResult, ProgramRun, Coverage, NepoError, ConversionError
-    spec.py                   test files: validate_spec, run_spec, matchers
+    spec.py                   test files: validate_spec, run_spec
+    matching.py               value matchers (shared by spec.py and states.py)
+    states.py                 the robot's state over time (Timeline), state expectations, measurements (§4.10)
     blocks.py                 NEPO test blocks (Tests tab) -> test file; split_program for programs with embedded suites
     browser.py                the functions the Lab's Pyodide worker calls (JSON strings in and out)
     engine/                   the EdPy engine (edpy-test-engine.md)
   schema/nepo-tests.schema.json
   examples/                   clap_counter.xml, its bundle, clap_counter.tests.json, test_clap_counter.py
   examples/clap_counter_with_tests.xml   the example program with a test suite made of test blocks (as the Lab saves it)
-  tests/                      test_framework.py, test_blocks.py, test_lab_live.py, test_engine*.py, fixtures/ (golden bundles)
+  examples/patrol.xml, .bundle.json, .tests.json, patrol_with_tests.xml   the state tests' example (§4.10)
+  tests/                      test_framework.py, test_blocks.py, test_states.py, test_lab_live.py, test_engine*.py, fixtures/
 OpenRobertaWeb/src/app/nepotest/*, …/controller/tests.controller.ts   the Tests tab (nepo-test-blocks.md §2)
 OpenRobertaServer/staticResources/nepotest/nepotest-files.json      the nepotest package for the browser (generated by gulp)
 OpenRobertaRobot/…/bean/SourceMapBean.java

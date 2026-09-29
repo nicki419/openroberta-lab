@@ -1,0 +1,93 @@
+{
+  "format": "nepotest",
+  "version": 1,
+  "program": "patrol.xml",
+  "bundle": "patrol.bundle.json",
+  "defaults": {"max_time_ms": 20000},
+  "tests": [
+    {
+      "name": "drives forward until the obstacle, then stops within 100 ms",
+      "world": [{"event": "obstacle", "port": "FRONT", "from": 2000, "to": 2500}],
+      "expect": {
+        "status": "finished",
+        "states": [
+          {"state": {"robot": "forward", "power": 50}, "at": 1500},
+          {"state": {"robot": "still"}, "after": {"event": "obstacle"}, "within_ms": 100},
+          {"state": {"led": "left", "is": "on"}, "always": {"from": 300, "to": 2000}},
+          {"state": {"led": "left", "is": "off"}, "at": "end"}
+        ]
+      }
+    },
+    {
+      "name": "beeps once, at 440 Hz, for 200 ms",
+      "world": [{"event": "obstacle", "port": "FRONT", "from": 2000, "to": 2500}],
+      "expect": {
+        "states": [
+          {"state": {"sound": "tone", "frequency_hz": 440}, "starts": 1},
+          {"state": {"sound": "tone"}, "for_ms": 200},
+          {"state": {"all": [{"sound": "any"}, {"robot": "forward"}]}, "never": {}}
+        ]
+      }
+    },
+    {
+      "name": "the square ends where it started",
+      "call": "square",
+      "args": [20],
+      "expect": {
+        "end_position": {"ahead_cm": 0, "left_cm": 0, "tol_cm": 1},
+        "heading_deg": {"approx": -360, "tol": 5},
+        "distance_cm": {"approx": 80, "tol": 1},
+        "states": [
+          {"state": {"variable": "sides", "value": 4}, "at": "end"},
+          {"state": {"variable": "sides", "value": {"max": 4}}, "always": {}},
+          {"state": {"robot": "turn_right", "power": 50}, "starts": 4},
+          {"state": {"any": [{"robot": "curve_left"}, {"robot": "curve_right"}]}, "never": {}}
+        ]
+      }
+    },
+    {
+      "name": "blink 3 blinks 3 times",
+      "call": "blink",
+      "args": [3],
+      "expect": {
+        "states": [
+          {"state": {"led": "left", "is": "on"}, "starts": 3},
+          {"state": {"led": "left", "is": "on"}, "for_ms": {"approx": 600, "tol": 30}},
+          {"state": {"robot": "still"}, "always": {}}
+        ]
+      }
+    },
+    {
+      "name": "curveLeft curves left",
+      "call": "curveLeft",
+      "expect": {
+        "heading_deg": {"min": 45},
+        "states": [
+          {"state": {"robot": "curve_left"}, "sometime": {}},
+          {"state": {"all": [{"motor": "left", "is": "forward", "power": 30}, {"motor": "right", "is": "forward", "power": 60}]}, "at": 1000},
+          {"state": {"robot": "still"}, "at": "end"}
+        ]
+      }
+    },
+    {
+      "name": "at the end, only the left motor ran",
+      "world": [{"event": "obstacle", "port": "FRONT", "from": 2000, "to": 2500}],
+      "expect": {
+        "states": [
+          {"state": {"all": [{"motor": "left", "is": "forward", "power": 30}, {"motor": "right", "is": "stopped"}]}, "at": 11000},
+          {"state": {"robot": "still"}, "at": "end"}
+        ]
+      }
+    },
+    {
+      "name": "stands still while the obstacle is there",
+      "description": "Fails on purpose: after the beep the program drives the square at once, into the obstacle that is still there.",
+      "world": [{"event": "obstacle", "port": "FRONT", "from": 2000, "to": 2500}],
+      "expect": {
+        "states": [
+          {"state": {"robot": "still"}, "while": {"obstacle": "FRONT"}, "delay_ms": 50}
+        ]
+      }
+    }
+  ]
+}

@@ -13,10 +13,12 @@ code of its own. See docs/ai/nepo-unit-testing.md for the full reference.
 import json
 import os
 
+from . import states as ST
+from .matching import matches, value_matches as _value_matches
 from .world import EVENTS, World
 
 EXPECT_KEYS = ('returns', 'status', 'finished_within_ms', 'variables', 'actions', 'actions_exactly', 'no_actions',
-               'action_count', 'calls', 'error', 'covers')
+               'action_count', 'calls', 'error', 'covers', 'states', 'distance_cm', 'heading_deg', 'end_position')
 TEST_KEYS = ('name', 'description', 'call', 'args', 'globals', 'world', 'max_time_ms', 'max_steps', 'expect', 'origin', 'block_id')
 STATUS_VALUES = ('finished', 'running', 'time_limit', 'step_limit')
 
@@ -60,10 +62,16 @@ def validate_spec(spec, subject=None):
             problems.append('%s: "returns", "args" and "globals" need "call"' % where)
         if expect.get('status') is not None and expect['status'] not in STATUS_VALUES:
             problems.append('%s.expect.status must be one of %s' % (where, ', '.join(STATUS_VALUES)))
+        if is_call and 'finished_within_ms' in expect:
+            problems.append('%s.expect.finished_within_ms only applies to program runs, not to calls' % where)
         try:
             World(test.get('world') or [])
         except (ValueError, TypeError, AttributeError) as e:
             problems.append('%s.world: %s (events: %s)' % (where, e, ', '.join(EVENTS)))
+        if 'states' in expect:
+            declared = set(v.name for v in subject.nepo.variables) if subject is not None else None
+            problems += ST.validate(expect['states'], '%s.expect.states' % where, declared)
+        problems += ST.validate_measurements(expect, '%s.expect' % where)
         if subject is not None:
             if is_call and test['call'] not in subject.nepo.functions:
                 problems.append('%s: the program has no function %r (it has: %s)' % (where, test['call'], ', '.join(subject.nepo.functions) or 'none'))
@@ -77,25 +85,6 @@ def validate_spec(spec, subject=None):
 
 
 # ---------------------------------------------------------------------- matching
-
-def _value_matches(expected, actual):
-    if isinstance(expected, dict) and 'not' in expected:
-        return not _value_matches(expected['not'], actual)
-    if isinstance(expected, dict) and ('min' in expected or 'max' in expected):
-        return isinstance(actual, (int, float)) and not isinstance(actual, bool) and \
-            expected.get('min', actual) <= actual <= expected.get('max', actual)
-    if isinstance(expected, dict) and 'approx' in expected:
-        return isinstance(actual, (int, float)) and abs(actual - expected['approx']) <= expected.get('tol', 1e-6)
-    if isinstance(expected, bool) or isinstance(actual, bool):
-        return expected is actual or (isinstance(expected, bool) and isinstance(actual, bool) and expected == actual)
-    if isinstance(expected, (int, float)) and isinstance(actual, (int, float)):
-        return abs(expected - actual) < 1e-9
-    return expected == actual
-
-
-def matches(matcher, item):
-    return all(k in item and _value_matches(v, item[k]) for k, v in matcher.items())
-
 
 def _in_order(matchers, items):
     """index of the first matcher that can't be found (in order, gaps allowed), or None"""
@@ -174,6 +163,9 @@ def check_expectations(expect, test, result, is_call):
     for block_id in expect.get('covers') or []:
         if block_id not in result.coverage.covered:
             fail('covers', block_id, None, 'block %s was not executed' % block_id)
+    if 'states' in expect:
+        failures += ST.check(expect['states'], result.timeline, test.get('world') or [])
+    failures += ST.check_measurements(expect, result.pose)
     return failures
 
 
@@ -184,15 +176,18 @@ def run_test(subject, test, defaults=None):
     options.update(dict((k, test[k]) for k in ('max_time_ms', 'max_steps') if k in test))
     world = World(test.get('world') or [])
     is_call = 'call' in test
+    track = ST.uses_variables(test['expect'].get('states'))
     if is_call:
         result = subject.call(test['call'], *test.get('args', []), globals=test.get('globals'), world=world,
-                              max_steps=options.get('max_steps', 100000), max_time_ms=options.get('max_time_ms', 60000))
+                              max_steps=options.get('max_steps', 100000), max_time_ms=options.get('max_time_ms', 60000),
+                              track_variables=track)
     else:
-        result = subject.run(world, max_time_ms=options.get('max_time_ms', 60000), max_steps=options.get('max_steps', 2000000))
+        result = subject.run(world, max_time_ms=options.get('max_time_ms', 60000), max_steps=options.get('max_steps', 2000000),
+                             track_variables=track)
     failures = check_expectations(test['expect'], test, result, is_call)
     report = {'name': test['name'], 'block_id': test.get('block_id'), 'outcome': 'failed' if failures else 'passed', 'failures': failures,
               'error': result.error.to_json() if result.error else None, 'time_ms': result.time_ms,
-              'variables': result.variables, 'actions': result.actions, 'calls': result.calls,
+              'variables': result.variables, 'actions': result.actions, 'calls': result.calls, 'pose': result.pose,
               'covered_blocks': sorted(result.coverage.covered)}
     if is_call:
         report['returned'] = result._returned

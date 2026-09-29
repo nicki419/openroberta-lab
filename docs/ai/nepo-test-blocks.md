@@ -21,7 +21,9 @@ Tests tab
 
 **How a learner uses it:**
 1. Build a **test** block. Under *given*, put what happens around the robot. Under *when*, put what runs: the whole
-   program, or one of its functions. Under *then*, put what must be true.
+   program, or one of its functions. Under *then*, put what must be true: a result, a variable, the actions the
+   program commanded, or what the robot is doing and when (a block from *States* in an *expect … at the end*,
+   *… within … ms after …*, *expect while …* block; also distance, turn and end position).
 2. Put a **run test** block for it under the red **start block**. Only tests under the start block run, so a learner
    can keep drafts.
 3. Press **Run tests**. Each test turns ✓, ✗ or ⚠. Failures say what was expected and what happened. Clicking a
@@ -44,6 +46,16 @@ loaded or imported. The tab appears only for the Edison robots, since NepoTest s
   - Python: `NepoTest/tests/test_blocks.py`.
   - Java: `NepoTestSuitePersistenceTest`.
   - The runner protocol was replayed under Node's Pyodide.
+
+**State blocks (2026-09-29), verified in headless Chrome against a Lab built from this repository:**
+- `examples/patrol_with_tests.xml` (88 test blocks, 7 tests) was imported through `loadProgramFromXML`. All blocks
+  render, in English and German. The new *States* category and the *Expect* presets render too.
+- **Run tests:** 6 passed and 1 failed, the deliberate one ("stands still while the obstacle is there"), with the same
+  message as the Python run. Clicking the failure opens the Program tab with the causing block selected (the square's
+  drive block).
+- **Optional inputs:** "stands still" and "plays a sound" show no power or Hz input.
+- Python: `tests/test_blocks.py` (`StateBlocksTest`) translates the same suite and checks the JSON against
+  `examples/patrol.tests.json`.
 
 ---
 
@@ -87,9 +99,48 @@ sync:** the field and input names below are the contract between them.
 | `nepoTest_action_ir_send` | *send IR message*, *value* | `VALUE` | `{"action": "ir_send", ...}` |
 | `nepoTest_action_wait` | *wait*, *ms* | `MS` | `{"action": "wait", ...}` |
 
+**State expectations** (under *then*): what the robot is doing, and when (`nepo-unit-testing.md` §4.10). Each takes a
+⟨state⟩ block from the *States* category.
+
+| Block | Looks like | Fields / inputs | Becomes (NepoTest JSON) |
+|---|---|---|---|
+| `nepoTest_expect_state_end` | *expect* ⟨state⟩ *at the end* | input `STATE` | `states`: `{"state", "at": "end"}` |
+| `nepoTest_expect_state_at` | *expect* ⟨state⟩ *at* [2000] *ms* | `STATE`, `AT` | `{"at": ms}` |
+| `nepoTest_expect_state_during` | *expect* ⟨state⟩ [always / never / at some point] *from* [ ] *to* [ ] *ms* | `STATE`, `QUANT`, `FROM`, `TO` (both may be empty: the whole run) | `{"always" \| "never" \| "sometime": {"from", "to"}}` |
+| `nepoTest_expect_state_after` | *expect* ⟨state⟩ *within* [200] *ms after* [each / the first] [clap ▾] | `STATE`, `WITHIN`, `EACH`, `EVENT`: clap, key, obstacle_start, obstacle_end, line_black, line_white, remote, ir_message | `{"after": event, "within_ms", "each"}` |
+| `nepoTest_expect_state_while` | *expect while* ⟨condition⟩ *after* [100] *ms:* ⟨state⟩ | inputs `COND`, `STATE`; `DELAY` | `{"while": condition, "delay_ms"}` |
+| `nepoTest_expect_state_for` | *expect* ⟨state⟩ *for* [at least / at most / about] [1000] *ms in total* | `STATE`, `OP` (GTE, LTE, ABOUT: ± 5 %, at least 10 ms), `MS` | `{"for_ms": matcher}` |
+| `nepoTest_expect_state_count` | *expect* ⟨state⟩ *to begin* [= ▾] [1] *times* | `STATE`, `OP`, `COUNT` | `{"starts": matcher}` |
+| `nepoTest_expect_distance` | *expect the robot to have driven* [20] *cm* [forward ▾] ± [1] *cm* | `DISTANCE`, `DIR`, `TOL` | `distance_cm` (backward: negative) |
+| `nepoTest_expect_turned` | *expect the robot to have turned* [90] ° [right ▾] ± [5] ° | `DEGREES`, `DIR`, `TOL` | `heading_deg` (right: negative) |
+| `nepoTest_expect_position` | *expect the robot to end* [0] *cm* [ahead ▾] *and* [0] *cm* [to the left ▾] *of its start* ± [2] *cm* | `AHEAD`, `AHEAD_DIR`, `SIDE`, `SIDE_DIR`, `TOL` | `end_position` |
+| `nepoTest_expect_finish_within` | *expect the program to finish within* [5] *s* | `SECONDS` | `finished_within_ms` (runs only) |
+
+**States** (value blocks, output `nepoTestState`, category *States*) and **conditions** (output `nepoTestCondition`,
+for *expect while*; they describe the world of *given*):
+
+| Block | Looks like | Fields / inputs | Becomes |
+|---|---|---|---|
+| `nepoTest_state_motor` | [left motor ▾] [forward / backward / running / stopped] *at* ⟨⟩ % | `PORT` (left, right, both), `IS`; optional input `POWER` | `{"motor", "is", "power"}` |
+| `nepoTest_state_robot` | *the robot* [drives forward ▾] *at* ⟨⟩ % | `MOVE` (forward, backward, turn_left, turn_right, curve_left, curve_right, still); optional `POWER` | `{"robot", "power"}` |
+| `nepoTest_state_led` | [left LED ▾] [on ▾] | `PORT` (left, right, both, either), `IS` | `{"led", "is"}` |
+| `nepoTest_state_sound` | *the robot* [plays a tone ▾] ⟨⟩ *Hz* | `SOUND` (tone, any, file, silent); optional `FREQUENCY` | `{"sound", "frequency_hz": {"approx": f, "tol": 1}}` |
+| `nepoTest_state_variable` | *variable* [x ▾] [= ▾] ⟨value⟩ | `VAR`, `OP`, input `VALUE` | `{"variable", "value"}` |
+| `nepoTest_state_logic` | ⟨state⟩ [and / or] ⟨state⟩ | inputs `A`, `B`; `OP` | `{"all": [...]}` / `{"any": [...]}` (nested ones flattened) |
+| `nepoTest_state_not` | *not* ⟨state⟩ | input `STATE` | `{"not": ...}` |
+| `nepoTest_cond_obstacle` | *an obstacle* [FRONT ▾] | `PORT` (FRONT, LEFT, RIGHT, ANY) | `{"obstacle"}` |
+| `nepoTest_cond_line` | *the line tracker sees* [black ▾] | `COLOR` | `{"line"}` |
+| `nepoTest_cond_light` | *light sensor* [LLIGHT ▾] [> ▾] [50] % | `PORT`, `OP`, `VALUE` | `{"light", "value": matcher}` |
+
 - **Connection checks** keep the structure valid while the learner builds. `GIVEN` accepts only *given* blocks,
-  `WHEN` exactly one *when* block (no next connection), `THEN` only *expect* blocks, and ⟨action⟩ inputs only action
-  blocks. Run blocks attach only below the start block.
+  `WHEN` exactly one *when* block (no next connection), `THEN` only *expect* blocks, ⟨action⟩ inputs only action
+  blocks, ⟨state⟩ inputs only state blocks, and ⟨condition⟩ inputs only condition blocks. Run blocks attach only below
+  the start block.
+- **Optional inputs show only where they apply:** no "at … %" for "stands still", the curves or a stopped motor, and no
+  Hz except for "plays a tone" (`showOptional`, called from the blocks' `onchange`). An input with a block in it stays
+  visible, so the translator's message about it can be followed.
+- **Power in state blocks is the NEPO power a program would use:** it's compared in the robot's 10 % steps, so 45 to 54
+  all mean "runs at 50 %".
 - **Values** are NEPO literal blocks from the *Values* category: `math_number`, `logic_boolean`,
   `robLists_create_with`. The translator rejects anything else, and non-whole numbers, with a message on that block.
 - **In action blocks, an empty input or "any" matches everything.** For example, *expect no* ⟨drive any⟩ means "never
@@ -110,6 +161,7 @@ sync:** the field and input names below are the contract between them.
   - *when*: control orange;
   - *expect*: logic cyan;
   - actions: action orange;
+  - states: variable purple; conditions: sensor green, like *given*;
   - values: math blue.
 - **Messages** are in English and German (`MESSAGES` in `nepoTest.blocks.ts`). The panel texts are in
   `tests.controller.ts`. Failure texts come from NepoTest and are English only.
@@ -122,7 +174,12 @@ Examples:
 - "choose the test to run in "run test"" (a run block still showing `?`);
 - "the program has no function …";
 - "the Edison only knows whole numbers";
-- "expect the result only works with call function".
+- "expect the result only works with call function";
+- "there is no "clap" under "given" of this test" (*expect … after*), ""an obstacle is there (FRONT)" never happens: add
+  it under "given"" (*expect while*);
+- "a stopped motor has no power", ""at … %" only works with "drives" and "turns"", "a frequency only works with "plays
+  a tone"";
+- "only one such block per test" (the measurement blocks).
 
 A test that isn't under the start block, and a test listed twice, are **warnings**. Everything else is an error and
 stops the run.

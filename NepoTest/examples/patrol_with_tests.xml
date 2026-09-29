@@ -1,0 +1,676 @@
+<export xmlns="http://de.fhg.iais.roberta.blockly">
+    <program>
+        <block_set xmlns="http://de.fhg.iais.roberta.blockly" robottype="edison" xmlversion="3.1" description="" tags="">
+            <instance x="20" y="20">
+                <block type="robControls_start" id="pt01" intask="true" deletable="false">
+                    <mutation declare="true"/>
+                    <field name="DEBUG">FALSE</field>
+                    <statement name="ST">
+                        <block type="robGlobalVariables_declare" id="pt03" intask="true" deletable="false" movable="false">
+                            <mutation next="false" declaration_type="Number"/>
+                            <field name="VAR">sides</field>
+                            <field name="TYPE">Number</field>
+                            <value name="VALUE">
+                                <block type="math_number" id="pt02" intask="true">
+                                    <field name="NUM">0</field>
+                                </block>
+                            </value>
+                        </block>
+                    </statement>
+                </block>
+                <block type="actions_led_edison" id="pt10" intask="true">
+                    <field name="ACTORPORT">LLED</field>
+                    <field name="MODE">ON</field>
+                </block>
+                <block type="robActions_motorDiff_on" id="pt11" intask="true">
+                    <field name="DIRECTION">FOREWARD</field>
+                    <value name="POWER">
+                        <block type="math_number" id="pt12" intask="true">
+                            <field name="NUM">50</field>
+                        </block>
+                    </value>
+                </block>
+                <block type="robControls_wait_for" id="pt13" intask="true">
+                    <value name="WAIT0">
+                        <block type="logic_compare" id="pt14" intask="true">
+                            <field name="OP">EQ</field>
+                            <value name="A">
+                                <block type="robSensors_getSample" id="pt15" intask="true">
+                                    <mutation input="INFRARED_OBSTACLE"/>
+                                    <field name="SENSORTYPE">INFRARED_OBSTACLE</field>
+                                    <field name="SENSORPORT">FRONT</field>
+                                    <field name="SLOT"/>
+                                </block>
+                            </value>
+                            <value name="B">
+                                <block type="logic_boolean" id="pt16" intask="true">
+                                    <field name="BOOL">TRUE</field>
+                                </block>
+                            </value>
+                        </block>
+                    </value>
+                </block>
+                <block type="robActions_motorDiff_stop" id="pt17" intask="true"/>
+                <block type="actions_led_edison" id="pt18" intask="true">
+                    <field name="ACTORPORT">LLED</field>
+                    <field name="MODE">OFF</field>
+                </block>
+                <block type="robActions_play_tone" id="pt19" intask="true">
+                    <value name="FREQUENCE">
+                        <block type="math_number" id="pt20" intask="true">
+                            <field name="NUM">440</field>
+                        </block>
+                    </value>
+                    <value name="DURATION">
+                        <block type="math_number" id="pt21" intask="true">
+                            <field name="NUM">200</field>
+                        </block>
+                    </value>
+                </block>
+                <block type="robProcedures_callnoreturn" id="pt22" intask="true">
+                    <mutation name="square">
+                        <arg name="side" type="Number"/>
+                    </mutation>
+                    <value name="ARG0">
+                        <block type="math_number" id="pt23" intask="true">
+                            <field name="NUM">20</field>
+                        </block>
+                    </value>
+                </block>
+                <block type="robActions_motor_on" id="pt24" intask="true">
+                    <field name="MOTORPORT">LMOTOR</field>
+                    <value name="POWER">
+                        <block type="math_number" id="pt25" intask="true">
+                            <field name="NUM">30</field>
+                        </block>
+                    </value>
+                </block>
+                <block type="robControls_wait_time" id="pt26" intask="true">
+                    <value name="WAIT">
+                        <block type="math_number" id="pt27" intask="true">
+                            <field name="NUM">1000</field>
+                        </block>
+                    </value>
+                </block>
+                <block type="robActions_motor_stop" id="pt28" intask="true">
+                    <field name="MOTORPORT">LMOTOR</field>
+                </block>
+            </instance>
+            <instance x="500" y="20">
+                <block type="robProcedures_defnoreturn" id="pt40" intask="true">
+                    <mutation declare="true"/>
+                    <field name="NAME">square</field>
+                    <statement name="ST">
+                        <block type="robLocalVariables_declare" id="pt41" intask="true" deletable="false" movable="false">
+                            <mutation next="false" declaration_type="Number"/>
+                            <field name="VAR">side</field>
+                            <field name="TYPE">Number</field>
+                        </block>
+                    </statement>
+                    <statement name="STACK">
+                        <block type="controls_repeat_ext" id="pt42" intask="true">
+                            <value name="TIMES">
+                                <block type="math_number" id="pt43" intask="true">
+                                    <field name="NUM">4</field>
+                                </block>
+                            </value>
+                            <statement name="DO">
+                                <block type="robActions_motorDiff_on_for" id="pt44" intask="true">
+                                    <field name="DIRECTION">FOREWARD</field>
+                                    <value name="POWER">
+                                        <block type="math_number" id="pt45" intask="true">
+                                            <field name="NUM">50</field>
+                                        </block>
+                                    </value>
+                                    <value name="DISTANCE">
+                                        <block type="variables_get" id="pt46" intask="true">
+                                            <mutation datatype="Number"/>
+                                            <field name="VAR">side</field>
+                                        </block>
+                                    </value>
+                                </block>
+                                <block type="robActions_motorDiff_turn_for" id="pt47" intask="true">
+                                    <field name="DIRECTION">RIGHT</field>
+                                    <value name="POWER">
+                                        <block type="math_number" id="pt48" intask="true">
+                                            <field name="NUM">50</field>
+                                        </block>
+                                    </value>
+                                    <value name="DEGREE">
+                                        <block type="math_number" id="pt49" intask="true">
+                                            <field name="NUM">90</field>
+                                        </block>
+                                    </value>
+                                </block>
+                                <block type="robMath_change" id="pt50" intask="true">
+                                    <value name="VAR">
+                                        <block type="variables_get" id="pt51" intask="true">
+                                            <mutation datatype="Number"/>
+                                            <field name="VAR">sides</field>
+                                        </block>
+                                    </value>
+                                    <value name="DELTA">
+                                        <block type="math_number" id="pt52" intask="true">
+                                            <field name="NUM">1</field>
+                                        </block>
+                                    </value>
+                                </block>
+                            </statement>
+                        </block>
+                    </statement>
+                </block>
+            </instance>
+            <instance x="500" y="400">
+                <block type="robProcedures_defnoreturn" id="pt60" intask="true">
+                    <mutation declare="true"/>
+                    <field name="NAME">blink</field>
+                    <statement name="ST">
+                        <block type="robLocalVariables_declare" id="pt61" intask="true" deletable="false" movable="false">
+                            <mutation next="false" declaration_type="Number"/>
+                            <field name="VAR">times</field>
+                            <field name="TYPE">Number</field>
+                        </block>
+                    </statement>
+                    <statement name="STACK">
+                        <block type="controls_repeat_ext" id="pt62" intask="true">
+                            <value name="TIMES">
+                                <block type="variables_get" id="pt63" intask="true">
+                                    <mutation datatype="Number"/>
+                                    <field name="VAR">times</field>
+                                </block>
+                            </value>
+                            <statement name="DO">
+                                <block type="actions_led_edison" id="pt64" intask="true">
+                                    <field name="ACTORPORT">LLED</field>
+                                    <field name="MODE">ON</field>
+                                </block>
+                                <block type="robControls_wait_time" id="pt65" intask="true">
+                                    <value name="WAIT">
+                                        <block type="math_number" id="pt66" intask="true">
+                                            <field name="NUM">200</field>
+                                        </block>
+                                    </value>
+                                </block>
+                                <block type="actions_led_edison" id="pt67" intask="true">
+                                    <field name="ACTORPORT">LLED</field>
+                                    <field name="MODE">OFF</field>
+                                </block>
+                                <block type="robControls_wait_time" id="pt68" intask="true">
+                                    <value name="WAIT">
+                                        <block type="math_number" id="pt69" intask="true">
+                                            <field name="NUM">200</field>
+                                        </block>
+                                    </value>
+                                </block>
+                            </statement>
+                        </block>
+                    </statement>
+                </block>
+            </instance>
+            <instance x="500" y="700">
+                <block type="robProcedures_defnoreturn" id="pt80" intask="true">
+                    <mutation declare="false"/>
+                    <field name="NAME">curveLeft</field>
+                    <statement name="STACK">
+                        <block type="robActions_motorDiff_curve_for" id="pt81" intask="true">
+                            <field name="DIRECTION">FOREWARD</field>
+                            <value name="POWER_LEFT">
+                                <block type="math_number" id="pt82" intask="true">
+                                    <field name="NUM">30</field>
+                                </block>
+                            </value>
+                            <value name="POWER_RIGHT">
+                                <block type="math_number" id="pt83" intask="true">
+                                    <field name="NUM">60</field>
+                                </block>
+                            </value>
+                            <value name="DISTANCE">
+                                <block type="math_number" id="pt84" intask="true">
+                                    <field name="NUM">20</field>
+                                </block>
+                            </value>
+                        </block>
+                    </statement>
+                </block>
+            </instance>
+            <instance x="20" y="20">
+                <block type="nepoTest_suite" id="p81" intask="true"/>
+                <block type="nepoTest_run" id="p82" intask="true">
+                    <field name="NAME">drives forward until the obstacle, then stops within 100 ms</field>
+                </block>
+                <block type="nepoTest_run" id="p83" intask="true">
+                    <field name="NAME">beeps once, at 440 Hz, for 200 ms</field>
+                </block>
+                <block type="nepoTest_run" id="p84" intask="true">
+                    <field name="NAME">the square ends where it started</field>
+                </block>
+                <block type="nepoTest_run" id="p85" intask="true">
+                    <field name="NAME">blink 3 blinks 3 times</field>
+                </block>
+                <block type="nepoTest_run" id="p86" intask="true">
+                    <field name="NAME">curveLeft curves left</field>
+                </block>
+                <block type="nepoTest_run" id="p87" intask="true">
+                    <field name="NAME">at the end, only the left motor ran</field>
+                </block>
+                <block type="nepoTest_run" id="p88" intask="true">
+                    <field name="NAME">stands still while the obstacle is there</field>
+                </block>
+            </instance>
+            <instance x="400" y="20">
+                <block type="nepoTest_test" id="p13" intask="true">
+                    <field name="NAME">drives forward until the obstacle, then stops within 100 ms</field>
+                    <statement name="GIVEN">
+                        <block type="nepoTest_given_obstacle" id="p01" intask="true">
+                            <field name="FROM">2000</field>
+                            <field name="DURATION">500</field>
+                            <field name="PORT">FRONT</field>
+                        </block>
+                    </statement>
+                    <statement name="WHEN">
+                        <block type="nepoTest_when_run" id="p02" intask="true">
+                            <field name="SECONDS">20</field>
+                        </block>
+                    </statement>
+                    <statement name="THEN">
+                        <block type="nepoTest_expect_status" id="p03" intask="true">
+                            <field name="STATUS">finished</field>
+                        </block>
+                        <block type="nepoTest_expect_state_at" id="p06" intask="true">
+                            <field name="AT">1500</field>
+                            <value name="STATE">
+                                <block type="nepoTest_state_robot" id="p05" intask="true">
+                                    <field name="MOVE">forward</field>
+                                    <value name="POWER">
+                                        <block type="math_number" id="p04" intask="true">
+                                            <field name="NUM">50</field>
+                                        </block>
+                                    </value>
+                                </block>
+                            </value>
+                        </block>
+                        <block type="nepoTest_expect_state_after" id="p08" intask="true">
+                            <field name="WITHIN">100</field>
+                            <field name="EACH">each</field>
+                            <field name="EVENT">obstacle_start</field>
+                            <value name="STATE">
+                                <block type="nepoTest_state_robot" id="p07" intask="true">
+                                    <field name="MOVE">still</field>
+                                </block>
+                            </value>
+                        </block>
+                        <block type="nepoTest_expect_state_during" id="p10" intask="true">
+                            <field name="QUANT">always</field>
+                            <field name="FROM">300</field>
+                            <field name="TO">2000</field>
+                            <value name="STATE">
+                                <block type="nepoTest_state_led" id="p09" intask="true">
+                                    <field name="PORT">left</field>
+                                    <field name="IS">on</field>
+                                </block>
+                            </value>
+                        </block>
+                        <block type="nepoTest_expect_state_end" id="p12" intask="true">
+                            <value name="STATE">
+                                <block type="nepoTest_state_led" id="p11" intask="true">
+                                    <field name="PORT">left</field>
+                                    <field name="IS">off</field>
+                                </block>
+                            </value>
+                        </block>
+                    </statement>
+                </block>
+            </instance>
+            <instance x="400" y="420">
+                <block type="nepoTest_test" id="p25" intask="true">
+                    <field name="NAME">beeps once, at 440 Hz, for 200 ms</field>
+                    <statement name="GIVEN">
+                        <block type="nepoTest_given_obstacle" id="p14" intask="true">
+                            <field name="FROM">2000</field>
+                            <field name="DURATION">500</field>
+                            <field name="PORT">FRONT</field>
+                        </block>
+                    </statement>
+                    <statement name="WHEN">
+                        <block type="nepoTest_when_run" id="p15" intask="true">
+                            <field name="SECONDS">20</field>
+                        </block>
+                    </statement>
+                    <statement name="THEN">
+                        <block type="nepoTest_expect_state_count" id="p18" intask="true">
+                            <field name="OP">EQ</field>
+                            <field name="COUNT">1</field>
+                            <value name="STATE">
+                                <block type="nepoTest_state_sound" id="p17" intask="true">
+                                    <field name="SOUND">tone</field>
+                                    <value name="FREQUENCY">
+                                        <block type="math_number" id="p16" intask="true">
+                                            <field name="NUM">440</field>
+                                        </block>
+                                    </value>
+                                </block>
+                            </value>
+                        </block>
+                        <block type="nepoTest_expect_state_for" id="p20" intask="true">
+                            <field name="OP">ABOUT</field>
+                            <field name="MS">200</field>
+                            <value name="STATE">
+                                <block type="nepoTest_state_sound" id="p19" intask="true">
+                                    <field name="SOUND">tone</field>
+                                </block>
+                            </value>
+                        </block>
+                        <block type="nepoTest_expect_state_during" id="p24" intask="true">
+                            <field name="QUANT">never</field>
+                            <field name="FROM"></field>
+                            <field name="TO"></field>
+                            <value name="STATE">
+                                <block type="nepoTest_state_logic" id="p23" intask="true">
+                                    <field name="OP">AND</field>
+                                    <value name="A">
+                                        <block type="nepoTest_state_sound" id="p21" intask="true">
+                                            <field name="SOUND">any</field>
+                                        </block>
+                                    </value>
+                                    <value name="B">
+                                        <block type="nepoTest_state_robot" id="p22" intask="true">
+                                            <field name="MOVE">forward</field>
+                                        </block>
+                                    </value>
+                                </block>
+                            </value>
+                        </block>
+                    </statement>
+                </block>
+            </instance>
+            <instance x="400" y="820">
+                <block type="nepoTest_test" id="p41" intask="true">
+                    <field name="NAME">the square ends where it started</field>
+                    <statement name="WHEN">
+                        <block type="nepoTest_when_call" id="p27" intask="true">
+                            <mutation name="square"><arg name="side" type="Number"/></mutation>
+                            <field name="FUNCTION">square</field>
+                            <value name="ARG0">
+                                <block type="math_number" id="p26" intask="true">
+                                    <field name="NUM">20</field>
+                                </block>
+                            </value>
+                        </block>
+                    </statement>
+                    <statement name="THEN">
+                        <block type="nepoTest_expect_position" id="p28" intask="true">
+                            <field name="AHEAD">0</field>
+                            <field name="AHEAD_DIR">ahead</field>
+                            <field name="SIDE">0</field>
+                            <field name="SIDE_DIR">left</field>
+                            <field name="TOL">1</field>
+                        </block>
+                        <block type="nepoTest_expect_turned" id="p29" intask="true">
+                            <field name="DEGREES">360</field>
+                            <field name="DIR">right</field>
+                            <field name="TOL">5</field>
+                        </block>
+                        <block type="nepoTest_expect_distance" id="p30" intask="true">
+                            <field name="DISTANCE">80</field>
+                            <field name="DIR">forward</field>
+                            <field name="TOL">1</field>
+                        </block>
+                        <block type="nepoTest_expect_state_end" id="p33" intask="true">
+                            <value name="STATE">
+                                <block type="nepoTest_state_variable" id="p32" intask="true">
+                                    <field name="VAR">sides</field>
+                                    <field name="OP">EQ</field>
+                                    <value name="VALUE">
+                                        <block type="math_number" id="p31" intask="true">
+                                            <field name="NUM">4</field>
+                                        </block>
+                                    </value>
+                                </block>
+                            </value>
+                        </block>
+                        <block type="nepoTest_expect_state_count" id="p36" intask="true">
+                            <field name="OP">EQ</field>
+                            <field name="COUNT">4</field>
+                            <value name="STATE">
+                                <block type="nepoTest_state_robot" id="p35" intask="true">
+                                    <field name="MOVE">turn_right</field>
+                                    <value name="POWER">
+                                        <block type="math_number" id="p34" intask="true">
+                                            <field name="NUM">50</field>
+                                        </block>
+                                    </value>
+                                </block>
+                            </value>
+                        </block>
+                        <block type="nepoTest_expect_state_during" id="p40" intask="true">
+                            <field name="QUANT">never</field>
+                            <field name="FROM"></field>
+                            <field name="TO"></field>
+                            <value name="STATE">
+                                <block type="nepoTest_state_logic" id="p39" intask="true">
+                                    <field name="OP">OR</field>
+                                    <value name="A">
+                                        <block type="nepoTest_state_robot" id="p37" intask="true">
+                                            <field name="MOVE">curve_left</field>
+                                        </block>
+                                    </value>
+                                    <value name="B">
+                                        <block type="nepoTest_state_robot" id="p38" intask="true">
+                                            <field name="MOVE">curve_right</field>
+                                        </block>
+                                    </value>
+                                </block>
+                            </value>
+                        </block>
+                    </statement>
+                </block>
+            </instance>
+            <instance x="400" y="1220">
+                <block type="nepoTest_test" id="p50" intask="true">
+                    <field name="NAME">blink 3 blinks 3 times</field>
+                    <statement name="WHEN">
+                        <block type="nepoTest_when_call" id="p43" intask="true">
+                            <mutation name="blink"><arg name="times" type="Number"/></mutation>
+                            <field name="FUNCTION">blink</field>
+                            <value name="ARG0">
+                                <block type="math_number" id="p42" intask="true">
+                                    <field name="NUM">3</field>
+                                </block>
+                            </value>
+                        </block>
+                    </statement>
+                    <statement name="THEN">
+                        <block type="nepoTest_expect_state_count" id="p45" intask="true">
+                            <field name="OP">EQ</field>
+                            <field name="COUNT">3</field>
+                            <value name="STATE">
+                                <block type="nepoTest_state_led" id="p44" intask="true">
+                                    <field name="PORT">left</field>
+                                    <field name="IS">on</field>
+                                </block>
+                            </value>
+                        </block>
+                        <block type="nepoTest_expect_state_for" id="p47" intask="true">
+                            <field name="OP">ABOUT</field>
+                            <field name="MS">600</field>
+                            <value name="STATE">
+                                <block type="nepoTest_state_led" id="p46" intask="true">
+                                    <field name="PORT">left</field>
+                                    <field name="IS">on</field>
+                                </block>
+                            </value>
+                        </block>
+                        <block type="nepoTest_expect_state_during" id="p49" intask="true">
+                            <field name="QUANT">always</field>
+                            <field name="FROM"></field>
+                            <field name="TO"></field>
+                            <value name="STATE">
+                                <block type="nepoTest_state_robot" id="p48" intask="true">
+                                    <field name="MOVE">still</field>
+                                </block>
+                            </value>
+                        </block>
+                    </statement>
+                </block>
+            </instance>
+            <instance x="400" y="1620">
+                <block type="nepoTest_test" id="p63" intask="true">
+                    <field name="NAME">curveLeft curves left</field>
+                    <statement name="WHEN">
+                        <block type="nepoTest_when_call" id="p51" intask="true">
+                            <mutation name="curveLeft"></mutation>
+                            <field name="FUNCTION">curveLeft</field>
+                        </block>
+                    </statement>
+                    <statement name="THEN">
+                        <block type="nepoTest_expect_state_during" id="p53" intask="true">
+                            <field name="QUANT">sometime</field>
+                            <field name="FROM"></field>
+                            <field name="TO"></field>
+                            <value name="STATE">
+                                <block type="nepoTest_state_robot" id="p52" intask="true">
+                                    <field name="MOVE">curve_left</field>
+                                </block>
+                            </value>
+                        </block>
+                        <block type="nepoTest_expect_state_at" id="p59" intask="true">
+                            <field name="AT">1000</field>
+                            <value name="STATE">
+                                <block type="nepoTest_state_logic" id="p58" intask="true">
+                                    <field name="OP">AND</field>
+                                    <value name="A">
+                                        <block type="nepoTest_state_motor" id="p55" intask="true">
+                                            <field name="PORT">left</field>
+                                            <field name="IS">forward</field>
+                                            <value name="POWER">
+                                                <block type="math_number" id="p54" intask="true">
+                                                    <field name="NUM">30</field>
+                                                </block>
+                                            </value>
+                                        </block>
+                                    </value>
+                                    <value name="B">
+                                        <block type="nepoTest_state_motor" id="p57" intask="true">
+                                            <field name="PORT">right</field>
+                                            <field name="IS">forward</field>
+                                            <value name="POWER">
+                                                <block type="math_number" id="p56" intask="true">
+                                                    <field name="NUM">60</field>
+                                                </block>
+                                            </value>
+                                        </block>
+                                    </value>
+                                </block>
+                            </value>
+                        </block>
+                        <block type="nepoTest_expect_state_end" id="p61" intask="true">
+                            <value name="STATE">
+                                <block type="nepoTest_state_robot" id="p60" intask="true">
+                                    <field name="MOVE">still</field>
+                                </block>
+                            </value>
+                        </block>
+                        <block type="nepoTest_expect_turned" id="p62" intask="true">
+                            <field name="DEGREES">80</field>
+                            <field name="DIR">left</field>
+                            <field name="TOL">5</field>
+                        </block>
+                    </statement>
+                </block>
+            </instance>
+            <instance x="400" y="2020">
+                <block type="nepoTest_test" id="p74" intask="true">
+                    <field name="NAME">at the end, only the left motor ran</field>
+                    <statement name="GIVEN">
+                        <block type="nepoTest_given_obstacle" id="p64" intask="true">
+                            <field name="FROM">2000</field>
+                            <field name="DURATION">500</field>
+                            <field name="PORT">FRONT</field>
+                        </block>
+                    </statement>
+                    <statement name="WHEN">
+                        <block type="nepoTest_when_run" id="p65" intask="true">
+                            <field name="SECONDS">20</field>
+                        </block>
+                    </statement>
+                    <statement name="THEN">
+                        <block type="nepoTest_expect_state_at" id="p70" intask="true">
+                            <field name="AT">11000</field>
+                            <value name="STATE">
+                                <block type="nepoTest_state_logic" id="p69" intask="true">
+                                    <field name="OP">AND</field>
+                                    <value name="A">
+                                        <block type="nepoTest_state_motor" id="p67" intask="true">
+                                            <field name="PORT">left</field>
+                                            <field name="IS">forward</field>
+                                            <value name="POWER">
+                                                <block type="math_number" id="p66" intask="true">
+                                                    <field name="NUM">30</field>
+                                                </block>
+                                            </value>
+                                        </block>
+                                    </value>
+                                    <value name="B">
+                                        <block type="nepoTest_state_motor" id="p68" intask="true">
+                                            <field name="PORT">right</field>
+                                            <field name="IS">stopped</field>
+                                        </block>
+                                    </value>
+                                </block>
+                            </value>
+                        </block>
+                        <block type="nepoTest_expect_state_end" id="p72" intask="true">
+                            <value name="STATE">
+                                <block type="nepoTest_state_robot" id="p71" intask="true">
+                                    <field name="MOVE">still</field>
+                                </block>
+                            </value>
+                        </block>
+                        <block type="nepoTest_expect_finish_within" id="p73" intask="true">
+                            <field name="SECONDS">15</field>
+                        </block>
+                    </statement>
+                </block>
+            </instance>
+            <instance x="400" y="2420">
+                <block type="nepoTest_test" id="p80" intask="true">
+                    <field name="NAME">stands still while the obstacle is there</field>
+                    <statement name="GIVEN">
+                        <block type="nepoTest_given_obstacle" id="p75" intask="true">
+                            <field name="FROM">2000</field>
+                            <field name="DURATION">500</field>
+                            <field name="PORT">FRONT</field>
+                        </block>
+                    </statement>
+                    <statement name="WHEN">
+                        <block type="nepoTest_when_run" id="p76" intask="true">
+                            <field name="SECONDS">20</field>
+                        </block>
+                    </statement>
+                    <statement name="THEN">
+                        <block type="nepoTest_expect_state_while" id="p79" intask="true">
+                            <field name="DELAY">50</field>
+                            <value name="COND">
+                                <block type="nepoTest_cond_obstacle" id="p77" intask="true">
+                                    <field name="PORT">FRONT</field>
+                                </block>
+                            </value>
+                            <value name="STATE">
+                                <block type="nepoTest_state_robot" id="p78" intask="true">
+                                    <field name="MOVE">still</field>
+                                </block>
+                            </value>
+                        </block>
+                    </statement>
+                </block>
+            </instance>
+        </block_set>
+    </program>
+    <config>
+        <block_set xmlns="http://de.fhg.iais.roberta.blockly" robottype="edison" xmlversion="3.1" description="" tags="">
+            <instance x="213" y="213">
+                <block type="robBrick_Edison-Brick" id="1" intask="true" deletable="false"/>
+            </instance>
+        </block_set>
+    </config>
+</export>

@@ -1,0 +1,505 @@
+{
+ "annotated_prog_xml": "<block_set robottype=\"edison\" xmlversion=\"3.1\" description=\"\" tags=\"\" xmlns=\"http://de.fhg.iais.roberta.blockly\"><instance x=\"20\" y=\"20\"><block type=\"robControls_start\" id=\"pt01\" intask=\"true\" deletable=\"false\"><mutation declare=\"true\"/><field name=\"DEBUG\">FALSE</field><statement name=\"ST\"><block type=\"robGlobalVariables_declare\" id=\"pt03\" intask=\"true\" deletable=\"false\" movable=\"false\"><mutation next=\"false\" declaration_type=\"Number\"/><field name=\"VAR\">sides</field><field name=\"TYPE\">Number</field><value name=\"VALUE\"><block type=\"math_number\" id=\"pt02\" intask=\"true\"><field name=\"NUM\">0</field></block></value></block></statement></block><block type=\"actions_led_edison\" id=\"pt10\" intask=\"true\"><field name=\"ACTORPORT\">LLED</field><field name=\"MODE\">ON</field></block><block type=\"robActions_motorDiff_on\" id=\"pt11\" intask=\"true\"><field name=\"DIRECTION\">FOREWARD</field><value name=\"POWER\"><block type=\"math_number\" id=\"pt12\" intask=\"true\"><field name=\"NUM\">50</field></block></value></block><block type=\"robControls_wait_for\" id=\"pt13\" intask=\"true\"><value name=\"WAIT0\"><block type=\"logic_compare\" id=\"pt14\" intask=\"true\"><field name=\"OP\">EQ</field><value name=\"A\"><block type=\"robSensors_getSample\" id=\"pt15\" intask=\"true\"><mutation input=\"INFRARED_OBSTACLE\"/><field name=\"SENSORTYPE\">INFRARED_OBSTACLE</field><field name=\"SENSORPORT\">FRONT</field><field name=\"SLOT\"></field></block></value><value name=\"B\"><block type=\"logic_boolean\" id=\"pt16\" intask=\"true\"><field name=\"BOOL\">TRUE</field></block></value></block></value></block><block type=\"robActions_motorDiff_stop\" id=\"pt17\" intask=\"true\"/><block type=\"actions_led_edison\" id=\"pt18\" intask=\"true\"><field name=\"ACTORPORT\">LLED</field><field name=\"MODE\">OFF</field></block><block type=\"robActions_play_tone\" id=\"pt19\" intask=\"true\"><value name=\"FREQUENCE\"><block type=\"math_number\" id=\"pt20\" intask=\"true\"><field name=\"NUM\">440</field></block></value><value name=\"DURATION\"><block type=\"math_number\" id=\"pt21\" intask=\"true\"><field name=\"NUM\">200</field></block></value></block><block type=\"robProcedures_callnoreturn\" id=\"pt22\" intask=\"true\"><mutation name=\"square\"><arg name=\"side\" type=\"Number\"/></mutation><value name=\"ARG0\"><block type=\"math_number\" id=\"pt23\" intask=\"true\"><field name=\"NUM\">20</field></block></value></block><block type=\"robActions_motor_on\" id=\"pt24\" intask=\"true\"><field name=\"MOTORPORT\">LMOTOR</field><value name=\"POWER\"><block type=\"math_number\" id=\"pt25\" intask=\"true\"><field name=\"NUM\">30</field></block></value></block><block type=\"robControls_wait_time\" id=\"pt26\" intask=\"true\"><value name=\"WAIT\"><block type=\"math_number\" id=\"pt27\" intask=\"true\"><field name=\"NUM\">1000</field></block></value></block><block type=\"robActions_motor_stop\" id=\"pt28\" intask=\"true\"><field name=\"MOTORPORT\">LMOTOR</field></block></instance><instance x=\"500\" y=\"20\"><block type=\"robProcedures_defnoreturn\" id=\"pt40\" intask=\"true\"><mutation declare=\"true\"/><field name=\"NAME\">square</field><statement name=\"ST\"><block type=\"robLocalVariables_declare\" id=\"pt41\" intask=\"true\" deletable=\"false\" movable=\"false\"><mutation next=\"false\" declaration_type=\"Number\"/><field name=\"VAR\">side</field><field name=\"TYPE\">Number</field></block></statement><statement name=\"STACK\"><block type=\"controls_repeat_ext\" id=\"pt42\" intask=\"true\"><value name=\"TIMES\"><block type=\"math_number\" id=\"pt43\" intask=\"true\"><field name=\"NUM\">4</field></block></value><statement name=\"DO\"><block type=\"robActions_motorDiff_on_for\" id=\"pt44\" intask=\"true\"><field name=\"DIRECTION\">FOREWARD</field><value name=\"POWER\"><block type=\"math_number\" id=\"pt45\" intask=\"true\"><field name=\"NUM\">50</field></block></value><value name=\"DISTANCE\"><block type=\"variables_get\" id=\"pt46\" intask=\"true\"><mutation datatype=\"Number\"/><field name=\"VAR\">side</field></block></value></block><block type=\"robActions_motorDiff_turn_for\" id=\"pt47\" intask=\"true\"><field name=\"DIRECTION\">RIGHT</field><value name=\"POWER\"><block type=\"math_number\" id=\"pt48\" intask=\"true\"><field name=\"NUM\">50</field></block></value><value name=\"DEGREE\"><block type=\"math_number\" id=\"pt49\" intask=\"true\"><field name=\"NUM\">90</field></block></value></block><block type=\"robMath_change\" id=\"pt50\" intask=\"true\"><value name=\"VAR\"><block type=\"variables_get\" id=\"pt51\" intask=\"true\"><mutation datatype=\"Number\"/><field name=\"VAR\">sides</field></block></value><value name=\"DELTA\"><block type=\"math_number\" id=\"pt52\" intask=\"true\"><field name=\"NUM\">1</field></block></value></block></statement></block></statement></block></instance><instance x=\"500\" y=\"400\"><block type=\"robProcedures_defnoreturn\" id=\"pt60\" intask=\"true\"><mutation declare=\"true\"/><field name=\"NAME\">blink</field><statement name=\"ST\"><block type=\"robLocalVariables_declare\" id=\"pt61\" intask=\"true\" deletable=\"false\" movable=\"false\"><mutation next=\"false\" declaration_type=\"Number\"/><field name=\"VAR\">times</field><field name=\"TYPE\">Number</field></block></statement><statement name=\"STACK\"><block type=\"controls_repeat_ext\" id=\"pt62\" intask=\"true\"><value name=\"TIMES\"><block type=\"variables_get\" id=\"pt63\" intask=\"true\"><mutation datatype=\"Number\"/><field name=\"VAR\">times</field></block></value><statement name=\"DO\"><block type=\"actions_led_edison\" id=\"pt64\" intask=\"true\"><field name=\"ACTORPORT\">LLED</field><field name=\"MODE\">ON</field></block><block type=\"robControls_wait_time\" id=\"pt65\" intask=\"true\"><value name=\"WAIT\"><block type=\"math_number\" id=\"pt66\" intask=\"true\"><field name=\"NUM\">200</field></block></value></block><block type=\"actions_led_edison\" id=\"pt67\" intask=\"true\"><field name=\"ACTORPORT\">LLED</field><field name=\"MODE\">OFF</field></block><block type=\"robControls_wait_time\" id=\"pt68\" intask=\"true\"><value name=\"WAIT\"><block type=\"math_number\" id=\"pt69\" intask=\"true\"><field name=\"NUM\">200</field></block></value></block></statement></block></statement></block></instance><instance x=\"500\" y=\"700\"><block type=\"robProcedures_defnoreturn\" id=\"pt80\" intask=\"true\"><mutation declare=\"false\"/><field name=\"NAME\">curveLeft</field><statement name=\"STACK\"><block type=\"robActions_motorDiff_curve_for\" id=\"pt81\" intask=\"true\"><field name=\"DIRECTION\">FOREWARD</field><value name=\"POWER_LEFT\"><block type=\"math_number\" id=\"pt82\" intask=\"true\"><field name=\"NUM\">30</field></block></value><value name=\"POWER_RIGHT\"><block type=\"math_number\" id=\"pt83\" intask=\"true\"><field name=\"NUM\">60</field></block></value><value name=\"DISTANCE\"><block type=\"math_number\" id=\"pt84\" intask=\"true\"><field name=\"NUM\">20</field></block></value></block></statement></block></instance></block_set>",
+ "cause": "ORA_COMPILERWORKFLOW_PROGRAM_GENERATION_SUCCESS",
+ "converted_at": "2026-09-29T15:52:54",
+ "edpy": "import Ed\n\ndef _diffCurve(direction, leftSpeed, rightSpeed, distance):\n    if (leftSpeed < 0): \n        _leftSpeed = _shorten(-leftSpeed)\n        _reverseLeft = True\n    else: \n        _leftSpeed = _shorten(leftSpeed)\n        _reverseLeft = False\n    if (rightSpeed < 0): \n        _rightSpeed = _shorten(-rightSpeed)\n        _reverseRight = True\n    else: \n        _rightSpeed = _shorten(rightSpeed)\n        _reverseRight = False\n    if (_leftSpeed > _rightSpeed):\n        if (_rightSpeed == 0):\n            Ed.DriveRightMotor(Ed.STOP, 0, 0)\n        else:\n            Ed.DriveLeftMotor(_getDirection(direction, _reverseLeft), _leftSpeed, Ed.DISTANCE_UNLIMITED)\n            Ed.DriveRightMotor(_getDirection(direction, _reverseRight), _rightSpeed, Ed.DISTANCE_UNLIMITED)\n        Ed.DriveLeftMotor(_getDirection(direction, _reverseLeft), _leftSpeed, distance)\n        if (distance != Ed.DISTANCE_UNLIMITED): \n            Ed.Drive(Ed.STOP, 1, 1)\n    elif (_leftSpeed < _rightSpeed):\n        if (_leftSpeed == 0):\n            Ed.DriveLeftMotor(Ed.STOP, 0, 0)\n        else:\n            Ed.DriveRightMotor(_getDirection(direction, _reverseRight), _rightSpeed, Ed.DISTANCE_UNLIMITED)\n            Ed.DriveLeftMotor(_getDirection(direction, _reverseLeft), _leftSpeed, Ed.DISTANCE_UNLIMITED)\n        Ed.DriveRightMotor(_getDirection(direction, _reverseRight), _rightSpeed, distance)\n        if (distance != Ed.DISTANCE_UNLIMITED): \n            Ed.Drive(Ed.STOP, 1, 1)\n    else:\n        if (_leftSpeed == 0):\n            Ed.Drive(Ed.STOP, 1, 1)\n        else:\n            Ed.Drive(_getDirection(direction, _reverseLeft), _leftSpeed, distance)\n\ndef _diffDrive(direction, speed, distance):\n    _reverse = False\n    if speed < 0:\n        _reverse = True\n        _speed = _shorten(-speed)\n    else: \n        _speed = _shorten(speed)\n    if (_speed == 0): \n        Ed.Drive(Ed.STOP, 1, 1)\n    else: \n        Ed.Drive(_getDirection(direction, _reverse), _speed, distance)\n\ndef _diffTurn(direction, speed, degree):\n    _reverse = False\n    if speed < 0:\n        _reverse = True\n        _speed = _shorten(-speed)\n    else: \n        _speed = _shorten(speed)\n    if (_speed == 0): \n        Ed.Drive(Ed.STOP, 1, 1)\n    elif _reverse:\n        if direction == Ed.SPIN_RIGHT: \n            Ed.Drive(Ed.SPIN_LEFT, _speed, degree)\n        else: \n            Ed.Drive(Ed.SPIN_RIGHT, _speed, degree)\n    else: \n        Ed.Drive(direction, _speed, degree)\n\ndef _getDirection(dir, reverse):\n    if reverse:\n        if (dir == Ed.FORWARD): \n            return Ed.BACKWARD\n        else: \n            return Ed.FORWARD\n    else: \n        return dir\n\ndef _motorOn(motor, power, distance):\n    _dir = Ed.FORWARD\n    _reverse = False\n    if (power < 0):\n        _power = _shorten(-power)\n        _reverse = True\n    else: _power = _shorten(power)\n    if (motor == Ed.MOTOR_LEFT):\n        if (_power == 0): \n            Ed.DriveLeftMotor(Ed.STOP, 0, 0)\n        else: \n            Ed.DriveLeftMotor(_getDirection(_dir, _reverse), _power, distance)\n    if (motor == Ed.MOTOR_RIGHT):\n        if (_power == 0): \n            Ed.DriveRightMotor(Ed.STOP, 0, 0)\n        else: \n            Ed.DriveRightMotor(_getDirection(_dir, _reverse), _power, distance)\n\ndef _obstacleDetection(mode):\n    global obstacleDetectionOn\n    if (obstacleDetectionOn == False):\n        Ed.ObstacleDetectionBeam(Ed.ON)\n        obstacleDetectionOn = True\n    return Ed.ReadObstacleDetection() == mode\n\ndef _shorten(num): \n    return ((num+5)/10)\n\nEd.EdisonVersion = Ed.V2\nEd.DistanceUnits = Ed.CM\nEd.Tempo = Ed.TEMPO_SLOW\nobstacleDetectionOn = False\nEd.LineTrackerLed(Ed.ON)\nEd.ReadClapSensor()\nEd.ReadLineState()\nEd.TimeWait(250, Ed.TIME_MILLISECONDS)\n\n___sides = 0\n\ndef ____square(___side):\n    global ___sides\n    for ___k0 in range(4):\n        _diffDrive(Ed.FORWARD, 50, ___side)\n        Ed.ReadClapSensor()\n        _diffTurn(Ed.SPIN_RIGHT, 50, 90)\n        Ed.ReadClapSensor()\n        ___sides += 1\n\ndef ____blink(___times):\n    global ___sides\n    for ___k1 in range(___times):\n        Ed.LeftLed(Ed.ON)\n        Ed.TimeWait(200, Ed.TIME_MILLISECONDS)\n        Ed.LeftLed(Ed.OFF)\n        Ed.TimeWait(200, Ed.TIME_MILLISECONDS)\n\ndef ____curveLeft():\n    global ___sides\n    _diffCurve(Ed.FORWARD, 30, 60, 20)\n    Ed.ReadClapSensor()\n\n\nEd.LeftLed(Ed.ON)\n_diffDrive(Ed.FORWARD, 50, Ed.DISTANCE_UNLIMITED)\nwhile True:\n    if (_obstacleDetection(Ed.OBSTACLE_AHEAD)) == True:\n        break\n    pass\nEd.Drive(Ed.STOP, Ed.SPEED_1, 1)\nEd.ReadClapSensor()\nEd.LeftLed(Ed.OFF)\nEd.PlayTone(8000000/440, 200)\nEd.TimeWait(200, Ed.TIME_MILLISECONDS)\nEd.ReadClapSensor()\n____square(20)\n_motorOn(0, 30, Ed.DISTANCE_UNLIMITED)\nEd.TimeWait(1000, Ed.TIME_MILLISECONDS)\nEd.DriveLeftMotor(Ed.STOP, Ed.SPEED_1, 1)\nEd.ReadClapSensor()\n\n",
+ "format": "nepotest-bundle",
+ "lab": "http://localhost:1999",
+ "message": "ORA_COMPILERWORKFLOW_PROGRAM_GENERATION_SUCCESS",
+ "program_name": "patrol",
+ "rc": "ok",
+ "robot": "edisonv2",
+ "source_map": {
+  "blocks": {
+   "1": {
+    "ranges": [
+     [
+      3683,
+      3695
+     ],
+     [
+      3777,
+      3931
+     ],
+     [
+      3746,
+      3931
+     ],
+     [
+      4020,
+      4158
+     ],
+     [
+      3982,
+      4158
+     ],
+     [
+      4205,
+      4263
+     ],
+     [
+      4597,
+      4599
+     ]
+    ],
+    "type": "STMT_LIST"
+   },
+   "pt01": {
+    "ranges": [
+     [
+      3683,
+      4263
+     ]
+    ],
+    "type": "robControls_start"
+   },
+   "pt02": {
+    "ranges": [
+     [
+      3694,
+      3695
+     ]
+    ],
+    "type": "math_number"
+   },
+   "pt03": {
+    "ranges": [
+     [
+      3683,
+      3695
+     ]
+    ],
+    "type": "robGlobalVariables_declare"
+   },
+   "pt10": {
+    "ranges": [
+     [
+      4266,
+      4283
+     ]
+    ],
+    "type": "actions_led_edison"
+   },
+   "pt11": {
+    "ranges": [
+     [
+      4284,
+      4333
+     ]
+    ],
+    "type": "robActions_motorDiff_on"
+   },
+   "pt12": {
+    "ranges": [
+     [
+      4307,
+      4309
+     ]
+    ],
+    "type": "math_number"
+   },
+   "pt13": {
+    "ranges": [
+     [
+      4350,
+      4415
+     ],
+     [
+      4334,
+      4424
+     ]
+    ],
+    "type": "robControls_wait_for"
+   },
+   "pt14": {
+    "ranges": [
+     [
+      4353,
+      4400
+     ]
+    ],
+    "type": "logic_compare"
+   },
+   "pt15": {
+    "ranges": [
+     [
+      4354,
+      4391
+     ],
+     [
+      4353,
+      4392
+     ]
+    ],
+    "type": "robSensors_getSample"
+   },
+   "pt16": {
+    "ranges": [
+     [
+      4396,
+      4400
+     ]
+    ],
+    "type": "logic_boolean"
+   },
+   "pt17": {
+    "ranges": [
+     [
+      4425,
+      4477
+     ]
+    ],
+    "type": "robActions_motorDiff_stop"
+   },
+   "pt18": {
+    "ranges": [
+     [
+      4478,
+      4496
+     ]
+    ],
+    "type": "actions_led_edison"
+   },
+   "pt19": {
+    "ranges": [
+     [
+      4497,
+      4585
+     ]
+    ],
+    "type": "robActions_play_tone"
+   },
+   "pt20": {
+    "ranges": [
+     [
+      4517,
+      4520
+     ]
+    ],
+    "type": "math_number"
+   },
+   "pt21": {
+    "ranges": [
+     [
+      4522,
+      4525
+     ],
+     [
+      4539,
+      4542
+     ]
+    ],
+    "type": "math_number"
+   },
+   "pt22": {
+    "ranges": [
+     [
+      4586,
+      4600
+     ]
+    ],
+    "type": "robProcedures_callnoreturn"
+   },
+   "pt23": {
+    "ranges": [
+     [
+      4597,
+      4599
+     ]
+    ],
+    "type": "math_number"
+   },
+   "pt24": {
+    "ranges": [
+     [
+      4601,
+      4639
+     ]
+    ],
+    "type": "robActions_motor_on"
+   },
+   "pt25": {
+    "ranges": [
+     [
+      4613,
+      4615
+     ]
+    ],
+    "type": "math_number"
+   },
+   "pt26": {
+    "ranges": [
+     [
+      4640,
+      4679
+     ]
+    ],
+    "type": "robControls_wait_time"
+   },
+   "pt27": {
+    "ranges": [
+     [
+      4652,
+      4656
+     ]
+    ],
+    "type": "math_number"
+   },
+   "pt28": {
+    "ranges": [
+     [
+      4680,
+      4741
+     ]
+    ],
+    "type": "robActions_motor_stop"
+   },
+   "pt40": {
+    "ranges": [
+     [
+      3697,
+      3931
+     ]
+    ],
+    "type": "robProcedures_defnoreturn"
+   },
+   "pt42": {
+    "ranges": [
+     [
+      3750,
+      3755
+     ],
+     [
+      3746,
+      3931
+     ]
+    ],
+    "type": "controls_repeat_ext"
+   },
+   "pt43": {
+    "ranges": [
+     [
+      3765,
+      3766
+     ]
+    ],
+    "type": "math_number"
+   },
+   "pt44": {
+    "ranges": [
+     [
+      3777,
+      3840
+     ]
+    ],
+    "type": "robActions_motorDiff_on_for"
+   },
+   "pt45": {
+    "ranges": [
+     [
+      3800,
+      3802
+     ]
+    ],
+    "type": "math_number"
+   },
+   "pt46": {
+    "ranges": [
+     [
+      3804,
+      3811
+     ]
+    ],
+    "type": "variables_get"
+   },
+   "pt47": {
+    "ranges": [
+     [
+      3849,
+      3909
+     ]
+    ],
+    "type": "robActions_motorDiff_turn_for"
+   },
+   "pt48": {
+    "ranges": [
+     [
+      3874,
+      3876
+     ]
+    ],
+    "type": "math_number"
+   },
+   "pt49": {
+    "ranges": [
+     [
+      3878,
+      3880
+     ]
+    ],
+    "type": "math_number"
+   },
+   "pt50": {
+    "ranges": [
+     [
+      3918,
+      3931
+     ]
+    ],
+    "type": "robMath_change"
+   },
+   "pt51": {
+    "ranges": [
+     [
+      3918,
+      3926
+     ]
+    ],
+    "type": "variables_get"
+   },
+   "pt52": {
+    "ranges": [
+     [
+      3930,
+      3931
+     ]
+    ],
+    "type": "math_number"
+   },
+   "pt60": {
+    "ranges": [
+     [
+      3933,
+      4158
+     ]
+    ],
+    "type": "robProcedures_defnoreturn"
+   },
+   "pt62": {
+    "ranges": [
+     [
+      3986,
+      3991
+     ],
+     [
+      3982,
+      4158
+     ]
+    ],
+    "type": "controls_repeat_ext"
+   },
+   "pt63": {
+    "ranges": [
+     [
+      4001,
+      4009
+     ]
+    ],
+    "type": "variables_get"
+   },
+   "pt64": {
+    "ranges": [
+     [
+      4020,
+      4037
+     ]
+    ],
+    "type": "actions_led_edison"
+   },
+   "pt65": {
+    "ranges": [
+     [
+      4046,
+      4084
+     ]
+    ],
+    "type": "robControls_wait_time"
+   },
+   "pt66": {
+    "ranges": [
+     [
+      4058,
+      4061
+     ]
+    ],
+    "type": "math_number"
+   },
+   "pt67": {
+    "ranges": [
+     [
+      4093,
+      4111
+     ]
+    ],
+    "type": "actions_led_edison"
+   },
+   "pt68": {
+    "ranges": [
+     [
+      4120,
+      4158
+     ]
+    ],
+    "type": "robControls_wait_time"
+   },
+   "pt69": {
+    "ranges": [
+     [
+      4132,
+      4135
+     ]
+    ],
+    "type": "math_number"
+   },
+   "pt80": {
+    "ranges": [
+     [
+      4160,
+      4263
+     ]
+    ],
+    "type": "robProcedures_defnoreturn"
+   },
+   "pt81": {
+    "ranges": [
+     [
+      4205,
+      4263
+     ]
+    ],
+    "type": "robActions_motorDiff_curve_for"
+   },
+   "pt82": {
+    "ranges": [
+     [
+      4228,
+      4230
+     ]
+    ],
+    "type": "math_number"
+   },
+   "pt83": {
+    "ranges": [
+     [
+      4232,
+      4234
+     ]
+    ],
+    "type": "math_number"
+   },
+   "pt84": {
+    "ranges": [
+     [
+      4236,
+      4238
+     ]
+    ],
+    "type": "math_number"
+   }
+  },
+  "version": 1
+ },
+ "version": 1,
+ "xml": "<export xmlns=\"http://de.fhg.iais.roberta.blockly\">\n    <program>\n        <block_set xmlns=\"http://de.fhg.iais.roberta.blockly\" robottype=\"edison\" xmlversion=\"3.1\" description=\"\" tags=\"\">\n            <instance x=\"20\" y=\"20\">\n                <block type=\"robControls_start\" id=\"pt01\" intask=\"true\" deletable=\"false\">\n                    <mutation declare=\"true\"/>\n                    <field name=\"DEBUG\">FALSE</field>\n                    <statement name=\"ST\">\n                        <block type=\"robGlobalVariables_declare\" id=\"pt03\" intask=\"true\" deletable=\"false\" movable=\"false\">\n                            <mutation next=\"false\" declaration_type=\"Number\"/>\n                            <field name=\"VAR\">sides</field>\n                            <field name=\"TYPE\">Number</field>\n                            <value name=\"VALUE\">\n                                <block type=\"math_number\" id=\"pt02\" intask=\"true\">\n                                    <field name=\"NUM\">0</field>\n                                </block>\n                            </value>\n                        </block>\n                    </statement>\n                </block>\n                <block type=\"actions_led_edison\" id=\"pt10\" intask=\"true\">\n                    <field name=\"ACTORPORT\">LLED</field>\n                    <field name=\"MODE\">ON</field>\n                </block>\n                <block type=\"robActions_motorDiff_on\" id=\"pt11\" intask=\"true\">\n                    <field name=\"DIRECTION\">FOREWARD</field>\n                    <value name=\"POWER\">\n                        <block type=\"math_number\" id=\"pt12\" intask=\"true\">\n                            <field name=\"NUM\">50</field>\n                        </block>\n                    </value>\n                </block>\n                <block type=\"robControls_wait_for\" id=\"pt13\" intask=\"true\">\n                    <value name=\"WAIT0\">\n                        <block type=\"logic_compare\" id=\"pt14\" intask=\"true\">\n                            <field name=\"OP\">EQ</field>\n                            <value name=\"A\">\n                                <block type=\"robSensors_getSample\" id=\"pt15\" intask=\"true\">\n                                    <mutation input=\"INFRARED_OBSTACLE\"/>\n                                    <field name=\"SENSORTYPE\">INFRARED_OBSTACLE</field>\n                                    <field name=\"SENSORPORT\">FRONT</field>\n                                    <field name=\"SLOT\"/>\n                                </block>\n                            </value>\n                            <value name=\"B\">\n                                <block type=\"logic_boolean\" id=\"pt16\" intask=\"true\">\n                                    <field name=\"BOOL\">TRUE</field>\n                                </block>\n                            </value>\n                        </block>\n                    </value>\n                </block>\n                <block type=\"robActions_motorDiff_stop\" id=\"pt17\" intask=\"true\"/>\n                <block type=\"actions_led_edison\" id=\"pt18\" intask=\"true\">\n                    <field name=\"ACTORPORT\">LLED</field>\n                    <field name=\"MODE\">OFF</field>\n                </block>\n                <block type=\"robActions_play_tone\" id=\"pt19\" intask=\"true\">\n                    <value name=\"FREQUENCE\">\n                        <block type=\"math_number\" id=\"pt20\" intask=\"true\">\n                            <field name=\"NUM\">440</field>\n                        </block>\n                    </value>\n                    <value name=\"DURATION\">\n                        <block type=\"math_number\" id=\"pt21\" intask=\"true\">\n                            <field name=\"NUM\">200</field>\n                        </block>\n                    </value>\n                </block>\n                <block type=\"robProcedures_callnoreturn\" id=\"pt22\" intask=\"true\">\n                    <mutation name=\"square\">\n                        <arg name=\"side\" type=\"Number\"/>\n                    </mutation>\n                    <value name=\"ARG0\">\n                        <block type=\"math_number\" id=\"pt23\" intask=\"true\">\n                            <field name=\"NUM\">20</field>\n                        </block>\n                    </value>\n                </block>\n                <block type=\"robActions_motor_on\" id=\"pt24\" intask=\"true\">\n                    <field name=\"MOTORPORT\">LMOTOR</field>\n                    <value name=\"POWER\">\n                        <block type=\"math_number\" id=\"pt25\" intask=\"true\">\n                            <field name=\"NUM\">30</field>\n                        </block>\n                    </value>\n                </block>\n                <block type=\"robControls_wait_time\" id=\"pt26\" intask=\"true\">\n                    <value name=\"WAIT\">\n                        <block type=\"math_number\" id=\"pt27\" intask=\"true\">\n                            <field name=\"NUM\">1000</field>\n                        </block>\n                    </value>\n                </block>\n                <block type=\"robActions_motor_stop\" id=\"pt28\" intask=\"true\">\n                    <field name=\"MOTORPORT\">LMOTOR</field>\n                </block>\n            </instance>\n            <instance x=\"500\" y=\"20\">\n                <block type=\"robProcedures_defnoreturn\" id=\"pt40\" intask=\"true\">\n                    <mutation declare=\"true\"/>\n                    <field name=\"NAME\">square</field>\n                    <statement name=\"ST\">\n                        <block type=\"robLocalVariables_declare\" id=\"pt41\" intask=\"true\" deletable=\"false\" movable=\"false\">\n                            <mutation next=\"false\" declaration_type=\"Number\"/>\n                            <field name=\"VAR\">side</field>\n                            <field name=\"TYPE\">Number</field>\n                        </block>\n                    </statement>\n                    <statement name=\"STACK\">\n                        <block type=\"controls_repeat_ext\" id=\"pt42\" intask=\"true\">\n                            <value name=\"TIMES\">\n                                <block type=\"math_number\" id=\"pt43\" intask=\"true\">\n                                    <field name=\"NUM\">4</field>\n                                </block>\n                            </value>\n                            <statement name=\"DO\">\n                                <block type=\"robActions_motorDiff_on_for\" id=\"pt44\" intask=\"true\">\n                                    <field name=\"DIRECTION\">FOREWARD</field>\n                                    <value name=\"POWER\">\n                                        <block type=\"math_number\" id=\"pt45\" intask=\"true\">\n                                            <field name=\"NUM\">50</field>\n                                        </block>\n                                    </value>\n                                    <value name=\"DISTANCE\">\n                                        <block type=\"variables_get\" id=\"pt46\" intask=\"true\">\n                                            <mutation datatype=\"Number\"/>\n                                            <field name=\"VAR\">side</field>\n                                        </block>\n                                    </value>\n                                </block>\n                                <block type=\"robActions_motorDiff_turn_for\" id=\"pt47\" intask=\"true\">\n                                    <field name=\"DIRECTION\">RIGHT</field>\n                                    <value name=\"POWER\">\n                                        <block type=\"math_number\" id=\"pt48\" intask=\"true\">\n                                            <field name=\"NUM\">50</field>\n                                        </block>\n                                    </value>\n                                    <value name=\"DEGREE\">\n                                        <block type=\"math_number\" id=\"pt49\" intask=\"true\">\n                                            <field name=\"NUM\">90</field>\n                                        </block>\n                                    </value>\n                                </block>\n                                <block type=\"robMath_change\" id=\"pt50\" intask=\"true\">\n                                    <value name=\"VAR\">\n                                        <block type=\"variables_get\" id=\"pt51\" intask=\"true\">\n                                            <mutation datatype=\"Number\"/>\n                                            <field name=\"VAR\">sides</field>\n                                        </block>\n                                    </value>\n                                    <value name=\"DELTA\">\n                                        <block type=\"math_number\" id=\"pt52\" intask=\"true\">\n                                            <field name=\"NUM\">1</field>\n                                        </block>\n                                    </value>\n                                </block>\n                            </statement>\n                        </block>\n                    </statement>\n                </block>\n            </instance>\n            <instance x=\"500\" y=\"400\">\n                <block type=\"robProcedures_defnoreturn\" id=\"pt60\" intask=\"true\">\n                    <mutation declare=\"true\"/>\n                    <field name=\"NAME\">blink</field>\n                    <statement name=\"ST\">\n                        <block type=\"robLocalVariables_declare\" id=\"pt61\" intask=\"true\" deletable=\"false\" movable=\"false\">\n                            <mutation next=\"false\" declaration_type=\"Number\"/>\n                            <field name=\"VAR\">times</field>\n                            <field name=\"TYPE\">Number</field>\n                        </block>\n                    </statement>\n                    <statement name=\"STACK\">\n                        <block type=\"controls_repeat_ext\" id=\"pt62\" intask=\"true\">\n                            <value name=\"TIMES\">\n                                <block type=\"variables_get\" id=\"pt63\" intask=\"true\">\n                                    <mutation datatype=\"Number\"/>\n                                    <field name=\"VAR\">times</field>\n                                </block>\n                            </value>\n                            <statement name=\"DO\">\n                                <block type=\"actions_led_edison\" id=\"pt64\" intask=\"true\">\n                                    <field name=\"ACTORPORT\">LLED</field>\n                                    <field name=\"MODE\">ON</field>\n                                </block>\n                                <block type=\"robControls_wait_time\" id=\"pt65\" intask=\"true\">\n                                    <value name=\"WAIT\">\n                                        <block type=\"math_number\" id=\"pt66\" intask=\"true\">\n                                            <field name=\"NUM\">200</field>\n                                        </block>\n                                    </value>\n                                </block>\n                                <block type=\"actions_led_edison\" id=\"pt67\" intask=\"true\">\n                                    <field name=\"ACTORPORT\">LLED</field>\n                                    <field name=\"MODE\">OFF</field>\n                                </block>\n                                <block type=\"robControls_wait_time\" id=\"pt68\" intask=\"true\">\n                                    <value name=\"WAIT\">\n                                        <block type=\"math_number\" id=\"pt69\" intask=\"true\">\n                                            <field name=\"NUM\">200</field>\n                                        </block>\n                                    </value>\n                                </block>\n                            </statement>\n                        </block>\n                    </statement>\n                </block>\n            </instance>\n            <instance x=\"500\" y=\"700\">\n                <block type=\"robProcedures_defnoreturn\" id=\"pt80\" intask=\"true\">\n                    <mutation declare=\"false\"/>\n                    <field name=\"NAME\">curveLeft</field>\n                    <statement name=\"STACK\">\n                        <block type=\"robActions_motorDiff_curve_for\" id=\"pt81\" intask=\"true\">\n                            <field name=\"DIRECTION\">FOREWARD</field>\n                            <value name=\"POWER_LEFT\">\n                                <block type=\"math_number\" id=\"pt82\" intask=\"true\">\n                                    <field name=\"NUM\">30</field>\n                                </block>\n                            </value>\n                            <value name=\"POWER_RIGHT\">\n                                <block type=\"math_number\" id=\"pt83\" intask=\"true\">\n                                    <field name=\"NUM\">60</field>\n                                </block>\n                            </value>\n                            <value name=\"DISTANCE\">\n                                <block type=\"math_number\" id=\"pt84\" intask=\"true\">\n                                    <field name=\"NUM\">20</field>\n                                </block>\n                            </value>\n                        </block>\n                    </statement>\n                </block>\n            </instance>\n        </block_set>\n    </program>\n    <config>\n        <block_set xmlns=\"http://de.fhg.iais.roberta.blockly\" robottype=\"edison\" xmlversion=\"3.1\" description=\"\" tags=\"\">\n            <instance x=\"213\" y=\"213\">\n                <block type=\"robBrick_Edison-Brick\" id=\"1\" intask=\"true\" deletable=\"false\"/>\n            </instance>\n        </block_set>\n    </config>\n</export>\n",
+ "xml_sha256": "774c5fcecf1e3d9f8b5fe5c101da297b22b9e93be56158394b83a8cc32a2e1a1"
+}

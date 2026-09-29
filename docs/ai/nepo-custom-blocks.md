@@ -250,7 +250,11 @@ Caveats:
 
 **A complete, working example is the Tests tab's blocks:** `OpenRobertaWeb/src/app/nepotest/nepoTest.blocks.ts`
 (`nepo-test-blocks.md`). It shows:
-- 31 block types registered at runtime, with their own workspace and toolbox;
+- 52 block types registered at runtime, with their own workspace and toolbox;
+- own output types (`nepoTestAction`, `nepoTestState`, `nepoTestCondition`), so a socket takes only the right blocks;
+- optional inputs that show only where they apply: `Input.setVisible` from the block's `onchange` (`showOptional`);
+- messages that may be empty (a German sentence end English doesn't need): `appendField('')` adds nothing, and the
+  lookups test for `undefined`, not for falsy values;
 - category colours and icons set through `Blockly.CAT_<NAME>_RGB` / `Blockly.CAT_ICON`;
 - EN/DE messages, re-applied on language switch through `GUISTATE_C.addLanguageListener`;
 - dynamic dropdowns whose generators must cope with a missing `sourceBlock_` while the field is constructed, and keep

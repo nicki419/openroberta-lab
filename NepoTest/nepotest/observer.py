@@ -6,12 +6,16 @@ frame). With the Lab's source map, the observer knows for each statement and eac
 - Ed calls are attributed to all blocks whose code contains the call site (for calls made inside a generated helper
   function such as _diffDrive, the call site of the helper, and the helper's arguments are kept: the NEPO values)
 - NEPO functions (____name) are wrapped, so their calls, arguments and results are recorded
-From that it derives the NEPO-level actions (decode_action) and the block coverage (coverage).
+From that it derives the NEPO-level actions (decode_action) and the block coverage (coverage). For the state timeline
+(states.py) it records which block execution made each Ed call (call_exec), and, with track_variables=True, logs every
+change of a global variable into the robot's state log ('var.<name>', sampled before every statement and at the end).
 """
 
 from .engine.containers import EdList, TuneString
-from .engine.program import instruction_position
+from .engine.program import VAR_PREFIX, instruction_position
 from .nepo import ACTION_TYPES, FUNCTION_DEF_TYPES
+
+_MISSING = object()
 
 NOT_COVERABLE = frozenset(['text_comment'])
 
@@ -46,9 +50,13 @@ class FunctionCall(object):
 
 
 class Observer(object):
-    def __init__(self, subject, robot):
+    def __init__(self, subject, robot, track_variables=False):
         self.subject = subject
         self.robot = robot
+        self.track_variables = track_variables
+        self.call_exec = {}  # trace index -> the Execution of the (action) block that made the Ed call
+        self._ns = None
+        self._var_keys = []
         self.sm = subject.source_map
         self.filename = subject.edprogram.filename
         self.statements = []  # (start, end, block at start, starts that block?)
@@ -69,6 +77,8 @@ class Observer(object):
     # ------------------------------------------------------------------ engine listener interface
 
     def on_statement(self, index):
+        if self.track_variables and self._ns is not None:
+            self.sample_variables()
         self.executed.add(index)
         _, _, block_id, starts = self.statements[index]
         if starts:
@@ -91,17 +101,39 @@ class Observer(object):
                     helper = (code.co_name, dict((p, nepo_value(f.f_locals.get(p))) for p in params))
             f = f.f_back
         self.call_blocks[index] = blocks
+        cause = None
         for b in blocks:
             ex = self.current.get(b)
             if ex is not None:
                 ex.calls.append(index)
                 if helper is not None:
                     ex.helpers.append(helper)
+                if cause is None or (cause.type not in ACTION_TYPES and ex.type in ACTION_TYPES):
+                    cause = ex  # the innermost action block, else the innermost block
+        if cause is not None:
+            self.call_exec[index] = cause
 
     def on_prelude_done(self, namespace):
         for name in list(namespace):
             if name.startswith('____') and callable(namespace[name]):
                 namespace[name] = self._wrap(name[4:], namespace[name])
+        self._ns = namespace
+        if self.track_variables:
+            self._var_keys = [(v.name, VAR_PREFIX + v.name) for v in self.subject.nepo.variables]
+            self.sample_variables()
+
+    def sample_variables(self):
+        """logs the global variables that changed since the last sample into the robot's state log"""
+        ns = self._ns
+        for name, key in self._var_keys:
+            value = ns.get(key, _MISSING)
+            if value is not _MISSING:
+                self.robot.log_state('var.' + name, nepo_value(value), kind='var')
+
+    def finish(self):
+        """called when the run or call is over: the effect of the last statement"""
+        if self.track_variables and self._ns is not None:
+            self.sample_variables()
 
     def _wrap(self, nepo_name, fn):
         observer = self
