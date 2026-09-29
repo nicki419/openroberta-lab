@@ -56,7 +56,7 @@ sync:** the field and input names below are the contract between them.
 | Block | Looks like | Fields / inputs | Becomes (NepoTest JSON) |
 |---|---|---|---|
 | `nepoTest_suite` | red: *test suite: run these tests* | (next: `run` blocks) | the list and order of the tests |
-| `nepoTest_run` | *run test* [name ▾] | `NAME` (dropdown of the workspace's tests) | selects a test |
+| `nepoTest_run` | *run test* [name ▾] | `NAME` (dropdown of the workspace's tests; `''` shown as `?` = none chosen) | selects a test |
 | `nepoTest_test` | *test* [name] *given / when / then* | `NAME`; statements `GIVEN`, `WHEN`, `THEN` | one test (`name`, `block_id`, `origin: "blocks"`) |
 | `nepoTest_given_clap` | *at* [1000] *ms: a clap* | `AT` | world `clap` |
 | `nepoTest_given_key` | *at … ms: key* [▶ PLAY ▾] *is pressed* | `AT`, `PORT` (PLAY/REC) | world `key` |
@@ -97,6 +97,12 @@ sync:** the field and input names below are the contract between them.
 - **The program's names come from the Program tab, live:** function names and parameters for *call function* and
   *expect function*, and global variables for *variable* dropdowns. The *call function* block gets one labelled input
   per parameter, and re-shapes when the learner picks another function.
+- **Run blocks follow the tests** (`tests.controller.ts`):
+  - When a block is created, *run test* blocks without a test (`?`) get a test that no run block runs yet, in workspace
+    order. The new block and this choice are one undo step. Loaded suites are left as they are.
+  - Renaming a test renames its run blocks.
+  - While a dropdown shows `?`, `?` stays in its menu. Blockly doesn't open a menu with one option, so a single test,
+    function or variable could otherwise never be picked (`nameOptions` in `nepoTest.blocks.ts`).
 - **Colours** follow NEPO:
   - start block: red (activity);
   - tests: green (procedure);
@@ -113,6 +119,7 @@ Examples:
 - "put "run the program" or "call function" under "when"";
 - "there are two tests named …";
 - "there is no test named …";
+- "choose the test to run in "run test"" (a run block still showing `?`);
 - "the program has no function …";
 - "the Edison only knows whole numbers";
 - "expect the result only works with call function".

@@ -253,7 +253,8 @@ Caveats:
 - 31 block types registered at runtime, with their own workspace and toolbox;
 - category colours and icons set through `Blockly.CAT_<NAME>_RGB` / `Blockly.CAT_ICON`;
 - EN/DE messages, re-applied on language switch through `GUISTATE_C.addLanguageListener`;
-- dynamic dropdowns whose generators must cope with a missing `sourceBlock_` while the field is constructed;
+- dynamic dropdowns whose generators must cope with a missing `sourceBlock_` while the field is constructed, and keep
+  a `?` option while nothing is chosen (gotcha 11);
 - a mutation-based block with one input per parameter (`nepoTest_when_call`), using only XSD-allowed mutation parts.
 
 Those blocks aren't NEPO program blocks. They never reach the Java AST.
@@ -534,3 +535,6 @@ With NUM 1.5 instead of 200 → the workflow throws IllegalArgumentException: No
    body needs `@NepoBasic`.
 10. **Sim ops are mirrored by hand** between `OpenRobertaRobot/…/util/basic/C.java` and
     `OpenRobertaWeb/src/app/nepostackmachine/interpreter.constants.ts`.
+11. **Blockly doesn't open a dropdown with fewer than two options** (`FieldDropdown.prototype.showEditor_`). A dynamic
+    dropdown whose only option is a name, while its value is still the empty placeholder, can never be changed. Keep
+    the placeholder (`['?', '']`) among the options while it's the value (`nameOptions` in `nepoTest.blocks.ts`).

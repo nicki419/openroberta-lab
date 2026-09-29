@@ -88,6 +88,8 @@ class TranslateTest(unittest.TestCase):
         self.assertIn(('d1', 'error', 'there are two tests named "a"'), p)
         p = self.problems(suite(('a', CALL_CLAMP + EXPECT_100), run=['a', 'b']), program)
         self.assertIn(('r1', 'error', 'there is no test named "b"'), p)
+        p = self.problems(suite(('a', CALL_CLAMP + EXPECT_100), run=['a', '']), program)  # a "run test" block showing "?"
+        self.assertIn(('r1', 'error', 'choose the test to run in "run test"'), p)
         p = self.problems(suite(('a', CALL_CLAMP + EXPECT_100), ('unused', CALL_CLAMP + EXPECT_100), run=['a']), program)
         self.assertIn(('d1', 'warning', 'test "unused" is not under the start block, so it does not run'), p)
         run = '<statement name="WHEN"><block type="nepoTest_when_run" id="w"><field name="SECONDS">5</field></block></statement>'

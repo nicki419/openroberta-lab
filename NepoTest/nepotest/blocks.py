@@ -340,8 +340,10 @@ def translate(tests_xml, program=None):
     for run in suite[0][1:]:
         if run.type != 'nepoTest_run' or run.disabled:
             continue
-        name = run.fields.get('NAME')
-        if name not in tests:
+        name = run.fields.get('NAME') or ''
+        if not name:
+            problems.add(run, 'choose the test to run in "run test"')
+        elif name not in tests:
             problems.add(run, 'there is no test named "%s"' % name)
         elif name in selected:
             problems.add(run, 'test "%s" is already in the suite' % name, 'warning')

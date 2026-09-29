@@ -96,6 +96,7 @@ function initEvents(): void {
             GUISTATE_C.setProgramSaved(false);
         }
         renameRunBlocks(event);
+        fillRunBlocks(event);
         if ($('#testsCodePane').is(':visible')) {
             clearTimeout(codeTimer);
             codeTimer = setTimeout(refreshCode, 600);
@@ -299,6 +300,30 @@ function renameRunBlocks(event: any): void {
             block.setFieldValue(event.newValue, 'NAME');
         }
     }
+}
+
+/**
+ * when a block is created (a "run test" block, or a test), "run test" blocks without a test get one that no other "run test" block runs yet,
+ * in the same undo step. Loaded suites are left as they are (listen is off while loading).
+ */
+function fillRunBlocks(event: any): void {
+    if (event.type !== Blockly.Events.CREATE) {
+        return;
+    }
+    const runBlocks = workspace.getAllBlocks().filter((b) => b.type === 'nepoTest_run');
+    const taken = runBlocks.map((b) => b.getFieldValue('NAME'));
+    const free = BLOCKS.testNamesOf(workspace).filter((name) => taken.indexOf(name) < 0);
+    const group = Blockly.Events.getGroup();
+    Blockly.Events.setGroup(event.group);
+    for (const block of runBlocks) {
+        if (!free.length) {
+            break;
+        }
+        if (block.getFieldValue('NAME') === '') {
+            block.setFieldValue(free.shift(), 'NAME');
+        }
+    }
+    Blockly.Events.setGroup(group);
 }
 
 /** the suite as block_set XML; null if it is empty (only the start block), so programs without tests stay unchanged */

@@ -225,33 +225,44 @@ function comparison(): any {
     ]);
 }
 
-/** menu generators must work without a block: Blockly calls them while the field is constructed */
+/**
+ * the options of a name dropdown, called with the field as `this`. Menu generators must work without a block: Blockly calls
+ * them while the field is constructed (value still undefined: the first option becomes the default).
+ * Blockly opens a dropdown only if it has at least two options, so '?' stays in the list while nothing is chosen (''):
+ * otherwise a single name could never be picked.
+ */
+function nameOptions(field: any, names: string[]): string[][] {
+    const current = field && field.getValue && field.getValue();
+    const options = names.map((n) => [n, n]);
+    if (current && names.indexOf(current) < 0) {
+        options.push([current, current]);
+    }
+    if (current === '' || !options.length) {
+        options.unshift(['?', '']);
+    }
+    return options;
+}
+
+/** the names of the test blocks of a workspace, in their order on the workspace */
+export function testNamesOf(workspace: any): string[] {
+    return workspace
+        .getTopBlocks(true)
+        .filter((b) => b.type === 'nepoTest_test')
+        .map((b) => b.getFieldValue('NAME'));
+}
+
 function testNames(this: any): string[][] {
     const block = this && this.sourceBlock_;
-    const names: string[] = block ? block.workspace.getTopBlocks(false).filter((b) => b.type === 'nepoTest_test').map((b) => b.getFieldValue('NAME')) : [];
-    const current = this && this.getValue && this.getValue();
-    if (current && names.indexOf(current) < 0) {
-        names.push(current);
-    }
-    return names.length ? names.map((n) => [n, n]) : [['?', '']];
+    return nameOptions(this, block && block.workspace ? testNamesOf(block.workspace) : []);
 }
 
 function functionNames(this: any): string[][] {
     const names = programInfo().functions.map((f) => f.name);
-    const current = this && this.getValue && this.getValue();
-    if (current && names.indexOf(current) < 0) {
-        names.push(current);
-    }
-    return names.length ? names.map((n) => [n, n]) : [['?', '']];
+    return nameOptions(this, names);
 }
 
 function variableNames(this: any): string[][] {
-    const names = programInfo().variables.slice();
-    const current = this && this.getValue && this.getValue();
-    if (current && names.indexOf(current) < 0) {
-        names.push(current);
-    }
-    return names.length ? names.map((n) => [n, n]) : [['?', '']];
+    return nameOptions(this, programInfo().variables.slice());
 }
 
 /** a test name that no other test block of the workspace has */
