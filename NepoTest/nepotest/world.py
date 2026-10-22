@@ -71,7 +71,10 @@ class World(object):
 
     def build_robot(self, **robot_options):
         """the engine's virtual robot with these events scheduled"""
-        robot = Robot(**robot_options)
+        return self.schedule(Robot(**robot_options))
+
+    def schedule(self, robot):
+        """schedules these events on a robot (e.g. a simulation.SimRobot) and returns it"""
         for e in self.events:
             kind = e['event']
             if kind == 'clap':

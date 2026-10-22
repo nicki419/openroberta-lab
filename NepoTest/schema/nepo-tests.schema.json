@@ -16,7 +16,8 @@
  "$defs": {
   "test": {
    "type": "object",
-   "required": ["name", "expect"],
+   "required": ["name"],
+   "anyOf": [{"required": ["expect"]}, {"required": ["simulation"]}],
    "additionalProperties": false,
    "properties": {
     "name": {"type": "string", "minLength": 1},
@@ -29,9 +30,52 @@
     "world": {"type": "array", "items": {"$ref": "#/$defs/event"}},
     "max_time_ms": {"type": "integer", "minimum": 1},
     "max_steps": {"type": "integer", "minimum": 1},
-    "expect": {"$ref": "#/$defs/expect"}
+    "expect": {"$ref": "#/$defs/expect"},
+    "simulation": {"$ref": "#/$defs/simulation"}
    },
    "dependentRequired": {"args": ["call"], "globals": ["call"]}
+  },
+  "simulation": {
+   "description": "A simulation test (nepotest/simulation.py): the robot drives through a drawn world. Touching a goal area passes the test; touching a fail area or an obstacle, or leaving the corridor around the recorded path, fails it. Its world events may only be clap, key, remote and ir_message. Units: cm; x right, y down; angles in degrees, counterclockwise as seen from above.",
+   "type": "object",
+   "required": ["world"],
+   "additionalProperties": false,
+   "properties": {
+    "world": {
+     "type": "object",
+     "required": ["start"],
+     "additionalProperties": false,
+     "properties": {
+      "start": {"type": "object", "required": ["x", "y", "heading"], "additionalProperties": false,
+                "properties": {"x": {"type": "number"}, "y": {"type": "number"}, "heading": {"type": "number"}}},
+      "items": {"type": "array", "items": {"$ref": "#/$defs/simItem"}},
+      "settings": {"type": "object", "additionalProperties": false, "properties": {
+       "ambient_light": {"type": "integer", "minimum": 0, "maximum": 100, "description": "what LLIGHT and RLIGHT read, in % (default 50)"},
+       "obstacle_range_cm": {"type": "number", "minimum": 0, "description": "how far the obstacle detection sees (default 10)"}}}
+     }
+    },
+    "reference": {"type": "object", "required": ["path"], "description": "a recorded run: the poses [x, y, heading] of the wheel axle's centre",
+                  "properties": {"path": {"type": "array", "items": {"type": "array", "items": {"type": "number"}, "minItems": 3}}}},
+    "tolerance_cm": {"type": "number", "minimum": 0, "description": "how far the robot may get from its outline in the recorded run (default 2)"}
+   }
+  },
+  "simItem": {
+   "description": "a line to follow (a black core with a white rim), or a rect / ellipse (centre x, y; size w, h; rotation rot): a black or white floor marking, an obstacle, a goal area or a fail area",
+   "type": "object",
+   "required": ["kind"],
+   "oneOf": [{"properties": {"kind": {"const": "line"}}, "required": ["points"]},
+             {"properties": {"kind": {"enum": ["rect", "ellipse"]}}, "required": ["role", "x", "y", "w", "h"]}],
+   "properties": {
+    "id": {"type": "string"},
+    "kind": {"enum": ["line", "rect", "ellipse"]},
+    "points": {"type": "array", "minItems": 2, "items": {"type": "array", "items": {"type": "number"}, "minItems": 2, "maxItems": 2}},
+    "smooth": {"type": "boolean", "description": "a curve through the points instead of straight segments"},
+    "closed": {"type": "boolean"},
+    "width": {"type": "number", "exclusiveMinimum": 0, "description": "the black core in cm (default 1.5); the white rim adds 0.5 cm on each side"},
+    "role": {"enum": ["black", "white", "obstacle", "goal", "fail"]},
+    "x": {"type": "number"}, "y": {"type": "number"}, "w": {"type": "number", "minimum": 0}, "h": {"type": "number", "minimum": 0},
+    "rot": {"type": "number"}
+   }
   },
   "nepoValue": {"oneOf": [{"type": "integer", "minimum": -32768, "maximum": 32767}, {"type": "boolean"},
                           {"type": "array", "items": {"type": "integer", "minimum": -32768, "maximum": 32767}}]},

@@ -1,0 +1,215 @@
+{
+ "annotated_prog_xml": "<block_set robottype=\"edison\" xmlversion=\"3.1\" description=\"\" tags=\"\" xmlns=\"http://de.fhg.iais.roberta.blockly\"><instance x=\"20\" y=\"20\"><block type=\"robControls_start\" id=\"lf01\" intask=\"true\" deletable=\"false\"><mutation declare=\"false\"/><field name=\"DEBUG\">FALSE</field></block><block type=\"robControls_loopForever\" id=\"lf10\" intask=\"true\"><statement name=\"DO\"><block type=\"robControls_ifElse\" id=\"lf11\" intask=\"true\"><mutation else=\"1\"/><repetitions><value name=\"IF0\"><block type=\"robSensors_light_getSample\" id=\"lf12\" intask=\"true\"><mutation mode=\"LINE\"/><field name=\"MODE\">LINE</field><field name=\"SENSORPORT\">LINETRACKER</field><field name=\"SLOT\"></field></block></value><statement name=\"DO0\"><block type=\"robActions_motorDiff_curve\" id=\"lf13\" intask=\"true\"><field name=\"DIRECTION\">FOREWARD</field><value name=\"POWER_LEFT\"><block type=\"math_number\" id=\"lf14\" intask=\"true\"><field name=\"NUM\">10</field></block></value><value name=\"POWER_RIGHT\"><block type=\"math_number\" id=\"lf15\" intask=\"true\"><field name=\"NUM\">40</field></block></value></block></statement><statement name=\"ELSE\"><block type=\"robActions_motorDiff_curve\" id=\"lf16\" intask=\"true\"><field name=\"DIRECTION\">FOREWARD</field><value name=\"POWER_LEFT\"><block type=\"math_number\" id=\"lf17\" intask=\"true\"><field name=\"NUM\">40</field></block></value><value name=\"POWER_RIGHT\"><block type=\"math_number\" id=\"lf18\" intask=\"true\"><field name=\"NUM\">10</field></block></value></block></statement></repetitions></block></statement></block></instance><instance x=\"500\" y=\"20\"><block type=\"robProcedures_defnoreturn\" id=\"lf30\" intask=\"true\"><mutation declare=\"false\"/><field name=\"NAME\">toTheWall</field><statement name=\"STACK\"><block type=\"robActions_motorDiff_on\" id=\"lf31\" intask=\"true\"><field name=\"DIRECTION\">FOREWARD</field><value name=\"POWER\"><block type=\"math_number\" id=\"lf32\" intask=\"true\"><field name=\"NUM\">40</field></block></value></block><block type=\"robControls_wait_for\" id=\"lf33\" intask=\"true\"><value name=\"WAIT0\"><block type=\"logic_compare\" id=\"lf34\" intask=\"true\"><field name=\"OP\">EQ</field><value name=\"A\"><block type=\"robSensors_getSample\" id=\"lf35\" intask=\"true\"><mutation input=\"INFRARED_OBSTACLE\"/><field name=\"SENSORTYPE\">INFRARED_OBSTACLE</field><field name=\"SENSORPORT\">FRONT</field><field name=\"SLOT\"></field></block></value><value name=\"B\"><block type=\"logic_boolean\" id=\"lf36\" intask=\"true\"><field name=\"BOOL\">TRUE</field></block></value></block></value></block><block type=\"robActions_motorDiff_stop\" id=\"lf37\" intask=\"true\"/></statement></block></instance></block_set>",
+ "cause": "ORA_COMPILERWORKFLOW_PROGRAM_GENERATION_SUCCESS",
+ "converted_at": "2026-10-18T22:24:02",
+ "edpy": "import Ed\n\ndef _diffCurve(direction, leftSpeed, rightSpeed, distance):\n    if (leftSpeed < 0): \n        _leftSpeed = _shorten(-leftSpeed)\n        _reverseLeft = True\n    else: \n        _leftSpeed = _shorten(leftSpeed)\n        _reverseLeft = False\n    if (rightSpeed < 0): \n        _rightSpeed = _shorten(-rightSpeed)\n        _reverseRight = True\n    else: \n        _rightSpeed = _shorten(rightSpeed)\n        _reverseRight = False\n    if (_leftSpeed > _rightSpeed):\n        if (_rightSpeed == 0):\n            Ed.DriveRightMotor(Ed.STOP, 0, 0)\n        else:\n            Ed.DriveLeftMotor(_getDirection(direction, _reverseLeft), _leftSpeed, Ed.DISTANCE_UNLIMITED)\n            Ed.DriveRightMotor(_getDirection(direction, _reverseRight), _rightSpeed, Ed.DISTANCE_UNLIMITED)\n        Ed.DriveLeftMotor(_getDirection(direction, _reverseLeft), _leftSpeed, distance)\n        if (distance != Ed.DISTANCE_UNLIMITED): \n            Ed.Drive(Ed.STOP, 1, 1)\n    elif (_leftSpeed < _rightSpeed):\n        if (_leftSpeed == 0):\n            Ed.DriveLeftMotor(Ed.STOP, 0, 0)\n        else:\n            Ed.DriveRightMotor(_getDirection(direction, _reverseRight), _rightSpeed, Ed.DISTANCE_UNLIMITED)\n            Ed.DriveLeftMotor(_getDirection(direction, _reverseLeft), _leftSpeed, Ed.DISTANCE_UNLIMITED)\n        Ed.DriveRightMotor(_getDirection(direction, _reverseRight), _rightSpeed, distance)\n        if (distance != Ed.DISTANCE_UNLIMITED): \n            Ed.Drive(Ed.STOP, 1, 1)\n    else:\n        if (_leftSpeed == 0):\n            Ed.Drive(Ed.STOP, 1, 1)\n        else:\n            Ed.Drive(_getDirection(direction, _reverseLeft), _leftSpeed, distance)\n\ndef _diffDrive(direction, speed, distance):\n    _reverse = False\n    if speed < 0:\n        _reverse = True\n        _speed = _shorten(-speed)\n    else: \n        _speed = _shorten(speed)\n    if (_speed == 0): \n        Ed.Drive(Ed.STOP, 1, 1)\n    else: \n        Ed.Drive(_getDirection(direction, _reverse), _speed, distance)\n\ndef _getDirection(dir, reverse):\n    if reverse:\n        if (dir == Ed.FORWARD): \n            return Ed.BACKWARD\n        else: \n            return Ed.FORWARD\n    else: \n        return dir\n\ndef _obstacleDetection(mode):\n    global obstacleDetectionOn\n    if (obstacleDetectionOn == False):\n        Ed.ObstacleDetectionBeam(Ed.ON)\n        obstacleDetectionOn = True\n    return Ed.ReadObstacleDetection() == mode\n\ndef _shorten(num): \n    return ((num+5)/10)\n\nEd.EdisonVersion = Ed.V2\nEd.DistanceUnits = Ed.CM\nEd.Tempo = Ed.TEMPO_SLOW\nobstacleDetectionOn = False\nEd.LineTrackerLed(Ed.ON)\nEd.ReadClapSensor()\nEd.ReadLineState()\nEd.TimeWait(250, Ed.TIME_MILLISECONDS)\n\ndef ____toTheWall():\n    _diffDrive(Ed.FORWARD, 40, Ed.DISTANCE_UNLIMITED)\n    while True:\n        if (_obstacleDetection(Ed.OBSTACLE_AHEAD)) == True:\n            break\n        pass\n    Ed.Drive(Ed.STOP, Ed.SPEED_1, 1)\n    Ed.ReadClapSensor()\n\n\nwhile True:\n    if (Ed.ReadLineState() == Ed.LINE_ON_BLACK):\n        _diffCurve(Ed.FORWARD, 10, 40, Ed.DISTANCE_UNLIMITED)\n    else:\n        _diffCurve(Ed.FORWARD, 40, 10, Ed.DISTANCE_UNLIMITED)\n\n",
+ "format": "nepotest-bundle",
+ "lab": "http://localhost:1999",
+ "message": "ORA_COMPILERWORKFLOW_PROGRAM_GENERATION_SUCCESS",
+ "program_name": "line_follower",
+ "rc": "ok",
+ "robot": "edisonv2",
+ "source_map": {
+  "blocks": {
+   "1": {
+    "ranges": [
+     [
+      2642,
+      2859
+     ],
+     [
+      2931,
+      2984
+     ],
+     [
+      3003,
+      3056
+     ],
+     [
+      2878,
+      3056
+     ]
+    ],
+    "type": "STMT_LIST"
+   },
+   "lf01": {
+    "ranges": [
+     [
+      2617,
+      2859
+     ]
+    ],
+    "type": "robControls_start"
+   },
+   "lf10": {
+    "ranges": [
+     [
+      2868,
+      2872
+     ],
+     [
+      2862,
+      3056
+     ]
+    ],
+    "type": "robControls_loopForever"
+   },
+   "lf11": {
+    "ranges": [
+     [
+      2878,
+      3056
+     ]
+    ],
+    "type": "robControls_ifElse"
+   },
+   "lf12": {
+    "ranges": [
+     [
+      2881,
+      2921
+     ]
+    ],
+    "type": "robSensors_light_getSample"
+   },
+   "lf13": {
+    "ranges": [
+     [
+      2931,
+      2984
+     ]
+    ],
+    "type": "robActions_motorDiff_curve"
+   },
+   "lf14": {
+    "ranges": [
+     [
+      2954,
+      2956
+     ]
+    ],
+    "type": "math_number"
+   },
+   "lf15": {
+    "ranges": [
+     [
+      2958,
+      2960
+     ]
+    ],
+    "type": "math_number"
+   },
+   "lf16": {
+    "ranges": [
+     [
+      3003,
+      3056
+     ]
+    ],
+    "type": "robActions_motorDiff_curve"
+   },
+   "lf17": {
+    "ranges": [
+     [
+      3026,
+      3028
+     ]
+    ],
+    "type": "math_number"
+   },
+   "lf18": {
+    "ranges": [
+     [
+      3030,
+      3032
+     ]
+    ],
+    "type": "math_number"
+   },
+   "lf30": {
+    "ranges": [
+     [
+      2617,
+      2859
+     ]
+    ],
+    "type": "robProcedures_defnoreturn"
+   },
+   "lf31": {
+    "ranges": [
+     [
+      2642,
+      2691
+     ]
+    ],
+    "type": "robActions_motorDiff_on"
+   },
+   "lf32": {
+    "ranges": [
+     [
+      2665,
+      2667
+     ]
+    ],
+    "type": "math_number"
+   },
+   "lf33": {
+    "ranges": [
+     [
+      2716,
+      2785
+     ],
+     [
+      2696,
+      2798
+     ]
+    ],
+    "type": "robControls_wait_for"
+   },
+   "lf34": {
+    "ranges": [
+     [
+      2719,
+      2766
+     ]
+    ],
+    "type": "logic_compare"
+   },
+   "lf35": {
+    "ranges": [
+     [
+      2720,
+      2757
+     ],
+     [
+      2719,
+      2758
+     ]
+    ],
+    "type": "robSensors_getSample"
+   },
+   "lf36": {
+    "ranges": [
+     [
+      2762,
+      2766
+     ]
+    ],
+    "type": "logic_boolean"
+   },
+   "lf37": {
+    "ranges": [
+     [
+      2803,
+      2859
+     ]
+    ],
+    "type": "robActions_motorDiff_stop"
+   }
+  },
+  "version": 1
+ },
+ "version": 1,
+ "xml": "<export xmlns=\"http://de.fhg.iais.roberta.blockly\">\n    <program>\n        <block_set xmlns=\"http://de.fhg.iais.roberta.blockly\" robottype=\"edison\" xmlversion=\"3.1\" description=\"\" tags=\"\">\n            <instance x=\"20\" y=\"20\">\n                <block type=\"robControls_start\" id=\"lf01\" intask=\"true\" deletable=\"false\">\n                    <mutation declare=\"false\"/>\n                    <field name=\"DEBUG\">FALSE</field>\n                </block>\n                <block type=\"robControls_loopForever\" id=\"lf10\" intask=\"true\">\n                    <statement name=\"DO\">\n                        <block type=\"robControls_ifElse\" id=\"lf11\" intask=\"true\">\n                            <mutation else=\"1\"/>\n                            <repetitions>\n                                <value name=\"IF0\">\n                                    <block type=\"robSensors_light_getSample\" id=\"lf12\" intask=\"true\">\n                                        <mutation mode=\"LINE\"/>\n                                        <field name=\"MODE\">LINE</field>\n                                        <field name=\"SENSORPORT\">LINETRACKER</field>\n                                        <field name=\"SLOT\"/>\n                                    </block>\n                                </value>\n                                <statement name=\"DO0\">\n                                    <block type=\"robActions_motorDiff_curve\" id=\"lf13\" intask=\"true\">\n                                        <field name=\"DIRECTION\">FOREWARD</field>\n                                        <value name=\"POWER_LEFT\">\n                                            <block type=\"math_number\" id=\"lf14\" intask=\"true\">\n                                                <field name=\"NUM\">10</field>\n                                            </block>\n                                        </value>\n                                        <value name=\"POWER_RIGHT\">\n                                            <block type=\"math_number\" id=\"lf15\" intask=\"true\">\n                                                <field name=\"NUM\">40</field>\n                                            </block>\n                                        </value>\n                                    </block>\n                                </statement>\n                                <statement name=\"ELSE\">\n                                    <block type=\"robActions_motorDiff_curve\" id=\"lf16\" intask=\"true\">\n                                        <field name=\"DIRECTION\">FOREWARD</field>\n                                        <value name=\"POWER_LEFT\">\n                                            <block type=\"math_number\" id=\"lf17\" intask=\"true\">\n                                                <field name=\"NUM\">40</field>\n                                            </block>\n                                        </value>\n                                        <value name=\"POWER_RIGHT\">\n                                            <block type=\"math_number\" id=\"lf18\" intask=\"true\">\n                                                <field name=\"NUM\">10</field>\n                                            </block>\n                                        </value>\n                                    </block>\n                                </statement>\n                            </repetitions>\n                        </block>\n                    </statement>\n                </block>\n            </instance>\n            <instance x=\"500\" y=\"20\">\n                <block type=\"robProcedures_defnoreturn\" id=\"lf30\" intask=\"true\">\n                    <mutation declare=\"false\"/>\n                    <field name=\"NAME\">toTheWall</field>\n                    <statement name=\"STACK\">\n                        <block type=\"robActions_motorDiff_on\" id=\"lf31\" intask=\"true\">\n                            <field name=\"DIRECTION\">FOREWARD</field>\n                            <value name=\"POWER\">\n                                <block type=\"math_number\" id=\"lf32\" intask=\"true\">\n                                    <field name=\"NUM\">40</field>\n                                </block>\n                            </value>\n                        </block>\n                        <block type=\"robControls_wait_for\" id=\"lf33\" intask=\"true\">\n                            <value name=\"WAIT0\">\n                                <block type=\"logic_compare\" id=\"lf34\" intask=\"true\">\n                                    <field name=\"OP\">EQ</field>\n                                    <value name=\"A\">\n                                        <block type=\"robSensors_getSample\" id=\"lf35\" intask=\"true\">\n                                            <mutation input=\"INFRARED_OBSTACLE\"/>\n                                            <field name=\"SENSORTYPE\">INFRARED_OBSTACLE</field>\n                                            <field name=\"SENSORPORT\">FRONT</field>\n                                            <field name=\"SLOT\"/>\n                                        </block>\n                                    </value>\n                                    <value name=\"B\">\n                                        <block type=\"logic_boolean\" id=\"lf36\" intask=\"true\">\n                                            <field name=\"BOOL\">TRUE</field>\n                                        </block>\n                                    </value>\n                                </block>\n                            </value>\n                        </block>\n                        <block type=\"robActions_motorDiff_stop\" id=\"lf37\" intask=\"true\"/>\n                    </statement>\n                </block>\n            </instance>\n        </block_set>\n    </program>\n    <config>\n        <block_set xmlns=\"http://de.fhg.iais.roberta.blockly\" robottype=\"edison\" xmlversion=\"3.1\" description=\"\" tags=\"\">\n            <instance x=\"213\" y=\"213\">\n                <block type=\"robBrick_Edison-Brick\" id=\"1\" intask=\"true\" deletable=\"false\"/>\n            </instance>\n        </block_set>\n    </config>\n</export>\n",
+ "xml_sha256": "f8171df72b8659ab4100bfe913e907883d7c27bfdbbfb0f3ad17a9ea26ecf7b9"
+}

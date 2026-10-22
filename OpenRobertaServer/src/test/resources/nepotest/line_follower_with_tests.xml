@@ -1,0 +1,160 @@
+<export xmlns="http://de.fhg.iais.roberta.blockly">
+    <program>
+        <block_set xmlns="http://de.fhg.iais.roberta.blockly" robottype="edison" xmlversion="3.1" description="" tags="">
+            <instance x="20" y="20">
+                <block type="robControls_start" id="lf01" intask="true" deletable="false">
+                    <mutation declare="false"/>
+                    <field name="DEBUG">FALSE</field>
+                </block>
+                <block type="robControls_loopForever" id="lf10" intask="true">
+                    <statement name="DO">
+                        <block type="robControls_ifElse" id="lf11" intask="true">
+                            <mutation else="1"/>
+                            <repetitions>
+                                <value name="IF0">
+                                    <block type="robSensors_light_getSample" id="lf12" intask="true">
+                                        <mutation mode="LINE"/>
+                                        <field name="MODE">LINE</field>
+                                        <field name="SENSORPORT">LINETRACKER</field>
+                                        <field name="SLOT"/>
+                                    </block>
+                                </value>
+                                <statement name="DO0">
+                                    <block type="robActions_motorDiff_curve" id="lf13" intask="true">
+                                        <field name="DIRECTION">FOREWARD</field>
+                                        <value name="POWER_LEFT">
+                                            <block type="math_number" id="lf14" intask="true">
+                                                <field name="NUM">10</field>
+                                            </block>
+                                        </value>
+                                        <value name="POWER_RIGHT">
+                                            <block type="math_number" id="lf15" intask="true">
+                                                <field name="NUM">40</field>
+                                            </block>
+                                        </value>
+                                    </block>
+                                </statement>
+                                <statement name="ELSE">
+                                    <block type="robActions_motorDiff_curve" id="lf16" intask="true">
+                                        <field name="DIRECTION">FOREWARD</field>
+                                        <value name="POWER_LEFT">
+                                            <block type="math_number" id="lf17" intask="true">
+                                                <field name="NUM">40</field>
+                                            </block>
+                                        </value>
+                                        <value name="POWER_RIGHT">
+                                            <block type="math_number" id="lf18" intask="true">
+                                                <field name="NUM">10</field>
+                                            </block>
+                                        </value>
+                                    </block>
+                                </statement>
+                            </repetitions>
+                        </block>
+                    </statement>
+                </block>
+            </instance>
+            <instance x="500" y="20">
+                <block type="robProcedures_defnoreturn" id="lf30" intask="true">
+                    <mutation declare="false"/>
+                    <field name="NAME">toTheWall</field>
+                    <statement name="STACK">
+                        <block type="robActions_motorDiff_on" id="lf31" intask="true">
+                            <field name="DIRECTION">FOREWARD</field>
+                            <value name="POWER">
+                                <block type="math_number" id="lf32" intask="true">
+                                    <field name="NUM">40</field>
+                                </block>
+                            </value>
+                        </block>
+                        <block type="robControls_wait_for" id="lf33" intask="true">
+                            <value name="WAIT0">
+                                <block type="logic_compare" id="lf34" intask="true">
+                                    <field name="OP">EQ</field>
+                                    <value name="A">
+                                        <block type="robSensors_getSample" id="lf35" intask="true">
+                                            <mutation input="INFRARED_OBSTACLE"/>
+                                            <field name="SENSORTYPE">INFRARED_OBSTACLE</field>
+                                            <field name="SENSORPORT">FRONT</field>
+                                            <field name="SLOT"/>
+                                        </block>
+                                    </value>
+                                    <value name="B">
+                                        <block type="logic_boolean" id="lf36" intask="true">
+                                            <field name="BOOL">TRUE</field>
+                                        </block>
+                                    </value>
+                                </block>
+                            </value>
+                        </block>
+                        <block type="robActions_motorDiff_stop" id="lf37" intask="true"/>
+                    </statement>
+                </block>
+            </instance>
+            <instance x="40" y="40">
+                <block type="nepoTest_suite" id="nepoTestSuite" intask="true" deletable="false"/>
+                <block type="nepoTest_run" id="lft01" intask="true">
+                    <field name="NAME">follows the oval to the finish</field>
+                </block>
+                <block type="nepoTest_run" id="lft02" intask="true">
+                    <field name="NAME">stops at the wall</field>
+                </block>
+                <block type="nepoTest_run" id="lft03" intask="true">
+                    <field name="NAME">stops at the wall (no simulation)</field>
+                </block>
+            </instance>
+            <instance x="40" y="200">
+                <block type="nepoTest_simtest" id="lft10" intask="true">
+                    <field name="NAME">follows the oval to the finish</field>
+                    <field name="SECONDS">30</field>
+                    <data>{"version":1,"world":{"start":{"x":60,"y":69.3,"heading":0},"items":[{"id":"track","kind":"line","points":[[115.0,45.0],[101.8,62.7],[70.0,70.0],[38.2,62.7],[25.0,45.0],[38.2,27.3],[70.0,20.0],[101.8,27.3]],"smooth":true,"closed":true,"width":1.5},{"id":"finish","kind":"rect","role":"goal","x":70,"y":16,"w":12,"h":8,"rot":0},{"id":"tableEdge","kind":"rect","role":"fail","x":130,"y":45,"w":8,"h":70,"rot":0}]},"tolerance_cm":2,"reference":{"path":[[60.0,69.3,0.0],[60.51,69.28,2.4],[61.04,69.26,1.9],[61.58,69.25,1.3],[62.09,69.24,1.0],[62.63,69.23,0.4],[63.15,69.23,0.3],[63.67,69.23,0.1],[64.22,69.23,0.0],[64.74,69.23,-0.3],[65.28,69.23,-0.3],[65.81,69.23,-0.1],[66.35,69.23,-0.1],[66.89,69.23,0.1],[67.41,69.23,0.3],[67.93,69.22,0.6],[68.45,69.22,0.8],[68.97,69.21,1.1],[69.49,69.2,1.3],[70.03,69.18,1.6],[70.55,69.17,1.8],[71.07,69.15,2.4],[71.61,69.12,2.8],[72.13,69.1,3.0],[72.67,69.07,3.3],[73.18,69.03,3.5],[73.69,69.0,4.0],[74.23,68.96,4.3],[74.75,68.92,4.6],[75.29,68.87,5.2],[75.8,68.83,5.4],[76.34,68.77,5.7],[76.85,68.72,6.1],[77.39,68.66,6.6],[77.91,68.6,6.7],[78.45,68.53,7.4],[78.96,68.47,7.6],[79.45,68.4,8.2],[79.96,68.33,8.4],[80.46,68.25,8.5],[81.01,68.17,8.8],[81.52,68.09,9.3],[82.05,68.0,9.5],[82.55,67.91,10.0],[83.09,67.81,10.5],[83.6,67.72,10.7],[84.11,67.62,10.9],[84.65,67.51,11.5],[85.18,67.4,12.0],[85.69,67.3,12.1],[86.19,67.19,12.3],[86.73,67.07,12.9],[87.26,66.94,13.1],[87.76,66.82,13.5],[88.25,66.7,13.8],[88.77,66.57,14.3],[89.26,66.44,14.8],[89.79,66.3,15.0],[90.29,66.16,15.5],[90.79,66.02,16.3],[91.29,65.88,16.5],[91.81,65.72,17.0],[92.33,65.56,17.5],[92.85,65.39,17.9],[93.37,65.22,18.1],[93.86,65.06,18.9],[94.37,64.88,19.3],[94.86,64.71,20.0],[95.38,64.52,20.6],[95.86,64.33,21.0],[96.35,64.14,22.1],[96.82,63.95,22.3],[97.31,63.74,23.2],[97.8,63.53,24.2],[98.29,63.31,24.6],[98.78,63.08,25.6],[99.24,62.85,26.5],[99.72,62.61,27.0],[100.16,62.38,28.2],[100.61,62.13,29.3],[101.05,61.88,30.0],[101.51,61.62,30.7],[101.96,61.34,31.6],[102.39,61.07,32.5],[102.82,60.79,33.9],[103.24,60.51,34.5],[103.68,60.2,35.2],[104.11,59.89,36.4],[104.54,59.57,37.4],[104.96,59.24,38.4],[105.35,58.92,39.6],[105.74,58.6,40.2],[106.15,58.25,41.2],[106.53,57.91,42.1],[106.92,57.55,43.1],[107.3,57.19,44.3],[107.66,56.82,45.3],[108.03,56.44,46.2],[108.38,56.07,47.4],[108.73,55.67,48.6],[109.07,55.28,49.8],[109.39,54.89,51.0],[109.72,54.48,52.3],[110.02,54.08,53.4],[110.32,53.66,54.6],[110.64,53.21,56.1],[110.93,52.75,57.6],[111.21,52.31,59.3],[111.46,51.87,60.4],[111.71,51.41,62.2],[111.94,50.95,64.3],[112.16,50.48,66.0],[112.36,50.02,68.1],[112.54,49.55,70.2],[112.71,49.05,72.4],[112.86,48.55,74.7],[112.98,48.05,77.5],[113.09,47.51,80.0],[113.16,47.0,82.8],[113.22,46.45,85.3],[113.25,45.93,88.0],[113.26,45.41,90.3],[113.24,44.86,93.0],[113.2,44.34,95.1],[113.14,43.79,97.8],[113.06,43.29,99.7],[112.95,42.75,102.2],[112.83,42.23,104.1],[112.69,41.7,106.2],[112.53,41.2,108.3],[112.37,40.72,109.8],[112.18,40.23,111.6],[111.98,39.75,113.4],[111.76,39.27,114.9],[111.53,38.78,116.6],[111.28,38.3,118.2],[111.02,37.84,119.8],[110.76,37.39,121.2],[110.47,36.93,122.5],[110.17,36.48,124.0],[109.88,36.05,125.4],[109.56,35.61,126.4],[109.25,35.2,127.8],[108.93,34.8,129.1],[108.59,34.39,130.0],[108.25,33.99,131.8],[107.91,33.62,132.9],[107.56,33.25,133.8],[107.18,32.86,134.8],[106.8,32.49,136.2],[106.4,32.11,137.1],[106.01,31.76,138.4],[105.63,31.43,139.3],[105.24,31.1,140.5],[104.84,30.78,141.7],[104.44,30.47,142.8],[104.03,30.17,143.5],[103.62,29.87,144.9],[103.2,29.58,145.9],[102.78,29.3,146.6],[102.33,29.01,147.6],[101.88,28.73,149.0],[101.44,28.47,149.4],[101.0,28.22,150.4],[100.56,27.97,151.2],[100.09,27.72,152.3],[99.61,27.47,152.8],[99.16,27.24,153.5],[98.7,27.02,154.5],[98.23,26.8,155.2],[97.76,26.59,155.7],[97.29,26.38,156.7],[96.8,26.17,157.1],[96.32,25.97,157.9],[95.81,25.76,158.4],[95.34,25.58,158.8],[94.83,25.39,159.5],[94.34,25.2,160.3],[93.85,25.03,160.5],[93.36,24.86,160.9],[92.84,24.68,161.7],[92.35,24.52,162.1],[91.86,24.37,162.4],[91.34,24.21,162.9],[90.83,24.05,163.3],[90.35,23.91,164.2],[89.86,23.77,164.4],[89.34,23.63,164.8],[88.81,23.49,165.3],[88.29,23.35,165.5],[87.79,23.22,166.0],[87.25,23.09,166.2],[86.73,22.97,166.7],[86.23,22.85,167.2],[85.7,22.73,167.7],[85.19,22.62,168.0],[84.66,22.51,168.1],[84.13,22.4,168.6],[83.62,22.3,169.2],[83.12,22.21,169.3],[82.58,22.11,169.9],[82.04,22.01,170.1],[81.94,22.0,170.3]],"time_ms":15909.0,"result":"goal"},"view":{"x":72,"y":45,"scale":5}}</data>
+                </block>
+            </instance>
+            <instance x="460" y="200">
+                <block type="nepoTest_simtest" id="lft20" intask="true">
+                    <field name="NAME">stops at the wall</field>
+                    <field name="SECONDS">10</field>
+                    <data>{"version":1,"world":{"start":{"x":10,"y":20,"heading":0},"items":[{"id":"wall","kind":"rect","role":"obstacle","x":50,"y":20,"w":4,"h":30,"rot":0}]},"tolerance_cm":2,"view":{"x":32,"y":22,"scale":8}}</data>
+                    <statement name="RUN">
+                        <block type="nepoTest_when_call" id="lft21" intask="true">
+                            <mutation name="toTheWall"/>
+                            <field name="FUNCTION">toTheWall</field>
+                        </block>
+                    </statement>
+                </block>
+            </instance>
+            <instance x="460" y="520">
+                <block type="nepoTest_test" id="lft30" intask="true">
+                    <field name="NAME">stops at the wall (no simulation)</field>
+                    <statement name="GIVEN">
+                        <block type="nepoTest_given_obstacle" id="lft31" intask="true">
+                            <field name="FROM">1000</field>
+                            <field name="DURATION">0</field>
+                            <field name="PORT">FRONT</field>
+                        </block>
+                    </statement>
+                    <statement name="WHEN">
+                        <block type="nepoTest_when_call" id="lft32" intask="true">
+                            <mutation name="toTheWall"/>
+                            <field name="FUNCTION">toTheWall</field>
+                        </block>
+                    </statement>
+                    <statement name="THEN">
+                        <block type="nepoTest_expect_action" id="lft33" intask="true">
+                            <value name="ACTION">
+                                <block type="nepoTest_action_stop" id="lft34" intask="true"/>
+                            </value>
+                        </block>
+                    </statement>
+                </block>
+            </instance>
+        </block_set>
+    </program>
+    <config>
+        <block_set xmlns="http://de.fhg.iais.roberta.blockly" robottype="edison" xmlversion="3.1" description="" tags="">
+            <instance x="213" y="213">
+                <block type="robBrick_Edison-Brick" id="1" intask="true" deletable="false"/>
+            </instance>
+        </block_set>
+    </config>
+</export>

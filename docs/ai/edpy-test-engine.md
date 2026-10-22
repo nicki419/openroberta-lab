@@ -536,6 +536,20 @@ framework, the engine has three opt-in hooks (`EdProgram(..., instrument=True)` 
 Besides the hooks, `robot.state_log` (§6.4) records every change of the motors, LEDs and sound, for the framework's
 state timeline.
 
+**A robot in a drawn world** (the framework's simulation tests, `nepotest/simulation.py`) is a subclass of `Robot`:
+- **`SimRobot._move_to`:** while a wheel turns, it advances in steps of at most 5 ms, and after each step it reads the
+  world: the obstacle beams, contacts, and the path.
+- **Sensor reads:** `ed_ReadLineState`, `ed_ReadLineTracker`, `ed_ReadLeftLightLevel` and `ed_ReadRightLightLevel`
+  read the world at the robot's pose.
+- **Ending a run:** the world ends a run with `StopProgram('simulation')`, and the reason is in `robot.outcome`.
+  - `EdProgram.run` reports that as status `simulation`.
+  - `Session.call` turns it into `StepLimitExceeded`, so the framework looks at `robot.outcome` first.
+- **Giving the robot to a run:** `subject.run(..., robot=...)` and `subject.call(..., robot=...)` take the robot to
+  use; `World.schedule(robot)` adds the scripted events to it.
+
+**Speed:** `instruction_position` (code position → source position, asked at every Ed call by the observer) caches
+each code object's `co_positions()`. That made a 60-second busy-loop run about 3 × faster (3.5 s → 1.2 s).
+
 Every engine error has a `kind` (`overflow`, `division_by_zero`, `index_out_of_range`, ...) and `positions`: the code
 positions of the program frames when it happened, which the framework maps to the failing block.
 
@@ -580,7 +594,8 @@ items are implemented in the framework: see `nepo-unit-testing.md`.
   - register access;
   - `DistanceUnits` other than `CM`;
   - the robot's own noise triggering the clap sensor;
-  - physical collisions (an obstacle doesn't stop the robot).
+  - physical collisions: an obstacle doesn't stop the robot. In a simulation test, touching one ends the run as
+    failed.
 - **The static guard isn't the compiler.** It doesn't check variable types, return types, or the robot's memory and
   stack limits. Recursion is limited by CPython, not by the robot.
 - **Only one program runs per robot.** Two robots talking over IR would need two robots sharing one clock. That's

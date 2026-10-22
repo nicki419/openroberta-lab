@@ -6,6 +6,8 @@
  * - "Code" shows the suite as NepoTest JSON and the program's generated EdPy
  * - "Test runner" converts the program with the Lab (REST /projectWorkflow/sourceForTest: EdPy + source map) and runs the suite in the browser
  *   with NepoTest in Pyodide (nepoTest.runner); results come back per test, errors and coverage per block
+ * - "Simulation" shows the world of the selected simulation test (nepoTest.simEditor): it is drawn there, recorded, run and replayed. The world
+ *   is the test block's data (JSON), so it is saved with the suite, and undo of a deleted block brings it back.
  * Only for the Edison robots (NepoTest supports them).
  */
 import * as GUISTATE_C from 'guiState.controller';
@@ -17,6 +19,8 @@ import * as $ from 'jquery';
 import * as BLOCKS from 'nepoTest.blocks';
 import * as SUITE from 'nepoTest.suite';
 import * as RUNNER from 'nepoTest.runner';
+import * as SIM from 'nepoTest.sim';
+import { SimEditor } from 'nepoTest.simEditor';
 
 const SUPPORTED_GROUPS = ['edison'];
 
@@ -26,6 +30,7 @@ let blocksLanguage: string = null;
 let codeView: 'json' | 'edpy' = 'json';
 let codeTimer: any = null;
 let running = false;
+let simEditor: SimEditor = null;
 
 // ------------------------------------------------------------------------------------------------ setup
 
@@ -49,6 +54,16 @@ export function init(): void {
         const element = workspace.robControls && workspace.robControls[button];
         element && element.setAttribute && element.setAttribute('style', 'display : none');
     });
+    simEditor = new SimEditor(document.getElementById('testsSimPane'), {
+        changed: simChanged,
+        record: function () {
+            simulate(true);
+        },
+        run: function () {
+            simulate(false);
+        },
+    });
+    simEditor.setLanguage(blocksLanguage);
     SUITE.setWorkspace(serializeSuite, loadSuite);
     loadSuite(null);
     initEvents();
@@ -89,7 +104,14 @@ function initEvents(): void {
         }
     });
     workspace.addChangeListener(function (event) {
-        if (!listen || event.type === Blockly.Events.UI) {
+        if (event.type === Blockly.Events.UI) {
+            if (event.element === 'selected' || event.element === 'click') {
+                openSimOf(event.element === 'selected' ? event.newValue : event.blockId);
+            }
+            return;
+        }
+        followSimTest(event);
+        if (!listen) {
             return;
         }
         if (GUISTATE_C.isProgramSaved()) {
@@ -109,6 +131,10 @@ function initEvents(): void {
     $('#testsCodeTab').onWrap('click', function (e) {
         e.preventDefault();
         showSide('code');
+    });
+    $('#testsSimTab').onWrap('click', function (e) {
+        e.preventDefault();
+        showSide('sim');
     });
     $('#testsCodeJson').onWrap('click', function () {
         codeView = 'json';
@@ -134,6 +160,7 @@ function resize(): void {
     if (workspace) {
         Blockly.svgResize(workspace);
     }
+    simEditor && $('#testsSimPane').is(':visible') && simEditor.resize();
 }
 
 /** the Tests tab only exists for robots NepoTest supports; called on start and when the robot changes (via loadSuite) */
@@ -160,6 +187,7 @@ const LABELS: { [lang: string]: { [id: string]: string } } = {
     en: {
         testsRunnerTab: 'Test runner',
         testsCodeTab: 'Code',
+        testsSimTab: 'Simulation',
         testsRunButton: '▶ Run tests',
         testsStopButton: 'Stop',
         testsCodeJson: 'Tests (JSON)',
@@ -168,6 +196,7 @@ const LABELS: { [lang: string]: { [id: string]: string } } = {
     de: {
         testsRunnerTab: 'Testlauf',
         testsCodeTab: 'Code',
+        testsSimTab: 'Simulation',
         testsRunButton: '▶ Tests ausführen',
         testsStopButton: 'Stopp',
         testsCodeJson: 'Tests (JSON)',
@@ -194,6 +223,7 @@ const TEXT: { [lang: string]: { [key: string]: string } } = {
         runnerFailed: 'The test runner failed: {0}',
         codeLoading: 'Starting the test runner…',
         warning: 'warning',
+        showSim: 'show the run',
     },
     de: {
         converting: 'Das Programm wird übersetzt…',
@@ -213,6 +243,7 @@ const TEXT: { [lang: string]: { [key: string]: string } } = {
         runnerFailed: 'Der Testlauf ist gescheitert: {0}',
         codeLoading: 'Der Testlauf startet…',
         warning: 'Warnung',
+        showSim: 'Fahrt zeigen',
     },
 };
 
@@ -228,6 +259,7 @@ function changeLanguage(lang: string): void {
     blocksLanguage = lang;
     BLOCKS.setLanguage(lang);
     translateLabels();
+    simEditor.setLanguage(lang);
     workspace.updateToolbox(BLOCKS.toolbox());
     loadSuite(xml);
 }
@@ -292,7 +324,7 @@ function renameRunBlocks(event: any): void {
         return;
     }
     const changed = workspace.getBlockById(event.blockId);
-    if (!changed || changed.type !== 'nepoTest_test') {
+    if (!BLOCKS.isTestBlock(changed)) {
         return;
     }
     for (const block of workspace.getAllBlocks()) {
@@ -359,6 +391,7 @@ function loadSuite(testsXml: string): void {
     }
     $('#testsResults, #testsProblems, #testsCoverage').empty();
     $('#testsStatus').text('');
+    reopenSim();
     setTimeout(() => (listen = true), 300);
 }
 
@@ -367,11 +400,133 @@ function loadSuite(testsXml: string): void {
 function showSide(which: string): void {
     $('#testsRunnerTab').toggleClass('active', which === 'runner');
     $('#testsCodeTab').toggleClass('active', which === 'code');
+    $('#testsSimTab').toggleClass('active', which === 'sim');
     $('#testsRunnerPane').toggle(which === 'runner');
     $('#testsCodePane').toggle(which === 'code');
+    $('#testsSimPane').css('display', which === 'sim' ? 'flex' : 'none');
     if (which === 'code') {
         refreshCode();
     }
+    if (which === 'sim') {
+        simEditor.resize();
+    }
+}
+
+// ------------------------------------------------------------------------------------------------ simulation tests
+
+/** the simulation test a block belongs to (the block itself, or the test it is in), or null */
+function simTestOf(block: any): any {
+    let b = block;
+    while (b && b.type !== 'nepoTest_simtest') {
+        b = b.getParent();
+    }
+    return b;
+}
+
+/** a simulation test was selected (or a block in it): its world is shown in the Simulation tab */
+function openSimOf(blockId: string): void {
+    const test = blockId && simTestOf(workspace.getBlockById(blockId));
+    if (!test) {
+        return;
+    }
+    if (simEditor.currentBlockId() !== test.id) {
+        simEditor.show(test.id, SIM.parseData(test.data), test.getFieldValue('NAME'));
+    }
+    if (!$('#testsSimPane').is(':visible')) {
+        showSide('sim');
+    }
+}
+
+/** shows the same test again after the workspace was loaded anew (language change, ...), or nothing if it is gone */
+function reopenSim(): void {
+    if (!simEditor) {
+        return;
+    }
+    const id = simEditor.currentBlockId();
+    const test = id && workspace.getBlockById(id);
+    if (test && test.type === 'nepoTest_simtest') {
+        simEditor.show(test.id, SIM.parseData(test.data), test.getFieldValue('NAME'));
+    } else {
+        simEditor.show(null, null, '');
+    }
+}
+
+/** keeps the Simulation tab in step with its test block: renamed, deleted */
+function followSimTest(event: any): void {
+    const id = simEditor && simEditor.currentBlockId();
+    if (!id) {
+        return;
+    }
+    if (event.type === Blockly.Events.DELETE && (event.ids || [event.blockId]).indexOf(id) >= 0) {
+        simEditor.show(null, null, '');
+    } else if (event.type === Blockly.Events.CHANGE && event.blockId === id && event.element === 'field' && event.name === 'NAME') {
+        simEditor.setTitle(event.newValue);
+    }
+}
+
+/** the simulation window changed the world: it goes into the test block's data (an edit makes the program unsaved, a zoom doesn't) */
+function simChanged(data: SIM.SimData, viewOnly: boolean): void {
+    const block = workspace.getBlockById(simEditor.currentBlockId());
+    if (!block) {
+        return;
+    }
+    block.data = JSON.stringify(data);
+    block.updateThumbnail && block.updateThumbnail();
+    if (!viewOnly) {
+        if (GUISTATE_C.isProgramSaved()) {
+            GUISTATE_C.setProgramSaved(false);
+        }
+        if ($('#testsCodePane').is(':visible')) {
+            clearTimeout(codeTimer);
+            codeTimer = setTimeout(refreshCode, 600);
+        }
+    }
+}
+
+/** records (record: the run becomes the recorded path) or runs the test shown in the Simulation tab */
+function simulate(record: boolean): void {
+    const blockId = simEditor.currentBlockId();
+    if (!blockId || running) {
+        return;
+    }
+    running = true;
+    simEditor.setBusy(true, RUNNER.isReady() ? null : simEditor.loadingText());
+    const xml = programXml();
+    const testsXml = serializeSuite(true);
+    const done = function (message?: string, isError?: boolean) {
+        running = false;
+        simEditor.setBusy(false);
+        message && simEditor.showMessage(message, isError);
+    };
+    convertProgram(function (result) {
+        if (result.rc !== 'ok' && !result.progXML) {
+            done(text('runnerFailed', Blockly.Msg[result.message] || result.message), true);
+            return;
+        }
+        RUNNER.simulate(JSON.stringify(bundleOf(result, xml)), testsXml, blockId, record).then(
+            function (answer) {
+                if (answer.conversion_errors.length) {
+                    done(text('conversion') + ' ' + answer.conversion_errors.map((e) => e.block_type + ': ' + (Blockly.Msg[e.key] || e.key)).join('; '), true);
+                    return;
+                }
+                const errors = answer.problems.filter((p) => p.severity === 'error');
+                if (errors.length || !answer.report) {
+                    done(text('problems') + ' ' + errors.map((p) => p.message).join('; '), true);
+                    return;
+                }
+                done();
+                const report = answer.report;
+                if (report.simulation) {
+                    simEditor.showRun(blockId, report, record);
+                } else {
+                    simEditor.showMessage(report.error ? report.error.message : report.outcome, report.outcome !== 'passed');
+                }
+            },
+            function (err) {
+                done(err.message === 'cancelled' ? text('stopped') : text('runnerFailed', err.message), true);
+            }
+        );
+    });
 }
 
 function selectBlock(blockId: string, where: string): void {
@@ -387,6 +542,7 @@ function selectBlock(blockId: string, where: string): void {
     } else {
         const block = workspace.getBlockById(blockId);
         block && block.select();
+        openSimOf(blockId); // a simulation test: its run is replayed in the Simulation tab
     }
 }
 
@@ -454,6 +610,23 @@ function conversionErrors(result: any): string[] {
 
 // ------------------------------------------------------------------------------------------------ running
 
+/** a NepoTest bundle: the program as the Lab converted it (sourceForTest) */
+function bundleOf(result: any, xml: string): any {
+    return {
+        format: 'nepotest-bundle',
+        version: 1,
+        robot: GUISTATE_C.getRobot(),
+        program_name: GUISTATE_C.getProgramName(),
+        xml: xml,
+        rc: result.rc,
+        message: result.message,
+        cause: result.cause,
+        edpy: result.sourceCode || null,
+        source_map: result.sourceMap || null,
+        annotated_prog_xml: result.progXML || null,
+    };
+}
+
 function runTests(): void {
     if (running) {
         return;
@@ -470,19 +643,7 @@ function runTests(): void {
             finishRun(text('runnerFailed', Blockly.Msg[result.message] || result.message));
             return;
         }
-        const bundle = {
-            format: 'nepotest-bundle',
-            version: 1,
-            robot: GUISTATE_C.getRobot(),
-            program_name: GUISTATE_C.getProgramName(),
-            xml: xml,
-            rc: result.rc,
-            message: result.message,
-            cause: result.cause,
-            edpy: result.sourceCode || null,
-            source_map: result.sourceMap || null,
-            annotated_prog_xml: result.progXML || null,
-        };
+        const bundle = bundleOf(result, xml);
         $('#testsStatus').text(RUNNER.isReady() ? '' : text('loadingPython'));
         let total = 0;
         RUNNER.run(JSON.stringify(bundle), testsXml, onPrepared, onProgress).then(
@@ -561,6 +722,10 @@ function runTests(): void {
                     $e.attr('data-block', report.error.block_id).attr('data-workspace', 'program');
                 }
                 $details.append($e);
+            }
+            if (report.simulation) {
+                simEditor.showRun(report.block_id, report, false); // the run can be replayed in the Simulation tab
+                $details.append($('<li class="linked nepoTestShowSim"></li>').text(text('showSim')).attr('data-block', report.block_id).attr('data-workspace', 'tests'));
             }
             $li.append($details);
             if (index + 1 < total) {

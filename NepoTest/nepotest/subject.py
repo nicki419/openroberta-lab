@@ -218,13 +218,16 @@ class TestSubject(object):
         """Calls NEPO function `function` with NEPO values, after the program's setup and declarations (its main
         program doesn't run). Options: globals={name: value} (set before the call), world=World(...),
         max_steps=100000, max_time_ms=60000, robot_options={...} (see engine Robot), track_variables=False (record
-        the global variables over time, for variable states)."""
+        the global variables over time, for variable states), robot=a Robot to use (e.g. a simulation.SimRobot; the
+        world's events are scheduled on it, robot_options don't apply)."""
         world = kwargs.pop('world', None) or World()
         globals_ = kwargs.pop('globals', None) or {}
         max_steps = kwargs.pop('max_steps', 100000)
         max_time_ms = kwargs.pop('max_time_ms', 60000)
         track_variables = kwargs.pop('track_variables', False)
-        robot = world.build_robot(**kwargs.pop('robot_options', {}))
+        given_robot = kwargs.pop('robot', None)
+        robot_options = kwargs.pop('robot_options', {})
+        robot = world.schedule(given_robot) if given_robot is not None else world.build_robot(**robot_options)
         if kwargs:
             raise TypeError('unexpected arguments %r' % sorted(kwargs))
         observer = Observer(self, robot, track_variables=track_variables)
@@ -240,10 +243,12 @@ class TestSubject(object):
             error = self._nepo_error(e)
         return CallResult(self, observer, returned, dict((k, nepo_value(v)) for k, v in session.vars.items()), error)
 
-    def run(self, world=None, max_time_ms=60000, max_steps=2000000, overflow='raise', robot_options=None, track_variables=False):
+    def run(self, world=None, max_time_ms=60000, max_steps=2000000, overflow='raise', robot_options=None, track_variables=False,
+            robot=None):
         """Runs the whole program against `world`. track_variables: record the global variables over time (for
-        variable states; it costs a little per statement)."""
-        robot = (world or World()).build_robot(**(robot_options or {}))
+        variable states; it costs a little per statement). robot: a Robot to use (e.g. a simulation.SimRobot)."""
+        world = world or World()
+        robot = world.schedule(robot) if robot is not None else world.build_robot(**(robot_options or {}))
         observer = Observer(self, robot, track_variables=track_variables)
         observer.main_ran = True
         error, status, variables = None, 'error', {}

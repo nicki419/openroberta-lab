@@ -10,6 +10,8 @@
  *   {cmd: 'translate', testsXml, programXml}  -> {event: 'result', data: {spec, problems}}
  *   {cmd: 'run', bundle, testsXml}            -> {event: 'prepared', data}, {event: 'progress', data: {index, report}} per test,
  *                                                {event: 'result', data: {prepared, finish}}
+ *   {cmd: 'simulate', bundle, testsXml, blockId, record}
+ *                                             -> {event: 'result', data: {report, problems, conversion_errors}}
  * Every message carries the request's id and the config {pyodideUrl, filesUrl}; errors come back as {event: 'error', message}.
  */
 var nepotest = { py: null, loading: null };
@@ -82,6 +84,8 @@ self.onmessage = function (e) {
                     }
                 }
                 post('result', { prepared: prepared, finish: blocking ? null : nepotestCall('finish', []) });
+            } else if (m.cmd === 'simulate') {
+                post('result', nepotestCall('simulate', [m.bundle, m.testsXml, m.blockId, !!m.record]));
             } else {
                 throw new Error('unknown command ' + m.cmd);
             }

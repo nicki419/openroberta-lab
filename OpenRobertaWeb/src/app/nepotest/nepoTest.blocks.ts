@@ -2,10 +2,12 @@
  * The NEPO test blocks of the Tests tab (block types nepoTest_*). They are defined here at runtime (Blockly itself is built elsewhere) and translated
  * into NepoTest's JSON test format by NepoTest/nepotest/blocks.py, which documents every block's fields and inputs. Keep both in sync.
  *
- * A test suite: the red start block "nepoTest_suite" with "nepoTest_run" blocks below it; each runs one "nepoTest_test" (given / when / then).
+ * A test suite: the red start block "nepoTest_suite" with "nepoTest_run" blocks below it; each runs one "nepoTest_test" (given / when / then)
+ * or one "nepoTest_simtest" (the robot in a drawn world; its world is the block's data, see nepoTest.sim).
  */
 // @ts-ignore (Blockly has no type declarations)
 import * as Blockly from 'blockly';
+import * as SIM from 'nepoTest.sim';
 
 export interface ProgramInfo {
     functions: { name: string; params: { name: string; type: string }[]; returns: boolean }[];
@@ -53,6 +55,12 @@ const MESSAGES: { [lang: string]: { [key: string]: string } } = {
         NEPOTEST_RUN_PROGRAM_TOOLTIP: 'Runs the whole program. It stops when it ends, or after this time (virtual time: a test takes much less).',
         NEPOTEST_CALL: 'call function',
         NEPOTEST_CALL_TOOLTIP: 'Calls one function of the program. The program itself does not run.',
+        NEPOTEST_SIMTEST: 'simulation test',
+        NEPOTEST_SIMTEST_TOOLTIP:
+            'A simulation test: the robot drives through a world you draw (click the test to open it on the right). Touching a goal area passes the test; touching a fail area or an obstacle, or leaving the recorded path, fails it.',
+        NEPOTEST_SIM_RUN: 'run',
+        NEPOTEST_SIM_RUN_EMPTY: '(empty: the whole program)',
+        NEPOTEST_SIM_FOR: 'for at most',
         NEPOTEST_EXPECT: 'expect',
         NEPOTEST_EXPECT_NO: 'expect no',
         NEPOTEST_TIMES: 'times',
@@ -218,6 +226,12 @@ const MESSAGES: { [lang: string]: { [key: string]: string } } = {
         NEPOTEST_RUN_PROGRAM_TOOLTIP: 'Führt das ganze Programm aus. Es stoppt, wenn es endet, oder nach dieser Zeit (virtuelle Zeit: ein Test dauert viel kürzer).',
         NEPOTEST_CALL: 'rufe Funktion',
         NEPOTEST_CALL_TOOLTIP: 'Ruft eine Funktion des Programms auf. Das Programm selbst läuft nicht.',
+        NEPOTEST_SIMTEST: 'Simulationstest',
+        NEPOTEST_SIMTEST_TOOLTIP:
+            'Ein Simulationstest: der Roboter fährt durch eine Welt, die du zeichnest (klicke den Test an, dann erscheint sie rechts). Wer einen Zielbereich berührt, besteht den Test; ein Fehlerbereich, ein Hindernis oder das Verlassen des aufgenommenen Wegs lassen ihn scheitern.',
+        NEPOTEST_SIM_RUN: 'ausführen',
+        NEPOTEST_SIM_RUN_EMPTY: '(leer: das ganze Programm)',
+        NEPOTEST_SIM_FOR: 'höchstens',
         NEPOTEST_EXPECT: 'erwarte',
         NEPOTEST_EXPECT_NO: 'erwarte kein(e)',
         NEPOTEST_TIMES: 'mal',
@@ -378,6 +392,10 @@ const RUN = 'nepoTestRun';
 const ACTION = 'nepoTestAction';
 const STATE = 'nepoTestState';
 const CONDITION = 'nepoTestCondition';
+const SIM_RUN = 'nepoTestSimRun';
+const TEST_TYPES = ['nepoTest_test', 'nepoTest_simtest'];
+const THUMB_W = 132;
+const THUMB_H = 84;
 
 function number(value: string | number): any {
     return new Blockly.FieldTextInput(String(value), Blockly.FieldTextInput.nonnegativeIntegerValidator);
@@ -424,12 +442,16 @@ function nameOptions(field: any, names: string[]): string[][] {
     return options;
 }
 
-/** the names of the test blocks of a workspace, in their order on the workspace */
+/** the names of the test blocks (both kinds) of a workspace, in their order on the workspace */
 export function testNamesOf(workspace: any): string[] {
     return workspace
         .getTopBlocks(true)
-        .filter((b) => b.type === 'nepoTest_test')
+        .filter((b) => TEST_TYPES.indexOf(b.type) >= 0)
         .map((b) => b.getFieldValue('NAME'));
+}
+
+export function isTestBlock(block: any): boolean {
+    return !!block && TEST_TYPES.indexOf(block.type) >= 0;
 }
 
 function testNames(this: any): string[][] {
@@ -455,7 +477,7 @@ function uniqueTestName(this: any, name: string): string {
     }
     const taken = block.workspace
         .getTopBlocks(false)
-        .filter((b) => b.type === 'nepoTest_test' && b.id !== block.id)
+        .filter((b) => TEST_TYPES.indexOf(b.type) >= 0 && b.id !== block.id)
         .map((b) => b.getFieldValue('NAME'));
     let candidate = name;
     for (let i = 2; taken.indexOf(candidate) >= 0; i++) {
@@ -573,6 +595,37 @@ const DEFINITIONS: { [type: string]: any } = {
             this.appendStatementInput('GIVEN').setCheck(GIVEN).appendField(msg('NEPOTEST_GIVEN'));
             this.appendStatementInput('WHEN').setCheck(WHEN).appendField(msg('NEPOTEST_WHEN'));
             this.appendStatementInput('THEN').setCheck(THEN).appendField(msg('NEPOTEST_THEN'));
+        },
+    },
+    nepoTest_simtest: {
+        init: function () {
+            hat(this, Blockly.CAT_PROCEDURE_RGB, 'NEPOTEST_SIMTEST_TOOLTIP');
+            this.appendDummyInput()
+                .appendField(msg('NEPOTEST_SIMTEST'))
+                .appendField(new Blockly.FieldTextInput(msg('NEPOTEST_SIMTEST'), uniqueTestName), 'NAME');
+            this.appendDummyInput('PREVIEW').appendField(new Blockly.FieldImage(SIM.thumbnail(SIM.defaultData(), THUMB_W, THUMB_H), THUMB_W, THUMB_H, '*'), 'PREVIEW');
+            this.appendStatementInput('GIVEN').setCheck(GIVEN).appendField(msg('NEPOTEST_GIVEN'));
+            this.appendStatementInput('RUN').setCheck(SIM_RUN).appendField(msg('NEPOTEST_SIM_RUN'));
+            this.appendDummyInput('EMPTY').appendField(msg('NEPOTEST_SIM_RUN_EMPTY'));
+            this.appendDummyInput()
+                .appendField(msg('NEPOTEST_SIM_FOR'))
+                .appendField(number(30), 'SECONDS')
+                .appendField(msg('NEPOTEST_SECONDS'));
+            this.thumbData_ = null;
+        },
+        /** the picture follows the block's data (set when loaded from XML, and by the simulation window) */
+        updateThumbnail: function () {
+            if (this.thumbData_ === (this.data || '')) {
+                return;
+            }
+            this.thumbData_ = this.data || '';
+            const field = this.getField('PREVIEW');
+            field && field.setValue(SIM.thumbnail(SIM.parseData(this.data), THUMB_W, THUMB_H));
+        },
+        onchange: function () {
+            this.updateThumbnail();
+            const input = this.getInput('RUN');
+            showOptional(this, 'EMPTY', !(input && input.connection && input.connection.targetBlock()));
         },
     },
     nepoTest_given_clap: {
@@ -713,7 +766,7 @@ const DEFINITIONS: { [type: string]: any } = {
                     }),
                     'FUNCTION'
                 );
-            this.setPreviousStatement(true, WHEN);
+            this.setPreviousStatement(true, [WHEN, SIM_RUN]);
             this.params_ = [];
             const first = programInfo().functions[0];
             if (first) {
@@ -1369,6 +1422,7 @@ export function toolbox(): string {
         cat(
             'NEPOTEST_TESTS',
             b('nepoTest_test', '<statement name="WHEN">' + b('nepoTest_when_run') + '</statement><statement name="THEN">' + b('nepoTest_expect_status') + '</statement>') +
+                b('nepoTest_simtest') +
                 b('nepoTest_run')
         ) +
         cat(

@@ -33,7 +33,8 @@ def _tag(el):
 
 
 class Block(object):
-    """One NEPO block. fields: {name: text}; values: {input name: Block}; statements: {input name: [Block]}."""
+    """One NEPO block. fields: {name: text}; values: {input name: Block}; statements: {input name: [Block]}; data: the
+    text of its <data> element (Blockly's block.data; the Tests tab keeps a simulation test's world there), or None."""
 
     def __init__(self, el, parent=None, parent_input=None):
         self.id = el.get('id')
@@ -49,6 +50,7 @@ class Block(object):
         self.mutation_args = []
         self.errors = []
         self.warnings = []
+        self.data = None
         for child in _flatten(el):
             tag = _tag(child)
             if tag == 'field':
@@ -66,6 +68,8 @@ class Block(object):
                 self.errors.append((child.text or '').strip())
             elif tag == 'warning':
                 self.warnings.append((child.text or '').strip())
+            elif tag == 'data':
+                self.data = child.text or ''
 
     def children(self):
         for b in self.values.values():

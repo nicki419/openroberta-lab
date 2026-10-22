@@ -275,11 +275,12 @@ class SchemaTest(unittest.TestCase):
         from nepotest.blocks import split_program, translate
         with open(os.path.join(os.path.dirname(HERE), 'schema', 'nepo-tests.schema.json'), encoding='utf-8') as f:
             schema = json.load(f)
-        for name in ('patrol.tests.json', 'clap_counter.tests.json'):
+        for name in ('patrol.tests.json', 'clap_counter.tests.json', 'line_follower.tests.json'):
             with open(os.path.join(EXAMPLES, name), encoding='utf-8') as f:
                 jsonschema.validate(json.load(f), schema)
-        with open(os.path.join(EXAMPLES, 'patrol_with_tests.xml'), encoding='utf-8') as f:
-            jsonschema.validate(translate(split_program(f.read())[1])[0], schema)
+        for name in ('patrol_with_tests.xml', 'line_follower_with_tests.xml'):
+            with open(os.path.join(EXAMPLES, name), encoding='utf-8') as f:
+                jsonschema.validate(translate(split_program(f.read())[1])[0], schema)
 
 
 if __name__ == '__main__':

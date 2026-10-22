@@ -88,6 +88,14 @@ export function run(bundleJson: string, testsXml: string, onPrepared: (prepared:
     });
 }
 
+/**
+ * runs one test on its own (the Simulation tab's "record" and "run"): resolves with {report, problems, conversion_errors}.
+ * record: a simulation test runs without its recorded path, so the run can become the new one.
+ */
+export function simulate(bundleJson: string, testsXml: string, blockId: string, record: boolean): Promise<any> {
+    return request({ cmd: 'simulate', bundle: bundleJson, testsXml: testsXml, blockId: blockId, record: record });
+}
+
 /** stops a running suite: the worker is terminated (and Python has to be loaded again next time) */
 export function cancel(): void {
     if (worker) {

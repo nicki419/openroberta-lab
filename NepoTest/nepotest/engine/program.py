@@ -12,6 +12,7 @@ maps them back, so tests use the names the learner sees.
 import ast
 import linecache
 import sys
+import weakref
 
 from .containers import EdList, TuneString
 from .ed_module import EdModule
@@ -347,16 +348,20 @@ def _notify(listeners, event, *args):
             method(*args)
 
 
+_POSITIONS = weakref.WeakKeyDictionary()  # code object -> list(code.co_positions()); the observer asks at every Ed call
+
+
 def instruction_position(code, lasti):
     """source position (lineno, end_lineno, col_offset, end_col_offset) of the instruction at byte offset lasti, or None
     (needs CPython 3.11+, which has code.co_positions())"""
-    positions = getattr(code, 'co_positions', None)
-    if positions is None or lasti < 0:
+    if lasti < 0 or not hasattr(code, 'co_positions'):
         return None
-    for i, pos in enumerate(positions()):
-        if i == lasti // 2:
-            return pos if pos[0] is not None else None
-    return None
+    positions = _POSITIONS.get(code)
+    if positions is None:
+        positions = _POSITIONS[code] = list(code.co_positions())
+    i = lasti // 2
+    pos = positions[i] if i < len(positions) else None
+    return pos if pos is not None and pos[0] is not None else None
 
 
 def _is_runtime_call(stmt, method):

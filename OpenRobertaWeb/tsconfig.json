@@ -311,6 +311,12 @@
       "nepoTest.runner": [
         "app/nepotest/nepoTest.runner"
       ],
+      "nepoTest.sim": [
+        "app/nepotest/nepoTest.sim"
+      ],
+      "nepoTest.simEditor": [
+        "app/nepotest/nepoTest.simEditor"
+      ],
       "tests.controller": [
         "app/roberta/controller/tests.controller"
       ],

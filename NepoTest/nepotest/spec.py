@@ -7,19 +7,26 @@ code of its own. See docs/ai/nepo-unit-testing.md for the full reference.
        {"name": "speed is clamped", "call": "clampSpeed", "args": [150], "expect": {"returns": 100}},
        {"name": "three claps", "world": [{"event": "clap", "at": 1000}, ...], "max_time_ms": 10000,
         "expect": {"status": "finished", "variables": {"claps": 3},
-                   "actions": [{"block": "robActions_motorDiff_on_for", "power": 100, "distance_cm": 10}]}}]}
+                   "actions": [{"block": "robActions_motorDiff_on_for", "power": 100, "distance_cm": 10}]}},
+       {"name": "follows the line", "simulation": {"world": {...}, "reference": {"path": [...]}, "tolerance_cm": 2},
+        "max_time_ms": 30000}]}
+
+A test with "simulation" is a simulation test (simulation.py): the robot drives through a drawn world, and the world
+decides. Its "expect" is optional.
 """
 
 import json
 import os
 
+from . import simulation as SIM
 from . import states as ST
 from .matching import matches, value_matches as _value_matches
 from .world import EVENTS, World
 
 EXPECT_KEYS = ('returns', 'status', 'finished_within_ms', 'variables', 'actions', 'actions_exactly', 'no_actions',
                'action_count', 'calls', 'error', 'covers', 'states', 'distance_cm', 'heading_deg', 'end_position')
-TEST_KEYS = ('name', 'description', 'call', 'args', 'globals', 'world', 'max_time_ms', 'max_steps', 'expect', 'origin', 'block_id')
+TEST_KEYS = ('name', 'description', 'call', 'args', 'globals', 'world', 'max_time_ms', 'max_steps', 'expect', 'origin', 'block_id',
+             'simulation')
 STATUS_VALUES = ('finished', 'running', 'time_limit', 'step_limit')
 
 
@@ -49,7 +56,15 @@ def validate_spec(spec, subject=None):
             problems.append('%s: duplicate name %r' % (where, name))
         names.add(name)
         expect = test.get('expect')
-        if not isinstance(expect, dict) or not expect:
+        is_simulation = 'simulation' in test
+        if is_simulation:
+            problems += SIM.validate(test['simulation'], where + '.simulation')
+            others = [e.get('event') for e in test.get('world') or [] if isinstance(e, dict) and e.get('event') not in SIM.GIVEN_EVENTS]
+            if others:
+                problems.append('%s.world: a simulation test only takes %s; the drawn world gives the rest (not: %s)'
+                                % (where, ', '.join(SIM.GIVEN_EVENTS), ', '.join(map(str, others))))
+            expect = expect if isinstance(expect, dict) else {}
+        elif not isinstance(expect, dict) or not expect:
             problems.append('%s: "expect" must be a non-empty object' % where)
             expect = {}
         for key in expect:
@@ -172,6 +187,8 @@ def check_expectations(expect, test, result, is_call):
 # ---------------------------------------------------------------------- running
 
 def run_test(subject, test, defaults=None):
+    if 'simulation' in test:
+        return SIM.run_simulation_test(subject, test)
     options = dict(defaults or {})
     options.update(dict((k, test[k]) for k in ('max_time_ms', 'max_steps') if k in test))
     world = World(test.get('world') or [])

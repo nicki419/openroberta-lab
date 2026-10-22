@@ -76,14 +76,19 @@ programs, which implements the project goal. It covers:
   when (at the end, at a time, always / never / at some point, within … ms after a world event, while a world condition
   holds); and where the robot ended (distance, turn, position). Implemented in `NepoTest/nepotest/states.py` on the
   engine's state log;
+- **simulation tests:** the robot drives through a **drawn world** (lines with a black core and a white rim, floor
+  markings, obstacles, goal and fail areas, a recorded path with a tolerance), and its sensors read it at its pose.
+  Touching a goal passes the test; touching a fail area or an obstacle, or leaving the path, fails it. Implemented in
+  `NepoTest/nepotest/simulation.py`;
 - **results per block:** failures, runtime errors attributed to blocks, and block coverage;
 - `describe()`: a program summary with test hints, as input for AI test generation.
 
 Read it before working on testing.
 
 **`docs/ai/nepo-test-blocks.md`** documents the Lab's **Tests tab**: learners build test suites from NEPO test blocks
-(red start block, test blocks with given / when / then, run-test blocks), see the converted code, and run the tests in
-the browser (NepoTest in Pyodide, in a Web Worker). It covers the block vocabulary (the contract between
+(red start block, test blocks with given / when / then, simulation test blocks, run-test blocks), see the converted
+code, and run the tests in the browser (NepoTest in Pyodide, in a Web Worker). For a simulation test, the
+**Simulation** panel draws its world, records the path and replays runs. It covers the block vocabulary (the contract between
 `nepoTest.blocks.ts` and `NepoTest/nepotest/blocks.py`), how suites are saved inside the program XML, and how results
 link back to blocks. Read it before changing the Tests tab or adding a test block.
 
@@ -110,7 +115,7 @@ latched sensors from EdPy's library. The document also lists which behaviour is 
 | Test runner for golden files | `OpenRobertaServer/src/test/java/.../integrationTest/ReuseIntegrationAsUnitTest.java` (configured by `crossCompilerTests/testSpec.yml`) |
 | Frontend (TypeScript sources) | `OpenRobertaWeb/src/**` (compiles into `OpenRobertaServer/staticResources`) |
 | **NEPO unit-test framework** (Python) | `NepoTest/` (`nepotest/`, `nepotest/engine/`, `examples/`, `tests/`, `schema/`) |
-| **Tests tab** (test blocks, runner) | `OpenRobertaWeb/src/app/nepotest/*` (blocks, suite storage, runner, Web Worker), `OpenRobertaWeb/src/app/roberta/controller/tests.controller.ts`; markup in `staticResources/index.html` (`#tabTests`, `#tests`); translation `NepoTest/nepotest/blocks.py` |
+| **Tests tab** (test blocks, runner) | `OpenRobertaWeb/src/app/nepotest/*` (blocks, suite storage, runner, Web Worker, simulation world `nepoTest.sim.ts` and panel `nepoTest.simEditor.ts`), `OpenRobertaWeb/src/app/roberta/controller/tests.controller.ts`; markup in `staticResources/index.html` (`#tabTests`, `#tests`); translation `NepoTest/nepotest/blocks.py` |
 | Source map for tests (block id → EdPy ranges) | `OpenRobertaRobot/…/bean/SourceMapBean`, filled by `EdisonPythonVisitor.preVisitCheck/postVisitCheck`, served by `ProjectWorkflowRestController` `/projectWorkflow/sourceForTest`; test `OpenRobertaServer/src/test/java/…/javaServer/EdisonSourceMapTest` |
 
 `…` = `src/main/java/de/fhg/iais/roberta`. Paths are repo-relative.
@@ -163,11 +168,13 @@ python -m unittest discover -s examples -t .           # the example's Python te
 python -m nepotest run examples/clap_counter.tests.json
 python -m nepotest run examples/clap_counter_with_tests.xml   # a program with a suite from the Tests tab
 python -m nepotest run examples/patrol.tests.json      # state tests (patrol_with_tests.xml: the same as test blocks)
+python -m nepotest run examples/line_follower.tests.json   # simulation tests (line_follower_with_tests.xml: as blocks)
 ```
 
-These passed on 2026-09-29: 101 + 8 tests, including the live-Lab tests, the reference-compiler check and the schema
-check. Each suite has one deliberate expected failure, which shows generator quirk #14. Each example test file reports
-one deliberate failure: quirk #14 (clap counter), and a square driven while the obstacle is still there (patrol).
+These passed on 2026-10-18: 126 + 8 tests, including the live-Lab tests, the reference-compiler check and the schema
+check. Each suite has one deliberate expected failure, which shows generator quirk #14. The clap counter and patrol
+example test files each report one deliberate failure: quirk #14 (clap counter), and a square driven while the
+obstacle is still there (patrol). The line follower's three tests all pass.
 The live-Lab tests skip if no Lab answers at `$NEPOTEST_LAB` (default `http://localhost:1999`). The Level-0 check skips
 unless `EDPY_HOME`/`EDPY_PYTHON` point to the reference compiler, and the schema check unless `jsonschema` is
 installed. The tests also ran with pytest on 2026-09-25. After generator
@@ -189,7 +196,9 @@ compile service and the EdComm audio cable.
   built in a separate repo and copied in.
 - **The test blocks** (`nepoTest_*`) are defined in `nepoTest.blocks.ts` and translated by `NepoTest/nepotest/blocks.py`.
   Change both together, and keep the block table in `docs/ai/nepo-test-blocks.md` current. Test blocks are never part
-  of the program workspace or code generation. They are saved as extra instances of the program XML.
+  of the program workspace or code generation. They are saved as extra instances of the program XML. A simulation
+  test's world is its block's `<data>` (JSON). Its geometry (curves, robot outline, sensor positions) exists twice, in
+  `nepoTest.sim.ts` and `simulation.py`: change both together.
 - AST classes must be `final` and annotated (`@NepoPhrase` / `@NepoExpr` / `@NepoBasic` …) with their `blocklyNames`.
   `AstFactory.loadBlocks()` must run before any XML → AST transformation. Tests call it in `@BeforeClass`.
 - Workers are instantiated **once per RobotFactory** and reused across requests, so keep them stateless.

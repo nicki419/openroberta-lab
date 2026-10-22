@@ -5,6 +5,9 @@ The blocks (all types start with `nepoTest_`; the frontend defines them in nepoT
     nepoTest_suite                      the red start block; `nepoTest_run` blocks below it choose the tests to run
     nepoTest_run          NAME          run the test NAME
     nepoTest_test         NAME          a test: statement inputs GIVEN (the world), WHEN (one action), THEN (expectations)
+    nepoTest_simtest      NAME SECONDS  a simulation test: the robot in a drawn world (block data: JSON, see below);
+                                        statement inputs GIVEN (claps, keys, remote codes, IR messages, variables) and
+                                        RUN (empty: the program; or one nepoTest_when_call)
   GIVEN
     nepoTest_given_clap       AT                      a clap at AT ms
     nepoTest_given_key        AT PORT                 key PLAY/REC pressed at AT ms
@@ -49,15 +52,22 @@ The blocks (all types start with `nepoTest_`; the frontend defines them in nepoT
 
 Values in inputs are NEPO literal blocks: math_number, math_integer, logic_boolean, robLists_create_with of numbers.
 A saved program keeps its test suite as extra <instance>s in its block_set (split_program separates them).
+
+The data of a simulation test block (<data>, JSON): {"version": 1, "world": {"start", "items", "settings"} (see
+simulation.py), "reference": {"path": [[x, y, heading], ...], "time_ms"} (a recorded run, or absent), "tolerance_cm",
+"view": {"x", "y", "scale"} (the editor's zoom, not used here)}.
 """
 
+import json
 import re
 import xml.etree.ElementTree as ET
 
+from . import simulation as SIM
 from . import states as ST
 from .nepo import NS, Block
 
 PREFIX = 'nepoTest_'
+TEST_TYPES = ('nepoTest_test', 'nepoTest_simtest')
 OPS = {'EQ', 'NEQ', 'LT', 'LTE', 'GT', 'GTE'}
 ERROR_KINDS = {'any', 'division_by_zero', 'overflow', 'index_out_of_range', 'recursion', 'step_limit', 'negative_value',
                'shift_out_of_range'}
@@ -340,13 +350,18 @@ def _chain(block, name):
     return [b for b in block.statements.get(name, []) if not b.disabled]
 
 
-def _translate_test(test_block, program, problems):
-    name = (test_block.fields.get('NAME') or '').strip()
-    test = {'name': name, 'origin': 'blocks', 'block_id': test_block.id}
-    expect = {}
+# the "given" blocks a simulation test may have: the drawn world gives obstacles, the line and the light
+SIM_GIVEN = ('nepoTest_given_clap', 'nepoTest_given_key', 'nepoTest_given_remote', 'nepoTest_given_ir', 'nepoTest_given_variable')
+
+
+def _given(test_block, program, problems, simulation=False):
+    """(world events, globals) of the GIVEN blocks of a test"""
     world, globals_ = [], {}
     for b in _chain(test_block, 'GIVEN'):
         t = b.type
+        if simulation and t not in SIM_GIVEN:
+            problems.add(b, 'in a simulation test, draw obstacles and lines into the simulation instead')
+            continue
         if t == 'nepoTest_given_clap':
             world.append({'event': 'clap', 'at': _int_field(b, 'AT', problems)})
         elif t == 'nepoTest_given_key':
@@ -378,6 +393,27 @@ def _translate_test(test_block, program, problems):
             globals_[var] = value
         else:
             problems.add(b, 'this block does not belong under "given"')
+    return world, globals_
+
+
+def _call(w, test, program, problems):
+    """a "call function" block: sets "call" and "args" of the test"""
+    fn = w.fields.get('FUNCTION') or w.mutation.get('name')
+    test['call'] = fn
+    arity = len(w.mutation_args) if w.mutation_args else len([k for k in w.values if k.startswith('ARG')])
+    if program is not None:
+        if fn not in program.functions:
+            problems.add(w, 'the program has no function "%s"' % fn)
+        else:
+            arity = len(program.functions[fn].params)
+    test['args'] = [_literal(w, 'ARG%d' % i, problems) for i in range(arity)]
+
+
+def _translate_test(test_block, program, problems):
+    name = (test_block.fields.get('NAME') or '').strip()
+    test = {'name': name, 'origin': 'blocks', 'block_id': test_block.id}
+    expect = {}
+    world, globals_ = _given(test_block, program, problems)
     if world:
         test['world'] = world
 
@@ -392,15 +428,7 @@ def _translate_test(test_block, program, problems):
             test['max_time_ms'] = seconds * 1000
         elif w.type == 'nepoTest_when_call':
             is_call = True
-            fn = w.fields.get('FUNCTION') or w.mutation.get('name')
-            test['call'] = fn
-            arity = len(w.mutation_args) if w.mutation_args else len([k for k in w.values if k.startswith('ARG')])
-            if program is not None:
-                if fn not in program.functions:
-                    problems.add(w, 'the program has no function "%s"' % fn)
-                else:
-                    arity = len(program.functions[fn].params)
-            test['args'] = [_literal(w, 'ARG%d' % i, problems) for i in range(arity)]
+            _call(w, test, program, problems)
         else:
             problems.add(w, 'this block does not belong under "when"')
     if globals_:
@@ -490,6 +518,95 @@ def _translate_test(test_block, program, problems):
     return test
 
 
+def simulation_data(block):
+    """the data of a simulation test block (see the module doc) with defaults for what's missing; None if unreadable"""
+    data = {}
+    if block.data:
+        try:
+            data = json.loads(block.data)
+        except ValueError:
+            data = None
+    if not isinstance(data, dict):
+        return None
+    world = data.get('world') if isinstance(data.get('world'), dict) else {}
+    world.setdefault('start', {'x': 0, 'y': 0, 'heading': 0})
+    world.setdefault('items', [])
+    data['world'] = world
+    return data
+
+
+def _translate_simtest(test_block, program, problems):
+    name = (test_block.fields.get('NAME') or '').strip()
+    test = {'name': name, 'origin': 'blocks', 'block_id': test_block.id}
+    data = simulation_data(test_block)
+    if data is None:
+        problems.add(test_block, 'the simulation of test "%s" cannot be read: draw it again' % name)
+        data = {'world': {'start': {'x': 0, 'y': 0, 'heading': 0}, 'items': []}}
+    sim = {'world': data['world'], 'tolerance_cm': data.get('tolerance_cm', SIM.DEFAULT_TOLERANCE_CM)}
+    if isinstance(data.get('reference'), dict) and data['reference'].get('path'):
+        sim['reference'] = {'path': data['reference']['path']}
+    test['simulation'] = sim
+    invalid = SIM.validate(sim, 'simulation')
+    for message in invalid:
+        problems.add(test_block, message)
+    if not invalid:
+        for _, message in SIM.start_problems(sim['world']):
+            problems.add(test_block, 'test "%s": %s' % (name, message))
+        if not SIM.can_fail(sim):
+            problems.add(test_block, 'test "%s" checks nothing: draw a goal area, a fail area or an obstacle, or record the path'
+                         % name, 'warning')
+    world, globals_ = _given(test_block, program, problems, simulation=True)
+    if world:
+        test['world'] = world
+    run = _chain(test_block, 'RUN')
+    if run:
+        if run[0].type == 'nepoTest_when_call':
+            _call(run[0], test, program, problems)
+        else:
+            problems.add(run[0], 'only "call function" belongs here (nothing: the whole program runs)')
+    if globals_:
+        if 'call' in test:
+            test['globals'] = globals_
+        else:
+            problems.add(test_block, 'test "%s": "variable is" only works with "call function"' % name)
+    test['max_time_ms'] = _int_field(test_block, 'SECONDS', problems, default=30, minimum=1) * 1000
+    return test
+
+
+def _test_blocks(root, problems):
+    """(instances as block chains, {name: test block}) of a test block_set; both kinds of test; problems for nameless
+    tests and doubled names"""
+    chains = [[Block(b) for b in inst if _tag(b) == 'block'] for inst in root if _tag(inst) == 'instance']
+    tests = {}
+    for chain in chains:
+        for top in chain:
+            if top.type in TEST_TYPES and not top.disabled:
+                name = (top.fields.get('NAME') or '').strip()
+                if not name:
+                    problems.add(top, 'give the test a name')
+                elif name in tests:
+                    problems.add(top, 'there are two tests named "%s"' % name)
+                else:
+                    tests[name] = top
+    return chains, tests
+
+
+def _translate_any(block, program, problems):
+    return (_translate_simtest if block.type == 'nepoTest_simtest' else _translate_test)(block, program, problems)
+
+
+def translate_one(tests_xml, block_id, program=None):
+    """(test, problems) for the test block with this id, whether or not the suite runs it (the Tests tab records and
+    runs a simulation test on its own). test is None if there is no such block."""
+    problems = _Problems()
+    root = ET.fromstring(tests_xml)
+    for el in root.iter(NS + 'block'):
+        if el.get('id') == block_id and el.get('type') in TEST_TYPES:
+            return _translate_any(Block(el), program, problems), list(problems)
+    problems.add(None, 'there is no test block %s' % block_id)
+    return None, list(problems)
+
+
 def translate(tests_xml, program=None):
     """(spec, problems) for a test block_set. program (a NepoProgram) enables name checks.
 
@@ -500,19 +617,8 @@ def translate(tests_xml, program=None):
         problems.add(None, 'the test suite is empty: build a test and put "run test" under the start block')
         return spec, list(problems)
     root = ET.fromstring(tests_xml)
-    chains = [[Block(b) for b in inst if _tag(b) == 'block'] for inst in root if _tag(inst) == 'instance']
+    chains, tests = _test_blocks(root, problems)
     suite = [c for c in chains if c and c[0].type == 'nepoTest_suite']
-    tests = {}
-    for chain in chains:
-        for top in chain:
-            if top.type == 'nepoTest_test' and not top.disabled:
-                name = (top.fields.get('NAME') or '').strip()
-                if not name:
-                    problems.add(top, 'give the test a name')
-                elif name in tests:
-                    problems.add(top, 'there are two tests named "%s"' % name)
-                else:
-                    tests[name] = top
     if not suite:
         problems.add(None, 'the start block of the test suite is missing')
         return spec, list(problems)
@@ -535,5 +641,5 @@ def translate(tests_xml, program=None):
     if not selected:
         problems.add(suite[0][0], 'put "run test" blocks under the start block')
     for name in selected:
-        spec['tests'].append(_translate_test(tests[name], program, problems))
+        spec['tests'].append(_translate_any(tests[name], program, problems))
     return spec, list(problems)

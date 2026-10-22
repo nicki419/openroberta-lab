@@ -1,0 +1,103 @@
+<export xmlns="http://de.fhg.iais.roberta.blockly">
+    <program>
+        <block_set xmlns="http://de.fhg.iais.roberta.blockly" robottype="edison" xmlversion="3.1" description="" tags="">
+            <instance x="20" y="20">
+                <block type="robControls_start" id="lf01" intask="true" deletable="false">
+                    <mutation declare="false"/>
+                    <field name="DEBUG">FALSE</field>
+                </block>
+                <block type="robControls_loopForever" id="lf10" intask="true">
+                    <statement name="DO">
+                        <block type="robControls_ifElse" id="lf11" intask="true">
+                            <mutation else="1"/>
+                            <repetitions>
+                                <value name="IF0">
+                                    <block type="robSensors_light_getSample" id="lf12" intask="true">
+                                        <mutation mode="LINE"/>
+                                        <field name="MODE">LINE</field>
+                                        <field name="SENSORPORT">LINETRACKER</field>
+                                        <field name="SLOT"/>
+                                    </block>
+                                </value>
+                                <statement name="DO0">
+                                    <block type="robActions_motorDiff_curve" id="lf13" intask="true">
+                                        <field name="DIRECTION">FOREWARD</field>
+                                        <value name="POWER_LEFT">
+                                            <block type="math_number" id="lf14" intask="true">
+                                                <field name="NUM">10</field>
+                                            </block>
+                                        </value>
+                                        <value name="POWER_RIGHT">
+                                            <block type="math_number" id="lf15" intask="true">
+                                                <field name="NUM">40</field>
+                                            </block>
+                                        </value>
+                                    </block>
+                                </statement>
+                                <statement name="ELSE">
+                                    <block type="robActions_motorDiff_curve" id="lf16" intask="true">
+                                        <field name="DIRECTION">FOREWARD</field>
+                                        <value name="POWER_LEFT">
+                                            <block type="math_number" id="lf17" intask="true">
+                                                <field name="NUM">40</field>
+                                            </block>
+                                        </value>
+                                        <value name="POWER_RIGHT">
+                                            <block type="math_number" id="lf18" intask="true">
+                                                <field name="NUM">10</field>
+                                            </block>
+                                        </value>
+                                    </block>
+                                </statement>
+                            </repetitions>
+                        </block>
+                    </statement>
+                </block>
+            </instance>
+            <instance x="500" y="20">
+                <block type="robProcedures_defnoreturn" id="lf30" intask="true">
+                    <mutation declare="false"/>
+                    <field name="NAME">toTheWall</field>
+                    <statement name="STACK">
+                        <block type="robActions_motorDiff_on" id="lf31" intask="true">
+                            <field name="DIRECTION">FOREWARD</field>
+                            <value name="POWER">
+                                <block type="math_number" id="lf32" intask="true">
+                                    <field name="NUM">40</field>
+                                </block>
+                            </value>
+                        </block>
+                        <block type="robControls_wait_for" id="lf33" intask="true">
+                            <value name="WAIT0">
+                                <block type="logic_compare" id="lf34" intask="true">
+                                    <field name="OP">EQ</field>
+                                    <value name="A">
+                                        <block type="robSensors_getSample" id="lf35" intask="true">
+                                            <mutation input="INFRARED_OBSTACLE"/>
+                                            <field name="SENSORTYPE">INFRARED_OBSTACLE</field>
+                                            <field name="SENSORPORT">FRONT</field>
+                                            <field name="SLOT"/>
+                                        </block>
+                                    </value>
+                                    <value name="B">
+                                        <block type="logic_boolean" id="lf36" intask="true">
+                                            <field name="BOOL">TRUE</field>
+                                        </block>
+                                    </value>
+                                </block>
+                            </value>
+                        </block>
+                        <block type="robActions_motorDiff_stop" id="lf37" intask="true"/>
+                    </statement>
+                </block>
+            </instance>
+        </block_set>
+    </program>
+    <config>
+        <block_set xmlns="http://de.fhg.iais.roberta.blockly" robottype="edison" xmlversion="3.1" description="" tags="">
+            <instance x="213" y="213">
+                <block type="robBrick_Edison-Brick" id="1" intask="true" deletable="false"/>
+            </instance>
+        </block_set>
+    </config>
+</export>

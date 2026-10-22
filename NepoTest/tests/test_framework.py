@@ -180,7 +180,8 @@ class RobotAcceptsTheProgram(unittest.TestCase):
     @unittest.skipUnless(__import__('nepotest.engine', fromlist=['edpy_check']).edpy_check.configured(),
                          'set EDPY_HOME and EDPY_PYTHON to run the reference EdPy compiler')
     def test_all_bundles_compile(self):
-        bundles = [CLAP] + [os.path.join(FIXTURES, f) for f in sorted(os.listdir(FIXTURES)) if f.endswith('.bundle.json')]
+        bundles = [CLAP, os.path.join(ROOT, 'examples', 'line_follower.bundle.json')]
+        bundles += [os.path.join(FIXTURES, f) for f in sorted(os.listdir(FIXTURES)) if f.endswith('.bundle.json')]
         for path in bundles:
             with self.subTest(bundle=os.path.basename(path)):
                 result = TestSubject.from_bundle(path).check_with_edpy()

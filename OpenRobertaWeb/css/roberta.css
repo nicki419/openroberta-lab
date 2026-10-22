@@ -468,6 +468,229 @@ body.blocklyMinimalBody * {
     word-break: break-word;
 }
 
+/* the Simulation tab of the Tests tab (nepoTest.simEditor.ts) */
+#tests.nepoSimWide #testsBlocklyDiv {
+    right: 62%;
+}
+
+#tests.nepoSimWide #testsSide {
+    width: 62%;
+}
+
+#testsSimPane {
+    flex: 1 1 auto;
+    min-height: 0;
+    padding: 6px 10px;
+    flex-direction: column;
+}
+
+.nepoSimNone {
+    color: #777;
+    padding: 12px 2px;
+}
+
+.nepoSimBody {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+.nepoSimHead {
+    font-weight: bold;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.nepoSimToolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 4px;
+}
+
+.nepoSimGroup {
+    display: flex;
+}
+
+.nepoSimGroup .nepoSimIcon {
+    padding: 3px 4px;
+    line-height: 0;
+    border-radius: 0;
+    margin-left: -1px;
+    color: #333;
+    background: #fff;
+    border: 1px solid #c8c8c8;
+    cursor: pointer;
+}
+
+.nepoSimGroup .nepoSimIcon:hover {
+    background: #f0f4fa;
+}
+
+.nepoSimGroup .nepoSimIcon:first-child {
+    border-radius: 3px 0 0 3px;
+}
+
+.nepoSimGroup .nepoSimIcon:last-child {
+    border-radius: 0 3px 3px 0;
+}
+
+.nepoSimGroup .nepoSimIcon.active {
+    background: #dbe9f9;
+    border-color: #1e5aa8;
+    color: #1e5aa8;
+    position: relative;
+    z-index: 1;
+}
+
+.nepoSimSettings {
+    display: none;
+    font-size: 90%;
+    margin-bottom: 4px;
+}
+
+.nepoSimSettings.open {
+    display: block;
+}
+
+.nepoSimSettings label, .nepoSimProps label {
+    font-weight: normal;
+    margin: 0 12px 2px 0;
+}
+
+.nepoSimProps {
+    font-size: 90%;
+    margin-bottom: 2px;
+}
+
+.nepoSimNumber {
+    width: 4.5em;
+}
+
+.nepoSimHint {
+    font-size: 85%;
+    color: #666;
+    margin-bottom: 4px;
+}
+
+.nepoSimCanvas {
+    position: relative;
+    flex: 1 1 auto;
+    min-height: 220px;
+    border: 1px solid #d9c2b0;
+    overflow: hidden;
+    background: #ffe5d0;
+}
+
+.nepoSimCanvas[data-tool='line'], .nepoSimCanvas[data-tool='curve'], .nepoSimCanvas[data-tool='rect'], .nepoSimCanvas[data-tool='ellipse'] {
+    cursor: crosshair;
+}
+
+.nepoSimSvg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    touch-action: none;
+    outline: none;
+}
+
+.nepoSimHandle {
+    fill: #fff;
+    stroke: #1e5aa8;
+    cursor: pointer;
+}
+
+.nepoSimRobotHandle {
+    fill: #dbe9f9;
+    cursor: grab;
+}
+
+.nepoSimSelection {
+    fill: none;
+    stroke: #1e5aa8;
+    stroke-dasharray: 4 3;
+    vector-effect: non-scaling-stroke;
+    pointer-events: none;
+}
+
+.nepoSimScale {
+    position: absolute;
+    left: 8px;
+    bottom: 6px;
+    font-size: 11px;
+    color: #6b4a33;
+    pointer-events: none;
+}
+
+.nepoSimScale span {
+    display: inline-block;
+    height: 4px;
+    margin-right: 6px;
+    border: 1px solid #6b4a33;
+    border-top: none;
+    vertical-align: middle;
+}
+
+.nepoSimRow {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 6px;
+}
+
+.nepoSimTolerance {
+    font-weight: normal;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+}
+
+.nepoSimTolerance input {
+    width: 110px;
+}
+
+.nepoSimPathInfo {
+    font-size: 85%;
+    color: #555;
+    margin-top: 2px;
+}
+
+.nepoSimTime {
+    flex: 1 1 80px;
+    min-width: 80px;
+}
+
+.nepoSimTimeLabel {
+    font-size: 85%;
+    color: #555;
+    min-width: 6em;
+}
+
+.nepoSimStatus {
+    margin-top: 6px;
+    min-height: 1.4em;
+    color: #555;
+}
+
+.nepoSimStatus.passed {
+    color: #179C7D;
+}
+
+.nepoSimStatus.failed {
+    color: #E2001A;
+}
+
+.nepoTestDetails li.nepoTestShowSim {
+    color: #1e5aa8;
+    text-decoration: underline;
+}
+
 .log {
     overflow: auto;
     position: fixed;
