@@ -11,7 +11,8 @@ else.**
 - Ignore all other boards and robots (micro:bit, Calliope, EV3, Arduino, Spike, NXT, WeDo, …). Don't read, extend, or
   fix their code unless it's on the Edison V2 code path.
 - The only language that matters is **NEPO → EdPy**, the restricted, integer-only Python 2 dialect that the Edison
-  runs. The browser simulator (stack machine) is a separate path. Touch it only when a task asks for it.
+  runs. The browser simulator (stack machine) is a separate path. The Tests tab's simulation tests run on it
+  (`nepoTest.simRun.ts`), unchanged; change the simulator itself only when a task asks for it.
 - **The Edison plugin is shared with `edisonv3`.** Both use `RobotEdison/src/main/resources/edison.properties`
   (group `edison`) and the same Java classes, and they generate identical EdPy. Any change for V2 changes V3 too.
   That's expected. Don't try to separate them unless a task asks for it.
@@ -76,10 +77,12 @@ programs, which implements the project goal. It covers:
   when (at the end, at a time, always / never / at some point, within … ms after a world event, while a world condition
   holds); and where the robot ended (distance, turn, position). Implemented in `NepoTest/nepotest/states.py` on the
   engine's state log;
-- **simulation tests:** the robot drives through a **drawn world** (lines with a black core and a white rim, floor
-  markings, obstacles, goal and fail areas, a recorded path with a tolerance), and its sensors read it at its pose.
-  Touching a goal passes the test; touching a fail area or an obstacle, or leaving the path, fails it. Implemented in
-  `NepoTest/nepotest/simulation.py`;
+- **simulation tests:** the robot drives through a **drawn world on the Lab's own simulator**: the program compiled
+  for the simulator (`sourceSimulation`), run by the simulator's interpreter, Edison and objects, offscreen and in
+  virtual time, in the Tests tab (`OpenRobertaWeb/src/app/nepotest/nepoTest.simRun.ts`). The tests add lines to follow,
+  goal and fail areas, and a recorded path with a tolerance. Touching a goal passes the test; touching a fail area, or
+  leaving the path, fails it. They have the simulator's semantics, not the robot's (sensors are states). The command
+  line skips them; `NepoTest/nepotest/simulation.py` checks their data (its copy of the simulator is no longer used);
 - **results per block:** failures, runtime errors attributed to blocks, and block coverage;
 - `describe()`: a program summary with test hints, as input for AI test generation.
 
@@ -87,10 +90,11 @@ Read it before working on testing.
 
 **`docs/ai/nepo-test-blocks.md`** documents the Lab's **Tests tab**: learners build test suites from NEPO test blocks
 (red start block, test blocks with given / when / then, simulation test blocks, run-test blocks), see the converted
-code, and run the tests in the browser (NepoTest in Pyodide, in a Web Worker). For a simulation test, the
-**Simulation** panel draws its world, records the path and replays runs. It covers the block vocabulary (the contract between
-`nepoTest.blocks.ts` and `NepoTest/nepotest/blocks.py`), how suites are saved inside the program XML, and how results
-link back to blocks. Read it before changing the Tests tab or adding a test block.
+code, and run the tests in the browser (NepoTest in Pyodide, in a Web Worker; simulation tests on the Lab's
+simulator). For a simulation test, the **Simulation** panel (it looks like the Lab's simulator) draws its world,
+records the path and replays runs. It covers
+the block vocabulary (the contract between `nepoTest.blocks.ts` and `NepoTest/nepotest/blocks.py`), how suites are
+saved inside the program XML, and how results link back to blocks. Read it before changing the Tests tab or adding a test block.
 
 **`docs/ai/edpy-test-engine.md`** documents the framework's engine (`NepoTest/nepotest/engine`). The engine runs
 generated EdPy under CPython with EdPy semantics: 16-bit ints, floor division, constant folding, a virtual clock, and
@@ -115,7 +119,7 @@ latched sensors from EdPy's library. The document also lists which behaviour is 
 | Test runner for golden files | `OpenRobertaServer/src/test/java/.../integrationTest/ReuseIntegrationAsUnitTest.java` (configured by `crossCompilerTests/testSpec.yml`) |
 | Frontend (TypeScript sources) | `OpenRobertaWeb/src/**` (compiles into `OpenRobertaServer/staticResources`) |
 | **NEPO unit-test framework** (Python) | `NepoTest/` (`nepotest/`, `nepotest/engine/`, `examples/`, `tests/`, `schema/`) |
-| **Tests tab** (test blocks, runner) | `OpenRobertaWeb/src/app/nepotest/*` (blocks, suite storage, runner, Web Worker, simulation world `nepoTest.sim.ts` and panel `nepoTest.simEditor.ts`), `OpenRobertaWeb/src/app/roberta/controller/tests.controller.ts`; markup in `staticResources/index.html` (`#tabTests`, `#tests`); translation `NepoTest/nepotest/blocks.py` |
+| **Tests tab** (test blocks, runner) | `OpenRobertaWeb/src/app/nepotest/*` (blocks, suite storage, runner, Web Worker, simulation world `nepoTest.sim.ts`, panel `nepoTest.simEditor.ts`, runs on the Lab's simulator `nepoTest.simRun.ts`), `OpenRobertaWeb/src/app/roberta/controller/tests.controller.ts`; markup in `staticResources/index.html` (`#tabTests`, `#tests`); translation `NepoTest/nepotest/blocks.py` |
 | Source map for tests (block id → EdPy ranges) | `OpenRobertaRobot/…/bean/SourceMapBean`, filled by `EdisonPythonVisitor.preVisitCheck/postVisitCheck`, served by `ProjectWorkflowRestController` `/projectWorkflow/sourceForTest`; test `OpenRobertaServer/src/test/java/…/javaServer/EdisonSourceMapTest` |
 
 `…` = `src/main/java/de/fhg/iais/roberta`. Paths are repo-relative.
@@ -168,13 +172,14 @@ python -m unittest discover -s examples -t .           # the example's Python te
 python -m nepotest run examples/clap_counter.tests.json
 python -m nepotest run examples/clap_counter_with_tests.xml   # a program with a suite from the Tests tab
 python -m nepotest run examples/patrol.tests.json      # state tests (patrol_with_tests.xml: the same as test blocks)
-python -m nepotest run examples/line_follower.tests.json   # simulation tests (line_follower_with_tests.xml: as blocks)
+python -m nepotest run examples/line_follower.tests.json   # its simulation tests are skipped: they run in the Tests tab
 ```
 
-These passed on 2026-10-18: 126 + 8 tests, including the live-Lab tests, the reference-compiler check and the schema
-check. Each suite has one deliberate expected failure, which shows generator quirk #14. The clap counter and patrol
-example test files each report one deliberate failure: quirk #14 (clap counter), and a square driven while the
-obstacle is still there (patrol). The line follower's three tests all pass.
+These passed on 2026-10-22: 133 + 8 tests, including the live-Lab tests and the schema check; the reference-compiler
+check last ran on 2026-10-18. Each suite has one deliberate expected failure, which shows generator quirk #14. The clap
+counter and patrol example test files each report one deliberate failure: quirk #14 (clap counter), and a square
+driven while the obstacle is still there (patrol). The line follower's file runs its BDD test and skips its two
+simulation tests; in the Tests tab (`line_follower_with_tests.xml`), all three pass.
 The live-Lab tests skip if no Lab answers at `$NEPOTEST_LAB` (default `http://localhost:1999`). The Level-0 check skips
 unless `EDPY_HOME`/`EDPY_PYTHON` point to the reference compiler, and the schema check unless `jsonschema` is
 installed. The tests also ran with pytest on 2026-09-25. After generator
@@ -197,8 +202,10 @@ compile service and the EdComm audio cable.
 - **The test blocks** (`nepoTest_*`) are defined in `nepoTest.blocks.ts` and translated by `NepoTest/nepotest/blocks.py`.
   Change both together, and keep the block table in `docs/ai/nepo-test-blocks.md` current. Test blocks are never part
   of the program workspace or code generation. They are saved as extra instances of the program XML. A simulation
-  test's world is its block's `<data>` (JSON). Its geometry (curves, robot outline, sensor positions) exists twice, in
-  `nepoTest.sim.ts` and `simulation.py`: change both together.
+  test's world is its block's `<data>` (JSON). It runs on the Lab's simulator code (`simulation/simulationLogic`,
+  `nepostackmachine`), through `nepoTest.simRun.ts`, which must not change the simulator's behaviour. The editor's
+  geometry (curves, robot outline, sensor positions, infrared rays) copies the simulator in `nepoTest.sim.ts`; the
+  curves and the outline exist again in `simulation.py` (data checks): change them together.
 - AST classes must be `final` and annotated (`@NepoPhrase` / `@NepoExpr` / `@NepoBasic` …) with their `blocklyNames`.
   `AstFactory.loadBlocks()` must run before any XML → AST transformation. Tests call it in `@BeforeClass`.
 - Workers are instantiated **once per RobotFactory** and reused across requests, so keep them stateless.

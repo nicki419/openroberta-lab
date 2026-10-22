@@ -8,6 +8,7 @@
 // @ts-ignore (Blockly has no type declarations)
 import * as Blockly from 'blockly';
 import * as SIM from 'nepoTest.sim';
+import * as SIMRUN from 'nepoTest.simRun';
 
 export interface ProgramInfo {
     functions: { name: string; params: { name: string; type: string }[]; returns: boolean }[];
@@ -395,7 +396,8 @@ const CONDITION = 'nepoTestCondition';
 const SIM_RUN = 'nepoTestSimRun';
 const TEST_TYPES = ['nepoTest_test', 'nepoTest_simtest'];
 const THUMB_W = 132;
-const THUMB_H = 84;
+const THUMB_H = 110;
+const THUMB_EMPTY = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="132" height="110"><rect width="132" height="110" fill="#f4f4f4"/></svg>');
 
 function number(value: string | number): any {
     return new Blockly.FieldTextInput(String(value), Blockly.FieldTextInput.nonnegativeIntegerValidator);
@@ -603,7 +605,7 @@ const DEFINITIONS: { [type: string]: any } = {
             this.appendDummyInput()
                 .appendField(msg('NEPOTEST_SIMTEST'))
                 .appendField(new Blockly.FieldTextInput(msg('NEPOTEST_SIMTEST'), uniqueTestName), 'NAME');
-            this.appendDummyInput('PREVIEW').appendField(new Blockly.FieldImage(SIM.thumbnail(SIM.defaultData(), THUMB_W, THUMB_H), THUMB_W, THUMB_H, '*'), 'PREVIEW');
+            this.appendDummyInput('PREVIEW').appendField(new Blockly.FieldImage(THUMB_EMPTY, THUMB_W, THUMB_H, '*'), 'PREVIEW');
             this.appendStatementInput('GIVEN').setCheck(GIVEN).appendField(msg('NEPOTEST_GIVEN'));
             this.appendStatementInput('RUN').setCheck(SIM_RUN).appendField(msg('NEPOTEST_SIM_RUN'));
             this.appendDummyInput('EMPTY').appendField(msg('NEPOTEST_SIM_RUN_EMPTY'));
@@ -612,15 +614,29 @@ const DEFINITIONS: { [type: string]: any } = {
                 .appendField(number(30), 'SECONDS')
                 .appendField(msg('NEPOTEST_SECONDS'));
             this.thumbData_ = null;
+            const block = this;
+            setTimeout(() => block.updateThumbnail(), 0); // after loading: the data is set right after init
         },
-        /** the picture follows the block's data (set when loaded from XML, and by the simulation window) */
+        /** the picture follows the block's data (set when loaded from XML, and by the simulation window); it is drawn asynchronously */
         updateThumbnail: function () {
-            if (this.thumbData_ === (this.data || '')) {
+            const key = this.data || '';
+            if (this.thumbData_ === key) {
                 return;
             }
-            this.thumbData_ = this.data || '';
-            const field = this.getField('PREVIEW');
-            field && field.setValue(SIM.thumbnail(SIM.parseData(this.data), THUMB_W, THUMB_H));
+            this.thumbData_ = key;
+            const block = this;
+            const data = SIM.parseData(this.data);
+            SIMRUN.floorCanvas(data.world)
+                .then((floor) => SIM.thumbnail(data, THUMB_W, THUMB_H, floor))
+                .then(
+                    function (url) {
+                        const field = block.thumbData_ === key && block.getField('PREVIEW');
+                        field && field.setValue(url);
+                    },
+                    function () {
+                        // the images could not be loaded: the block keeps its empty picture
+                    }
+                );
         },
         onchange: function () {
             this.updateThumbnail();

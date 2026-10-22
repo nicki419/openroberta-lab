@@ -142,6 +142,7 @@ require.config({
         'nepoTest.runner': 'js/app/nepotest/nepoTest.runner',
         'nepoTest.sim': 'js/app/nepotest/nepoTest.sim',
         'nepoTest.simEditor': 'js/app/nepotest/nepoTest.simEditor',
+        'nepoTest.simRun': 'js/app/nepotest/nepoTest.simRun',
         'tests.controller': 'js/app/roberta/controller/tests.controller',
     },
     shim: {

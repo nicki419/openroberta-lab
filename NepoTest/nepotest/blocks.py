@@ -6,8 +6,8 @@ The blocks (all types start with `nepoTest_`; the frontend defines them in nepoT
     nepoTest_run          NAME          run the test NAME
     nepoTest_test         NAME          a test: statement inputs GIVEN (the world), WHEN (one action), THEN (expectations)
     nepoTest_simtest      NAME SECONDS  a simulation test: the robot in a drawn world (block data: JSON, see below);
-                                        statement inputs GIVEN (claps, keys, remote codes, IR messages, variables) and
-                                        RUN (empty: the program; or one nepoTest_when_call)
+                                        statement inputs GIVEN (claps, keys, variables) and RUN (empty: the program;
+                                        or one nepoTest_when_call). It runs on the Lab's simulator (the Tests tab).
   GIVEN
     nepoTest_given_clap       AT                      a clap at AT ms
     nepoTest_given_key        AT PORT                 key PLAY/REC pressed at AT ms
@@ -53,9 +53,10 @@ The blocks (all types start with `nepoTest_`; the frontend defines them in nepoT
 Values in inputs are NEPO literal blocks: math_number, math_integer, logic_boolean, robLists_create_with of numbers.
 A saved program keeps its test suite as extra <instance>s in its block_set (split_program separates them).
 
-The data of a simulation test block (<data>, JSON): {"version": 1, "world": {"start", "items", "settings"} (see
+The data of a simulation test block (<data>, JSON): {"version": 2, "world": {"background", "start", "items"} (see
 simulation.py), "reference": {"path": [[x, y, heading], ...], "time_ms"} (a recorded run, or absent), "tolerance_cm",
-"view": {"x", "y", "scale"} (the editor's zoom, not used here)}.
+"view": {"x", "y", "scale"} (the editor's zoom, not used here)}. Version 1 (before the world was the Lab's simulator's)
+is migrated; a "floor" (a picture of the floor, stored until 2026-10-22) is ignored.
 """
 
 import json
@@ -87,6 +88,8 @@ def split_program(xml_text):
     """(program block_set XML without test instances, test block_set XML or None) from a program's (or an export's) XML"""
     m = re.search(r'<program>\s*(.*?)\s*</program>', xml_text, re.S)
     block_set_text = m.group(1) if m else xml_text.strip()
+    if not re.match(r'<block_set[^>]*\sxmlns=', block_set_text):
+        block_set_text = block_set_text.replace('<block_set', '<block_set xmlns="%s"' % NS[1:-1], 1)  # declared only on <export>
     ET.register_namespace('', NS[1:-1])
     root = ET.fromstring(block_set_text)
     tests = ET.Element(root.tag, dict(root.attrib))
@@ -350,8 +353,10 @@ def _chain(block, name):
     return [b for b in block.statements.get(name, []) if not b.disabled]
 
 
-# the "given" blocks a simulation test may have: the drawn world gives obstacles, the line and the light
-SIM_GIVEN = ('nepoTest_given_clap', 'nepoTest_given_key', 'nepoTest_given_remote', 'nepoTest_given_ir', 'nepoTest_given_variable')
+# the "given" blocks a simulation test may have: the drawn world gives obstacles, the line and the light, and the Lab's
+# simulator has no IR remote control and no IR messages
+SIM_GIVEN = ('nepoTest_given_clap', 'nepoTest_given_key', 'nepoTest_given_variable')
+SIM_NO_IR = ('nepoTest_given_remote', 'nepoTest_given_ir')
 
 
 def _given(test_block, program, problems, simulation=False):
@@ -359,6 +364,10 @@ def _given(test_block, program, problems, simulation=False):
     world, globals_ = [], {}
     for b in _chain(test_block, 'GIVEN'):
         t = b.type
+        if simulation and t in SIM_NO_IR:
+            problems.add(b, "the Lab's simulator has no IR remote control and no IR messages: use this block in a test, not in a "
+                            "simulation test")
+            continue
         if simulation and t not in SIM_GIVEN:
             problems.add(b, 'in a simulation test, draw obstacles and lines into the simulation instead')
             continue
@@ -528,7 +537,11 @@ def simulation_data(block):
             data = None
     if not isinstance(data, dict):
         return None
-    world = data.get('world') if isinstance(data.get('world'), dict) else {}
+    world = data.get('world')
+    if not isinstance(world, dict):
+        world = SIM.default_world()
+    elif data.get('version', 1) < 2:
+        world = SIM.migrate_v1(world)
     world.setdefault('start', {'x': 0, 'y': 0, 'heading': 0})
     world.setdefault('items', [])
     data['world'] = world
@@ -541,7 +554,7 @@ def _translate_simtest(test_block, program, problems):
     data = simulation_data(test_block)
     if data is None:
         problems.add(test_block, 'the simulation of test "%s" cannot be read: draw it again' % name)
-        data = {'world': {'start': {'x': 0, 'y': 0, 'heading': 0}, 'items': []}}
+        data = {'world': SIM.default_world()}
     sim = {'world': data['world'], 'tolerance_cm': data.get('tolerance_cm', SIM.DEFAULT_TOLERANCE_CM)}
     if isinstance(data.get('reference'), dict) and data['reference'].get('path'):
         sim['reference'] = {'path': data['reference']['path']}
@@ -553,8 +566,7 @@ def _translate_simtest(test_block, program, problems):
         for _, message in SIM.start_problems(sim['world']):
             problems.add(test_block, 'test "%s": %s' % (name, message))
         if not SIM.can_fail(sim):
-            problems.add(test_block, 'test "%s" checks nothing: draw a goal area, a fail area or an obstacle, or record the path'
-                         % name, 'warning')
+            problems.add(test_block, 'test "%s" checks nothing: draw a goal area or a fail area, or record the path' % name, 'warning')
     world, globals_ = _given(test_block, program, problems, simulation=True)
     if world:
         test['world'] = world

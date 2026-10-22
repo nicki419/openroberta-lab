@@ -8,10 +8,11 @@
  *
  *   {cmd: 'init'}                             -> {event: 'ready', version}
  *   {cmd: 'translate', testsXml, programXml}  -> {event: 'result', data: {spec, problems}}
- *   {cmd: 'run', bundle, testsXml}            -> {event: 'prepared', data}, {event: 'progress', data: {index, report}} per test,
- *                                                {event: 'result', data: {prepared, finish}}
- *   {cmd: 'simulate', bundle, testsXml, blockId, record}
- *                                             -> {event: 'result', data: {report, problems, conversion_errors}}
+ *   {cmd: 'prepare', bundle, testsXml}        -> {event: 'result', data: {spec, problems, tests, conversion_errors}}
+ *   {cmd: 'runOne', index}                    -> {event: 'result', data: report}           (not for simulation tests: they run on the Lab's simulator)
+ *   {cmd: 'finish', simulationReports}        -> {event: 'result', data: {summary, coverage}} (with the reports of the simulation tests)
+ *   {cmd: 'simulationTest', testsXml, blockId, programXml}
+ *                                             -> {event: 'result', data: {test, problems}}
  * Every message carries the request's id and the config {pyodideUrl, filesUrl}; errors come back as {event: 'error', message}.
  */
 var nepotest = { py: null, loading: null };
@@ -72,20 +73,14 @@ self.onmessage = function (e) {
                 post('ready', { version: nepotest.py.version });
             } else if (m.cmd === 'translate') {
                 post('result', nepotestCall('translate_tests', [m.testsXml, m.programXml || null]));
-            } else if (m.cmd === 'run') {
-                var prepared = nepotestCall('prepare', [m.bundle, m.testsXml]);
-                post('prepared', prepared);
-                var blocking = prepared.conversion_errors.length > 0 || prepared.problems.some(function (p) {
-                    return p.severity === 'error';
-                });
-                if (!blocking) {
-                    for (var i = 0; i < prepared.tests.length; i++) {
-                        post('progress', { index: i, report: nepotestCall('run_one', [i]) });
-                    }
-                }
-                post('result', { prepared: prepared, finish: blocking ? null : nepotestCall('finish', []) });
-            } else if (m.cmd === 'simulate') {
-                post('result', nepotestCall('simulate', [m.bundle, m.testsXml, m.blockId, !!m.record]));
+            } else if (m.cmd === 'prepare') {
+                post('result', nepotestCall('prepare', [m.bundle, m.testsXml]));
+            } else if (m.cmd === 'runOne') {
+                post('result', nepotestCall('run_one', [m.index]));
+            } else if (m.cmd === 'finish') {
+                post('result', nepotestCall('finish', [JSON.stringify(m.simulationReports || [])]));
+            } else if (m.cmd === 'simulationTest') {
+                post('result', nepotestCall('simulation_test', [m.testsXml, m.blockId, m.programXml || null]));
             } else {
                 throw new Error('unknown command ' + m.cmd);
             }

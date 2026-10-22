@@ -36,45 +36,48 @@
    "dependentRequired": {"args": ["call"], "globals": ["call"]}
   },
   "simulation": {
-   "description": "A simulation test (nepotest/simulation.py): the robot drives through a drawn world. Touching a goal area passes the test; touching a fail area or an obstacle, or leaving the corridor around the recorded path, fails it. Its world events may only be clap, key, remote and ir_message. Units: cm; x right, y down; angles in degrees, counterclockwise as seen from above.",
+   "description": "A simulation test: the robot drives through a drawn world on the Lab's own simulator (its backgrounds and wall, obstacles, coloured areas, robot, sensors); it runs in the Tests tab (the command line skips it). Touching a goal area passes the test; touching a fail area, or leaving the corridor around the recorded path, fails it. Its world events may only be clap and key. Units: cm from the background's top left corner; x right, y down; angles in degrees, counterclockwise as seen from above.",
    "type": "object",
    "required": ["world"],
    "additionalProperties": false,
    "properties": {
     "world": {
      "type": "object",
-     "required": ["start"],
+     "required": ["background", "start"],
      "additionalProperties": false,
      "properties": {
+      "background": {"enum": ["simpleBackgroundEdison", "drawBackground", "rescueBackground", "mathBackground"]},
       "start": {"type": "object", "required": ["x", "y", "heading"], "additionalProperties": false,
                 "properties": {"x": {"type": "number"}, "y": {"type": "number"}, "heading": {"type": "number"}}},
-      "items": {"type": "array", "items": {"$ref": "#/$defs/simItem"}},
-      "settings": {"type": "object", "additionalProperties": false, "properties": {
-       "ambient_light": {"type": "integer", "minimum": 0, "maximum": 100, "description": "what LLIGHT and RLIGHT read, in % (default 50)"},
-       "obstacle_range_cm": {"type": "number", "minimum": 0, "description": "how far the obstacle detection sees (default 10)"}}}
+      "items": {"type": "array", "items": {"$ref": "#/$defs/simItem"}}
      }
     },
+    "floor": {"type": "object", "required": ["w", "h", "sum"], "description": "no longer used (until 2026-10-22: the picture the sensors see, for NepoTest's copy of the simulator): w x h pixels (1 per 1/3 cm, the background at (10, 10)), R + G + B per pixel as 16-bit little-endian, zlib, base64",
+              "properties": {"w": {"type": "integer", "minimum": 1}, "h": {"type": "integer", "minimum": 1}, "sum": {"type": "string"}, "key": {"type": "string"}}},
     "reference": {"type": "object", "required": ["path"], "description": "a recorded run: the poses [x, y, heading] of the wheel axle's centre",
                   "properties": {"path": {"type": "array", "items": {"type": "array", "items": {"type": "number"}, "minItems": 3}}}},
     "tolerance_cm": {"type": "number", "minimum": 0, "description": "how far the robot may get from its outline in the recorded run (default 2)"}
    }
   },
   "simItem": {
-   "description": "a line to follow (a black core with a white rim), or a rect / ellipse (centre x, y; size w, h; rotation rot): a black or white floor marking, an obstacle, a goal area or a fail area",
+   "description": "a line to follow (drawn like the background's track: a black core on a white band), or one of the simulator's objects: a rect (top left x, y; w, h), a circle (centre x, y; r) or a triangle (points), as an obstacle, a coloured area the sensors see (color), a goal area or a fail area",
    "type": "object",
    "required": ["kind"],
    "oneOf": [{"properties": {"kind": {"const": "line"}}, "required": ["points"]},
-             {"properties": {"kind": {"enum": ["rect", "ellipse"]}}, "required": ["role", "x", "y", "w", "h"]}],
+             {"properties": {"kind": {"const": "rect"}}, "required": ["role", "x", "y", "w", "h"]},
+             {"properties": {"kind": {"const": "circle"}}, "required": ["role", "x", "y", "r"]},
+             {"properties": {"kind": {"const": "triangle"}}, "required": ["role", "points"]}],
    "properties": {
     "id": {"type": "string"},
-    "kind": {"enum": ["line", "rect", "ellipse"]},
+    "kind": {"enum": ["line", "rect", "circle", "triangle"]},
     "points": {"type": "array", "minItems": 2, "items": {"type": "array", "items": {"type": "number"}, "minItems": 2, "maxItems": 2}},
     "smooth": {"type": "boolean", "description": "a curve through the points instead of straight segments"},
     "closed": {"type": "boolean"},
-    "width": {"type": "number", "exclusiveMinimum": 0, "description": "the black core in cm (default 1.5); the white rim adds 0.5 cm on each side"},
-    "role": {"enum": ["black", "white", "obstacle", "goal", "fail"]},
+    "width": {"type": "number", "exclusiveMinimum": 0, "description": "the black core in cm (default 1.48, as the background's track)"},
+    "role": {"enum": ["obstacle", "color", "goal", "fail"]},
+    "color": {"type": "string", "pattern": "^#[0-9a-fA-F]{6}$"},
     "x": {"type": "number"}, "y": {"type": "number"}, "w": {"type": "number", "minimum": 0}, "h": {"type": "number", "minimum": 0},
-    "rot": {"type": "number"}
+    "r": {"type": "number", "minimum": 0}
    }
   },
   "nepoValue": {"oneOf": [{"type": "integer", "minimum": -32768, "maximum": 32767}, {"type": "boolean"},

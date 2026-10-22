@@ -1,168 +1,228 @@
-"""Simulation tests: the program drives the virtual Edison through a world the learner drew (the Tests tab's simulation
-window), and the world decides whether the test passes.
+"""Simulation tests: the program drives the Edison through a world the learner drew (the Tests tab's Simulation panel),
+and the world decides whether the test passes.
 
-- **Lines** (a black core with a white rim, so the robot can follow an edge) and **floor shapes** are what the line
-  tracker sees. The floor itself is light peach.
-- **Obstacles** are what the obstacle detection sees, and what the robot must not touch.
-- **Goal areas:** touching one ends the test as passed. **Fail areas:** touching one ends it as failed.
-- **A recorded run** (the reference path) plus a tolerance makes a **corridor**: when a corner or an edge of the robot
-  gets farther than the tolerance from where the robot was in the recorded run, the test fails.
-- Without a goal area, the test passes if none of that happens until the program ends (or its time is up).
+**Simulation tests run on the Lab's own simulator** (since 2026-10-22: OpenRobertaWeb/src/app/nepotest/nepoTest.simRun.ts),
+not here. Of this module, NepoTest uses the data format and its checks (validate, start_problems, can_fail,
+default_world, migrate_v1: the translation of the test blocks and spec.validate_spec). The rest, the copy of the
+simulator below that drives the EdPy engine's robot (SimRobot, run_simulation_test, Floor), is no longer used: it is
+kept for now, with its tests (tests/test_simulation.py), as an approximation that runs without a browser.
 
-The world is plain geometry, not a picture. The editor draws it, and this module computes with the same shapes
-(curves too: both turn a curve into the same Bezier segments), so what the learner sees is what the robot gets.
+**The world is the Lab's simulator.** Everything the robot meets here copies the simulator of the Lab
+(OpenRobertaWeb/src/app/simulation/simulationLogic: robot.edison.ts, robot.actuators.ts EdisonChassis and
+ChassisDiffDrive, robot.sensors.ts LineSensor, EdisonLightSensors, EdisonInfraredSensors, simulation.scene.ts,
+simulation.math.ts):
+- the same backgrounds (simpleBackgroundEdison, drawBackground, rescueBackground, mathBackground), with the same wall
+  around them, which the robot can't leave;
+- the same objects: obstacles and coloured areas, as rectangles, circles and triangles;
+- the same robot: 24 x 22.5 units (8 x 7.5 cm), the same wheel speed per %, moved in frames of 1/60 s with the
+  simulator's kinematics, and bumping into obstacles and walls like there (the bumped side's wheel turns back);
+- the same sensors: the line tracker and LLIGHT/RLIGHT average the same 5 pixels of the same floor picture
+  (`floor`, drawn by the Tests tab exactly like the simulator draws its sensor canvas), and the obstacle detection
+  casts the same 3 x 5 rays of 3 cm.
+The program is the generated EdPy on NepoTest's engine. So what the EdPy does differently from the simulator's own
+program stays different: powers in the robot's 10 % steps, turns and drives measured in wheel ticks, sensors read and
+cleared like on the robot.
 
-    {"start": {"x": 20, "y": 50, "heading": 0},
-     "items": [{"id": "l1", "kind": "line", "points": [[20, 50], [80, 50], [120, 20]], "smooth": true, "closed": false,
-                "width": 1.5},
-               {"id": "g1", "kind": "rect", "role": "goal", "x": 130, "y": 15, "w": 10, "h": 10, "rot": 0},
-               {"id": "o1", "kind": "ellipse", "role": "obstacle", "x": 60, "y": 80, "w": 8, "h": 8}],
-     "settings": {"ambient_light": 50, "obstacle_range_cm": 10}}
+Added by the tests: **lines** to follow (drawn like the background's track: a black core on a white band), **goal
+areas** (touching one passes the test), **fail areas** (touching one fails it), and **a recorded path** with a
+tolerance (leaving the corridor fails the test). Without a goal area, the test passes if none of that happens until the
+program ends (or its time is up). Touching an obstacle isn't a failure, as in the simulator: the robot bumps.
 
-Units are cm. x points right and y down (as on the screen), and the origin is arbitrary. Angles are degrees,
-counterclockwise as seen from above; 0 points right. rect and ellipse items are given by their centre (x, y), size
-(w, h) and rotation (rot). Their roles are: black, white (floor markings), obstacle, goal, fail. Items later in the list
-lie on top of earlier ones; all lines lie on top of all floor shapes, and every line's black core on top of every rim.
+    {"background": "simpleBackgroundEdison",
+     "start": {"x": 16.67, "y": 16.67, "heading": 0},
+     "items": [{"id": "l1", "kind": "line", "points": [[20, 17], [60, 17], [70, 40]], "smooth": true, "closed": false},
+               {"id": "o1", "kind": "rect", "role": "obstacle", "x": 64, "y": 50.7, "w": 9.6, "h": 9.6},
+               {"id": "c1", "kind": "circle", "role": "color", "color": "#000000", "x": 40, "y": 60, "r": 4},
+               {"id": "g1", "kind": "triangle", "role": "goal", "points": [[70, 5], [80, 5], [75, 12]]}]}
 
-A test (JSON, see spec.py): {"name", "simulation": {"world", "reference": {"path": [[x, y, heading], ...]},
-"tolerance_cm"}, "max_time_ms", optional "call"/"args"/"globals" (a function instead of the program), and "world" with
-claps, keys, remote codes and IR messages only (the drawn world gives obstacles, line and light).
+Units are cm, measured from the top left corner of the background; x points right and y down (as on the screen).
+Angles are degrees, counterclockwise as seen from above; 0 points right. Roles: obstacle, color (a coloured area the
+sensors see; "color" is a hex colour), goal, fail. The simulator itself works in units of 1/3 cm with the background at
+(10, 10): this module does too, internally.
+
+A test (JSON, see spec.py): {"name", "simulation": {"world", "floor": {"w", "h", "sum"}, "reference": {"path":
+[[x, y, heading], ...]}, "tolerance_cm"}, "max_time_ms", optional "call"/"args"/"globals", and "world" with claps,
+keys, remote codes and IR messages only. `floor` is the picture the sensors see (R + G + B per pixel, 16 bits, zlib,
+base64); without it, the floor is drawn here (white background only, and without the anti-aliasing of a browser).
 """
 
+import array
+import base64
 import math
+import sys
+import zlib
 
 from .engine import Robot
 from .engine import values as V
 from .engine.errors import StopProgram
+from .engine.robot import TRACK_CM
 
-# the robot's body, in cm, in the robot's own frame: "ahead" of the wheel axle's centre (the point the engine turns
-# around) and to the "left". The Lab's simulator has the same proportions (axle 5.5 of 24 units from the back).
-LENGTH_CM = 8.0
-WIDTH_CM = 6.5
-BACK_CM = 1.8
-FRONT_CM = LENGTH_CM - BACK_CM
-LINE_SENSOR = (5.0, 0.0)  # the line tracker, under the front (the Lab's simulator: 15 units = 5 cm ahead of the axle)
-LINE_SPOT_CM = 0.3  # ASSUMPTION: the radius of the spot the line tracker sees; at an edge it sees a mix
-IR_BEAMS = ((6.0, 1.5, 1, 'left'), (6.0, -1.5, -1, 'right'))  # (ahead, left, outward sign, side) of the two IR emitters
-IR_ANGLES_DEG = (0, 10, 20, 30)  # ASSUMPTION: each beam sees straight ahead and up to 30 degrees to its side
-DEFAULT_OBSTACLE_RANGE_CM = 10  # ASSUMPTION: how far the obstacle detection sees
-DEFAULT_AMBIENT_LIGHT = 50  # what the forward-facing light sensors (LLIGHT, RLIGHT) read, in NEPO %
+# ---------------------------------------------------------------------- the simulator's constants
 
-# the floor: reflectance 0..1. The line tracker reports 1000 * reflectance (NEPO shows it divided by 10, as %).
-BACKGROUND = 0.8  # light peach
-BLACK = 0.05
-WHITE = 0.95
-FLOOR_REFLECTANCE = {'black': BLACK, 'white': WHITE}
-BLACK_BELOW = 0.5  # Ed.ReadLineState() says LINE_ON_BLACK below this
-LINE_WIDTH_CM = 1.5  # the black core of a line (Edison tracks are about 1.5 cm wide)
-LINE_RIM_CM = 0.5  # the white rim on each side of the core
-ROLES = ('black', 'white', 'obstacle', 'goal', 'fail')
-KINDS = ('line', 'rect', 'ellipse')
+UNITS_PER_CM = 3.0
+BORDER = 10  # units: the wall around the background (simulation.scene.ts drawPattern; Ground(10, 10, w, h))
+FRAME_MS = 1000.0 / 60  # the simulator moves and senses once per animation frame (60 per second)
+BACKGROUNDS = {'simpleBackgroundEdison': (260, 220), 'drawBackground': (700, 500), 'rescueBackground': (800, 540),
+               'mathBackground': (700, 500)}  # RobotEdison.imgList; sizes in units (= pixels of the images)
+DEFAULT_BACKGROUND = 'simpleBackgroundEdison'
+WHITE_BACKGROUNDS = ('drawBackground',)  # backgrounds this module can draw itself (plain white)
+WALL_SUM = 3 * 153  # the wall pattern's brightness, for floors drawn here (never under a sensor: the robot can't get there)
 
-STEP_MS = 5  # a moving robot advances in steps of at most this much virtual time, so it can't jump over anything
-CHECK_CM, CHECK_DEG = 0.05, 0.3  # contacts are checked again after this much movement
+# EdisonChassis (units, robot frame: x ahead of the wheel axle, y to the robot's right, as on the canvas)
+CHASSIS = {'frontLeft': (18.5, -11.25), 'frontRight': (18.5, 11.25), 'backLeft': (-5.5, -11.25), 'backRight': (-5.5, 11.25),
+           'frontMiddle': (18.5, 0.0), 'backMiddle': (-5.5, 0.0),
+           # the Edison's wheel geometry is empty, so these points are the axle's centre
+           'wheelFrontLeft': (0.0, 0.0), 'wheelFrontRight': (0.0, 0.0), 'wheelBackLeft': (0.0, 0.0), 'wheelBackRight': (0.0, 0.0)}
+OUTLINE = ('frontLeft', 'frontRight', 'backRight', 'backLeft')
+LENGTH_CM = 24 / UNITS_PER_CM
+WIDTH_CM = 22.5 / UNITS_PER_CM
+WHEEL_DIAMETER = 3.7  # cm (robot.edison.ts)
+MAX_ROTATION = 3  # (new EdisonChassis(id, configuration, 3, pose))
+MAXPOWER = MAX_ROTATION * WHEEL_DIAMETER * math.pi * 3 / 100  # units per second per % of power (ChassisDiffDrive)
+CM_PER_S = dict((level, level * 10 * MAXPOWER / UNITS_PER_CM) for level in range(1, 11))  # an EdPy speed level is 10 %
+# DEVIATION: the simulator's track width is 7 cm. Turns here are measured in wheel ticks (EdPy), and with EdPy's
+# "1 tick per degree" a turn of 90 degrees only turns 90 degrees with a track of 45 / (2 pi) = 7.16 cm, as the
+# simulator's own turn does. Curves turn 2 % slower than in the simulator.
+TRACK_UNITS = TRACK_CM * UNITS_PER_CM
+LINE_SENSOR = (15.0, 0.0)  # LineSensor({x: 15, y: 0}, 3)
+LIGHT_SENSORS = (('left', (16.5, -4.5)), ('right', (16.5, 4.5)))  # EdisonLightSensors
+SENSOR_DIAMETER = 3
+IR_SENSORS = (('LEFT', 17.0, -8.0), ('FRONT', 18.0, 0.0), ('RIGHT', 17.0, 8.0))  # EdisonInfraredSensors, all looking ahead
+IR_MAX_CM = 3.0
+IR_MAX_LENGTH = 3 * IR_MAX_CM  # units (DistanceSensor.maxLength)
+IR_RAYS = (-math.pi / 8, -math.pi / 16, 0.0, math.pi / 16, math.pi / 8)
+OBSTACLE_COLOR = '#33B8CA'
+COLOR_AREA_COLOR = '#FBED00'
+
+# the test's own things
+LINE_WIDTH_CM = 4.44 / UNITS_PER_CM  # the black core of simpleBackgroundEdison's track
+LINE_BAND_CM = 16 / UNITS_PER_CM  # its white band
+ROLES = ('obstacle', 'color', 'goal', 'fail')
+KINDS = ('line', 'rect', 'circle', 'triangle')
+CHECK_DEG = 0.3
 SAMPLE_CM, SAMPLE_DEG = 0.5, 3.0  # the path gets a new pose after this much movement
 DEFAULT_MAX_TIME_MS = 30000
 DEFAULT_TOLERANCE_CM = 2
-CURVE_PIECES = 16  # a curve segment is checked as this many straight pieces
-ELLIPSE_POINTS = 36
-GIVEN_EVENTS = ('clap', 'key', 'remote', 'ir_message')  # what "given" may add; the drawn world does the rest
+CURVE_PIECES = 16
+GIVEN_EVENTS = ('clap', 'key')  # what "given" may add (the simulator has no IR remote and messages); the drawn world does the rest
 
 
-# ---------------------------------------------------------------------- geometry
-
-def to_world(pose, ahead, left):
-    """the point `ahead` cm in front of and `left` cm to the left of a pose (x, y, heading)"""
-    x, y, h = pose
-    r = math.radians(h)
-    c, s = math.cos(r), math.sin(r)
-    return (x + ahead * c - left * s, y - ahead * s - left * c)
+def js_round(v):
+    """JavaScript's Math.round"""
+    return int(math.floor(v + 0.5))
 
 
-def footprint(pose):
-    """the robot's outline at a pose: front left, front right, back right, back left"""
-    w = WIDTH_CM / 2.0
-    return [to_world(pose, FRONT_CM, w), to_world(pose, FRONT_CM, -w), to_world(pose, -BACK_CM, -w), to_world(pose, -BACK_CM, w)]
+def to_units(x_cm, y_cm):
+    return (BORDER + x_cm * UNITS_PER_CM, BORDER + y_cm * UNITS_PER_CM)
 
 
-def check_points(outline):
+def to_cm(xu, yu):
+    return ((xu - BORDER) / UNITS_PER_CM, (yu - BORDER) / UNITS_PER_CM)
+
+
+def transform(pose, point):
+    """SIMATH.transform: a point of the robot frame (units) at a pose (x, y, theta: clockwise)"""
+    x, y, theta = pose
+    s, c = math.sin(theta), math.cos(theta)
+    return (point[0] * c - point[1] * s + x, point[0] * s + point[1] * c + y)
+
+
+def sim_pose(x_cm, y_cm, heading_deg):
+    """(x, y, theta) in the simulator's terms for a pose of the world JSON"""
+    x, y = to_units(x_cm, y_cm)
+    return (x, y, (-math.radians(heading_deg)) % (2 * math.pi))
+
+
+def outline(pose):
+    return [transform(pose, CHASSIS[name]) for name in OUTLINE]
+
+
+def check_points(poly):
     """the corners and the middles of the edges of an outline"""
-    n = len(outline)
-    mids = [((outline[i][0] + outline[(i + 1) % n][0]) / 2.0, (outline[i][1] + outline[(i + 1) % n][1]) / 2.0) for i in range(n)]
-    return list(outline) + mids
+    n = len(poly)
+    return list(poly) + [((poly[i][0] + poly[(i + 1) % n][0]) / 2.0, (poly[i][1] + poly[(i + 1) % n][1]) / 2.0) for i in range(n)]
 
 
-def _rotated(cx, cy, dx, dy, rot):
-    r = math.radians(rot)
-    c, s = math.cos(r), math.sin(r)
-    return (cx + dx * c + dy * s, cy - dx * s + dy * c)
+# ---------------------------------------------------------------------- the simulator's geometry (simulation.math.ts)
+
+def line_aligned(px, py, line):
+    x1, y1, x2, y2 = line
+    if px < min(x1, x2) - 0.01 or px > max(x1, x2) + 0.01:
+        return False
+    if py < min(y1, y2) - 0.01 or py > max(y1, y2) + 0.01:
+        return False
+    return True
 
 
-def shape_polygon(item):
-    """the outline of a rect or ellipse item"""
-    cx, cy, w, h, rot = float(item['x']), float(item['y']), float(item['w']), float(item['h']), float(item.get('rot', 0))
-    if item['kind'] == 'rect':
-        local = [(w / 2, h / 2), (-w / 2, h / 2), (-w / 2, -h / 2), (w / 2, -h / 2)]
-    else:
-        local = [(w / 2 * math.cos(2 * math.pi * k / ELLIPSE_POINTS), h / 2 * math.sin(2 * math.pi * k / ELLIPSE_POINTS))
-                 for k in range(ELLIPSE_POINTS)]
-    return [_rotated(cx, cy, dx, dy, rot) for dx, dy in local]
+def intersection(l1, l2):
+    """getIntersectionPoint: lines as (x1, y1, x2, y2)"""
+    d = (l1[0] - l1[2]) * (l2[1] - l2[3]) - (l1[1] - l1[3]) * (l2[0] - l2[2])
+    if d == 0:
+        return None
+    a = l1[0] * l1[3] - l1[1] * l1[2]
+    b = l2[0] * l2[3] - l2[1] * l2[2]
+    xi = ((l2[0] - l2[2]) * a - (l1[0] - l1[2]) * b) / d
+    yi = ((l2[1] - l2[3]) * a - (l1[1] - l1[3]) * b) / d
+    if not line_aligned(xi, yi, l1) or not line_aligned(xi, yi, l2):
+        return None
+    return (xi, yi)
 
 
-def bezier_segments(points, smooth, closed):
-    """a line as cubic Bezier segments (p0, c1, c2, p1): straight between the points, or a Catmull-Rom curve through them.
-    The editor (nepoTest.sim.ts) draws exactly these segments."""
-    pts = [(float(p[0]), float(p[1])) for p in points]
-    n = len(pts)
-    pairs = [(i, (i + 1) % n) for i in range(n)] if closed and n > 2 else [(i, i + 1) for i in range(n - 1)]
-    segments = []
-    for i, j in pairs:
-        p0, p1 = pts[i], pts[j]
-        if not smooth:
-            segments.append((p0, p0, p1, p1))
-            continue
-        before = pts[i - 1] if (closed and n > 2) or i > 0 else p0
-        after = pts[(j + 1) % n] if (closed and n > 2) or j + 1 < n else p1
-        c1 = (p0[0] + (p1[0] - before[0]) / 6.0, p0[1] + (p1[1] - before[1]) / 6.0)
-        c2 = (p1[0] - (after[0] - p0[0]) / 6.0, p1[1] - (after[1] - p0[1]) / 6.0)
-        segments.append((p0, c1, c2, p1))
-    return segments
+def sq_distance(p1, p2):
+    """getDistance (the simulator's "distance" is squared)"""
+    return (p1[0] - p2[0]) ** 2 + (p1[1] - p2[1]) ** 2
 
 
-def _polyline(segments):
-    """the straight pieces of Bezier segments: [(ax, ay, bx, by)]"""
-    pieces = []
-    for p0, c1, c2, p1 in segments:
-        if c1 == p0 and c2 == p1:
-            pieces.append((p0[0], p0[1], p1[0], p1[1]))
-            continue
-        prev = p0
-        for k in range(1, CURVE_PIECES + 1):
-            t = k / float(CURVE_PIECES)
-            u = 1 - t
-            pt = (u * u * u * p0[0] + 3 * u * u * t * c1[0] + 3 * u * t * t * c2[0] + t * t * t * p1[0],
-                  u * u * u * p0[1] + 3 * u * u * t * c1[1] + 3 * u * t * t * c2[1] + t * t * t * p1[1])
-            pieces.append((prev[0], prev[1], pt[0], pt[1]))
-            prev = pt
-    return pieces
+def closest_on_segment(p, p1, p2):
+    """getDistanceToLine: the point of the segment p1 p2 nearest to p"""
+    d = sq_distance(p1, p2)
+    if d == 0:
+        return p1
+    t = ((p[0] - p1[0]) * (p2[0] - p1[0]) + (p[1] - p1[1]) * (p2[1] - p1[1])) / d
+    if t < 0:
+        return p1
+    if t > 1:
+        return p2
+    return (p1[0] + t * (p2[0] - p1[0]), p1[1] + t * (p2[1] - p1[1]))
 
 
-def segment_distance(px, py, ax, ay, bx, by):
-    dx, dy = bx - ax, by - ay
-    length2 = dx * dx + dy * dy
-    t = 0.0 if length2 == 0 else max(0.0, min(1.0, ((px - ax) * dx + (py - ay) * dy) / length2))
-    return math.hypot(px - (ax + t * dx), py - (ay + t * dy))
+def circle_intersections(line, cx, cy, r):
+    """getIntersectionPointsCircle (with its 2-unit tolerance for "on the line")"""
+    ax, ay, bx, by = line
+
+    def on_line(p):
+        return abs(math.sqrt(sq_distance((ax, ay), p)) + math.sqrt(sq_distance((bx, by), p)) - math.sqrt(sq_distance((ax, ay), (bx, by)))) <= 2
+
+    ba_x, ba_y, ca_x, ca_y = bx - ax, by - ay, cx - ax, cy - ay
+    a = ba_x * ba_x + ba_y * ba_y
+    if a == 0:
+        return []
+    p_by2 = (ba_x * ca_x + ba_y * ca_y) / a
+    q = (ca_x * ca_x + ca_y * ca_y - r * r) / a
+    disc = p_by2 * p_by2 - q
+    if disc < 0:
+        return []
+    root = math.sqrt(disc)
+    p1 = (ax - ba_x * (-p_by2 + root), ay - ba_y * (-p_by2 + root))
+    if disc == 0:
+        return [p1] if on_line(p1) else []
+    p2 = (ax - ba_x * (-p_by2 - root), ay - ba_y * (-p_by2 - root))
+    return [p for p in (p1 if on_line(p1) else None, p2 if on_line(p2) else None) if p is not None]
 
 
 def point_in_polygon(px, py, poly):
     inside = False
-    n = len(poly)
-    for i in range(n):
+    for i in range(len(poly)):
         ax, ay = poly[i]
         bx, by = poly[i - 1]
         if (ay > py) != (by > py) and px < (bx - ax) * (py - ay) / (by - ay) + ax:
             inside = not inside
     return inside
+
+
+def segment_distance(px, py, ax, ay, bx, by):
+    q = closest_on_segment((px, py), (ax, ay), (bx, by))
+    return math.hypot(px - q[0], py - q[1])
 
 
 def polygon_distance(px, py, poly):
@@ -172,20 +232,16 @@ def polygon_distance(px, py, poly):
     return min(segment_distance(px, py, poly[i - 1][0], poly[i - 1][1], poly[i][0], poly[i][1]) for i in range(len(poly)))
 
 
-def _cross(ox, oy, ax, ay, bx, by):
-    return (ax - ox) * (by - oy) - (ay - oy) * (bx - ox)
+def _cross(o, a, b):
+    return (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0])
 
 
 def segments_cross(a, b, c, d):
-    """do the segments ab and cd touch?"""
-    d1 = _cross(c[0], c[1], d[0], d[1], a[0], a[1])
-    d2 = _cross(c[0], c[1], d[0], d[1], b[0], b[1])
-    d3 = _cross(a[0], a[1], b[0], b[1], c[0], c[1])
-    d4 = _cross(a[0], a[1], b[0], b[1], d[0], d[1])
-    if ((d1 > 0) != (d2 > 0)) and ((d3 > 0) != (d4 > 0)) and d1 != 0 and d2 != 0 and d3 != 0 and d4 != 0:
+    d1, d2, d3, d4 = _cross(c, d, a), _cross(c, d, b), _cross(a, b, c), _cross(a, b, d)
+    if ((d1 > 0) != (d2 > 0)) and ((d3 > 0) != (d4 > 0)) and 0 not in (d1, d2, d3, d4):
         return True
 
-    def on(p, q, r, cr):  # r on segment pq, if collinear
+    def on(p, q, r, cr):
         return cr == 0 and min(p[0], q[0]) <= r[0] <= max(p[0], q[0]) and min(p[1], q[1]) <= r[1] <= max(p[1], q[1])
 
     return on(c, d, a, d1) or on(c, d, b, d2) or on(a, b, c, d3) or on(a, b, d, d4)
@@ -201,148 +257,270 @@ def _boxes_meet(a, b):
     return a[0] <= b[2] and b[0] <= a[2] and a[1] <= b[3] and b[1] <= a[3]
 
 
-def polygons_touch(a, b, box_a=None, box_b=None):
-    if not _boxes_meet(box_a or bbox(a), box_b or bbox(b)):
-        return False
-    for i in range(len(a)):
-        for j in range(len(b)):
-            if segments_cross(a[i - 1], a[i], b[j - 1], b[j]):
-                return True
-    return point_in_polygon(a[0][0], a[0][1], b) or point_in_polygon(b[0][0], b[0][1], a)
+# ---------------------------------------------------------------------- the world's shapes
+
+class Shape(object):
+    """a rect, circle or triangle of the world, in units (rect: top left x, y and w, h; circle: centre and r)"""
+
+    def __init__(self, item):
+        self.id = item.get('id')
+        self.kind = item['kind']
+        self.role = item.get('role')
+        self.color = item.get('color') or (OBSTACLE_COLOR if self.role == 'obstacle' else COLOR_AREA_COLOR)
+        if self.kind == 'rect':
+            self.x, self.y = to_units(float(item['x']), float(item['y']))
+            self.w, self.h = float(item['w']) * UNITS_PER_CM, float(item['h']) * UNITS_PER_CM
+            self.polygon = [(self.x, self.y), (self.x + self.w, self.y), (self.x + self.w, self.y + self.h), (self.x, self.y + self.h)]
+        elif self.kind == 'circle':
+            self.x, self.y = to_units(float(item['x']), float(item['y']))
+            self.r = float(item['r']) * UNITS_PER_CM
+            self.polygon = [(self.x + self.r * math.cos(2 * math.pi * k / 48), self.y + self.r * math.sin(2 * math.pi * k / 48)) for k in range(48)]
+        else:
+            self.points = [to_units(float(p[0]), float(p[1])) for p in item['points']]
+            self.polygon = self.points
+        self.box = bbox(self.polygon, getattr(self, 'r', 0) * 0.02)
+
+    def lines(self):
+        """getLines: UTIL.getLinesFromRectangle for rects, the three sides of a triangle (circles have none)"""
+        if self.kind == 'rect':
+            x, y, w, h = self.x, self.y, self.w, self.h
+            return [(x, y, x, y + h), (x, y, x + w, y), (x + w, y + h, x, y + h), (x + w, y + h, x + w, y)]
+        if self.kind == 'triangle':
+            (ax, ay), (bx, by), (cx, cy) = self.points
+            return [(ax, ay, bx, by), (bx, by, cx, cy), (ax, ay, cx, cy)]
+        return []
+
+    def contains(self, px, py):
+        """checkInObstacle"""
+        if self.kind == 'rect':
+            return self.x < px < self.x + self.w and self.y < py < self.y + self.h
+        if self.kind == 'circle':
+            return (px - self.x) ** 2 + (py - self.y) ** 2 <= self.r * self.r
+        (ax, ay), (bx, by), (cx, cy) = self.points
+        orig = math.floor(abs((bx - ax) * (cy - ay) - (cx - ax) * (by - ay)))
+        a1 = math.floor(abs((ax - px) * (by - py) - (bx - px) * (ay - py)))
+        a2 = math.floor(abs((bx - px) * (cy - py) - (cx - px) * (by - py)))
+        a3 = math.floor(abs((cx - px) * (ay - py) - (ax - px) * (cy - py)))
+        return a1 + a2 + a3 <= orig
+
+    def touches(self, poly, box):
+        """does a polygon (the robot's outline) touch this shape?"""
+        if not _boxes_meet(box, self.box):
+            return False
+        if self.kind == 'circle':
+            return polygon_distance(self.x, self.y, poly) <= self.r
+        for i in range(len(poly)):
+            for j in range(len(self.polygon)):
+                if segments_cross(poly[i - 1], poly[i], self.polygon[j - 1], self.polygon[j]):
+                    return True
+        return point_in_polygon(poly[0][0], poly[0][1], self.polygon) or point_in_polygon(self.polygon[0][0], self.polygon[0][1], poly)
 
 
-class _Grid(object):
-    """a spatial index: cells of CELL cm, each with the indices of the things whose box meets it"""
-    CELL = 5.0
+def bezier_segments(points, smooth, closed):
+    """a line as cubic Bezier segments (p0, c1, c2, p1): straight between the points, or a Catmull-Rom curve through them.
+    The editor (nepoTest.sim.ts) draws exactly these segments."""
+    pts = [(float(p[0]), float(p[1])) for p in points]
+    n = len(pts)
+    wrap = closed and n > 2
+    pairs = [(i, (i + 1) % n) for i in range(n)] if wrap else [(i, i + 1) for i in range(n - 1)]
+    segments = []
+    for i, j in pairs:
+        p0, p1 = pts[i], pts[j]
+        if not smooth:
+            segments.append((p0, p0, p1, p1))
+            continue
+        before = pts[i - 1] if wrap or i > 0 else p0
+        after = pts[(j + 1) % n] if wrap or j + 1 < n else p1
+        c1 = (p0[0] + (p1[0] - before[0]) / 6.0, p0[1] + (p1[1] - before[1]) / 6.0)
+        c2 = (p1[0] - (after[0] - p0[0]) / 6.0, p1[1] - (after[1] - p0[1]) / 6.0)
+        segments.append((p0, c1, c2, p1))
+    return segments
 
-    def __init__(self):
-        self.cells = {}
 
-    def add(self, index, box):
-        c = self.CELL
-        for i in range(int(math.floor(box[0] / c)), int(math.floor(box[2] / c)) + 1):
-            for j in range(int(math.floor(box[1] / c)), int(math.floor(box[3] / c)) + 1):
-                self.cells.setdefault((i, j), []).append(index)
+def polyline(segments):
+    """the points of Bezier segments, curves in CURVE_PIECES pieces"""
+    out = []
+    for p0, c1, c2, p1 in segments:
+        if not out:
+            out.append(p0)
+        if c1 == p0 and c2 == p1:
+            out.append(p1)
+            continue
+        for k in range(1, CURVE_PIECES + 1):
+            t = k / float(CURVE_PIECES)
+            u = 1 - t
+            out.append((u * u * u * p0[0] + 3 * u * u * t * c1[0] + 3 * u * t * t * c2[0] + t * t * t * p1[0],
+                        u * u * u * p0[1] + 3 * u * u * t * c1[1] + 3 * u * t * t * c2[1] + t * t * t * p1[1]))
+    return out
 
-    def near(self, x, y):
-        return self.cells.get((int(math.floor(x / self.CELL)), int(math.floor(y / self.CELL))), ())
+
+# ---------------------------------------------------------------------- the floor the sensors see
+
+def _hex_sum(color):
+    c = (color or '#000000').lstrip('#')
+    if len(c) == 3:
+        c = ''.join(ch * 2 for ch in c)
+    return int(c[0:2], 16) + int(c[2:4], 16) + int(c[4:6], 16)
 
 
-# ---------------------------------------------------------------------- the world
+class Floor(object):
+    """The simulator's sensor canvas (uCtx): one pixel per unit, the background at (10, 10), the wall around it, the
+    coloured areas and the test's lines on top. Each pixel holds R + G + B (alpha doesn't matter to the sensors)."""
+
+    def __init__(self, width, height, sums):
+        self.width, self.height, self.sums = width, height, sums
+
+    @classmethod
+    def decode(cls, floor):
+        raw = zlib.decompress(base64.b64decode(floor['sum']))
+        sums = array.array('H')
+        sums.frombytes(raw)
+        if sys.byteorder == 'big':
+            sums.byteswap()  # stored little-endian
+        if len(sums) != floor['w'] * floor['h']:
+            raise ValueError('the floor picture has %d pixels, not %d x %d' % (len(sums), floor['w'], floor['h']))
+        return cls(floor['w'], floor['h'], sums)
+
+    @classmethod
+    def draw(cls, world):
+        """A floor drawn here, for worlds without a stored picture: a white background, the coloured areas and the lines
+        (a pixel takes the colour of what covers its centre; a browser also blends the edges)."""
+        bw, bh = world.background_size
+        width, height = bw + 2 * BORDER, bh + 2 * BORDER
+        sums = array.array('H', [WALL_SUM]) * (width * height)
+        white = 765
+        for y in range(BORDER, BORDER + bh):
+            row = y * width
+            for x in range(BORDER, BORDER + bw):
+                sums[row + x] = white
+        floor = cls(width, height, sums)
+        for shape in world.colors:
+            floor._fill(shape, _hex_sum(shape.color))
+        for line in world.lines:
+            floor._stroke(line, LINE_BAND_CM * UNITS_PER_CM / 2.0, 765)
+        for line in world.lines:
+            floor._stroke(line, line.half_core, 0)
+        return floor
+
+    def _pixels(self, box):
+        x0, y0 = max(0, int(math.floor(box[0]))), max(0, int(math.floor(box[1])))
+        x1, y1 = min(self.width - 1, int(math.ceil(box[2]))), min(self.height - 1, int(math.ceil(box[3])))
+        for y in range(y0, y1 + 1):
+            for x in range(x0, x1 + 1):
+                yield x, y
+
+    def _fill(self, shape, value):
+        for x, y in self._pixels(shape.box):
+            cx, cy = x + 0.5, y + 0.5
+            inside = (shape.x <= cx <= shape.x + shape.w and shape.y <= cy <= shape.y + shape.h) if shape.kind == 'rect' else \
+                ((cx - shape.x) ** 2 + (cy - shape.y) ** 2 <= shape.r ** 2) if shape.kind == 'circle' else point_in_polygon(cx, cy, shape.points)
+            if inside:
+                self.sums[y * self.width + x] = value
+
+    def _stroke(self, line, half, value):
+        pts = line.points
+        for i in range(1, len(pts)):
+            a, b = pts[i - 1], pts[i]
+            for x, y in self._pixels(bbox([a, b], half + 1)):
+                if segment_distance(x + 0.5, y + 0.5, a[0], a[1], b[0], b[1]) <= half:
+                    self.sums[y * self.width + x] = value
+
+    def sample(self, px, py):
+        """LineSensor.updateSensor: the light (0..100, unrounded) of the 5 pixels of a 3 x 3 cross at a point (units)"""
+        x0, y0 = js_round(px - SENSOR_DIAMETER / 2.0), js_round(py - SENSOR_DIAMETER / 2.0)
+        total = 0
+        for dx, dy in ((1, 0), (0, 1), (1, 1), (2, 1), (1, 2)):
+            x, y = x0 + dx, y0 + dy
+            if 0 <= x < self.width and 0 <= y < self.height:
+                total += self.sums[y * self.width + x]  # outside the canvas: transparent black
+        return total / 5.0 / 3.0 / 2.55
+
 
 class _Line(object):
     def __init__(self, item):
         self.id = item.get('id')
-        self.half_core = float(item.get('width', LINE_WIDTH_CM)) / 2.0
-        self.half_outer = self.half_core + LINE_RIM_CM
-        self.pieces = _polyline(bezier_segments(item['points'], bool(item.get('smooth')), bool(item.get('closed'))))
-        self.grid = _Grid()
-        for k, (ax, ay, bx, by) in enumerate(self.pieces):
-            self.grid.add(k, bbox([(ax, ay), (bx, by)], self.half_outer))
-
-    def distance(self, x, y):
-        """the distance to the centre of the line, if it is less than half the line's full width (else None)"""
-        best = None
-        for k in self.grid.near(x, y):
-            d = segment_distance(x, y, *self.pieces[k])
-            if best is None or d < best:
-                best = d
-        return best if best is not None and best <= self.half_outer else None
+        self.half_core = float(item.get('width', LINE_WIDTH_CM)) * UNITS_PER_CM / 2.0
+        cm = polyline(bezier_segments(item['points'], bool(item.get('smooth')), bool(item.get('closed'))))
+        self.points = [to_units(x, y) for x, y in cm]
 
 
-class _Shape(object):
-    def __init__(self, item):
-        self.id = item.get('id')
-        self.role = item.get('role')
-        self.polygon = shape_polygon(item)
-        self.box = bbox(self.polygon)
+def default_world():
+    """a new test's world: the simulator's own start (robot at (60, 60) units, its standard obstacle)"""
+    bw, bh = BACKGROUNDS[DEFAULT_BACKGROUND]
+    side = round(bw / 9.0 / UNITS_PER_CM, 2)
+    return {'background': DEFAULT_BACKGROUND, 'start': {'x': round((60 - BORDER) / UNITS_PER_CM, 2), 'y': round((60 - BORDER) / UNITS_PER_CM, 2), 'heading': 0},
+            'items': [{'id': 'obstacle', 'kind': 'rect', 'role': 'obstacle', 'x': round((bw * 7 / 9.0 - BORDER) / UNITS_PER_CM, 2),
+                       'y': round((bh - bw * 2 / 9.0 - BORDER) / UNITS_PER_CM, 2), 'w': side, 'h': side}]}
 
-    def contains(self, x, y):
-        return self.box[0] <= x <= self.box[2] and self.box[1] <= y <= self.box[3] and point_in_polygon(x, y, self.polygon)
+
+def migrate_v1(world):
+    """a world of the first version of simulation tests (block data version 1: an unbounded, plain peach floor; rect and
+    ellipse given by their centre, with a rotation; roles black and white) in today's terms, on the simulator's plain
+    white background (the largest, and without lines of its own)"""
+    items = []
+    for item in (world or {}).get('items') or []:
+        kind, role = item.get('kind'), item.get('role')
+        if kind in ('rect', 'ellipse'):
+            new = {'id': item.get('id'), 'role': 'color' if role in ('black', 'white') else role}
+            if role in ('black', 'white'):
+                new['color'] = '#000000' if role == 'black' else '#ffffff'
+            if kind == 'rect':  # the rotation is lost: the simulator's rectangles don't turn
+                new.update(kind='rect', x=item['x'] - item['w'] / 2.0, y=item['y'] - item['h'] / 2.0, w=item['w'], h=item['h'])
+            else:
+                new.update(kind='circle', x=item['x'], y=item['y'], r=(item['w'] + item['h']) / 4.0)
+            items.append(new)
+        elif kind == 'line':
+            items.append(dict((k, v) for k, v in item.items() if k != 'width'))  # the background's line width
+    return {'background': 'drawBackground', 'start': (world or {}).get('start') or {'x': 0, 'y': 0, 'heading': 0}, 'items': items}
 
 
 class SimWorld(object):
-    """the drawn world: start pose, what the line tracker sees, obstacles, goal and fail areas"""
+    """the drawn world: background, start pose, floor picture, obstacles, goal and fail areas"""
 
-    def __init__(self, data):
+    def __init__(self, data, floor=None):
         data = data or {}
+        self.background = data.get('background') or DEFAULT_BACKGROUND
+        self.background_size = BACKGROUNDS.get(self.background, BACKGROUNDS[DEFAULT_BACKGROUND])
+        bw, bh = self.background_size
+        self.ground = (BORDER, BORDER, BORDER + bw, BORDER + bh)  # Ground(10, 10, w, h) as (x0, y0, x1, y1)
         start = data.get('start') or {}
         self.start = (float(start.get('x', 0)), float(start.get('y', 0)), float(start.get('heading', 0)))
-        settings = data.get('settings') or {}
-        self.ambient_raw = int(settings.get('ambient_light', DEFAULT_AMBIENT_LIGHT)) * 10
-        self.obstacle_range = float(settings.get('obstacle_range_cm', DEFAULT_OBSTACLE_RANGE_CM))
-        self.lines, self.floor, self.obstacles, self.goals, self.fails = [], [], [], [], []
+        self.lines, self.obstacles, self.colors, self.goals, self.fails = [], [], [], [], []
         for item in data.get('items') or []:
-            if item.get('kind') == 'line':
+            kind = item.get('kind')
+            if kind == 'line':
                 if len(item.get('points') or []) >= 2:
                     self.lines.append(_Line(item))
-            elif item.get('kind') in ('rect', 'ellipse'):
-                shape = _Shape(item)
-                {'black': self.floor, 'white': self.floor, 'obstacle': self.obstacles, 'goal': self.goals,
-                 'fail': self.fails}.get(shape.role, self.floor).append(shape)
+            elif kind in ('rect', 'circle', 'triangle'):
+                shape = Shape(item)
+                {'obstacle': self.obstacles, 'color': self.colors, 'goal': self.goals, 'fail': self.fails}.get(shape.role, self.colors).append(shape)
+        self.floor = Floor.decode(floor) if floor else Floor.draw(self)
 
-    def reflectance(self, x, y):
-        """what the floor reflects at a point: a line's black core, a line's white rim, a floor shape, or the background"""
-        rim = False
-        for line in self.lines:
-            d = line.distance(x, y)
-            if d is not None:
-                if d <= line.half_core:
-                    return BLACK
-                rim = True
-        if rim:
-            return WHITE
-        for shape in reversed(self.floor):
-            if shape.contains(x, y):
-                return FLOOR_REFLECTANCE.get(shape.role, BACKGROUND)
-        return BACKGROUND
+    def ground_lines(self):
+        x0, y0, x1, y1 = self.ground
+        return [(x0, y0, x0, y1), (x0, y0, x1, y0), (x1, y1, x0, y1), (x1, y1, x1, y0)]
 
-    def tracker_level(self, pose):
-        """what the line tracker sees at a robot pose: the mean reflectance of its spot (0..1)"""
-        cx, cy = to_world(pose, *LINE_SENSOR)
-        samples = [(cx, cy)] + [(cx + LINE_SPOT_CM * math.cos(math.pi * k / 3), cy + LINE_SPOT_CM * math.sin(math.pi * k / 3))
-                                for k in range(6)]
-        return sum(self.reflectance(x, y) for x, y in samples) / len(samples)
-
-    def obstacle_bits(self, pose):
-        """the obstacle detection at a robot pose: OBSTACLE_LEFT / _RIGHT / _AHEAD (both beams) | OBSTACLE_DETECTED, or 0"""
-        if not self.obstacles:
-            return 0
-        seen = set()
-        for ahead, left, outward, side in IR_BEAMS:
-            origin = to_world(pose, ahead, left)
-            for angle in IR_ANGLES_DEG:
-                end = to_world((origin[0], origin[1], pose[2] + outward * angle), self.obstacle_range, 0)
-                ray_box = bbox([origin, end])
-                if any(_boxes_meet(ray_box, o.box) and (o.contains(*origin) or any(
-                        segments_cross(origin, end, o.polygon[i - 1], o.polygon[i]) for i in range(len(o.polygon))))
-                       for o in self.obstacles):
-                    seen.add(side)
-                    break
-        c = V.CONSTANTS
-        if not seen:
-            return 0
-        bit = c['OBSTACLE_AHEAD'] if len(seen) == 2 else c['OBSTACLE_LEFT'] if 'left' in seen else c['OBSTACLE_RIGHT']
-        return c['OBSTACLE_DETECTED'] | bit
-
-    def touching(self, outline, shapes):
-        """the first shape the outline touches, or None"""
-        box = bbox(outline)
+    def touching(self, poly, shapes):
+        box = bbox(poly)
         for s in shapes:
-            if polygons_touch(outline, s.polygon, box, s.box):
+            if s.touches(poly, box):
                 return s
         return None
 
 
 class Corridor(object):
-    """where the robot may be: within `tolerance` cm of the robot's outline at any pose of a recorded path"""
+    """where the robot may be: within `tolerance` cm of its outline at any pose of a recorded path"""
+    CELL = 15.0  # units
 
-    def __init__(self, path, tolerance):
-        self.tolerance = float(tolerance)
-        self.outlines = [footprint((p[0], p[1], p[2])) for p in path]
-        self.grid = _Grid()
-        for k, outline in enumerate(self.outlines):
-            self.grid.add(k, bbox(outline, self.tolerance))
+    def __init__(self, path, tolerance_cm):
+        self.tolerance = float(tolerance_cm) * UNITS_PER_CM
+        self.outlines = [outline(sim_pose(p[0], p[1], p[2])) for p in path]
+        self.cells = {}
+        for k, poly in enumerate(self.outlines):
+            box = bbox(poly, self.tolerance)
+            for i in range(int(math.floor(box[0] / self.CELL)), int(math.floor(box[2] / self.CELL)) + 1):
+                for j in range(int(math.floor(box[1] / self.CELL)), int(math.floor(box[3] / self.CELL)) + 1):
+                    self.cells.setdefault((i, j), []).append(k)
         self._last = 0  # the robot moves along the path: look near the last match first
 
     def _near(self, k, x, y):
@@ -354,14 +532,13 @@ class Corridor(object):
             if self._near(k, x, y):
                 self._last = k
                 return True
-        for k in self.grid.near(x, y):
+        for k in self.cells.get((int(math.floor(x / self.CELL)), int(math.floor(y / self.CELL))), ()):
             if self._near(k, x, y):
                 self._last = k
                 return True
         return False
 
     def outside(self, points):
-        """the first point that is out of the corridor, or None"""
         for p in points:
             if not self.contains(p[0], p[1]):
                 return p
@@ -371,109 +548,275 @@ class Corridor(object):
 # ---------------------------------------------------------------------- the robot in the world
 
 class SimRobot(Robot):
-    """The engine's virtual Edison, placed in a drawn world: its sensors read the world, and the world can end the run
-    (StopProgram('simulation'), with the reason in `outcome`). `path` is where it went: [t_ms, x, y, heading]."""
+    """The engine's virtual Edison in a drawn world, moved and sensing like the Lab's simulator (see the module doc).
+
+    The engine still drives the wheels (EdPy semantics: speed levels, distances in ticks, blocking drives); their
+    travel moves the robot once per frame. The world can end the run (StopProgram('simulation'), the reason in
+    `outcome`). `path`: [t_ms, x_cm, y_cm, heading_deg] (heading not wrapped, so a replay can interpolate)."""
 
     def __init__(self, world, corridor=None, **options):
+        options.setdefault('cm_per_s', CM_PER_S)
         super(SimRobot, self).__init__(**options)
         self.world = world
         self.corridor = corridor
-        self.outcome = None  # {'result': 'goal' | 'fail_area' | 'crash' | 'deviation', 't', 'item', 'point'}
+        self.outcome = None  # {'result': 'goal' | 'fail_area' | 'deviation', 't', 'item', 'point'}
         self.path = []
+        self.pose_u = sim_pose(*world.start)  # x, y (units), theta (clockwise, 0..2 pi), like the simulator's Pose
+        self.heading_unwrapped = world.start[2]
+        self.bumped = dict.fromkeys(CHASSIS, False)
+        self.points = {}
+        self.bumps = 0  # frames in which the robot pushed against something
+        self.light = {'tracker': 0.0, 'left': 0.0, 'right': 0.0}  # unrounded light values of the last frame
+        self.ir = {'LEFT': False, 'FRONT': False, 'RIGHT': False}
+        self._ir_bits = 0
+        self._travel = [0.0, 0.0]  # wheel travel (cm) since the last frame
+        self._next_frame = FRAME_MS
         self._checking = False
         self._checked = None
-        self._tracker = (None, None)
-        self._ir = (None, 0)
+        self._place()
 
-    def world_pose(self):
-        x, y = to_world(self.world.start, self.x_cm, self.y_cm)
-        return (x, y, self.world.start[2] + self.heading_deg)
+    # ------------------------------------------------------------------ time and frames
 
     def _begin(self, max_time_ms, max_steps):
         super(SimRobot, self)._begin(max_time_ms, max_steps)
+        self._sense(0.0, 0.0, 0.0)
         self._checking = True  # from now on, the world can end the run (StopProgram is only caught around the program)
-        self._sample(self.world_pose(), force=True)
+        self._sample(force=True)
+
+    def _move_pose(self, dl, dr):
+        self._travel[0] += dl  # the robot moves at the next frame, as in the simulator
+        self._travel[1] += dr
 
     def _move_to(self, target):
-        while True:
-            step_end = min(target, self.now + STEP_MS) if self.moving else target
-            super(SimRobot, self)._move_to(step_end)
-            self._sense()
-            if step_end >= target:
-                return
+        while self._next_frame <= target + 1e-9:
+            super(SimRobot, self)._move_to(self._next_frame)
+            self._frame(FRAME_MS / 1000.0)
+            self._next_frame += FRAME_MS
+        super(SimRobot, self)._move_to(target)
+        if self.beam and self._ir_bits:
+            self._obstacle |= self._ir_bits  # the simulator's obstacle values hold for the whole frame
 
-    def _sense(self):
-        pose = self.world_pose()
-        if self.beam:
-            if self._ir[0] != pose:
-                self._ir = (pose, self.world.obstacle_bits(pose))
-            self._obstacle |= self._ir[1]
-        if self._checking and (self._checked is None or _moved(self._checked, pose, CHECK_CM, CHECK_DEG)):
-            self._checked = pose
-            self._sample(pose)
-            self._check(pose)
+    def _frame(self, dt):
+        """one animation frame of the simulator: move (ChassisDiffDrive.updateAction), then collisions and sensors"""
+        dl, dr = self._travel[0] * UNITS_PER_CM, self._travel[1] * UNITS_PER_CM
+        self._travel = [0.0, 0.0]
+        left_speed, right_speed = dl / dt, dr / dt
+        if left_speed or right_speed:
+            self._drive(left_speed, right_speed, dt)
+        self._sense(dt, left_speed, right_speed)
+        if self._checking:
+            pose = (self.pose_u[0], self.pose_u[1], self.heading_unwrapped)
+            if self._checked is None or self._checked != pose:
+                self._checked = pose
+                self._sample()
+                self._check()
 
-    def _sample(self, pose, force=False):
+    def _drive(self, left_speed, right_speed, dt):
+        """ChassisDiffDrive.updateAction: the bumped side's wheel turns back; then the simulator's kinematics, as it is"""
+        b = self.bumped
+        temp_left, temp_right = left_speed, right_speed
+        if (b['frontLeft'] or b['wheelFrontLeft']) and left_speed > 0:
+            temp_left *= -1
+        if b['backLeft'] and left_speed < 0:
+            temp_left *= -1
+        if (b['frontRight'] or b['wheelFrontRight']) and right_speed > 0:
+            temp_right *= -1
+        if b['backRight'] and right_speed < 0:
+            temp_right *= -1
+        if (temp_left, temp_right) != (left_speed, right_speed):
+            self.bumps += 1
+        x, y, theta = self.pose_u
+        if abs(temp_right - temp_left) <= 1.0e-6:
+            move = temp_right * dt
+            m_x = math.cos(theta) * move
+            m_y = math.sqrt(max(0.0, move * move - m_x * m_x))
+            x += m_x
+            if move >= 0:
+                y += m_y if theta < math.pi else -m_y
+            else:
+                y += m_y if theta > math.pi else -m_y
+            theta_diff = 0.0
+        else:
+            radius = (TRACK_UNITS / 2.0) * ((temp_left + temp_right) / (temp_left - temp_right))
+            rot = (temp_left - temp_right) / TRACK_UNITS
+            icc_x = x - radius * math.sin(theta)
+            icc_y = y + radius * math.cos(theta)
+            a = rot * dt
+            x = math.cos(a) * (x - icc_x) - math.sin(a) * (y - icc_y) + icc_x
+            y = math.sin(a) * (x - icc_x) + math.cos(a) * (y - icc_y) + icc_y  # the simulator uses the new x here too
+            theta_diff = a
+        self.pose_u = (x, y, (theta + theta_diff + 2 * math.pi) % (2 * math.pi))
+        self.heading_unwrapped -= math.degrees(theta_diff)
+        self._place()
+
+    def _place(self):
+        """chassis points in the world, and the engine's pose (relative to the start, for pose_of)"""
+        self.points = dict((name, transform(self.pose_u, p)) for name, p in CHASSIS.items())
+        sx, sy, sh = self.world.start
+        x_cm, y_cm = to_cm(self.pose_u[0], self.pose_u[1])
+        dx, dy = x_cm - sx, y_cm - sy
+        r = math.radians(sh)
+        self.x_cm = dx * math.cos(r) - dy * math.sin(r)
+        self.y_cm = -dx * math.sin(r) - dy * math.cos(r)
+        self._heading = math.radians(self.heading_unwrapped - sh)
+
+    def world_pose(self):
+        x_cm, y_cm = to_cm(self.pose_u[0], self.pose_u[1])
+        return (x_cm, y_cm, self.heading_unwrapped)
+
+    # ------------------------------------------------------------------ the simulator's sensors
+
+    def _sense(self, dt, left_speed, right_speed):
+        self._collisions(dt, max(abs(left_speed), abs(right_speed)))
+        floor = self.world.floor
+        px, py = transform(self.pose_u, LINE_SENSOR)
+        self.light['tracker'] = floor.sample(px, py)
+        for side, point in LIGHT_SENSORS:
+            px, py = transform(self.pose_u, point)
+            self.light[side] = floor.sample(px, py)
+        self._infrared()
+
+    def _collisions(self, dt, tolerance):
+        """ChassisMobile.checkCollisions for a robot alone with the obstacles and the ground"""
+        p, b = self.points, self.bumped
+        x0, y0, x1, y1 = self.world.ground
+        checks = ('frontLeft', 'frontRight', 'backLeft', 'backRight', 'wheelFrontRight', 'wheelFrontLeft', 'wheelBackLeft', 'wheelBackRight')
+        for name in b:
+            b[name] = False
+        for name in checks:
+            q = p[name]
+            if q[0] < x0 or q[0] > x1 or q[1] < y0 or q[1] > y1:
+                b[name] = True
+        check_lines = (('frontLeft', 'frontRight', 'frontMiddle'), ('backLeft', 'backRight', 'backMiddle'),
+                       ('wheelFrontRight', 'wheelBackRight', None), ('wheelFrontLeft', 'wheelBackLeft', None))
+        for obstacle in self.world.obstacles:
+            inside = [name for name in checks if obstacle.contains(*p[name])]
+            for name in inside:
+                b[name] = True
+            if inside:
+                continue
+            if obstacle.kind != 'circle':
+                lines = obstacle.lines()
+                for first, second, middle in check_lines:
+                    seg = (p[first][0], p[first][1], p[second][0], p[second][1])
+                    for k in lines:
+                        hit = intersection(seg, k)
+                        if hit:
+                            if abs(p[first][0] - hit[0]) < abs(p[second][0] - hit[0]):
+                                b[first] = True
+                            else:
+                                b[second] = True
+                        elif middle:
+                            q = closest_on_segment(p[middle], (k[0], k[1]), (k[2], k[3]))
+                            if sq_distance(p[middle], q) < dt * tolerance:
+                                b[first] = b[second] = True
+            else:
+                for first, second, middle in check_lines:
+                    seg = (p[first][0], p[first][1], p[second][0], p[second][1])
+                    hits = circle_intersections(seg, obstacle.x, obstacle.y, obstacle.r)
+                    if not hits:
+                        continue
+                    hit = hits[0] if len(hits) == 1 else ((hits[0][0] + hits[1][0]) / 2.0, (hits[0][1] + hits[1][1]) / 2.0)
+                    d0, d1 = sq_distance(p[first], hit), sq_distance(p[second], hit)
+                    if d0 + 30 < d1:
+                        b[first] = True
+                    elif d1 + 30 < d0:
+                        b[second] = True
+                    else:
+                        b[first] = b[second] = True
+        b['frontLeft'] = b['frontLeft'] or b['frontMiddle']
+        b['frontRight'] = b['frontRight'] or b['frontMiddle']
+        b['backLeft'] = b['backLeft'] or b['backMiddle'] or b['wheelBackLeft']
+        b['backRight'] = b['backRight'] or b['backMiddle'] or b['wheelBackRight']
+
+    def _infrared(self):
+        """EdisonInfraredSensors: three sensors, five rays each, an obstacle closer than 3 cm (also the wall)"""
+        lines = list(self.world.ground_lines())
+        circles = []
+        for obstacle in self.world.obstacles:
+            if obstacle.kind == 'circle':
+                circles.append(obstacle)
+            else:
+                lines += obstacle.lines()
+        x, y, theta = self.pose_u
+        for port, sx, sy in IR_SENSORS:
+            rx, ry = transform(self.pose_u, (sx, sy))
+            best = IR_MAX_LENGTH
+            for angle in IR_RAYS:
+                ray = (rx, ry, rx + IR_MAX_LENGTH * math.cos(theta + angle), ry + IR_MAX_LENGTH * math.sin(theta + angle))
+                hits = [intersection(ray, k) for k in lines]
+                for c in circles:
+                    found = circle_intersections(ray, c.x, c.y, c.r)
+                    if found:
+                        hits.append(min(found, key=lambda q: sq_distance((rx, ry), q)))
+                for hit in hits:
+                    if hit is not None:
+                        best = min(best, math.hypot(hit[0] - rx, hit[1] - ry))
+            self.ir[port] = best / UNITS_PER_CM < IR_MAX_CM
+        c = V.CONSTANTS
+        seen = self.ir
+        if seen['FRONT'] or (seen['LEFT'] and seen['RIGHT']):
+            self._ir_bits = c['OBSTACLE_DETECTED'] | c['OBSTACLE_AHEAD']
+        elif seen['LEFT']:
+            self._ir_bits = c['OBSTACLE_DETECTED'] | c['OBSTACLE_LEFT']
+        elif seen['RIGHT']:
+            self._ir_bits = c['OBSTACLE_DETECTED'] | c['OBSTACLE_RIGHT']
+        else:
+            self._ir_bits = 0
+
+    def ed_ReadLineState(self):
+        return V.CONSTANTS['LINE_ON_BLACK'] if self.light['tracker'] < 50 else V.CONSTANTS['LINE_ON_WHITE']
+
+    def ed_ReadLineTracker(self):
+        return js_round(self.light['tracker']) * 10  # NEPO shows it divided by 10: the simulator's light value
+
+    def ed_ReadLeftLightLevel(self):
+        return js_round(self.light['left']) * 10
+
+    def ed_ReadRightLightLevel(self):
+        return js_round(self.light['right']) * 10
+
+    # ------------------------------------------------------------------ what the test watches
+
+    def _sample(self, force=False):
         last = self.path[-1] if self.path else None
-        if force or last is None or _moved((last[1], last[2], last[3]), pose, SAMPLE_CM, SAMPLE_DEG):
-            entry = [round(self.now, 1), round(pose[0], 2), round(pose[1], 2), round(pose[2], 1)]
+        x, y, h = self.world_pose()
+        if force or last is None or math.hypot(x - last[1], y - last[2]) >= SAMPLE_CM or abs(h - last[3]) >= SAMPLE_DEG:
+            entry = [round(self.now, 1), round(x, 2), round(y, 2), round(h, 1)]
             if last is not None and last[0] == entry[0]:
                 self.path[-1] = entry
             else:
                 self.path.append(entry)
 
-    def _check(self, pose):
-        outline = footprint(pose)
+    def _check(self):
+        poly = [self.points[name] for name in OUTLINE]
         w = self.world
-        hit = w.touching(outline, w.obstacles)
+        hit = w.touching(poly, w.fails)
         if hit is not None:
-            self._decide('crash', pose, hit.id)
-        hit = w.touching(outline, w.fails)
-        if hit is not None:
-            self._decide('fail_area', pose, hit.id)
+            self._decide('fail_area', hit.id)
         if self.corridor is not None:
-            point = self.corridor.outside(check_points(outline))
+            point = self.corridor.outside(check_points(poly))
             if point is not None:
-                self._decide('deviation', pose, None, point)
-        hit = w.touching(outline, w.goals)
+                self._decide('deviation', None, to_cm(*point))
+        hit = w.touching(poly, w.goals)
         if hit is not None:
-            self._decide('goal', pose, hit.id)
+            self._decide('goal', hit.id)
 
-    def _decide(self, result, pose, item=None, point=None):
-        self._sample(pose, force=True)
+    def _decide(self, result, item=None, point=None):
+        self._sample(force=True)
         self.outcome = {'result': result, 't': round(self.now, 1), 'item': item,
                         'point': [round(point[0], 2), round(point[1], 2)] if point is not None else None}
         raise StopProgram('simulation')
 
     def finish_path(self):
-        self._sample(self.world_pose(), force=True)
-
-    # ------------------------------------------------------------------ sensors that read the world
-
-    def _tracker_level(self):
-        pose = self.world_pose()
-        if self._tracker[0] != pose:
-            self._tracker = (pose, self.world.tracker_level(pose))
-        return self._tracker[1]
-
-    def ed_ReadLineState(self):
-        return V.CONSTANTS['LINE_ON_BLACK'] if self._tracker_level() < BLACK_BELOW else V.CONSTANTS['LINE_ON_WHITE']
-
-    def ed_ReadLineTracker(self):
-        return int(round(self._tracker_level() * 1000))
-
-    def ed_ReadLeftLightLevel(self):
-        return self.world.ambient_raw  # the light sensors face forward: they see the room, not the floor
-
-    def ed_ReadRightLightLevel(self):
-        return self.world.ambient_raw
-
-
-def _moved(a, b, cm, deg):
-    return math.hypot(a[0] - b[0], a[1] - b[1]) >= cm or abs(a[2] - b[2]) >= deg
+        self._sample(force=True)
 
 
 # ---------------------------------------------------------------------- checking a simulation (before it runs)
+
+def _number(v):
+    return isinstance(v, (int, float)) and not isinstance(v, bool)
+
 
 def validate(sim, where):
     """[problem] of a test's "simulation" object"""
@@ -481,50 +824,61 @@ def validate(sim, where):
     if not isinstance(sim, dict) or not isinstance(sim.get('world'), dict):
         return ['%s: "simulation" needs a "world" object' % where]
     world = sim['world']
+    if world.get('background') not in BACKGROUNDS:
+        problems.append('%s.world.background must be one of %s' % (where, ', '.join(BACKGROUNDS)))
     start = world.get('start')
-    if not isinstance(start, dict) or not all(isinstance(start.get(k), (int, float)) for k in ('x', 'y', 'heading')):
+    if not isinstance(start, dict) or not all(_number(start.get(k)) for k in ('x', 'y', 'heading')):
         problems.append('%s.world.start needs numbers x, y and heading' % where)
     for i, item in enumerate(world.get('items') or []):
         w = '%s.world.items[%d]' % (where, i)
         kind = item.get('kind') if isinstance(item, dict) else None
         if kind not in KINDS:
             problems.append('%s: "kind" must be one of %s' % (w, ', '.join(KINDS)))
-        elif kind == 'line':
+            continue
+        if kind == 'line' or kind == 'triangle':
             points = item.get('points')
-            if not isinstance(points, list) or len(points) < 2 or not all(
-                    isinstance(p, list) and len(p) == 2 and all(isinstance(c, (int, float)) for c in p) for p in points):
-                problems.append('%s: a line needs at least two points [x, y]' % w)
+            count = 3 if kind == 'triangle' else None
+            if not isinstance(points, list) or len(points) < 2 or (count and len(points) != count) or not all(
+                    isinstance(p, list) and len(p) == 2 and all(_number(c) for c in p) for p in points):
+                problems.append('%s: a %s needs %s points [x, y]' % (w, kind, 'three' if count else 'at least two'))
         else:
-            if item.get('role') not in ROLES:
-                problems.append('%s: "role" must be one of %s' % (w, ', '.join(ROLES)))
-            if not all(isinstance(item.get(k), (int, float)) for k in ('x', 'y', 'w', 'h')):
-                problems.append('%s: a %s needs numbers x, y, w and h' % (w, kind))
+            keys = ('x', 'y', 'w', 'h') if kind == 'rect' else ('x', 'y', 'r')
+            if not all(_number(item.get(k)) for k in keys):
+                problems.append('%s: a %s needs numbers %s' % (w, kind, ', '.join(keys)))
+        if kind != 'line' and item.get('role') not in ROLES:
+            problems.append('%s: "role" must be one of %s' % (w, ', '.join(ROLES)))
+    floor = sim.get('floor')  # only for run_simulation_test (no longer used): the simulator draws its own floor
+    if floor is not None and (not isinstance(floor, dict) or not all(k in floor for k in ('w', 'h', 'sum'))):
+        problems.append('%s.floor needs w, h and sum' % where)
     reference = sim.get('reference')
     if reference is not None:
         path = reference.get('path') if isinstance(reference, dict) else None
         if not isinstance(path, list) or not all(isinstance(p, list) and len(p) >= 3 for p in path):
             problems.append('%s.reference.path must be a list of poses [x, y, heading]' % where)
     tolerance = sim.get('tolerance_cm', DEFAULT_TOLERANCE_CM)
-    if not isinstance(tolerance, (int, float)) or tolerance < 0:
+    if not _number(tolerance) or tolerance < 0:
         problems.append('%s.tolerance_cm must be a number >= 0' % where)
     return problems
 
 
 def start_problems(world_data):
     """what's wrong with where the robot starts: [(item id, message)]"""
-    world = SimWorld(world_data)
-    outline = footprint(world.start)
+    world = SimWorld(world_data, floor={'w': 1, 'h': 1, 'sum': base64.b64encode(zlib.compress(b'\0\0')).decode()})
+    poly = outline(sim_pose(*world.start))
     problems = []
+    x0, y0, x1, y1 = world.ground
+    if any(p[0] < x0 or p[0] > x1 or p[1] < y0 or p[1] > y1 for p in poly):
+        problems.append((None, 'the robot starts outside the floor: move it onto the background'))
     for shapes, what in ((world.obstacles, 'an obstacle'), (world.fails, 'a fail area'), (world.goals, 'a goal area')):
-        hit = world.touching(outline, shapes)
+        hit = world.touching(poly, shapes)
         if hit is not None:
             problems.append((hit.id, 'the robot starts touching %s: move it or the %s' % (what, what.split(' ', 1)[1])))
     return problems
 
 
 def can_fail(sim):
-    world = SimWorld(sim.get('world'))
-    return bool(world.goals or world.fails or world.obstacles or (sim.get('reference') or {}).get('path'))
+    world = sim.get('world') or {}
+    return bool(any(i.get('role') in ('goal', 'fail') for i in world.get('items') or []) or (sim.get('reference') or {}).get('path'))
 
 
 # ---------------------------------------------------------------------- running
@@ -538,7 +892,7 @@ def run_simulation_test(subject, test, record=False):
     from .spec import check_expectations  # spec imports this module
     from .world import World
     sim = test['simulation']
-    world = SimWorld(sim['world'])
+    world = SimWorld(sim['world'], sim.get('floor'))
     path = None if record else (sim.get('reference') or {}).get('path')
     tolerance = sim.get('tolerance_cm', DEFAULT_TOLERANCE_CM)
     robot = SimRobot(world, Corridor(path, tolerance) if path else None)
@@ -564,9 +918,7 @@ def run_simulation_test(subject, test, record=False):
 
     at = _s(outcome['t'])
     kind = outcome['result']
-    if kind == 'crash':
-        fail('the robot hit an obstacle after %s s' % at)
-    elif kind == 'fail_area':
+    if kind == 'fail_area':
         fail('the robot touched a fail area after %s s' % at)
     elif kind == 'deviation':
         fail('the robot left the recorded path (by more than %s cm) after %s s' % (tolerance, at))
@@ -591,7 +943,7 @@ def run_simulation_test(subject, test, record=False):
               'error': error.to_json() if error is not None else None, 'time_ms': result.time_ms,
               'variables': result.variables, 'actions': result.actions, 'calls': result.calls, 'pose': result.pose,
               'covered_blocks': sorted(result.coverage.covered),
-              'simulation': dict(outcome, path=robot.path, leds=leds, recorded=record, goals=len(world.goals))}
+              'simulation': dict(outcome, path=robot.path, leds=leds, recorded=record, goals=len(world.goals), bumps=robot.bumps)}
     if is_call:
         report['returned'] = result._returned if error is None and robot.outcome is None else None
     else:

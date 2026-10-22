@@ -31,13 +31,15 @@ Tests tab
 4. The **Code** panel shows what the suite translates to (NepoTest JSON), and the program's generated EdPy.
 
 **Simulation tests** are the second kind of test (§5). A *simulation test* block has a small picture of its world.
-Clicking it opens the **Simulation** panel, where the learner:
-- draws the world: lines to follow, floor markings, obstacles, goal and fail areas;
+Clicking it opens the **Simulation** panel, which looks and behaves like the Lab's simulator. There the learner:
+- draws the world: the simulator's backgrounds, obstacles and coloured areas, lines to follow, goal and fail areas (or
+  takes over the simulator's scene);
 - places the robot;
 - records the path the robot must keep to, runs the test, and watches the run again.
 
-The blocks under the test say what runs: nothing means the whole program, or *call function* for one function. The
-BDD-style tests (given / when / then) are unchanged.
+The blocks under the test say what runs: nothing means the whole program, or *call function* for one function.
+**Simulation tests run on the Lab's own simulator**: its interpreter, its Edison and its objects, offscreen and in
+virtual time (§5). The BDD-style tests (given / when / then) are unchanged: they run in NepoTest.
 
 **The suite is saved with the program:** with save, save as, export, and "get link". It comes back when the program is
 loaded or imported. The tab appears only for the Edison robots, since NepoTest supports only them.
@@ -88,6 +90,31 @@ with `ora.sh start-from-git`:**
   simulations, one BDD test, coverage 18 of 18). *Show the run* opened the replay.
 - **German:** labels, hints and run messages are translated. NepoTest's failure messages stay English.
 
+**Simulation tests copy the simulator (2026-10-22), verified in headless Chrome next to the Lab's own simulator:**
+- **The default scene:** a new test looks like the simulator's default scene: the same background, wall, robot image
+  and standard obstacle at the same place.
+- **Taking over the simulator's scene:** in the simulator, the robot was moved and a black coloured area and a circle
+  obstacle were added. *From the simulator* took the scene over.
+- **Sensors:** the Tests tab showed exactly the simulator's values: line tracker 87 %, LLIGHT 87 %, RLIGHT 76 %, no
+  obstacle (and 87 / 34 / 87 % at the default start).
+- **Motion:** the line follower ran 8 s from that pose, in the simulator and in the test. The paths were within 1.2 cm
+  of each other after 7.4 s (`nepo-unit-testing.md` §4.11).
+- **Drawing with real mouse input:** a rectangle (drag), a circle (a click: the simulator's size), a triangle (drag),
+  a colour from the palette, and a curve (clicks and a double-click).
+- **The example:** `examples/line_follower_with_tests.xml` was built in the Tests tab (with its floor pictures).
+  *Run tests* gave 3 passed in 1.5 s. The command line gave the same.
+
+**Simulation tests run on the Lab's simulator (2026-10-22), verified in headless Chrome:**
+- **The example:** `examples/line_follower_with_tests.xml` was imported (its old floor pictures are dropped on load).
+  *Run tests* gave 3 passed in about 1 s (4.4 s with Python's start), coverage 18 of 18: the simulation tests' blocks
+  count too.
+- **The Simulation panel** (real clicks): *Run test* passed ("the robot reached the goal after 7.4 s"). *Record path*
+  replaced the path recorded with NepoTest's copy (7.5 s) by the simulator's (7.4 s), and the replay ran.
+- **Against the simulator:** the test's path stayed within 0.15 cm of the simulator's own run; the floor pictures were
+  identical, pixel for pixel; calls, given variables, keys and tones behaved as in `nepo-unit-testing.md` §4.11.
+- **Stop** ended a running simulation test.
+- **The command line** skips the simulation tests (2 skipped, 1 passed).
+
 ---
 
 ## 1. The blocks
@@ -101,7 +128,7 @@ sync:** the field and input names below are the contract between them.
 | `nepoTest_suite` | red: *test suite: run these tests* | (next: `run` blocks) | the list and order of the tests |
 | `nepoTest_run` | *run test* [name ▾] | `NAME` (dropdown of the workspace's tests; `''` shown as `?` = none chosen) | selects a test |
 | `nepoTest_test` | *test* [name] *given / when / then* | `NAME`; statements `GIVEN`, `WHEN`, `THEN` | one test (`name`, `block_id`, `origin: "blocks"`) |
-| `nepoTest_simtest` | *simulation test* [name], a picture of its world, *given*, *run* (empty: the whole program), *for at most* [30] *s* | `NAME`, `SECONDS`; statements `GIVEN` (clap, key, remote, IR, variable only), `RUN` (one *call function*, or nothing); **the world is the block's `data`** (JSON, §5); the picture is a `FieldImage` without a value | a simulation test (`simulation`, `max_time_ms`, optionally `call`/`args`/`globals`, `world` events) |
+| `nepoTest_simtest` | *simulation test* [name], a picture of its world, *given*, *run* (empty: the whole program), *for at most* [30] *s* | `NAME`, `SECONDS`; statements `GIVEN` (clap, key, variable only: the simulator has no IR remote and no IR messages), `RUN` (one *call function*, or nothing); **the world is the block's `data`** (JSON, §5); the picture is a `FieldImage` without a value, drawn asynchronously (a PNG of the floor, the objects and the robot) | a simulation test (`simulation` with `world`, `reference`, `tolerance_cm`; `max_time_ms`, optionally `call`/`args`/`globals`, `world` events) |
 | `nepoTest_given_clap` | *at* [1000] *ms: a clap* | `AT` | world `clap` |
 | `nepoTest_given_key` | *at … ms: key* [▶ PLAY ▾] *is pressed* | `AT`, `PORT` (PLAY/REC) | world `key` |
 | `nepoTest_given_obstacle` | *from … ms for … ms: an obstacle* [FRONT ▾] | `FROM`, `DURATION` (0 = until the end), `PORT` | world `obstacle` |
@@ -213,11 +240,14 @@ Examples:
   a tone"";
 - "only one such block per test" (the measurement blocks);
 - simulation tests:
-  - "test "…": the robot starts touching a goal area: move it or the goal area" (also an obstacle, a fail area);
+  - "test "…": the robot starts touching a goal area: move it or the goal area" (also an obstacle, a fail area, and
+    "the robot starts outside the floor");
   - "in a simulation test, draw obstacles and lines into the simulation instead" (a *given* obstacle, line or light);
+  - "the Lab's simulator has no IR remote control and no IR messages: use this block in a test, not in a simulation
+    test" (a *given* remote control code or IR message);
   - "only "call function" belongs here";
   - "the simulation of test "…" cannot be read: draw it again";
-  - the warning "test "…" checks nothing: draw a goal area, a fail area or an obstacle, or record the path".
+  - the warning "test "…" checks nothing: draw a goal area or a fail area, or record the path".
 
 A test that isn't under the start block, and a test listed twice, are **warnings**. Everything else is an error and
 stops the run.
@@ -229,8 +259,9 @@ stops the run.
 ```
 OpenRobertaWeb/src/app/nepotest/nepoTest.blocks.ts     block definitions, toolbox, messages, empty suite
 OpenRobertaWeb/src/app/nepotest/nepoTest.suite.ts      split/merge of test instances in program XML (no imports: no cycles)
-OpenRobertaWeb/src/app/nepotest/nepoTest.runner.ts     client of the Web Worker (promises, progress, cancel, simulate)
-OpenRobertaWeb/src/app/nepotest/nepoTest.sim.ts        a simulation test's world: data format, geometry, SVG picture (shared with simulation.py)
+OpenRobertaWeb/src/app/nepotest/nepoTest.runner.ts     client of the Web Worker (promises, cancel; prepare, runOne, finish, simulationTest)
+OpenRobertaWeb/src/app/nepotest/nepoTest.sim.ts        a simulation test's world: data format, the simulator's geometry and look (for drawing and replay)
+OpenRobertaWeb/src/app/nepotest/nepoTest.simRun.ts     simulation tests on the Lab's simulator: the program for a test, compiling, the run, the floor picture
 OpenRobertaWeb/src/app/nepotest/nepoTest.simEditor.ts  the Simulation panel: drawing, zoom, undo, record/run, replay (no Blockly inside)
 OpenRobertaWeb/src/app/nepotest/nepotest.worker.js     module Web Worker: Pyodide + nepotest.browser
 OpenRobertaWeb/src/app/roberta/controller/tests.controller.ts   the tab: workspace, dropdowns, panels, running
@@ -238,13 +269,13 @@ OpenRobertaServer/staticResources/index.html          #tabTests, pane #tests (#t
 OpenRobertaWeb/css/roberta.css                         the tab's styles (section "the Tests tab")
 NepoTest/nepotest/blocks.py                            test blocks -> NepoTest JSON (+ problems with block ids)
 NepoTest/nepotest/browser.py                           the functions the worker calls (JSON strings in and out)
-NepoTest/nepotest/simulation.py                        simulation tests: the world, the robot in it, the outcome
+NepoTest/nepotest/simulation.py                        simulation tests: their data and its checks (its copy of the simulator is no longer used)
 ```
 
 The wiring into the Lab consists of:
-- `main.js`: a path per module (also `nepoTest.sim`, `nepoTest.simEditor`), a `blockly` shim for the blocks module, the
-  require list, and `testsController.init()` right after `configurationController.init()`;
-- `tsconfig.json`: `paths`;
+- `main.js`: a path per module (also `nepoTest.sim`, `nepoTest.simRun`, `nepoTest.simEditor`), a `blockly` shim for the
+  blocks module, the require list, and `testsController.init()` right after `configurationController.init()`;
+- `tsconfig.json`: `paths` (also `robot.edison`, which `nepoTest.simRun` imports);
 - `guiState.controller.js`: a `tabTests` branch in `setView`, which keeps the program menu, and `addLanguageListener`;
 - `program.controller.js`: the persistence hooks (§3).
 
@@ -252,12 +283,14 @@ The wiring into the Lab consists of:
 1. The program workspace XML goes to `POST /rest/projectWorkflow/sourceForTest` (`nepo-unit-testing.md` §3). The
    request is the same as for "show source".
 2. The answer becomes a NepoTest **bundle**: EdPy, source map, the Lab's annotated XML, and `rc`/`message`.
-3. The worker gets the bundle and the suite XML:
-   - `browser.prepare` translates the suite and validates it against the program. If the Lab rejected the program, it
-     reports the conversion errors with block ids instead.
-   - `browser.run_one(i)` runs each test and posts progress, so results appear one by one.
-   - `browser.finish()` returns the summary and the merged coverage.
-4. The panel renders each report.
+3. The worker gets the bundle and the suite XML. `browser.prepare` translates the suite and validates it against the
+   program. If the Lab rejected the program, it reports the conversion errors with block ids instead.
+4. The tests run one by one, so results appear one by one:
+   - a BDD test in the worker (`browser.run_one(i)`);
+   - a simulation test on the page, on the Lab's simulator (`nepoTest.simRun runTest`, §5).
+5. `browser.finish(simulation reports)` returns the summary and the merged coverage, with the simulation tests' covered
+   blocks.
+6. The panel renders each report.
    - Links use `data-block` and `data-workspace` (`tests` or `program`).
    - An unexpected runtime error is shown once, as "The program failed in block … (function): …".
    - Coverage is a bar plus the list of never-executed program blocks.
@@ -274,7 +307,8 @@ The wiring into the Lab consists of:
   Pyodide's file system under `/home/pyodide`, and imports `nepotest.browser`.
 - **Cost:** the first run downloads about 12 MB (then cached); start-up takes about 3–5 s, and a suite like the
   example takes about 1 s.
-- **Stop** terminates the worker; the next run starts a new one.
+- **Stop** terminates the worker; the next run starts a new one. A simulation test that runs stops at its next piece
+  (about every 30 ms).
 - **The Code panel's JSON** also comes from the worker (`browser.translate_tests`), so the first view starts Python.
   The EdPy view is the `sourceCode` of `sourceForTest`.
 
@@ -341,71 +375,122 @@ is the example.
 **Opening it:** clicking a simulation test, or a block in it, or its result line ("show the run"), opens the panel with
 that test. The tab *Simulation* shows the test last opened.
 
+**It looks like the Lab's simulator:**
+- its backgrounds, with the striped wall around them;
+- its obstacles (teal, with their shadow) and coloured areas, as rectangles, circles and triangles, in its colours;
+- its robot image (`css/img/simulator/edison.png`, with its shadow);
+- the line tracker and the light sensors, filled with the brightness they see;
+- the infrared rays, and the LEDs' red glow.
+
+A new test starts with the simulator's own scene: the Edison track, the robot at its start, and the standard obstacle.
+
 ```
-Simulation test: follows the oval to the finish
-[↖ ╱ ∿ ▭ ◯] [■ □ ▩ ✓ ✗] [− + ⤢] [↶ ↷ 🗑] [⚙ ↔]       tools | what a shape is | zoom | undo, redo, delete | settings, wider
+Simulation test: follows the track to the finish
+[↖ ╱ ∿ ▭ ◯ △] [▩ ■ ✓ ✗] [− + ⤢] [↶ ↷ 🗑] [⇩ ↔]      tools | what it is | zoom | undo, redo, delete | from the simulator, wider
+[Edison track ▾]  ■■■■■■■■■■                      background | colours (obstacles and coloured areas)
 +----------------------------------------------+
-|  light-peach floor, 10 cm grid               |      the drawn world, the recorded path (blue),
-|   ___                                        |      the last run (orange) and the robot replaying it
-|  (   )===robot===>     [goal]      [fail]    |
+|  the simulator's background and wall         |      the drawn world, the recorded path (blue),
+|      robot===>   [goal]   [fail]   ■ obstacle |      the last run (orange) and the robot replaying it
 +----------------------------------------------+
+line tracker white (87 %) · LLIGHT 87 % · RLIGHT 76 % · obstacle: none
 [● Record path] [Forget path]  allowed deviation [——o——] 2 cm
-[▶ Run test] [▶ Replay] [————————o—] 15.9 / 15.9 s
-✓ passed: the robot reached the goal after 15.9 s
+[▶ Run test] [▶ Replay] [————————o—] 7.5 / 7.5 s
+✓ passed: the robot reached the goal after 7.5 s
 ```
 
 **Drawing** (`nepoTest.simEditor.ts`):
 - **The robot:** drag it to its start. Turn it with its round handle, in steps of 15°; Shift turns it freely.
-- **Lines:** *Line* (straight segments) and *Curve* (smooth through the points) draw a line to follow: a black core
-  with a white rim.
-  - Click the points. A double-click or Enter finishes; a click on the first point closes the line; Esc cancels.
+- **Lines:** *Line* (straight segments) and *Curve* (smooth through the points) draw a line to follow, like the
+  background's track: a black core on a white band.
+  - Click the points. A double-click or Enter finishes; a click on the first point closes the line; Esc cancels. The
+    editor detects the double click itself, because the handle under the pointer is redrawn after the first click.
   - A selected line shows its points: drag them. A double-click on a point removes it; a double-click on the line adds
     one.
-  - Settings of a selected line: *curved*, *closed*, *width* (the core, 0.5–5 cm).
-- **Shapes:** *Rectangle* and *Ellipse* draw an area by dragging; a click alone makes a default size. The colour
-  buttons say what it is: black floor, white floor, obstacle, goal, fail. For a selected shape they change it. Handles
-  resize it (corners) and turn it (the round one; 15° steps, Shift: freely).
+  - Settings of a selected line: *curved*, *closed*, *width* (the core, 0.5–5 cm; the background's is 1.48 cm).
+- **The simulator's objects:** *Rectangle*, *Circle* and *Triangle*. Drag to draw; a click alone makes the
+  simulator's default size (a ninth of the background's width).
+  - The buttons say what an object is: obstacle, coloured area, goal, fail. For a selected object they change it.
+  - Obstacles and coloured areas take a colour from the simulator's palette.
+  - Handles resize rectangles (corners) and circles (the radius), and move the corners of triangles. Like the
+    simulator's, objects don't turn.
+- **Background:** the simulator's four for the Edison.
+- **From the simulator:** takes over the scene of the Lab's simulator, if it was opened (Program tab → SIM):
+  - background, obstacles and coloured areas;
+  - where the robot starts.
+
+  The test's lines, goal and fail areas stay. The recorded path is dropped. Undo brings the old world back.
+- **Sensors:** under the canvas, what the robot's sensors see where it is drawn, as in the simulator's sensor view.
 - **Selecting and moving:** *Select* moves things; arrow keys move the selection by 0.5 cm (Shift: 5 cm). Delete
   removes it (not the robot).
 - **Zoom and view:**
-  - The mouse wheel zooms at the pointer; the buttons zoom and show everything.
+  - The mouse wheel zooms at the pointer; the buttons zoom and show the whole floor.
   - Dragging the empty floor, or the middle button, moves the view.
   - **The view is kept with the test** (`data.view`). It is saved with the program, but changing it alone doesn't mark
     the program unsaved.
-- **Settings (⚙):** the room light that `LLIGHT`/`RLIGHT` read, and the obstacle detection range.
 - **Wider window (↔):** the panel takes 62 % of the tab.
 - **Undo and redo** (buttons, Ctrl+Z, Ctrl+Y) belong to the panel, per test. Blockly's undo covers the blocks;
   deleting a simulation test and undoing that brings back its world.
 - **Keys:** they act in the canvas and don't reach Blockly, so Delete removes the drawn item, not the test block.
 
+**How a test runs: on the Lab's simulator** (`nepoTest.simRun.ts`; the details, and what differs from the
+simulator's own loop, in `nepo-unit-testing.md` §4.11):
+1. **The test:** the worker translates the block (`browser.simulation_test`, or `prepare` for the whole suite).
+2. **The program:** for *call function*, a copy of the program whose start block calls only that function (a
+   function's result goes into a variable `nepoTestReturned`); *variable is* changes the declared start values. The
+   copy is compiled for the simulator (`POST /rest/projectWorkflow/sourceSimulation`, as the Program tab's simulation
+   does it). The last few are kept.
+3. **The world:** the simulator's objects (`RectangleSimulationObject`, `CircleSimulationObject`,
+   `TriangleSimulationObject`, `Ground`) and its `RobotEdison` at the test's start, made offscreen:
+   - their mouse handlers come off the simulator's canvas right away;
+   - the robot's picture doesn't go into the simulator's robot window;
+   - the microphone isn't asked for, and the robot's audio context is closed.
+4. **The floor picture** (`floorCanvas`) is the simulator's sensor canvas: the background and its wall, the coloured
+   areas drawn by the simulator's objects, then the test's lines (`nepoTest.sim.ts drawLines`).
+5. **The run:** frames of 1/60 s of virtual time, as `SimulationRoberta.render` and `SimulationScene.update` do them:
+   the interpreter (at most 10,000 operations per frame), then the robot's actions, then its sensors. After each frame,
+   the test checks fail areas, the recorded path and goal areas. The run is computed in pieces of about 30 ms, so the
+   page stays responsive.
+6. **The report** has the shape of NepoTest's (`nepo-unit-testing.md` §4.11), so both kinds of test show alike.
+
+The picture under the block and the sensors shown under the canvas use the same floor picture. Data saved before
+2026-10-22 carries a floor picture of its own (`floor`, for NepoTest's copy of the simulator): it is dropped when the
+suite is loaded.
+
 **Recording, tolerance, running:**
-- **Record path** converts the program (`sourceForTest`) and runs this test in the worker (`browser.simulate`, with
-  `record`). The run becomes the recorded path (`data.reference`). The panel draws it:
+- **Record path** runs this test on the simulator without its recorded path (`record`). The run becomes the recorded
+  path (`data.reference`). The panel draws it:
   - the area the robot covered (its outline at every pose);
   - the traces of its four corners;
   - the corridor: the covered area widened by the allowed deviation (0–10 cm, slider; `data.tolerance_cm`).
 - **Forget path** removes it.
 - **Run test** runs this test on its own, even if no *run test* block selects it.
 - **Replay:** after a run, the panel replays it:
-  - the robot moves along its path, with its LEDs;
+  - the robot moves along its path, with its LEDs, its sensors' values and its infrared rays;
   - the path is orange;
-  - a failure is marked: the obstacle or area outlined in red, or a red ✗ where the robot left the corridor.
+  - a failure is marked: the area outlined in red, or a red ✗ where the robot left the corridor.
   - *Replay* plays it again, faster for long runs (at most about 8 s); the slider scrubs.
 - **Run tests in the runner:** runs simulation tests like any other test. Their runs are kept, and the result line has
   *show the run*.
 - **Stale runs:** a world edited after a run marks the shown run with "The world changed since this run."
 
 **Data** (`nepoTest.sim.ts`, block `data`, JSON):
-- `version`;
-- `world` (`start`, `items`, `settings`: the format of `nepo-unit-testing.md` §4.11);
+- `version`: 2;
+- `world` (`background`, `start`, `items`: the format of `nepo-unit-testing.md` §4.11);
 - `reference` (`path`: `[[x, y, heading], …]`, `time_ms`, `result`);
 - `tolerance_cm`;
 - `view` (`x`, `y`, `scale` in pixels per cm).
 
-`blocks.py` turns it into the test's `simulation` and leaves `view` out.
+`blocks.py` turns it into the test's `simulation` and leaves `view` out. Data of version 1 (before the world copied
+the simulator) is migrated:
+- the world goes onto the simulator's plain white background;
+- rectangles and ellipses become the simulator's rectangles and circles;
+- black and white floor become coloured areas;
+- the recorded path is dropped.
 
-**Geometry is shared:** `nepoTest.sim.ts` and `simulation.py` compute the same Bezier segments, robot outline and
-sensor positions. Change both together.
+**Geometry:** the run uses the simulator's own code. `nepoTest.sim.ts` has what the editor needs to draw and replay
+(robot outline, sensor positions, floor sampling and infrared rays, copied from the simulator), and the Bezier
+segments of the lines, which the run draws on the floor picture. `simulation.py` computes the same segments and
+outline (for its checks of the data, and its unused copy).
 
 ---
 
@@ -422,9 +507,14 @@ sensor positions. Change both together.
 - **Suites are edited in the Tests tab only.** There's no test block inside the Program tab, and no generated tests
   yet. The JSON format and `describe()` (`nepo-unit-testing.md` §7) are the entry points for AI-generated tests,
   which the Tests tab can show once they are converted back to blocks, the inverse of `blocks.py` (not implemented).
-- **The Lab's simulator isn't involved.** Tests, simulation tests included, run on NepoTest's virtual robot, which
-  models the real Edison (`edisonv2-nepo-to-edpy.md` §11). The Simulation panel only draws and replays.
+- **Two runtimes.** BDD tests run the EdPy on NepoTest's virtual robot (`edisonv2-nepo-to-edpy.md` §11), with the
+  robot's semantics. Simulation tests run on the Lab's simulator, with the simulator's semantics: sensors are states,
+  powers aren't in 10 % steps, drives are measured in cm (`nepo-unit-testing.md` §4.11). The same program can pass one
+  and fail the other.
 - **Simulation tests:**
+  - They run only in the Lab (the command line skips them).
   - Runs are kept until the page is reloaded; they aren't saved.
-  - The drawn world's geometry and reflectances are assumptions (`nepo-unit-testing.md` §4.11).
-  - There is no snapping of lines to each other, and there is no polygon tool.
+  - The simulator's uploaded backgrounds, markers and movable obstacles aren't supported.
+  - *From the simulator* works only after the simulator was opened. There's no way back (from a test to the
+    simulator).
+  - There is no snapping of lines to each other.

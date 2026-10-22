@@ -109,10 +109,13 @@ def _report(results, args):
                                                        ' (%s)' % f['message'] if f['message'] else ''))
         if t['outcome'] == 'error':
             print('        %s' % t['error']['message'])
+        elif t['outcome'] == 'skipped':
+            print('        %s' % t['message'])
     c = results['coverage']
     s = results['summary']
-    print('%d passed, %d failed, %d errors; block coverage %d/%d' % (s['passed'], s['failed'], s['error'],
-                                                                     c['blocks_covered'] if c else 0, c['blocks_total'] if c else 0))
+    skipped = ', %d skipped' % s['skipped'] if s.get('skipped') else ''
+    print('%d passed, %d failed, %d errors%s; block coverage %d/%d' % (s['passed'], s['failed'], s['error'], skipped,
+                                                                       c['blocks_covered'] if c else 0, c['blocks_total'] if c else 0))
     if args.json_out:
         with open(args.json_out, 'w', encoding='utf-8') as f:
             json.dump(results, f, indent=1)

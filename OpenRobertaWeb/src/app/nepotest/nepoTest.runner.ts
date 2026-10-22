@@ -77,23 +77,27 @@ export function translate(testsXml: string, programXml: string): Promise<any> {
     return request({ cmd: 'translate', testsXml: testsXml, programXml: programXml });
 }
 
-/** runs a suite against a converted program (a NepoTest bundle as JSON string). Resolves with {prepared, finish}. */
-export function run(bundleJson: string, testsXml: string, onPrepared: (prepared: any) => void, onProgress: (index: number, report: any) => void): Promise<any> {
-    return request({ cmd: 'run', bundle: bundleJson, testsXml: testsXml }, function (event, data) {
-        if (event === 'prepared') {
-            onPrepared(data);
-        } else if (event === 'progress') {
-            onProgress(data.index, data.report);
-        }
-    });
+/**
+ * a suite for a converted program (a NepoTest bundle as JSON string): resolves with {spec, problems, tests, conversion_errors}. Then runOne()
+ * runs its tests one by one (the simulation tests run on the Lab's simulator instead: nepoTest.simRun), and finish() sums up.
+ */
+export function prepare(bundleJson: string, testsXml: string): Promise<any> {
+    return request({ cmd: 'prepare', bundle: bundleJson, testsXml: testsXml });
 }
 
-/**
- * runs one test on its own (the Simulation tab's "record" and "run"): resolves with {report, problems, conversion_errors}.
- * record: a simulation test runs without its recorded path, so the run can become the new one.
- */
-export function simulate(bundleJson: string, testsXml: string, blockId: string, record: boolean): Promise<any> {
-    return request({ cmd: 'simulate', bundle: bundleJson, testsXml: testsXml, blockId: blockId, record: record });
+/** runs test `index` of the prepared suite: resolves with its report */
+export function runOne(index: number): Promise<any> {
+    return request({ cmd: 'runOne', index: index });
+}
+
+/** the summary and the block coverage of the tests run since prepare(), with the reports of the simulation tests: {summary, coverage} */
+export function finish(simulationReports: any[]): Promise<any> {
+    return request({ cmd: 'finish', simulationReports: simulationReports });
+}
+
+/** one test of the suite on its own, as NepoTest JSON (the Simulation tab's "record" and "run"): resolves with {test, problems} */
+export function simulationTest(testsXml: string, blockId: string, programXml: string): Promise<any> {
+    return request({ cmd: 'simulationTest', testsXml: testsXml, blockId: blockId, programXml: programXml });
 }
 
 /** stops a running suite: the worker is terminated (and Python has to be loaded again next time) */

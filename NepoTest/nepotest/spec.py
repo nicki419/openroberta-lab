@@ -11,8 +11,9 @@ code of its own. See docs/ai/nepo-unit-testing.md for the full reference.
        {"name": "follows the line", "simulation": {"world": {...}, "reference": {"path": [...]}, "tolerance_cm": 2},
         "max_time_ms": 30000}]}
 
-A test with "simulation" is a simulation test (simulation.py): the robot drives through a drawn world, and the world
-decides. Its "expect" is optional.
+A test with "simulation" is a simulation test: the robot drives through a drawn world, and the world decides. Its
+"expect" is optional. Simulation tests run on the Lab's own simulator, in the Tests tab (nepoTest.simRun.ts); here they
+are only checked (simulation.py validate) and reported as skipped.
 """
 
 import json
@@ -28,6 +29,8 @@ EXPECT_KEYS = ('returns', 'status', 'finished_within_ms', 'variables', 'actions'
 TEST_KEYS = ('name', 'description', 'call', 'args', 'globals', 'world', 'max_time_ms', 'max_steps', 'expect', 'origin', 'block_id',
              'simulation')
 STATUS_VALUES = ('finished', 'running', 'time_limit', 'step_limit')
+OUTCOMES = ('passed', 'failed', 'error', 'skipped')
+SIMULATION_SKIPPED = "simulation tests run on the Lab's simulator: run them in the Tests tab"
 
 
 # ---------------------------------------------------------------------- validation
@@ -187,8 +190,10 @@ def check_expectations(expect, test, result, is_call):
 # ---------------------------------------------------------------------- running
 
 def run_test(subject, test, defaults=None):
+    """(report, coverage) of a test; a simulation test is skipped (report outcome "skipped", coverage None)"""
     if 'simulation' in test:
-        return SIM.run_simulation_test(subject, test)
+        return {'name': test['name'], 'block_id': test.get('block_id'), 'kind': 'simulation', 'outcome': 'skipped',
+                'failures': [], 'error': None, 'message': SIMULATION_SKIPPED}, None
     options = dict(defaults or {})
     options.update(dict((k, test[k]) for k in ('max_time_ms', 'max_steps') if k in test))
     world = World(test.get('world') or [])
@@ -219,12 +224,15 @@ def run_spec(spec, subject):
     for test in spec['tests']:
         try:
             report, cov = run_test(subject, test, spec.get('defaults'))
-            coverage = cov if coverage is None else coverage.merge(cov)
+            if cov is not None:
+                coverage = cov if coverage is None else coverage.merge(cov)
         except Exception as e:  # a problem of the test, not of the program (e.g. wrong argument types)
             report = {'name': test.get('name'), 'block_id': test.get('block_id'), 'outcome': 'error', 'failures': [],
                       'error': {'kind': 'test_error', 'message': '%s: %s' % (type(e).__name__, e)}}
         reports.append(report)
-    counts = dict((o, sum(1 for r in reports if r['outcome'] == o)) for o in ('passed', 'failed', 'error'))
+    counts = dict((o, sum(1 for r in reports if r['outcome'] == o)) for o in OUTCOMES)
+    if not counts['skipped']:
+        del counts['skipped']  # only simulation tests are skipped
     return {'format': 'nepotest-results', 'version': 1, 'program': spec.get('program'), 'summary': counts,
             'coverage': coverage.to_json() if coverage is not None else None, 'tests': reports}
 

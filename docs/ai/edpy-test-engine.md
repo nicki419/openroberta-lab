@@ -536,11 +536,15 @@ framework, the engine has three opt-in hooks (`EdProgram(..., instrument=True)` 
 Besides the hooks, `robot.state_log` (§6.4) records every change of the motors, LEDs and sound, for the framework's
 state timeline.
 
-**A robot in a drawn world** (the framework's simulation tests, `nepotest/simulation.py`) is a subclass of `Robot`:
-- **`SimRobot._move_to`:** while a wheel turns, it advances in steps of at most 5 ms, and after each step it reads the
-  world: the obstacle beams, contacts, and the path.
+**A robot in a drawn world** (`nepotest/simulation.py`) is a subclass of `Robot` that copies the Lab's simulator. It
+ran the framework's simulation tests until 2026-10-22; now they run on the Lab's simulator itself, in the Tests tab
+(`nepo-unit-testing.md` §4.11), and `SimRobot` is kept but no longer used:
+- **Frames:** `SimRobot._move_to` stops at every frame of the simulator (1/60 s of virtual time). There it moves the
+  robot, checks collisions and reads the sensors, with the simulator's formulas.
+- **Wheels:** the wheels still turn by the engine's rules (speed levels, distances in ticks, blocking drives).
+  `_move_pose` only collects their travel for the next frame, and `cm_per_s` is the simulator's speed per level.
 - **Sensor reads:** `ed_ReadLineState`, `ed_ReadLineTracker`, `ed_ReadLeftLightLevel` and `ed_ReadRightLightLevel`
-  read the world at the robot's pose.
+  return what the last frame saw. The obstacle detection latches what the last frame saw, again after every Ed call.
 - **Ending a run:** the world ends a run with `StopProgram('simulation')`, and the reason is in `robot.outcome`.
   - `EdProgram.run` reports that as status `simulation`.
   - `Session.call` turns it into `StepLimitExceeded`, so the framework looks at `robot.outcome` first.
@@ -594,8 +598,8 @@ items are implemented in the framework: see `nepo-unit-testing.md`.
   - register access;
   - `DistanceUnits` other than `CM`;
   - the robot's own noise triggering the clap sensor;
-  - physical collisions: an obstacle doesn't stop the robot. In a simulation test, touching one ends the run as
-    failed.
+  - physical collisions: an obstacle doesn't stop the robot. (Simulation tests run on the Lab's simulator, where the
+    robot bumps into it.)
 - **The static guard isn't the compiler.** It doesn't check variable types, return types, or the robot's memory and
   stack limits. Recursion is limited by CPython, not by the robot.
 - **Only one program runs per robot.** Two robots talking over IR would need two robots sharing one clock. That's

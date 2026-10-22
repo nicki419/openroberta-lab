@@ -9,8 +9,9 @@ for the robot. The EdPy runs against a virtual robot, and everything it does is 
 - which blocks no test executed;
 - what the robot was doing over time (motors in the robot's speed steps, LEDs, sound, variables), and where it ended
   (distance, turn, position): **states** and **measurements** (§4.10);
-- how it drives through a **drawn world**: lines to follow, obstacles, goal and fail areas, a recorded path it must
-  keep to: **simulation tests** (§4.11).
+- how it drives through a **drawn world** on the Lab's own simulator: its backgrounds, obstacles and coloured areas,
+  lines to follow, goal and fail areas, a recorded path it must keep to: **simulation tests** (§4.11). They run in the
+  Lab's Tests tab, on the simulator's code, not on the EdPy engine.
 
 Tests are written in NEPO terms too. They're either a JSON file (made for test editors and **AI test generators**) or
 Python code. Learners build them from **NEPO test blocks** in the Lab's **Tests tab**, which runs them in the browser
@@ -34,15 +35,15 @@ test file (JSON) or Python API  ->  results (JSON): outcome and failures per tes
 Code: `NepoTest/` (Python, standard library only, CPython **3.11+**). Server side: `SourceMapBean`, the recording in
 `EdisonPythonVisitor`, and the REST service `sourceForTest` (§3.2).
 
-**Status (2026-10-18):**
-- **Python:** 126 tests in `NepoTest/tests` and 8 in `NepoTest/examples` pass with `unittest`. They include the
-  live-Lab tests against a server built from this repository, the Level-0 check with the reference EdPy compiler, and
-  the schema check of the example files (with `jsonschema` installed).
+**Status (2026-10-22):**
+- **Python:** 133 tests in `NepoTest/tests` and 8 in `NepoTest/examples` pass with `unittest`. They include the
+  live-Lab tests against a server built from this repository and the schema check of the example files (with
+  `jsonschema` installed). The Level-0 check with the reference EdPy compiler last ran on 2026-10-18.
 - **Java:** `EdisonSourceMapTest` (4 tests) and `NepoTestSuitePersistenceTest` (2 tests) pass. The golden files were
   unchanged (317/317) when last run, on 2026-09-29; simulation tests didn't touch the generator.
 - **Browser:** the same suites, built from test blocks (`clap_counter_with_tests.xml`, `patrol_with_tests.xml`,
   `line_follower_with_tests.xml`), run in the Lab's Tests tab under Pyodide with identical results
-  (`nepo-test-blocks.md`).
+  (`nepo-test-blocks.md`). The simulation tests run there on the Lab's simulator (§4.11).
 - **Timings** measured on a laptop:
 
   | Step | Time |
@@ -51,8 +52,8 @@ Code: `NepoTest/` (Python, standard library only, CPython **3.11+**). Server sid
   | Loading a bundle | ≈ 9 ms |
   | A function test | ≈ 1 ms |
   | A 4.6-second scenario with ≈ 2,750 sensor polls | ≈ 90 ms |
-  | A 16-second simulation test: line following around an oval, with a recorded path | ≈ 0.7 s |
-  | The line follower's suite in the browser (3 tests, two of them simulations) | ≈ 2 s |
+  | A simulation test on the Lab's simulator: the line follower's 7.4 s to the goal | ≈ 0.45 s (with compiling) |
+  | The line follower's suite in the browser (3 tests, two of them simulations; Python loaded) | ≈ 1 s |
 
 ---
 
@@ -69,7 +70,7 @@ python -m nepotest convert  examples/clap_counter.xml         # -> examples/clap
 python -m nepotest run      examples/clap_counter.tests.json  # run a test file
 python -m nepotest run      examples/clap_counter_with_tests.xml   # run the test suite saved in a program (Tests tab)
 python -m nepotest run      examples/patrol.tests.json        # state tests: motors, LEDs, sound, reactions, the square
-python -m nepotest run      examples/line_follower.tests.json # simulation tests: a line follower in a drawn world
+python -m nepotest run      examples/line_follower.tests.json # simulation tests are skipped: they run in the Tests tab
 python -m unittest discover -s tests -t .                      # the framework's own tests
 ```
 
@@ -131,7 +132,7 @@ functions  clampSpeed(speed) returns: if speed > 100 return 100; if speed < 0 re
 | **status** | of a run: `finished`, or still running when the budget ran out (`time_limit`, `step_limit`), or `error` |
 | **error** | a runtime problem (16-bit overflow, division by zero, list index out of range, …) with the block where it happened |
 | **virtual time** | milliseconds from program start. Nothing runs in real time; a 60-second scenario takes milliseconds. |
-| **simulation test** | a run (or call) in a **drawn world**: the robot starts at a pose, its sensors read the world, and the world decides whether the test passes (§4.11) |
+| **simulation test** | a run (or call) in a **drawn world** on the Lab's own simulator: the robot starts at a pose, its sensors read the world, and the world decides whether the test passes (§4.11) |
 
 ---
 
@@ -494,110 +495,163 @@ still there. `patrol_with_tests.xml` is the same suite made of test blocks.
 
 ### 4.11 Simulation tests
 
-A **simulation test** puts the virtual Edison into a world the learner draws (the Tests tab's *Simulation* window,
-`nepo-test-blocks.md` §5). The program runs as in any other test, but its sensors read the world, and the world
-decides the outcome. It has no `expect` (it may have one; it's then checked too).
+A **simulation test** puts the Edison into a world the learner draws (the Tests tab's *Simulation* window,
+`nepo-test-blocks.md` §5), and the world decides the outcome. It has no `expect`.
+
+**It runs on the Lab's own simulator** (since 2026-10-22), in the Tests tab
+(`OpenRobertaWeb/src/app/nepotest/nepoTest.simRun.ts`), not on the EdPy engine:
+- **The program** is compiled for the simulator, as the Program tab's simulation does it (`POST
+  /rest/projectWorkflow/sourceSimulation`): the stack machine's program, not EdPy. For `call`, the start block calls only
+  the function; a function's result goes into a variable of its own, `nepoTestReturned`. `globals` replace the start
+  values the program declares.
+- **The simulator's own code runs it:**
+  - the interpreter (`interpreter.interpreter`, `interpreter.robotSimBehaviour`);
+  - the Edison (`robot.edison`): `EdisonChassis` with its motion and bumping, the line tracker, the light and obstacle
+    sensors, the LEDs, the keys and the sound sensor;
+  - the simulator's objects: obstacles, coloured areas, the ground.
+
+  The floor picture the sensors read is drawn as the simulator draws its sensor canvas (`SimulationScene.drawColorAreas`),
+  with the coloured areas drawn by the simulator's objects.
+- **Offscreen:** nothing is shown while a test runs. The Simulation window replays the run.
+- **The command line and the Python API** don't run simulation tests. `run_spec` reports them as `skipped` ("simulation
+  tests run on the Lab's simulator: run them in the Tests tab"); `simulation.py` still checks their data. Until
+  2026-10-22, `simulation.py` ran them with a copy of the simulator that moved the EdPy engine's robot (`SimRobot`,
+  `run_simulation_test`). That copy is kept, with its tests, but nothing uses it.
 
 ```json
-{"name": "follows the oval to the finish", "max_time_ms": 30000,
+{"name": "follows the track to the finish", "max_time_ms": 20000,
  "simulation": {
-   "world": {"start": {"x": 60, "y": 69.3, "heading": 0},
-             "items": [{"id": "track", "kind": "line", "points": [[115, 45], [101.8, 62.7], ...], "smooth": true, "closed": true},
-                       {"id": "finish", "kind": "rect", "role": "goal", "x": 70, "y": 16, "w": 12, "h": 8, "rot": 0},
-                       {"id": "tableEdge", "kind": "rect", "role": "fail", "x": 130, "y": 45, "w": 8, "h": 70}],
-             "settings": {"ambient_light": 50, "obstacle_range_cm": 10}},
-   "reference": {"path": [[60, 69.3, 0], [60.5, 69.29, 0.6], ...]},
+   "world": {"background": "simpleBackgroundEdison",
+             "start": {"x": 46.67, "y": 10, "heading": -30},
+             "items": [{"id": "obstacle", "kind": "rect", "role": "obstacle", "x": 64.07, "y": 50.74, "w": 9.63, "h": 9.63},
+                       {"id": "finish", "kind": "circle", "role": "goal", "x": 28, "y": 67.5, "r": 3.5},
+                       {"id": "shortcut", "kind": "rect", "role": "fail", "x": 55, "y": 28, "w": 10, "h": 10}]},
+   "reference": {"path": [[46.67, 10, -30], [47.04, 10.24, -34.3], ...]},
    "tolerance_cm": 2}}
 ```
 
-- **Coordinates:** cm; x points right and y down, as on the screen; the origin is arbitrary. Angles are degrees,
-  counterclockwise as seen from above, 0 pointing right. `start` is the robot's pose: the centre of its wheel axle and
-  where it faces.
+- **Coordinates:** cm from the background's top left corner; x points right and y down, as on the screen. Angles are
+  degrees, counterclockwise as seen from above, 0 pointing right. `start` is the robot's pose: the centre of its wheel
+  axle and where it faces. The simulator itself works in units of 1/3 cm, with the background at (10, 10):
+  u = 10 + 3 × cm.
+- **`background`:** one of the Edison's in the simulator: `simpleBackgroundEdison` (its default), `drawBackground`
+  (white), `rescueBackground`, `mathBackground`. The floor has the simulator's wall around it, 10 units wide, which the
+  robot can't leave.
 - **Items:**
-  - A `line` (`points`, optionally `smooth`: a Catmull-Rom curve through them, `closed`, `width`: the black core,
-    1.5 cm by default) has a black core and a 0.5 cm white rim on each side, so the robot can follow an edge.
-  - A `rect` or `ellipse` (centre `x`, `y`; size `w`, `h`; rotation `rot`) has a `role`:
-    - `black`, `white`: floor markings the line tracker sees;
-    - `obstacle`: what the obstacle detection sees, and what the robot must not touch;
-    - `goal`, `fail`: areas the robot can touch, which it doesn't see.
-  - Drawing order: floor markings in list order, then every line's rim, then every line's core.
-- **"given":** a simulation test's `world` events may only be `clap`, `key`, `remote` and `ir_message`. The drawn world
-  gives the obstacles, the line and the light.
+  - The simulator's objects: `rect` (top left `x`, `y`; `w`, `h`; not rotated, as there), `circle` (`x`, `y`, `r`) and
+    `triangle` (`points`). Their `role`:
+    - `obstacle`: the robot bumps into it and the obstacle detection sees it (default colour `#33B8CA`);
+    - `color`: a coloured area the line tracker and the light sensors see (`color`, default `#FBED00`);
+    - `goal`, `fail`: the test's areas; the robot touches them but doesn't see them.
+  - The test's own `line` (`points`; optionally `smooth`, a Catmull-Rom curve through them; `closed`; `width`, the
+    black core): drawn like the track of `simpleBackgroundEdison`, a black core of 4.44 units on a white band of 16
+    units.
+  - Drawing order on the floor: the background, the wall, the coloured areas, every line's band, every line's core.
+- **"given":** a simulation test's `world` events may only be `clap` and `key`. The drawn world gives the obstacles,
+  the line and the light. The simulator has no IR remote control and no IR messages: the Tests tab rejects those
+  blocks in simulation tests.
 - **`call`, `args`, `globals`:** run a function instead of the whole program, as in §4.2. The simulation ends when it
   returns.
+- **`floor`** (stored by the Tests tab until 2026-10-22: the floor picture, for the copy) is ignored.
 
-**How a run ends**, checked whenever the robot has moved 0.05 cm or turned 0.3°:
+**How a run ends**, checked after every simulator frame in which the robot moved:
 
 | Result | When | Outcome |
 |---|---|---|
-| `crash` | the robot's outline touches an obstacle | failed |
-| `fail_area` | … touches a fail area | failed |
+| `fail_area` | the robot's outline touches a fail area | failed |
 | `deviation` | a corner or the middle of an edge of the robot's outline gets farther than `tolerance_cm` from the robot's outline at every pose of the recorded path | failed |
 | `goal` | … touches a goal area (if nothing above happens at the same moment) | passed |
-| `finished`, `returned`, `time_limit`, `step_limit` | the program ended, the function returned, or the time (`max_time_ms`, default 30 s) or steps ran out | passed without goal areas; failed with goal areas ("did not reach a goal area") |
-| runtime error | as in every test | failed, with the block |
+| `finished`, `returned`, `time_limit` | the program ended, the function returned, or the time ran out (`max_time_ms`, default 30 s) | passed without goal areas; failed with goal areas ("did not reach a goal area") |
+| `error` | the interpreter failed | failed ("the program failed: …"), with the block that ran last |
 
-**The robot in the world** (`simulation.py`; the editor draws the same):
-- **Body:** 8 cm long and 6.5 cm wide; the wheel axle is 1.8 cm in front of the back, as in the Lab's simulator.
-- **Line tracker:** under the front, 5 cm ahead of the axle. It sees a spot of 0.3 cm radius (7 samples), so at an edge
-  it reads a mix.
-  - `Ed.ReadLineTracker()` gives 1000 × the reflectance: black 0.05, white 0.95, the light-peach floor 0.8. NEPO shows
-    it divided by 10, as %.
-  - `Ed.ReadLineState()` says black below 0.5.
-- **Obstacle detection:** two beams start at the front, 1.5 cm left and right of the middle. Each looks straight ahead
-  and up to 30° to its side, as far as `obstacle_range_cm`.
-  - Both beams seeing something gives `OBSTACLE_AHEAD`; one beam alone gives `OBSTACLE_LEFT` or `OBSTACLE_RIGHT`.
-  - It is latched like the scripted one (§4.4): only while the beam is on, and set again after each read while the
-    obstacle is still there.
-- **Light sensors** (`LLIGHT`, `RLIGHT`): they face forward on the real robot, so they see the room, not the floor.
-  They read `ambient_light` (%, default 50), whatever the robot drives over.
-- **Moving:** the engine's motor model (§4.10). A moving robot advances in steps of at most 5 ms of virtual time, so
-  it can't jump over a thin line or into a wall unnoticed.
-- **Not modelled:** pushing obstacles, slipping, and `Ed.ReadLineChange` (the Lab never generates it). After the
-  program ends, nothing moves: the run is over.
+When the program ends, the robot moves for the rest of that frame and then stops, as in the simulator. Touching an
+obstacle doesn't end the run: the robot bumps (the report counts the frames in `bumps`). Put a fail area in front of an
+obstacle to make touching it a failure.
 
-**The recorded path.** A run with `record` (the editor's *Record path*; `simulation.run_simulation_test(...,
-record=True)`) ignores the old path. Its `path` becomes the new `reference`:
+**What a test run does differently from the simulator's own loop** (`SimulationRoberta.render`,
+`SimulationScene.update`):
+
+| The simulator | A test run |
+|---|---|
+| real time: a frame whenever the browser draws one (about 60 per second) | virtual time: every frame is 1/60 s, and a run takes only as long as the browser needs to compute it |
+| in a frame, the interpreter runs as many operations as fit into about 15 ms (it stops at the first action anyway) | at most 10,000 operations per frame (`OPS_PER_FRAME`), so a run gives the same result every time |
+| a program starts 250 ms after *start*; the sensors already measure | one frame of measuring, then the program |
+| tones play (WebAudio), and the program waits until they end | no sound: a tone takes its time (a sound file: its length in `WebAudio`) |
+| the microphone; the keys on the robot's picture | "given" claps reach the sound sensor through the simulator's volume meter (`volume-meter.js`): it jumps to full volume, then gets 5 % quieter every 512 samples at 48 kHz, so the sensor hears the clap (above 25 %) for about 0.3 s. "Given" keys are held for 200 ms |
+| the pen trail, movable obstacles, markers, uploaded backgrounds | not used: the trail is off, and the editor makes none of the others |
+
+**Measured** (in a browser, 2026-10-22):
+- **Motion:** the line follower ran from the same pose on the Edison track, in the simulator (the Program tab) and in
+  a test. The two paths stayed within 0.15 cm of each other for 7.4 s.
+- **The floor picture:** with a rectangle, a circle and a triangle as coloured areas, the test's picture and the
+  simulator's sensor canvas were identical, pixel for pixel.
+- **Calls, variables, keys, tones:**
+  - the clap counter's functions: `average(4, 8)` returned 6, and `clampSpeed(150)` returned 100;
+  - its variable `goal`, given as 1, was 1 in the run;
+  - a key pressed at 2 s, then a tone of 500 ms: the robot started driving at 2.6 s.
+- **Speed:** the line follower's 7.4 s to the goal took 0.45 s to compute (with compiling); 2 minutes of driving took
+  0.6 s. The example suite ran in about 1 s.
+
+**The simulator's semantics, not the robot's.** A test shows what the Lab's simulator does, and that isn't always what
+the Edison does:
+- **Sensors are states.** "Sound" is true while it is loud, "obstacle" while something is there. On the Edison, a clap
+  or an obstacle is latched until the program reads it. So the clap counter (`while claps < goal: wait until sound;
+  claps + 1`) counts one clap three times in the simulator: the wait sees the sound and goes on, three times in the same
+  frame. On the robot it counts one.
+- **Powers and distances.** The simulator uses a power as it is (15 % is 15 %; on the Edison, a 10 % step). It measures
+  drives and turns as distances and angles; the Edison measures them in wheel ticks. A drive "for 20 cm" against a wall
+  never ends in the simulator.
+- **A bug of the Lab:** in the Lab's simulator, the Edison's sound sensor never hears the microphone. In
+  `RobotBaseMobile`'s constructor, `configure()` makes the `SoundSensorBoolean` before `RobotEdison`'s fields exist, so
+  the sensor has no `WebAudio` to connect the microphone to (verified 2026-10-22: its `webAudio` is undefined). A test
+  sets the meter's volume itself, so "given" claps work.
+
+**The recorded path.** A run with *Record path* ignores the old path. Its `path` becomes the new `reference`:
 - **The corridor:** the robot's outline at each recorded pose (poses at least every 0.5 cm or 3°), widened by
   `tolerance_cm`.
-- **The check:** looks near the last matching pose first, then in a 5 cm grid, so long paths stay cheap.
+- **The check:** looks near the last matching pose first, then in a grid, so long paths stay cheap.
 
-**The report** of a simulation test has `kind: "simulation"` and `simulation`:
+**The report** of a simulation test has the shape of the others (§4.8), with `kind: "simulation"` and `simulation`:
 - `result`, `t`: when it ended (ms);
-- `item`: the id of the area or obstacle that ended it;
+- `item`: the id of the area that ended it;
 - `point`: where the robot left the corridor;
 - `path`: `[[t, x, y, heading], …]`, for the replay;
 - `leds`: `[[t, left, right], …]`;
-- `goals`: the number of goal areas.
+- `goals`: the number of goal areas;
+- `bumps`: the frames in which the robot pushed against something.
 
 Failures have `expect: "simulation"` and a message in words ("the robot left the recorded path (by more than 2 cm)
-after 0.6 s"). Coverage counts as for any test.
+after 0.6 s"). `covered_blocks` are the blocks whose operations ran (the stack machine's operations carry their block
+ids), so simulation tests count for coverage. A runtime error is `{"kind": "runtime_error", "message", "block_id",
+"block_type"}`, with the block whose operation ran last.
 
-**Why the world is coordinates and not a picture.** We considered painting goal and fail areas in special colours into
-the background and checking the pixels under the robot. Instead, every area is an invisible shape with coordinates:
+**Goal and fail areas are coordinates, not colours.** We considered painting goal and fail areas in special colours
+into the background and checking the pixels under the robot. Instead, they are invisible shapes with coordinates:
 - **The robot must not see them.** The line tracker reads the floor. A coloured area would change what it reads, on a
-  printed mat as well as in the simulation, and so change the robot's behaviour.
-- **The run happens in Python** (in the browser's worker and on the command line), where there is no picture. Pixels
-  would tie results to a renderer and to anti-aliased edges.
-- **It's exact and cheap.** Polygons touch or they don't; areas may overlap lines; the editor still shows them,
+  printed mat as well as in the simulator, and so change the robot's behaviour.
+- **They're exact and cheap.** Polygons touch or they don't, and areas may overlap lines. The editor still shows them,
   hatched green and red.
 
-The same reasoning makes the whole world geometry, not an SVG file. The editor draws it as SVG, but the SVG isn't
-stored, so nothing has to parse SVG. For the same reason the editor is the Lab's own (about 1,000 lines) and not an SVG
-editing library: a general editor writes arbitrary SVG, which the engine would then have to interpret.
+What the sensors see, on the other hand, *is* a picture: the simulator's sensors read the pixels of its sensor canvas.
 
 **Validation:**
-- `spec.validate_spec` checks the `simulation` object (`simulation.validate`) and the allowed events.
-- The Tests tab also reports a robot that starts touching an obstacle, a goal or a fail area.
-- It warns about a test that can't fail: no goal, fail area, obstacle or recorded path.
+- `spec.validate_spec` checks the `simulation` object (`simulation.validate`): background, objects, roles and the
+  allowed events.
+- The Tests tab also reports a robot that starts off the floor, or touching an obstacle, a goal or a fail area.
+- It warns about a test that can't fail: no goal area, no fail area and no recorded path.
 
-**The example:** `examples/line_follower.xml` follows the left edge of a line with the single line tracker: on black
-it curves left (10 % / 40 %), on white it curves right (40 % / 10 %). Its function `toTheWall()` drives until the
-obstacle detection sees something ahead, and stops. `line_follower.tests.json` and `line_follower_with_tests.xml` (the
-same as blocks) hold three tests, which all pass:
-- around an oval to a goal area, with a recorded path and a fail area beyond the track (15.9 s);
-- `toTheWall()` in front of a wall: it stops about 10 cm before it;
-- the same function as a BDD test with a scripted obstacle.
+**The example:**
+- **The program:** `examples/line_follower.xml` follows the left edge of a line with the single line tracker. On black
+  it curves left (10 % / 40 %), on white it curves right (40 % / 10 %). Its function `toTheWall()` drives until the
+  obstacle detection sees something ahead, and stops.
+- **The suite:** `line_follower_with_tests.xml` was made in the Tests tab; its path was recorded on the simulator.
+  `line_follower.tests.json` is the same suite as JSON (the command line runs only its third test). In the Tests tab,
+  its three tests pass:
+  - on the Edison track, along the middle line to a goal area, with a recorded path and a fail area beside the track
+    (7.4 s);
+  - `toTheWall()` in front of the simulator's standard obstacle: it stops after 1.1 s, about 3 cm before the obstacle
+    and short of a fail area in front of it;
+  - the same function as a BDD test with a scripted obstacle.
 
 ---
 
@@ -774,7 +828,8 @@ blocks. Other options:
 - **Conversion:** a server-side integration could skip REST and read `SourceMapBean` directly after the `showsource`
   workflow.
 - **Browser (what the Tests tab does):** the framework only needs the standard library. It runs unchanged under
-  Pyodide 314.0.7 (verified in Chrome and under Node). Conversion is still the `sourceForTest` request.
+  Pyodide 314.0.7 (verified in Chrome and under Node). Conversion is still the `sourceForTest` request. Simulation tests
+  run on the page itself, on the Lab's simulator (`nepoTest.simRun`, §4.11); the worker only translates them.
 
 ---
 
@@ -806,14 +861,15 @@ blocks. Other options:
   in `edpy-test-engine.md` §7. They're configurable, and uncalibrated against a real Edison.
 - **What isn't modelled:** events (`Ed.RegisterEventHandler`, never generated), the distance counters, and physical
   collisions. In a scripted world an obstacle doesn't stop the robot; the robot only reports it. In a simulation test,
-  touching an obstacle fails the test.
+  the Lab's simulator moves the robot, and it bumps into obstacles.
 - **Two kinds of world.**
   - **Scripted** (§4.4): the world is set by time, not by position. The line tracker sees what `world` says at that
     moment, wherever the robot has driven.
   - **Drawn** (simulation tests, §4.11): lines and obstacles have positions, and the sensors read them at the robot's
     pose. "Follows the line" and "stops before the wall" are tested there.
-  - The geometry of the drawn world is an assumption: body, sensor positions, detection range, reflectances. It isn't
-    calibrated against a robot.
+  - The drawn world is the Lab's simulator: robot body, sensor positions and ranges, speeds, collisions, and the
+    program as the simulator runs it. That's the simulator's model of the Edison, not a calibration against a robot,
+    and its semantics: sensors are states, powers aren't in 10 % steps (§4.11).
 - **Test data:** there are no floats and no strings in tests, because NEPO programs for the Edison have none.
 - **Only the Edison has a source map.** `sourceForTest` works for every robot but returns a map only for the Edison.
 - **Python:** the framework needs CPython 3.11+ (`co_positions`). The engine alone runs on 3.8+.
@@ -838,7 +894,7 @@ NepoTest/
     spec.py                   test files: validate_spec, run_spec
     matching.py               value matchers (shared by spec.py and states.py)
     states.py                 the robot's state over time (Timeline), state expectations, measurements (§4.10)
-    simulation.py             simulation tests: the drawn world, a robot whose sensors read it, corridor, outcome (§4.11)
+    simulation.py             simulation tests: their data and its checks; a copy of the simulator, no longer used (§4.11)
     blocks.py                 NEPO test blocks (Tests tab) -> test file; split_program for programs with embedded suites
     browser.py                the functions the Lab's Pyodide worker calls (JSON strings in and out)
     engine/                   the EdPy engine (edpy-test-engine.md)
@@ -848,8 +904,9 @@ NepoTest/
   examples/patrol.xml, .bundle.json, .tests.json, patrol_with_tests.xml   the state tests' example (§4.10)
   examples/line_follower.xml, .bundle.json, .tests.json, line_follower_with_tests.xml   simulation tests (§4.11)
   tests/                      test_framework.py, test_blocks.py, test_states.py, test_simulation.py, test_lab_live.py,
-                              test_engine*.py, fixtures/
+                              test_engine*.py, fixtures/, data/edison_track_floor.json (the copy's floor picture)
 OpenRobertaWeb/src/app/nepotest/*, …/controller/tests.controller.ts   the Tests tab (nepo-test-blocks.md §2)
+OpenRobertaWeb/src/app/nepotest/nepoTest.simRun.ts                  simulation tests on the Lab's simulator (§4.11)
 OpenRobertaServer/staticResources/nepotest/nepotest-files.json      the nepotest package for the browser (generated by gulp)
 OpenRobertaRobot/…/bean/SourceMapBean.java
 RobotEdison/…/visitor/codegen/EdisonPythonVisitor.java (preVisitCheck/postVisitCheck), …/worker/codegen/EdisonPythonGeneratorWorker.java

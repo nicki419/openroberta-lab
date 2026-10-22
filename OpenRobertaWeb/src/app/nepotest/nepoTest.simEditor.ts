@@ -1,22 +1,29 @@
 /**
- * The simulation window of the Tests tab: an editor for the world of one simulation test (nepoTest.sim), and the replay of its runs.
+ * The simulation window of the Tests tab: an editor for the world of one simulation test (nepoTest.sim), and the replay of its runs. The world
+ * and the robot look and behave as in the Lab's simulator: its backgrounds and wall, its obstacles and coloured areas (rectangles, circles,
+ * triangles, in its colours), its robot image with the line tracker, the light sensors, the infrared rays and the LEDs.
  *
  * - The robot is dragged to where it starts, and turned with its handle (in steps of 15 degrees; Shift: freely).
- * - Line and Curve draw a line to follow (click the points; double-click or Enter to finish; a click on the first point closes it).
- *   Rectangle and Ellipse draw an area; its role (black or white floor, obstacle, goal, fail) is chosen with the colour buttons.
- * - Select moves things; handles resize and turn areas and move the points of lines. Delete removes, Ctrl+Z / Ctrl+Y undo and redo.
+ * - Line and Curve draw a line to follow, like the background's track (click the points; double-click or Enter to finish; a click on the
+ *   first point closes it). Rectangle, Circle and Triangle draw an object (a click: the simulator's default size); what it is (obstacle,
+ *   coloured area, goal, fail) and its colour are chosen with the buttons.
+ * - Select moves things; handles resize them and move the points of lines and triangles. Delete removes, Ctrl+Z / Ctrl+Y undo and redo.
  * - The mouse wheel and the buttons zoom; dragging the empty floor moves the view. The view is kept with the test (data.view).
+ * - The background is chosen from the simulator's; "from the simulator" takes over the simulator's current scene.
  * - Record runs the test and keeps the run as the recorded path; the tolerance widens it to the corridor the robot must stay in.
  * - Run runs the test; the run is replayed (play, or drag the time slider).
  * The editor knows nothing about Blockly or the test runner: the tests controller passes the data in and gets it back (EditorHost).
  */
 import * as SIM from 'nepoTest.sim';
+import * as SIMRUN from 'nepoTest.simRun';
 
 export interface EditorHost {
-    /** the data changed: an edit (save it, the program is unsaved), or only the view (viewOnly: save it quietly) */
-    changed(data: SIM.SimData, viewOnly: boolean): void;
+    /** the data changed: an edit (save it, the program is unsaved), or only the view (quiet: save it quietly) */
+    changed(data: SIM.SimData, quiet: boolean): void;
     record(): void;
     run(): void;
+    /** the scene of the Lab's simulator as a world, or a message why there is none */
+    simulatorScene(): SIM.SimWorld | string;
 }
 
 interface Run {
@@ -35,6 +42,7 @@ const SVGNS = 'http://www.w3.org/2000/svg';
 const MIN_SCALE = 0.4;
 const MAX_SCALE = 40;
 const HANDLE_PX = 6;
+const TOOLS = ['select', 'line', 'curve', 'rect', 'circle', 'triangle'];
 
 const TEXT: { [lang: string]: { [key: string]: string } } = {
     en: {
@@ -44,10 +52,10 @@ const TEXT: { [lang: string]: { [key: string]: string } } = {
         line: 'Line',
         curve: 'Curve',
         rect: 'Rectangle',
-        ellipse: 'Ellipse',
-        black: 'Black floor',
-        white: 'White floor',
+        circle: 'Circle',
+        triangle: 'Triangle',
         obstacle: 'Obstacle',
+        color: 'Coloured area (the sensors see it)',
         goal: 'Goal: touching it passes the test',
         fail: 'Fail: touching it fails the test',
         zoomIn: 'Zoom in',
@@ -57,16 +65,19 @@ const TEXT: { [lang: string]: { [key: string]: string } } = {
         redo: 'Redo (Ctrl+Y)',
         remove: 'Delete (Del)',
         wide: 'Wider window',
-        settings: 'Settings',
+        fromSim: 'Take the scene of the simulator (background, obstacles, coloured areas, robot)',
+        background: 'Background',
+        simpleBackgroundEdison: 'Edison track',
+        drawBackground: 'White',
+        rescueBackground: 'Rescue',
+        mathBackground: 'Math',
         hintSelect: 'Drag the robot to its start; turn it with its round handle (Shift: freely). Drag the floor to move the view, the wheel zooms.',
         hintLine: 'Click the points of the line. Double-click or Enter to finish; click the first point to close it. Esc cancels.',
-        hintShape: 'Drag to draw. Choose what it is with the colour buttons.',
+        hintShape: 'Drag to draw, or click for the simulator\'s size. Choose what it is with the buttons.',
         curved: 'curved',
         closed: 'closed',
         width: 'width',
         cm: 'cm',
-        ambient: 'room light (LLIGHT, RLIGHT)',
-        range: 'obstacle detection range',
         record: '● Record path',
         recordTitle: 'Run the test and keep the run as the path the robot must follow',
         clearRecord: 'Forget path',
@@ -74,7 +85,7 @@ const TEXT: { [lang: string]: { [key: string]: string } } = {
         run: '▶ Run test',
         play: 'Replay',
         recorded: 'Path recorded: {0}',
-        noPath: 'No path recorded: the robot may go anywhere (except into obstacles and fail areas).',
+        noPath: 'No path recorded: the robot may go anywhere (except into fail areas).',
         pathInfo: 'Recorded path: {0} s; the robot must stay within {1} cm of it.',
         working: 'Running…',
         loading: 'Starting the test runner (the first time, Python is downloaded: about 12 MB)…',
@@ -86,6 +97,14 @@ const TEXT: { [lang: string]: { [key: string]: string } } = {
         timeUp: 'the time was up after {0} s',
         stale: 'The world changed since this run.',
         noGoal: 'No goal area: the test passes if nothing goes wrong until the program ends or the time is up.',
+        sensors: 'line tracker {0} ({1} %) · LLIGHT {2} % · RLIGHT {3} % · obstacle: {4}',
+        black: 'black',
+        white: 'white',
+        noObstacle: 'none',
+        left: 'left',
+        front: 'front',
+        right: 'right',
+        imported: 'The scene of the simulator was taken over.',
     },
     de: {
         title: 'Simulationstest',
@@ -94,10 +113,10 @@ const TEXT: { [lang: string]: { [key: string]: string } } = {
         line: 'Linie',
         curve: 'Kurve',
         rect: 'Rechteck',
-        ellipse: 'Ellipse',
-        black: 'Schwarzer Boden',
-        white: 'Weißer Boden',
+        circle: 'Kreis',
+        triangle: 'Dreieck',
         obstacle: 'Hindernis',
+        color: 'Farbfläche (die Sensoren sehen sie)',
         goal: 'Ziel: wer es berührt, besteht den Test',
         fail: 'Fehler: wer es berührt, besteht den Test nicht',
         zoomIn: 'Vergrößern',
@@ -107,16 +126,19 @@ const TEXT: { [lang: string]: { [key: string]: string } } = {
         redo: 'Wiederholen (Strg+Y)',
         remove: 'Löschen (Entf)',
         wide: 'Breiteres Fenster',
-        settings: 'Einstellungen',
+        fromSim: 'Die Szene der Simulation übernehmen (Hintergrund, Hindernisse, Farbflächen, Roboter)',
+        background: 'Hintergrund',
+        simpleBackgroundEdison: 'Edison-Strecke',
+        drawBackground: 'Weiß',
+        rescueBackground: 'Rescue',
+        mathBackground: 'Mathe',
         hintSelect: 'Zieh den Roboter an seinen Start; dreh ihn am runden Griff (Umschalt: stufenlos). Zieh den Boden, um die Ansicht zu verschieben; das Mausrad zoomt.',
         hintLine: 'Klicke die Punkte der Linie. Doppelklick oder Enter beendet sie; ein Klick auf den ersten Punkt schließt sie. Esc bricht ab.',
-        hintShape: 'Zum Zeichnen ziehen. Mit den Farbknöpfen wählst du, was es ist.',
+        hintShape: 'Zum Zeichnen ziehen, oder klicken für die Größe der Simulation. Mit den Knöpfen wählst du, was es ist.',
         curved: 'gebogen',
         closed: 'geschlossen',
         width: 'Breite',
         cm: 'cm',
-        ambient: 'Raumlicht (LLIGHT, RLIGHT)',
-        range: 'Reichweite der Hinderniserkennung',
         record: '● Weg aufnehmen',
         recordTitle: 'Den Test ausführen und die Fahrt als Weg behalten, dem der Roboter folgen muss',
         clearRecord: 'Weg vergessen',
@@ -124,7 +146,7 @@ const TEXT: { [lang: string]: { [key: string]: string } } = {
         run: '▶ Test ausführen',
         play: 'Abspielen',
         recorded: 'Weg aufgenommen: {0}',
-        noPath: 'Kein Weg aufgenommen: der Roboter darf überall hin (außer in Hindernisse und Fehlerbereiche).',
+        noPath: 'Kein Weg aufgenommen: der Roboter darf überall hin (außer in Fehlerbereiche).',
         pathInfo: 'Aufgenommener Weg: {0} s; der Roboter muss weniger als {1} cm davon abweichen.',
         working: 'Läuft…',
         loading: 'Der Testlauf startet (beim ersten Mal wird Python geladen: etwa 12 MB)…',
@@ -136,6 +158,14 @@ const TEXT: { [lang: string]: { [key: string]: string } } = {
         timeUp: 'die Zeit war nach {0} s um',
         stale: 'Die Welt hat sich seit dieser Fahrt geändert.',
         noGoal: 'Kein Zielbereich: der Test ist bestanden, wenn nichts schiefgeht, bis das Programm endet oder die Zeit um ist.',
+        sensors: 'Linienfolger {0} ({1} %) · LLIGHT {2} % · RLIGHT {3} % · Hindernis: {4}',
+        black: 'schwarz',
+        white: 'weiß',
+        noObstacle: 'keins',
+        left: 'links',
+        front: 'vorne',
+        right: 'rechts',
+        imported: 'Die Szene der Simulation wurde übernommen.',
     },
 };
 
@@ -145,7 +175,8 @@ const ICONS: { [name: string]: string } = {
     line: '<polyline points="3,19 10,8 15,15 21,5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/>',
     curve: '<path d="M3 18 C7 2, 13 24, 21 6" fill="none" stroke="currentColor" stroke-width="2.4"/>',
     rect: '<rect x="4" y="6" width="16" height="12" fill="none" stroke="currentColor" stroke-width="2.2"/>',
-    ellipse: '<ellipse cx="12" cy="12" rx="8.5" ry="6" fill="none" stroke="currentColor" stroke-width="2.2"/>',
+    circle: '<circle cx="12" cy="12" r="7.5" fill="none" stroke="currentColor" stroke-width="2.2"/>',
+    triangle: '<polygon points="12,4 21,19 3,19" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/>',
     zoomIn: '<circle cx="10" cy="10" r="6" fill="none" stroke="currentColor" stroke-width="2"/><path d="M14.5 14.5 L20 20 M7 10 H13 M10 7 V13" stroke="currentColor" stroke-width="2"/>',
     zoomOut: '<circle cx="10" cy="10" r="6" fill="none" stroke="currentColor" stroke-width="2"/><path d="M14.5 14.5 L20 20 M7 10 H13" stroke="currentColor" stroke-width="2"/>',
     fit: '<path d="M4 9 V4 H9 M15 4 H20 V9 M20 15 V20 H15 M9 20 H4 V15" fill="none" stroke="currentColor" stroke-width="2"/>',
@@ -153,14 +184,12 @@ const ICONS: { [name: string]: string } = {
     redo: '<path d="M15 5 L20 10 L15 15 M20 10 H10 A5 5 0 0 0 10 20 H14" fill="none" stroke="currentColor" stroke-width="2"/>',
     remove: '<path d="M5 7 H19 M10 7 V4 H14 V7 M7 7 L8 20 H16 L17 7" fill="none" stroke="currentColor" stroke-width="2"/>',
     wide: '<path d="M3 12 H21 M7 8 L3 12 L7 16 M17 8 L21 12 L17 16" fill="none" stroke="currentColor" stroke-width="2"/>',
-    settings:
-        '<circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 2.5 V6 M12 18 V21.5 M2.5 12 H6 M18 12 H21.5 M5.3 5.3 L7.8 7.8 M16.2 16.2 L18.7 18.7 M5.3 18.7 L7.8 16.2 M16.2 7.8 L18.7 5.3" stroke="currentColor" stroke-width="2"/>',
+    fromSim: '<rect x="3" y="4" width="18" height="13" rx="1.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 9 V22 M8 18 L12 22 L16 18" fill="none" stroke="currentColor" stroke-width="2"/>',
 };
 
 const ROLE_SWATCH: { [role: string]: string } = {
-    black: '<rect x="4" y="4" width="16" height="16" fill="' + SIM.COLORS.black + '"/>',
-    white: '<rect x="4" y="4" width="16" height="16" fill="#fff" stroke="#999" stroke-width="1"/>',
-    obstacle: '<rect x="4" y="4" width="16" height="16" fill="' + SIM.COLORS.obstacle + '" stroke="' + SIM.COLORS.obstacleEdge + '" stroke-width="1.5"/>',
+    obstacle: '<rect x="4" y="4" width="16" height="16" fill="' + SIM.OBSTACLE_COLOR + '"/><rect x="6" y="6" width="16" height="16" fill="none"/>',
+    color: '<rect x="4" y="4" width="16" height="16" fill="' + SIM.COLOR_AREA_COLOR + '" stroke="#999" stroke-width="0.8"/>',
     goal: '<rect x="4" y="4" width="16" height="16" fill="#cfe9d5" stroke="' + SIM.COLORS.goal + '" stroke-width="2" stroke-dasharray="3 2"/><path d="M8 12 L11 15 L16 9" fill="none" stroke="' + SIM.COLORS.goal + '" stroke-width="2"/>',
     fail: '<rect x="4" y="4" width="16" height="16" fill="#f6d2d1" stroke="' + SIM.COLORS.fail + '" stroke-width="2" stroke-dasharray="3 2"/><path d="M9 9 L15 15 M15 9 L9 15" stroke="' + SIM.COLORS.fail + '" stroke-width="2"/>',
 };
@@ -185,6 +214,10 @@ function seconds(ms: number): string {
     return String(Math.round(ms / 100) / 10);
 }
 
+function round(v: number): number {
+    return Math.round(v * 100) / 100;
+}
+
 let nextId = 1;
 function newId(prefix: string): string {
     return prefix + Date.now().toString(36) + (nextId++).toString(36);
@@ -199,10 +232,12 @@ export class SimEditor {
     private none: HTMLElement;
     private hint: HTMLElement;
     private props: HTMLElement;
-    private settingsRow: HTMLElement;
+    private palette: HTMLElement;
     private status: HTMLElement;
     private pathInfo: HTMLElement;
+    private sensorInfo: HTMLElement;
     private canvas: HTMLElement;
+    private backgroundSelect: HTMLSelectElement;
     private svg: any;
     private layers: { [name: string]: any } = {};
     private buttons: { [name: string]: HTMLElement } = {};
@@ -211,12 +246,14 @@ export class SimEditor {
     private timeSlider: HTMLInputElement;
     private timeLabel: HTMLElement;
     private scaleBar: HTMLElement;
+    private snapshotBefore: string = null;
 
     private data: SIM.SimData = null;
     private blockId: string = null;
     private name = '';
     private tool = 'select';
-    private role = 'black';
+    private role = 'obstacle';
+    private color: string = null; // the colour new objects get (null: the simulator's default for their role)
     private selected: string = null; // an item id, or 'robot'
     private drag: any = null;
     private drawing: SIM.SimItem = null;
@@ -226,7 +263,11 @@ export class SimEditor {
     private playing = false;
     private frame = 0;
     private viewTimer: any = null;
+    private floorTimer: any = null;
+    private floorSums: { key: string; sums: Uint16Array; w: number; h: number } = null;
     private busy = false;
+    private lastDown: { t: number; x: number; y: number } = null; // for double clicks: the handles under the pointer are redrawn after each click,
+    // so the browser's dblclick (which needs the same element twice) doesn't always come
     private needsFit = false; // fit the view as soon as the window has a size
     private resizeFrame = 0;
 
@@ -256,29 +297,33 @@ export class SimEditor {
         const toolbar = html('div', 'nepoSimToolbar', this.body);
         const group = () => html('div', 'nepoSimGroup', toolbar);
         let g = group();
-        ['select', 'line', 'curve', 'rect', 'ellipse'].forEach((tool) => this.iconButton(g, tool, ICONS[tool], () => this.setTool(tool)));
+        TOOLS.forEach((tool) => this.iconButton(g, tool, ICONS[tool], () => this.setTool(tool)));
         g = group();
         SIM.ROLES.forEach((role) => this.iconButton(g, role, ROLE_SWATCH[role], () => this.setRole(role)));
         g = group();
         this.iconButton(g, 'zoomOut', ICONS.zoomOut, () => this.zoomBy(1 / 1.4));
         this.iconButton(g, 'zoomIn', ICONS.zoomIn, () => this.zoomBy(1.4));
-        this.iconButton(g, 'fit', ICONS.fit, () => this.fit(true));
+        this.iconButton(g, 'fit', ICONS.fit, () => this.fit());
         g = group();
         this.iconButton(g, 'undo', ICONS.undo, () => this.undo());
         this.iconButton(g, 'redo', ICONS.redo, () => this.redo());
         this.iconButton(g, 'remove', ICONS.remove, () => this.removeSelected());
         g = group();
-        this.iconButton(g, 'settings', ICONS.settings, () => this.settingsRow.classList.toggle('open'));
+        this.iconButton(g, 'fromSim', ICONS.fromSim, () => this.takeSimulatorScene());
         this.iconButton(g, 'wide', ICONS.wide, () => {
             document.getElementById('tests') && document.getElementById('tests').classList.toggle('nepoSimWide');
             window.dispatchEvent(new Event('resize'));
         });
-        this.settingsRow = html('div', 'nepoSimSettings', this.body);
+        g = group();
+        this.backgroundSelect = html('select', 'nepoSimBackground', g);
+        this.backgroundSelect.addEventListener('change', () => this.setBackground(this.backgroundSelect.value));
+        this.palette = html('div', 'nepoSimPalette', this.body);
         this.props = html('div', 'nepoSimProps', this.body);
         this.hint = html('div', 'nepoSimHint', this.body);
         this.canvas = html('div', 'nepoSimCanvas', this.body);
         this.buildSvg();
         this.scaleBar = html('div', 'nepoSimScale', this.canvas);
+        this.sensorInfo = html('div', 'nepoSimSensors', this.body);
 
         const recordRow = html('div', 'nepoSimRow', this.body);
         this.buttons.record = this.textButton(recordRow, 'btn btn-default nepoSimRecord', () => !this.busy && this.host.record());
@@ -324,8 +369,6 @@ export class SimEditor {
         this.show(null, null, '');
     }
 
-    private snapshotBefore: string = null;
-
     private iconButton(parent: HTMLElement, name: string, icon: string, action: () => void): HTMLElement {
         const b = html('button', 'nepoSimIcon', parent); // not "btn": the Lab's theme colours every .btn
         b.type = 'button';
@@ -364,12 +407,21 @@ export class SimEditor {
         this.buttons.run.textContent = this.text('run');
         this.buttons.play.textContent = '▶ ' + this.text('play');
         this.none.textContent = this.text('none');
+        this.backgroundSelect.title = this.text('background');
+        this.backgroundSelect.innerHTML = '';
+        Object.keys(SIM.BACKGROUNDS).forEach((name) => {
+            const o = html('option', '', this.backgroundSelect);
+            o.value = name;
+            o.textContent = this.text(name);
+        });
+        this.data && (this.backgroundSelect.value = this.data.world.background);
         this.setTitle(this.name);
         this.updateHint();
-        this.renderSettings();
+        this.renderPalette();
         this.renderProps();
         this.renderPathInfo();
         this.renderStatus();
+        this.renderSensors();
     }
 
     setTitle(name: string): void {
@@ -395,12 +447,12 @@ export class SimEditor {
         }
         this.tolerance.value = String(data.tolerance_cm);
         this.toleranceLabel.textContent = data.tolerance_cm + ' cm';
+        this.backgroundSelect.value = data.world.background;
         this.setTool('select');
-        this.renderSettings();
         if (data.view) {
             this.updateViewBox();
         } else if (this.visible()) {
-            this.fit(false);
+            this.fit();
         } else {
             this.data.view = { x: data.world.start.x, y: data.world.start.y, scale: 4 };
             this.needsFit = true;
@@ -410,6 +462,7 @@ export class SimEditor {
         this.replayT = run ? this.runEnd(run) : 0;
         this.renderRun();
         this.renderStatus();
+        this.scheduleFloor(0);
     }
 
     currentBlockId(): string {
@@ -423,10 +476,10 @@ export class SimEditor {
         }
         if (this.needsFit) {
             this.needsFit = false;
-            this.fit(false);
+            this.fit();
         }
         this.updateViewBox();
-        this.renderGrid();
+        this.renderZoomed();
     }
 
     private visible(): boolean {
@@ -453,6 +506,45 @@ export class SimEditor {
     showMessage(message: string, isError: boolean): void {
         this.status.className = 'nepoSimStatus' + (isError ? ' failed' : '');
         this.status.textContent = message;
+    }
+
+    // -------------------------------------------------------------------------------------------- the floor picture
+
+    /** after an edit: the pixels of the floor picture (the one the simulator's sensors read in a run), for the sensors shown */
+    private scheduleFloor(delay = 300): void {
+        clearTimeout(this.floorTimer);
+        this.floorTimer = setTimeout(() => this.refreshFloor(), delay);
+    }
+
+    private refreshFloor(): void {
+        if (!this.data) {
+            return;
+        }
+        const data = this.data;
+        const key = SIM.floorKey(data.world);
+        if (!this.floorSums || this.floorSums.key !== key) {
+            SIMRUN.floorCanvas(data.world).then(
+                (canvas) => {
+                    if (this.data === data && SIM.floorKey(data.world) === key) {
+                        this.floorSums = { key: key, sums: SIM.pixelSums(canvas), w: canvas.width, h: canvas.height };
+                        this.renderSensorsOfRobots();
+                    }
+                },
+                () => undefined
+            );
+        }
+    }
+
+    /** the light values (%) the robot's floor sensors see at a pose: [line tracker, LLIGHT, RLIGHT], unrounded; null while unknown */
+    private lightAt(x: number, y: number, heading: number): number[] {
+        const f = this.floorSums;
+        if (!f || f.key !== SIM.floorKey(this.data.world)) {
+            return null;
+        }
+        return [SIM.LINE_SENSOR, SIM.LIGHT_SENSORS[0], SIM.LIGHT_SENSORS[1]].map((p) => {
+            const q = SIM.robotPoint(x, y, heading, p);
+            return SIM.sampleFloor(f.sums, f.w, f.h, SIM.BORDER + q[0] * SIM.UNITS_PER_CM, SIM.BORDER + q[1] * SIM.UNITS_PER_CM);
+        });
     }
 
     // -------------------------------------------------------------------------------------------- runs
@@ -511,15 +603,6 @@ export class SimEditor {
         return run.path.length ? run.path[run.path.length - 1][0] : 0;
     }
 
-    private clearRun(): void {
-        if (this.blockId && this.runs[this.blockId]) {
-            delete this.runs[this.blockId];
-            this.stopPlay();
-            this.renderRun();
-            this.renderStatus();
-        }
-    }
-
     private clearRecording(): void {
         if (!this.data || !this.data.reference) {
             return;
@@ -568,6 +651,11 @@ export class SimEditor {
         this.buttons.play && (this.buttons.play.textContent = '▶ ' + this.text('play'));
     }
 
+    private replayPose(): number[] {
+        const run = this.currentRun();
+        return run && run.path.length ? this.poseAt(run, this.replayT) : null;
+    }
+
     private showTime(t: number): void {
         const run = this.currentRun();
         if (!run) {
@@ -577,17 +665,17 @@ export class SimEditor {
         const end = this.runEnd(run) || 1;
         this.timeSlider.value = String(Math.round((1000 * t) / end));
         this.timeLabel.textContent = seconds(t) + ' / ' + seconds(end) + ' s';
-        const pose = this.poseAt(run, t);
+        this.renderSensorsOfRobots();
+    }
+
+    private ledsAt(run: Run, t: number): boolean[] {
         let leds = [false, false];
         for (const l of run.leds) {
             if (l[0] <= t) {
                 leds = [l[1], l[2]];
             }
         }
-        const g = this.layers.replayRobot;
-        g.setAttribute('transform', SIM.robotTransform(pose[0], pose[1], pose[2]));
-        g.innerHTML = SIM.robotSvg(leds);
-        g.style.display = '';
+        return leds;
     }
 
     private poseAt(run: Run, t: number): number[] {
@@ -642,21 +730,24 @@ export class SimEditor {
         }
         this.renderAll();
         this.host.changed(this.data, false);
+        this.scheduleFloor();
     }
 
     private restore(state: string): void {
-        const view = this.data.view;
-        this.data = Object.assign(this.data, { reference: undefined }, JSON.parse(state));
-        if (!JSON.parse(state).reference) {
+        const keep = { view: this.data.view };
+        const next = JSON.parse(state);
+        this.data = Object.assign(this.data, { reference: undefined }, next);
+        if (!next.reference) {
             delete this.data.reference;
         }
-        this.data.view = view;
+        this.data.view = keep.view;
         this.tolerance.value = String(this.data.tolerance_cm);
         this.toleranceLabel.textContent = this.data.tolerance_cm + ' cm';
+        this.backgroundSelect.value = this.data.world.background;
         this.selected = this.selected && (this.selected === 'robot' || this.item(this.selected)) ? this.selected : null;
-        this.renderSettings();
         this.renderAll();
         this.host.changed(this.data, false);
+        this.scheduleFloor();
     }
 
     private undo(): void {
@@ -694,7 +785,7 @@ export class SimEditor {
     private setTool(tool: string): void {
         this.finishDrawing(true);
         this.tool = tool;
-        ['select', 'line', 'curve', 'rect', 'ellipse'].forEach((t) => this.buttons[t].classList.toggle('active', t === tool));
+        TOOLS.forEach((t) => this.buttons[t].classList.toggle('active', t === tool));
         this.canvas.setAttribute('data-tool', tool);
         this.updateHint();
         this.renderRoles();
@@ -702,26 +793,98 @@ export class SimEditor {
 
     private setRole(role: string): void {
         this.role = role;
+        this.color = null;
         const item = this.selected && this.item(this.selected);
         if (item && item.kind !== 'line' && item.role !== role) {
             const before = this.snapshot();
             item.role = role;
+            delete item.color; // the simulator's colour for the new role
             this.commit(before);
         }
         this.renderRoles();
+    }
+
+    private setColor(color: string): void {
+        this.color = color;
+        const item = this.selected && this.item(this.selected);
+        if (item && (item.role === 'obstacle' || item.role === 'color')) {
+            const before = this.snapshot();
+            item.color = color;
+            this.commit(before);
+        }
+        this.renderPalette();
+    }
+
+    private setBackground(name: string): void {
+        if (!this.data || this.data.world.background === name || !SIM.BACKGROUNDS[name]) {
+            return;
+        }
+        const before = this.snapshot();
+        this.data.world.background = name;
+        this.commit(before);
+        this.fit();
+    }
+
+    /** takes over the scene of the Lab's simulator (as a single edit: undo brings the old world back) */
+    private takeSimulatorScene(): void {
+        if (!this.data) {
+            return;
+        }
+        const scene = this.host.simulatorScene();
+        if (typeof scene === 'string') {
+            this.showMessage(scene, true);
+            return;
+        }
+        const before = this.snapshot();
+        const lines = this.data.world.items.filter((i) => i.kind === 'line' || i.role === 'goal' || i.role === 'fail');
+        this.data.world = { background: scene.background, start: scene.start, items: scene.items.concat(lines) };
+        this.backgroundSelect.value = scene.background;
+        delete this.data.reference; // it was recorded in another world
+        this.commit(before);
+        this.fit();
+        this.showMessage(this.text('imported'), false);
     }
 
     private renderRoles(): void {
         const item = this.selected && this.item(this.selected);
         const role = item && item.kind !== 'line' ? item.role : this.role;
         SIM.ROLES.forEach((r) => this.buttons[r].classList.toggle('active', r === role));
+        this.renderPalette();
+    }
+
+    /** the simulator's colours, for obstacles and coloured areas */
+    private renderPalette(): void {
+        const p = this.palette;
+        if (!p) {
+            return;
+        }
+        p.innerHTML = '';
+        const item = this.selected && this.selected !== 'robot' ? this.item(this.selected) : null;
+        const role = item ? item.role : this.role;
+        if (role !== 'obstacle' && role !== 'color') {
+            p.style.display = 'none'; // also for lines: they are drawn like the background's track
+            return;
+        }
+        p.style.display = '';
+        const current = (item && item.kind !== 'line' ? item.color : this.color) || (role === 'obstacle' ? SIM.OBSTACLE_COLOR : SIM.COLOR_AREA_COLOR);
+        const colors = (role === 'obstacle' ? [SIM.OBSTACLE_COLOR] : []).concat(SIM.PALETTE);
+        colors.forEach((c) => {
+            const b = html('button', 'nepoSimColor' + (c.toLowerCase() === current.toLowerCase() ? ' active' : ''), p);
+            b.type = 'button';
+            b.style.background = c;
+            b.title = c;
+            b.addEventListener('click', (e: Event) => {
+                e.preventDefault();
+                this.setColor(c);
+            });
+        });
     }
 
     private updateHint(): void {
         this.hint.textContent = this.text(this.tool === 'select' ? 'hintSelect' : this.tool === 'line' || this.tool === 'curve' ? 'hintLine' : 'hintShape');
     }
 
-    // -------------------------------------------------------------------------------------------- properties and settings
+    // -------------------------------------------------------------------------------------------- properties
 
     private renderProps(): void {
         const props = this.props;
@@ -754,8 +917,8 @@ export class SimEditor {
         w.type = 'number';
         w.min = '0.5';
         w.max = '5';
-        w.step = '0.5';
-        w.value = String(item.width || SIM.LINE_WIDTH_CM);
+        w.step = '0.1';
+        w.value = String(round(item.width || SIM.LINE_WIDTH_CM));
         l.appendChild(document.createTextNode(' ' + this.text('cm')));
         w.addEventListener('change', () => {
             const v = Math.max(0.5, Math.min(5, Number(w.value) || SIM.LINE_WIDTH_CM));
@@ -763,33 +926,6 @@ export class SimEditor {
             item.width = v;
             this.commit(before);
         });
-    }
-
-    private renderSettings(): void {
-        const row = this.settingsRow;
-        row.innerHTML = '';
-        if (!this.data) {
-            return;
-        }
-        const settings = this.data.world.settings || {};
-        const number = (key: string, label: string, unit: string, def: number, max: number) => {
-            const l = html('label', '', row);
-            l.appendChild(document.createTextNode(label + ' '));
-            const input = html('input', 'nepoSimNumber', l);
-            input.type = 'number';
-            input.min = '0';
-            input.max = String(max);
-            input.value = String((settings as any)[key] !== undefined ? (settings as any)[key] : def);
-            l.appendChild(document.createTextNode(' ' + unit));
-            input.addEventListener('change', () => {
-                const before = this.snapshot();
-                this.data.world.settings = this.data.world.settings || {};
-                (this.data.world.settings as any)[key] = Math.max(0, Math.min(max, Math.round(Number(input.value) || 0)));
-                this.commit(before);
-            });
-        };
-        number('ambient_light', this.text('ambient'), '%', 50, 100);
-        number('obstacle_range_cm', this.text('range'), this.text('cm'), 10, 50);
     }
 
     private renderPathInfo(): void {
@@ -823,6 +959,26 @@ export class SimEditor {
             (recorded ? this.text('recorded', this.describe(run)) : this.text(run.passed ? 'passed' : 'failed', this.describe(run))) + (run.stale ? ' ' + this.text('stale') : '');
     }
 
+    /** what the robot's sensors see where it is drawn (as the simulator's sensor values view) */
+    private renderSensors(light?: number[], seen?: boolean[]): void {
+        if (!this.sensorInfo) {
+            return;
+        }
+        if (!light || !seen) {
+            this.sensorInfo.textContent = '';
+            return;
+        }
+        const obstacles = [this.text('left'), this.text('front'), this.text('right')].filter((_, i) => seen[i]);
+        this.sensorInfo.textContent = this.text(
+            'sensors',
+            this.text(light[0] < 50 ? 'black' : 'white'),
+            Math.round(light[0]),
+            Math.round(light[1]),
+            Math.round(light[2]),
+            obstacles.length ? obstacles.join(', ') : this.text('noObstacle')
+        );
+    }
+
     // -------------------------------------------------------------------------------------------- the picture
 
     private buildSvg(): void {
@@ -830,16 +986,10 @@ export class SimEditor {
         this.canvas.appendChild(svg);
         this.svg = svg;
         svg.innerHTML = SIM.defs('e');
-        const defs = svg.querySelector('defs');
-        const grid = el('pattern', { id: 'eGrid', patternUnits: 'userSpaceOnUse', width: 10, height: 10 }, defs);
-        this.layers.gridLines = el('path', { d: 'M10 0 L0 0 L0 10', fill: 'none', stroke: SIM.COLORS.grid, 'stroke-width': 0.2 }, grid);
-        const grid50 = el('pattern', { id: 'eGrid50', patternUnits: 'userSpaceOnUse', width: 50, height: 50 }, defs);
-        el('rect', { width: 50, height: 50, fill: 'url(#eGrid)' }, grid50);
-        this.layers.gridLines50 = el('path', { d: 'M50 0 L0 0 L0 50', fill: 'none', stroke: SIM.COLORS.grid10, 'stroke-width': 0.3 }, grid50);
-        el('rect', { x: -5000, y: -5000, width: 10000, height: 10000, fill: SIM.COLORS.background }, svg);
-        el('rect', { x: -5000, y: -5000, width: 10000, height: 10000, fill: 'url(#eGrid50)' }, svg);
-        ['reference', 'world', 'runPath', 'robot', 'replayRobot', 'overlay'].forEach((name) => (this.layers[name] = el('g', { class: 'nepoSim_' + name }, svg)));
-        this.layers.replayRobot.setAttribute('opacity', '0.85');
+        el('rect', { x: -5000, y: -5000, width: 10000, height: 10000, fill: SIM.COLORS.outside }, svg);
+        ['ground', 'reference', 'world', 'runPath', 'infrared', 'robot', 'replayRobot', 'overlay'].forEach(
+            (name) => (this.layers[name] = el('g', { class: 'nepoSim_' + name }, svg))
+        );
         svg.addEventListener('pointerdown', (e: PointerEvent) => this.pointerDown(e));
         svg.addEventListener('pointermove', (e: PointerEvent) => this.pointerMove(e));
         svg.addEventListener('pointerup', (e: PointerEvent) => this.pointerUp(e));
@@ -860,16 +1010,44 @@ export class SimEditor {
         if (!this.data) {
             return;
         }
+        this.layers.ground.innerHTML = SIM.groundSvg(this.data.world, 'e');
         this.layers.world.innerHTML = SIM.worldSvg(this.data.world, 'e');
-        const s = this.data.world.start;
-        this.layers.robot.setAttribute('transform', SIM.robotTransform(s.x, s.y, s.heading));
-        this.layers.robot.innerHTML = SIM.robotSvg();
         this.renderReference();
         this.renderOverlay();
         this.renderProps();
         this.renderRoles();
         this.renderStatus();
-        this.renderGrid();
+        this.renderZoomed();
+        this.renderSensorsOfRobots();
+    }
+
+    /** the robots: at the start (to edit) and, if a run is shown, where it is in the replay; both as the simulator draws them */
+    private renderSensorsOfRobots(): void {
+        if (!this.data) {
+            return;
+        }
+        const world = this.data.world;
+        const s = world.start;
+        const run = this.currentRun();
+        const replay = this.replayPose();
+        const start = this.layers.robot;
+        start.setAttribute('transform', SIM.robotTransform(s.x, s.y, s.heading));
+        start.setAttribute('opacity', replay ? '0.45' : '1');
+        const shown = replay || [s.x, s.y, s.heading];
+        const light = this.lightAt(shown[0], shown[1], shown[2]);
+        const ir = SIM.infrared(world, shown[0], shown[1], shown[2]);
+        start.innerHTML = SIM.robotSvg('e', replay ? this.lightAt(s.x, s.y, s.heading) : light);
+        this.layers.infrared.innerHTML = SIM.infraredSvg(world, shown[0], shown[1], shown[2], this.data.view ? this.data.view.scale : 4);
+        const g = this.layers.replayRobot;
+        if (replay) {
+            g.setAttribute('transform', SIM.robotTransform(replay[0], replay[1], replay[2]));
+            g.innerHTML = SIM.robotSvg('e', light, this.ledsAt(run, this.replayT));
+            g.style.display = '';
+        } else {
+            g.innerHTML = '';
+            g.style.display = 'none';
+        }
+        this.renderSensors(light, ir.seen);
     }
 
     private renderReference(): void {
@@ -881,18 +1059,15 @@ export class SimEditor {
         const g = this.layers.runPath;
         g.innerHTML = '';
         const run = this.currentRun();
-        this.layers.replayRobot.style.display = 'none';
         if (!run || !run.path.length) {
+            this.renderSensorsOfRobots();
             this.renderStatus();
             return;
         }
-        const w = this.px(2);
-        el('polyline', { points: run.path.map((p) => p[1] + ' ' + p[2]).join(' '), fill: 'none', stroke: SIM.COLORS.path, 'stroke-width': w, 'stroke-linejoin': 'round', opacity: 0.9 }, g);
+        el('polyline', { points: run.path.map((p) => p[1] + ' ' + p[2]).join(' '), fill: 'none', stroke: SIM.COLORS.path, 'stroke-width': this.px(2), 'stroke-linejoin': 'round', opacity: 0.9 }, g);
         const item = run.item && this.item(run.item);
         if (item && !run.passed) {
-            const outline = el(item.kind === 'rect' ? 'rect' : 'ellipse', {}, g);
-            this.shapeAttrs(outline, item, this.px(3));
-            outline.setAttribute('stroke', SIM.COLORS.fail);
+            this.outline(g, item, SIM.COLORS.fail, this.px(3));
         }
         if (run.point) {
             const r = this.px(7);
@@ -902,22 +1077,20 @@ export class SimEditor {
         this.renderStatus();
     }
 
-    private shapeAttrs(e: any, item: SIM.SimItem, strokeWidth: number): void {
-        const t = item.rot ? 'rotate(' + -item.rot + ' ' + item.x + ' ' + item.y + ')' : '';
+    /** an outline of a shape (selection, the area a run ended in) */
+    private outline(g: any, item: SIM.SimItem, color: string, width: number): any {
+        let e: any;
         if (item.kind === 'rect') {
-            e.setAttribute('x', item.x - item.w / 2);
-            e.setAttribute('y', item.y - item.h / 2);
-            e.setAttribute('width', item.w);
-            e.setAttribute('height', item.h);
+            e = el('rect', { x: item.x, y: item.y, width: item.w, height: item.h }, g);
+        } else if (item.kind === 'circle') {
+            e = el('circle', { cx: item.x, cy: item.y, r: item.r }, g);
         } else {
-            e.setAttribute('cx', item.x);
-            e.setAttribute('cy', item.y);
-            e.setAttribute('rx', item.w / 2);
-            e.setAttribute('ry', item.h / 2);
+            e = el('polygon', { points: item.points.map((p) => p.join(' ')).join(' ') }, g);
         }
-        t && e.setAttribute('transform', t);
         e.setAttribute('fill', 'none');
-        e.setAttribute('stroke-width', strokeWidth);
+        color ? e.setAttribute('stroke', color) : e.setAttribute('class', 'nepoSimSelection');
+        e.setAttribute('stroke-width', width);
+        return e;
     }
 
     /** selection, handles, the line being drawn */
@@ -934,8 +1107,8 @@ export class SimEditor {
                 : el('rect', { x: x - r, y: y - r, width: 2 * r, height: 2 * r, class: 'nepoSimHandle', 'data-handle': kind, 'stroke-width': this.px(1.5) }, g);
         const s = this.data.world.start;
         // the robot's turning handle is always there: the robot is always "selected" in a way, as it can't be deleted
-        const tip = SIM.toWorld(s.x, s.y, s.heading, SIM.FRONT_CM + 3, 0);
-        const nose = SIM.toWorld(s.x, s.y, s.heading, SIM.FRONT_CM, 0);
+        const tip = SIM.robotPoint(s.x, s.y, s.heading, [SIM.OUTLINE[0][0] + 9, 0]);
+        const nose = SIM.robotPoint(s.x, s.y, s.heading, [SIM.OUTLINE[0][0], 0]);
         el('line', { x1: nose[0], y1: nose[1], x2: tip[0], y2: tip[1], stroke: '#1e5aa8', 'stroke-width': this.px(1.5) }, g);
         handle(tip[0], tip[1], 'robot-turn', true).classList.add('nepoSimRobotHandle');
         if (this.selected === 'robot') {
@@ -946,40 +1119,34 @@ export class SimEditor {
             el('path', { d: SIM.linePathD(item), class: 'nepoSimSelection', 'stroke-width': this.px(1.5) }, g);
             (item.points || []).forEach((p, i) => handle(p[0], p[1], 'point:' + i, true));
         } else if (item) {
-            const outline = el(item.kind === 'rect' ? 'rect' : 'ellipse', { class: 'nepoSimSelection' }, g);
-            this.shapeAttrs(outline, item, this.px(1.5));
-            outline.removeAttribute('fill');
-            const hw = item.w / 2;
-            const hh = item.h / 2;
-            [
-                [hw, hh],
-                [-hw, hh],
-                [-hw, -hh],
-                [hw, -hh],
-            ].forEach((c, k) => {
-                const p = SIM.rotated(item.x, item.y, c[0], c[1], item.rot || 0);
-                handle(p[0], p[1], 'corner:' + k);
-            });
-            const top = SIM.rotated(item.x, item.y, 0, -hh - this.px(22), item.rot || 0);
-            const edge = SIM.rotated(item.x, item.y, 0, -hh, item.rot || 0);
-            el('line', { x1: edge[0], y1: edge[1], x2: top[0], y2: top[1], stroke: '#1e5aa8', 'stroke-width': this.px(1.5) }, g);
-            handle(top[0], top[1], 'turn', true);
+            this.outline(g, item, null, this.px(1.5));
+            if (item.kind === 'rect') {
+                [
+                    [item.x, item.y],
+                    [item.x + item.w, item.y],
+                    [item.x + item.w, item.y + item.h],
+                    [item.x, item.y + item.h],
+                ].forEach((c, k) => handle(c[0], c[1], 'corner:' + k));
+            } else if (item.kind === 'circle') {
+                handle(item.x + item.r, item.y, 'radius', true);
+            } else {
+                item.points.forEach((p, i) => handle(p[0], p[1], 'point:' + i));
+            }
         }
         const d = this.drawing;
         if (d) {
-            el('path', { d: SIM.linePathD(d), fill: 'none', stroke: SIM.COLORS.black, 'stroke-width': d.width || SIM.LINE_WIDTH_CM, opacity: 0.6 }, g);
+            el('path', { d: SIM.linePathD(d), fill: 'none', stroke: '#000000', 'stroke-width': d.width || SIM.LINE_WIDTH_CM, opacity: 0.6 }, g);
             d.points.slice(0, -1).forEach((p, i) => handle(p[0], p[1], i === 0 ? 'first' : 'drawn', true));
         }
     }
 
-    private renderGrid(): void {
+    /** what depends on the zoom: shadows (canvas shadows are in screen pixels), the scale bar, the run's path */
+    private renderZoomed(): void {
         if (!this.data || !this.data.view) {
             return;
         }
         const scale = this.data.view.scale;
-        this.layers.gridLines.setAttribute('stroke-width', String(1 / scale));
-        this.layers.gridLines50.setAttribute('stroke-width', String(1.6 / scale));
-        // the scale bar: 1, 5, 10, 50 or 100 cm, whichever is about 60-150 px
+        SIM.shadowSizes(this.svg, 'e', scale);
         const lengths = [1, 5, 10, 20, 50, 100, 200];
         let cm = lengths[lengths.length - 1];
         for (const l of lengths) {
@@ -1013,18 +1180,18 @@ export class SimEditor {
         this.data.view = { x: Math.round(x * 100) / 100, y: Math.round(y * 100) / 100, scale: Math.max(MIN_SCALE, Math.min(MAX_SCALE, Math.round(scale * 1000) / 1000)) };
         this.updateViewBox();
         this.renderOverlay();
-        this.renderGrid();
+        this.renderZoomed();
         this.renderRun();
         clearTimeout(this.viewTimer);
         this.viewTimer = setTimeout(() => this.data && this.host.changed(this.data, true), 400);
     }
 
-    /** shows everything (at least 80 x 50 cm, so a new world doesn't start with a giant robot) */
-    private fit(animate: boolean): void {
-        const [x0, y0, x1, y1] = SIM.bounds(this.data);
+    /** shows the whole floor */
+    private fit(): void {
+        const [x0, y0, x1, y1] = SIM.groundBounds(this.data.world);
         const [w, h] = this.size();
-        const margin = 8;
-        const scale = Math.min(w / Math.max(80, x1 - x0 + 2 * margin), h / Math.max(50, y1 - y0 + 2 * margin));
+        const margin = 2;
+        const scale = Math.min(w / (x1 - x0 + 2 * margin), h / (y1 - y0 + 2 * margin));
         this.setView((x0 + x1) / 2, (y0 + y1) / 2, scale);
     }
 
@@ -1060,11 +1227,11 @@ export class SimEditor {
             return { handle: h };
         }
         const local = this.robotLocal(p);
-        if (local[0] >= -SIM.BACK_CM && local[0] <= SIM.FRONT_CM && Math.abs(local[1]) <= SIM.WIDTH_CM / 2) {
+        if (local[0] >= SIM.CHASSIS.x && local[0] <= SIM.CHASSIS.x + SIM.CHASSIS.w && local[1] >= SIM.CHASSIS.y && local[1] <= SIM.CHASSIS.y + SIM.CHASSIS.h) {
             return { robot: true };
         }
         const slack = this.px(3);
-        const order = (item: SIM.SimItem) => (item.kind === 'line' ? 1 : item.role === 'goal' || item.role === 'fail' ? 3 : item.role === 'obstacle' ? 2 : 0);
+        const order = (item: SIM.SimItem) => (item.role === 'goal' || item.role === 'fail' ? 3 : item.role === 'obstacle' ? 2 : item.kind === 'line' ? 1 : 0);
         const items = this.data.world.items
             .map((item, i) => ({ item: item, i: i }))
             .sort((a, b) => order(b.item) - order(a.item) || b.i - a.i)
@@ -1077,12 +1244,39 @@ export class SimEditor {
         return {};
     }
 
+    /** a world point (cm) in the robot frame at its start (units: x ahead, y to the right) */
     private robotLocal(p: number[]): number[] {
         const s = this.data.world.start;
-        const r = (s.heading * Math.PI) / 180;
-        const dx = p[0] - s.x;
-        const dy = p[1] - s.y;
-        return [dx * Math.cos(r) - dy * Math.sin(r), -(dx * Math.sin(r) + dy * Math.cos(r))];
+        const theta = (-s.heading * Math.PI) / 180;
+        const dx = (p[0] - s.x) * SIM.UNITS_PER_CM;
+        const dy = (p[1] - s.y) * SIM.UNITS_PER_CM;
+        return [dx * Math.cos(theta) + dy * Math.sin(theta), -dx * Math.sin(theta) + dy * Math.cos(theta)];
+    }
+
+    /** the simulator's default size of new objects (simulation.scene.ts: a ninth of the background's width) */
+    private defaultSize(): number {
+        return SIM.backgroundSize(this.data.world)[0] / 9 / SIM.UNITS_PER_CM;
+    }
+
+    private newShape(kind: string, p: number[]): SIM.SimItem {
+        const item: SIM.SimItem = { id: newId('s'), kind: kind, role: this.role };
+        if (this.color && (this.role === 'obstacle' || this.role === 'color')) {
+            item.color = this.color;
+        }
+        const size = this.defaultSize();
+        if (kind === 'rect') {
+            Object.assign(item, { x: round(p[0]), y: round(p[1]), w: 0, h: 0 });
+        } else if (kind === 'circle') {
+            Object.assign(item, { x: round(p[0]), y: round(p[1]), r: 0 });
+        } else {
+            const d = size / 2;
+            item.points = [
+                [round(p[0] - d), round(p[1] + d)],
+                [round(p[0]), round(p[1] - d)],
+                [round(p[0] + d), round(p[1] + d)],
+            ];
+        }
+        return item;
     }
 
     private pointerDown(e: PointerEvent): void {
@@ -1096,13 +1290,21 @@ export class SimEditor {
             this.beginDrag(e, { kind: 'pan', start: [e.clientX, e.clientY], view: Object.assign({}, this.data.view), moved: false });
             return;
         }
+        const now = performance.now();
+        const double = this.lastDown && now - this.lastDown.t < 400 && Math.hypot(e.clientX - this.lastDown.x, e.clientY - this.lastDown.y) < 6;
+        this.lastDown = { t: now, x: e.clientX, y: e.clientY };
         if (this.tool === 'line' || this.tool === 'curve') {
-            this.addLinePoint(e, p);
+            if (double && this.drawing) {
+                this.finishDrawing(true);
+                this.lastDown = null;
+                return;
+            }
+            this.addLinePoint(p);
             return;
         }
-        if (this.tool === 'rect' || this.tool === 'ellipse') {
-            const item: SIM.SimItem = { id: newId('s'), kind: this.tool, role: this.role, x: round(p[0]), y: round(p[1]), w: 0, h: 0, rot: 0 };
-            this.beginDrag(e, { kind: 'create', item: item, anchor: p, before: this.snapshot() });
+        if (this.tool === 'rect' || this.tool === 'circle' || this.tool === 'triangle') {
+            const item = this.newShape(this.tool, p);
+            this.beginDrag(e, { kind: 'create', item: item, anchor: p, before: this.snapshot(), moved: false });
             this.data.world.items.push(item);
             return;
         }
@@ -1116,9 +1318,9 @@ export class SimEditor {
             } else if (h.indexOf('point:') === 0) {
                 this.beginDrag(e, { kind: 'point', index: Number(h.substring(6)), before: before });
             } else if (h.indexOf('corner:') === 0) {
-                this.beginDrag(e, { kind: 'corner', corner: Number(h.substring(7)), before: before });
-            } else if (h === 'turn') {
-                this.beginDrag(e, { kind: 'turn', before: before });
+                this.beginDrag(e, { kind: 'corner', corner: Number(h.substring(7)), original: SIM.clone(this.item(this.selected)), before: before });
+            } else if (h === 'radius') {
+                this.beginDrag(e, { kind: 'radius', before: before });
             }
         } else if (hit.robot) {
             this.selected = 'robot';
@@ -1150,7 +1352,7 @@ export class SimEditor {
         }
         if (this.drawing) {
             const p = this.toWorldPoint(e);
-            this.drawing.points[this.drawing.points.length - 1] = this.snap(p, e);
+            this.drawing.points[this.drawing.points.length - 1] = [round(p[0]), round(p[1])];
             this.renderOverlay();
             return;
         }
@@ -1178,52 +1380,65 @@ export class SimEditor {
             const item = this.item(this.selected);
             const dx = p[0] - d.start[0];
             const dy = p[1] - d.start[1];
-            if (item.kind === 'line') {
+            if (item.points) {
                 item.points = d.original.points.map((q: number[]) => [round(q[0] + dx), round(q[1] + dy)]);
             } else {
                 item.x = round(d.original.x + dx);
                 item.y = round(d.original.y + dy);
             }
         } else if (d.kind === 'point') {
-            const item = this.item(this.selected);
-            item.points[d.index] = this.snap(p, e);
+            this.item(this.selected).points[d.index] = [round(p[0]), round(p[1])];
         } else if (d.kind === 'corner') {
-            const item = this.item(this.selected);
+            // the opposite corner stays where it is
+            const o = d.original;
             const corners = [
-                [1, 1],
-                [-1, 1],
-                [-1, -1],
-                [1, -1],
+                [o.x, o.y],
+                [o.x + o.w, o.y],
+                [o.x + o.w, o.y + o.h],
+                [o.x, o.y + o.h],
             ];
-            const opposite = corners[(d.corner + 2) % 4];
-            const fixed = SIM.rotated(item.x, item.y, (opposite[0] * item.w) / 2, (opposite[1] * item.h) / 2, item.rot || 0);
-            const centre = [(fixed[0] + p[0]) / 2, (fixed[1] + p[1]) / 2];
-            const local = SIM.toLocal({ id: '', kind: item.kind, x: centre[0], y: centre[1], rot: item.rot || 0 }, p[0], p[1]);
-            item.w = round(Math.max(1, Math.abs(local[0]) * 2));
-            item.h = round(Math.max(1, Math.abs(local[1]) * 2));
-            item.x = round(centre[0]);
-            item.y = round(centre[1]);
-        } else if (d.kind === 'turn') {
+            const fixed = corners[(d.corner + 2) % 4];
+            this.setRect(this.item(this.selected), fixed, p);
+        } else if (d.kind === 'radius') {
             const item = this.item(this.selected);
-            item.rot = this.angle(Math.atan2(-(p[1] - item.y), p[0] - item.x), e) - 90;
-            item.rot = ((item.rot % 360) + 360) % 360;
+            item.r = round(Math.max(0.5, Math.hypot(p[0] - item.x, p[1] - item.y)));
         } else if (d.kind === 'create') {
             const item: SIM.SimItem = d.item;
-            item.x = round((d.anchor[0] + p[0]) / 2);
-            item.y = round((d.anchor[1] + p[1]) / 2);
-            item.w = round(Math.abs(p[0] - d.anchor[0]));
-            item.h = round(Math.abs(p[1] - d.anchor[1]));
-            d.moved = true;
+            const a = d.anchor;
+            if (Math.hypot(p[0] - a[0], p[1] - a[1]) > this.px(4)) {
+                d.moved = true;
+            }
+            if (item.kind === 'rect') {
+                this.setRect(item, a, p);
+            } else if (item.kind === 'circle') {
+                item.r = round(Math.hypot(p[0] - a[0], p[1] - a[1]));
+            } else {
+                const x0 = Math.min(a[0], p[0]);
+                const x1 = Math.max(a[0], p[0]);
+                const y0 = Math.min(a[1], p[1]);
+                const y1 = Math.max(a[1], p[1]);
+                item.points = [
+                    [round(x0), round(y1)],
+                    [round((x0 + x1) / 2), round(y0)],
+                    [round(x1), round(y1)],
+                ];
+            }
         }
         d.changed = true;
         this.renderEdit();
     }
 
+    private setRect(item: SIM.SimItem, a: number[], b: number[]): void {
+        item.x = round(Math.min(a[0], b[0]));
+        item.y = round(Math.min(a[1], b[1]));
+        item.w = round(Math.max(0.5, Math.abs(b[0] - a[0])));
+        item.h = round(Math.max(0.5, Math.abs(b[1] - a[1])));
+    }
+
     /** a light re-render while dragging */
     private renderEdit(): void {
         this.layers.world.innerHTML = SIM.worldSvg(this.data.world, 'e');
-        const s = this.data.world.start;
-        this.layers.robot.setAttribute('transform', SIM.robotTransform(s.x, s.y, s.heading));
+        this.renderSensorsOfRobots();
         this.renderOverlay();
     }
 
@@ -1244,13 +1459,15 @@ export class SimEditor {
         }
         if (d.kind === 'create') {
             const item: SIM.SimItem = d.item;
-            if (item.w < 1 && item.h < 1) {
-                const size = item.role === 'obstacle' ? 8 : 12;
-                item.w = size;
-                item.h = size;
+            if (!d.moved) {
+                // a click: the simulator's default size (RectangleSimulationObject w = h = width / 9, Circle r = width / 18)
+                const size = this.defaultSize();
+                if (item.kind === 'rect') {
+                    Object.assign(item, { x: round(d.anchor[0] - size / 2), y: round(d.anchor[1] - size / 2), w: round(size), h: round(size) });
+                } else if (item.kind === 'circle') {
+                    item.r = round(size / 2);
+                }
             }
-            item.w = Math.max(1, item.w);
-            item.h = Math.max(1, item.h);
             this.selected = item.id;
             this.setTool('select');
             this.commit(d.before);
@@ -1295,8 +1512,7 @@ export class SimEditor {
             let best = 0;
             let bestD = Infinity;
             segments.forEach((seg, i) => {
-                const poly = SIM.linePolyline({ id: '', kind: 'line', points: [seg[0], seg[3]], smooth: false });
-                const dist = SIM.distanceToSegment(p[0], p[1], poly[0], poly[1]);
+                const dist = SIM.distanceToSegment(p[0], p[1], seg[0], seg[3]);
                 if (dist < bestD) {
                     bestD = dist;
                     best = i;
@@ -1307,10 +1523,10 @@ export class SimEditor {
         this.commit(before);
     }
 
-    private addLinePoint(e: PointerEvent, p: number[]): void {
-        const q = this.snap(p, e);
+    private addLinePoint(p: number[]): void {
+        const q = [round(p[0]), round(p[1])];
         if (!this.drawing) {
-            this.drawing = { id: newId('l'), kind: 'line', points: [q, q.slice()], smooth: this.tool === 'curve', closed: false, width: SIM.LINE_WIDTH_CM };
+            this.drawing = { id: newId('l'), kind: 'line', points: [q, q.slice()], smooth: this.tool === 'curve', closed: false };
             this.renderOverlay();
             return;
         }
@@ -1351,7 +1567,6 @@ export class SimEditor {
             const before = this.snapshot();
             this.data.world.items.push(d);
             this.selected = d.id;
-            this.tool = 'select';
             this.setTool('select');
             this.commit(before);
         } else {
@@ -1363,10 +1578,6 @@ export class SimEditor {
     private angle(radians: number, e: MouseEvent): number {
         const deg = (radians * 180) / Math.PI;
         return e.shiftKey ? Math.round(deg * 10) / 10 : Math.round(deg / 15) * 15;
-    }
-
-    private snap(p: number[], e: MouseEvent): number[] {
-        return [round(p[0]), round(p[1])];
     }
 
     private keyDown(e: KeyboardEvent): void {
@@ -1387,6 +1598,7 @@ export class SimEditor {
                 this.selected = null;
                 this.renderOverlay();
                 this.renderProps();
+                this.renderRoles();
             }
         } else if (e.key === 'Enter') {
             this.finishDrawing(true);
@@ -1400,7 +1612,7 @@ export class SimEditor {
                 this.data.world.start.y = round(this.data.world.start.y + dy);
             } else {
                 const item = this.item(this.selected);
-                if (item.kind === 'line') {
+                if (item.points) {
                     item.points = item.points.map((q) => [round(q[0] + dx), round(q[1] + dy)]);
                 } else {
                     item.x = round(item.x + dx);
@@ -1414,8 +1626,4 @@ export class SimEditor {
         e.preventDefault();
         e.stopPropagation();
     }
-}
-
-function round(v: number): number {
-    return Math.round(v * 10) / 10;
 }

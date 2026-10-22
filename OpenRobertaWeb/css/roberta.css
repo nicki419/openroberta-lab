@@ -546,19 +546,45 @@ body.blocklyMinimalBody * {
     z-index: 1;
 }
 
-.nepoSimSettings {
-    display: none;
+.nepoSimProps label {
+    font-weight: normal;
+    margin: 0 12px 2px 0;
+}
+
+.nepoSimBackground {
+    height: 28px;
     font-size: 90%;
+    border: 1px solid #c8c8c8;
+    border-radius: 3px;
+    background: #fff;
+}
+
+.nepoSimPalette {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
     margin-bottom: 4px;
 }
 
-.nepoSimSettings.open {
-    display: block;
+.nepoSimColor {
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    border: 1px solid #999;
+    border-radius: 3px;
+    cursor: pointer;
 }
 
-.nepoSimSettings label, .nepoSimProps label {
-    font-weight: normal;
-    margin: 0 12px 2px 0;
+.nepoSimColor.active {
+    outline: 2px solid #1e5aa8;
+    outline-offset: 1px;
+}
+
+.nepoSimSensors {
+    font-size: 85%;
+    color: #555;
+    margin-top: 3px;
+    min-height: 1.2em;
 }
 
 .nepoSimProps {
@@ -580,9 +606,9 @@ body.blocklyMinimalBody * {
     position: relative;
     flex: 1 1 auto;
     min-height: 220px;
-    border: 1px solid #d9c2b0;
+    border: 1px solid #d0d0d0;
     overflow: hidden;
-    background: #ffe5d0;
+    background: #f4f4f4;
 }
 
 .nepoSimCanvas[data-tool='line'], .nepoSimCanvas[data-tool='curve'], .nepoSimCanvas[data-tool='rect'], .nepoSimCanvas[data-tool='ellipse'] {
@@ -595,6 +621,11 @@ body.blocklyMinimalBody * {
     height: 100%;
     touch-action: none;
     outline: none;
+    user-select: none;
+}
+
+.nepoSimCanvas, .nepoSimScale {
+    user-select: none;
 }
 
 .nepoSimHandle {
@@ -621,7 +652,7 @@ body.blocklyMinimalBody * {
     left: 8px;
     bottom: 6px;
     font-size: 11px;
-    color: #6b4a33;
+    color: #444;
     pointer-events: none;
 }
 
@@ -629,7 +660,7 @@ body.blocklyMinimalBody * {
     display: inline-block;
     height: 4px;
     margin-right: 6px;
-    border: 1px solid #6b4a33;
+    border: 1px solid #444;
     border-top: none;
     vertical-align: middle;
 }

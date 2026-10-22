@@ -59,8 +59,8 @@ public class NepoTestSuitePersistenceTest {
             Assert.assertEquals(dataOf(export, id), data);
             Assert.assertTrue(data.contains("\"start\""));
         }
-        Assert.assertTrue(dataOf(program, "lft10").contains("reference"));
-        Assert.assertTrue(program.contains("<field name=\"SECONDS\">30</field>"));
+        Assert.assertTrue(dataOf(program, "lft10").contains("\"reference\":{\"path\":[["));
+        Assert.assertTrue(program.contains("<field name=\"SECONDS\">20</field>"));
     }
 
     @Test

@@ -5,7 +5,8 @@
  * - the suite is saved with the program (nepoTest.suite: extra instances of the program's XML)
  * - "Code" shows the suite as NepoTest JSON and the program's generated EdPy
  * - "Test runner" converts the program with the Lab (REST /projectWorkflow/sourceForTest: EdPy + source map) and runs the suite in the browser
- *   with NepoTest in Pyodide (nepoTest.runner); results come back per test, errors and coverage per block
+ *   with NepoTest in Pyodide (nepoTest.runner); the simulation tests run on the Lab's simulator (nepoTest.simRun). Results come back per test,
+ *   errors and coverage per block
  * - "Simulation" shows the world of the selected simulation test (nepoTest.simEditor): it is drawn there, recorded, run and replayed. The world
  *   is the test block's data (JSON), so it is saved with the suite, and undo of a deleted block brings it back.
  * Only for the Edison robots (NepoTest supports them).
@@ -20,6 +21,7 @@ import * as BLOCKS from 'nepoTest.blocks';
 import * as SUITE from 'nepoTest.suite';
 import * as RUNNER from 'nepoTest.runner';
 import * as SIM from 'nepoTest.sim';
+import * as SIMRUN from 'nepoTest.simRun';
 import { SimEditor } from 'nepoTest.simEditor';
 
 const SUPPORTED_GROUPS = ['edison'];
@@ -30,6 +32,7 @@ let blocksLanguage: string = null;
 let codeView: 'json' | 'edpy' = 'json';
 let codeTimer: any = null;
 let running = false;
+let cancelled = false; // "stop": a simulation test that runs stops too
 let simEditor: SimEditor = null;
 
 // ------------------------------------------------------------------------------------------------ setup
@@ -62,6 +65,7 @@ export function init(): void {
         run: function () {
             simulate(false);
         },
+        simulatorScene: simulatorScene,
     });
     simEditor.setLanguage(blocksLanguage);
     SUITE.setWorkspace(serializeSuite, loadSuite);
@@ -148,6 +152,7 @@ function initEvents(): void {
         runTests();
     });
     $('#testsStopButton').onWrap('click', function () {
+        cancelled = true;
         RUNNER.cancel();
     });
     $('#testsResults, #testsProblems, #testsCoverage').on('click', '[data-block]', function (e) {
@@ -389,6 +394,11 @@ function loadSuite(testsXml: string): void {
     if (!workspace.getTopBlocks(false).some((b) => b.type === 'nepoTest_suite')) {
         Blockly.Xml.domToWorkspace(Blockly.Xml.textToDom(BLOCKS.emptySuite(GUISTATE_C.getRobotGroup()), workspace), workspace);
     }
+    for (const block of workspace.getAllBlocks()) {
+        if (block.type === 'nepoTest_simtest' && block.data && block.data.indexOf('"floor"') >= 0) {
+            block.data = JSON.stringify(SIM.parseData(block.data)); // without the floor picture of earlier versions: the simulator draws its own
+        }
+    }
     $('#testsResults, #testsProblems, #testsCoverage').empty();
     $('#testsStatus').text('');
     reopenSim();
@@ -465,14 +475,14 @@ function followSimTest(event: any): void {
 }
 
 /** the simulation window changed the world: it goes into the test block's data (an edit makes the program unsaved, a zoom doesn't) */
-function simChanged(data: SIM.SimData, viewOnly: boolean): void {
+function simChanged(data: SIM.SimData, quiet: boolean): void {
     const block = workspace.getBlockById(simEditor.currentBlockId());
     if (!block) {
         return;
     }
     block.data = JSON.stringify(data);
     block.updateThumbnail && block.updateThumbnail();
-    if (!viewOnly) {
+    if (!quiet) {
         if (GUISTATE_C.isProgramSaved()) {
             GUISTATE_C.setProgramSaved(false);
         }
@@ -483,50 +493,92 @@ function simChanged(data: SIM.SimData, viewOnly: boolean): void {
     }
 }
 
-/** records (record: the run becomes the recorded path) or runs the test shown in the Simulation tab */
+/** the scene of the Lab's simulator (its background, obstacles, coloured areas and robot) as a world, or a message why there is none */
+function simulatorScene(): SIM.SimWorld | string {
+    const notOpened = GUISTATE_C.getLanguage() === 'de' ? 'Öffne zuerst die Simulation (im Programm-Tab).' : 'Open the simulation first (in the Program tab).';
+    let scene: any = null;
+    try {
+        // @ts-ignore (the simulation is loaded with the Lab; it is used here only if it was opened)
+        const simulation = require('simulation.roberta');
+        const instance = simulation && (simulation.SimulationRoberta ? simulation.SimulationRoberta.Instance : simulation.default);
+        scene = instance && instance.scene;
+    } catch (e) {
+        scene = null;
+    }
+    if (!scene || !scene.robots || !scene.robots.length || !scene.backgroundImg) {
+        return notOpened;
+    }
+    const src: string = scene.backgroundImg.src || '';
+    const background = src.substring(src.lastIndexOf('/') + 1).replace(/\.(svg|png)$/, '');
+    if (!SIM.BACKGROUNDS[background]) {
+        return GUISTATE_C.getLanguage() === 'de'
+            ? 'Dieser Hintergrund der Simulation geht in Tests nicht (nur die vier des Edison).'
+            : 'Tests cannot use this background of the simulation (only the Edison\'s four).';
+    }
+    const cm = (v: number) => SIM.round2((v - SIM.BORDER) / SIM.UNITS_PER_CM);
+    const items: SIM.SimItem[] = [];
+    const take = (object: any, role: string, i: number) => {
+        const item: SIM.SimItem = { id: 'sim' + role + i, kind: 'rect', role: role, color: object.color };
+        if (object.r !== undefined) {
+            Object.assign(item, { kind: 'circle', x: cm(object.x), y: cm(object.y), r: SIM.round2(object.r / SIM.UNITS_PER_CM) });
+        } else if (object.ax !== undefined) {
+            Object.assign(item, {
+                kind: 'triangle',
+                points: [
+                    [cm(object.ax), cm(object.ay)],
+                    [cm(object.bx), cm(object.by)],
+                    [cm(object.cx), cm(object.cy)],
+                ],
+            });
+        } else if (object.w !== undefined) {
+            Object.assign(item, { x: cm(object.x), y: cm(object.y), w: SIM.round2(object.w / SIM.UNITS_PER_CM), h: SIM.round2(object.h / SIM.UNITS_PER_CM) });
+        } else {
+            return;
+        }
+        items.push(item);
+    };
+    (scene.colorAreaList || []).forEach((o, i) => take(o, 'color', i));
+    (scene.obstacleList || []).forEach((o, i) => take(o, 'obstacle', i));
+    const pose = scene.robots[0].initialPose || scene.robots[0].pose;
+    const heading = SIM.round2((-pose.theta * 180) / Math.PI);
+    return { background: background, start: { x: cm(pose.x), y: cm(pose.y), heading: ((heading % 360) + 540) % 360 - 180 }, items: items };
+}
+
+/** records (record: the run becomes the recorded path) or runs the test shown in the Simulation tab, on the Lab's simulator */
 function simulate(record: boolean): void {
     const blockId = simEditor.currentBlockId();
     if (!blockId || running) {
         return;
     }
     running = true;
+    cancelled = false;
     simEditor.setBusy(true, RUNNER.isReady() ? null : simEditor.loadingText());
-    const xml = programXml();
-    const testsXml = serializeSuite(true);
     const done = function (message?: string, isError?: boolean) {
         running = false;
         simEditor.setBusy(false);
         message && simEditor.showMessage(message, isError);
     };
-    convertProgram(function (result) {
-        if (result.rc !== 'ok' && !result.progXML) {
-            done(text('runnerFailed', Blockly.Msg[result.message] || result.message), true);
-            return;
-        }
-        RUNNER.simulate(JSON.stringify(bundleOf(result, xml)), testsXml, blockId, record).then(
-            function (answer) {
-                if (answer.conversion_errors.length) {
-                    done(text('conversion') + ' ' + answer.conversion_errors.map((e) => e.block_type + ': ' + (Blockly.Msg[e.key] || e.key)).join('; '), true);
-                    return;
-                }
-                const errors = answer.problems.filter((p) => p.severity === 'error');
-                if (errors.length || !answer.report) {
-                    done(text('problems') + ' ' + errors.map((p) => p.message).join('; '), true);
-                    return;
-                }
+    const xml = programXml();
+    RUNNER.simulationTest(serializeSuite(true), blockId, xml)
+        .then(function (answer) {
+            const errors = answer.problems.filter((p) => p.severity === 'error');
+            if (errors.length || !answer.test) {
+                done(text('problems') + ' ' + errors.map((p) => p.message).join('; '), true);
+                return;
+            }
+            simEditor.setBusy(true);
+            return SIMRUN.runTest(answer.test, xml, { record: record, cancelled: () => cancelled }).then(function (report) {
                 done();
-                const report = answer.report;
                 if (report.simulation) {
                     simEditor.showRun(blockId, report, record);
                 } else {
                     simEditor.showMessage(report.error ? report.error.message : report.outcome, report.outcome !== 'passed');
                 }
-            },
-            function (err) {
-                done(err.message === 'cancelled' ? text('stopped') : text('runnerFailed', err.message), true);
-            }
-        );
-    });
+            });
+        })
+        .then(null, function (err) {
+            done(err.message === 'cancelled' ? text('stopped') : text('runnerFailed', err.message), true);
+        });
 }
 
 function selectBlock(blockId: string, where: string): void {
@@ -632,6 +684,7 @@ function runTests(): void {
         return;
     }
     running = true;
+    cancelled = false;
     $('#testsRunButton').prop('disabled', true);
     $('#testsStopButton').prop('disabled', false);
     $('#testsResults, #testsProblems, #testsCoverage').empty();
@@ -645,94 +698,114 @@ function runTests(): void {
         }
         const bundle = bundleOf(result, xml);
         $('#testsStatus').text(RUNNER.isReady() ? '' : text('loadingPython'));
-        let total = 0;
-        RUNNER.run(JSON.stringify(bundle), testsXml, onPrepared, onProgress).then(
-            function (data) {
-                if (data.finish) {
-                    const s = data.finish.summary;
-                    finishRun(text('done', s.passed, s.failed, s.error));
-                    showCoverage(data.finish.coverage);
-                } else {
+        const simulationReports: any[] = [];
+        RUNNER.prepare(JSON.stringify(bundle), testsXml)
+            .then(function (prepared) {
+                if (!showPrepared(prepared)) {
                     finishRun('');
+                    return;
                 }
-            },
-            function (err) {
-                finishRun(err.message === 'cancelled' ? text('stopped') : text('runnerFailed', err.message));
-            }
-        );
-
-        function onPrepared(prepared: any): void {
-            if (prepared.conversion_errors.length) {
-                showList(
-                    text('conversion'),
-                    prepared.conversion_errors.map((e) => ({ message: e.block_type + ': ' + (Blockly.Msg[e.key] || e.key), block: e.block_id, where: 'program' }))
-                );
-                return;
-            }
-            if (prepared.problems.length) {
-                showList(
-                    text('problems'),
-                    prepared.problems.map((p) => ({
-                        message: (p.severity === 'warning' ? text('warning') + ': ' : '') + p.message,
-                        block: p.block_id,
-                        where: 'tests',
-                        cls: p.severity,
-                    }))
-                );
-            }
-            if (prepared.problems.some((p) => p.severity === 'error')) {
-                return; // nothing runs: the problems above say why
-            }
-            total = prepared.tests.length;
-            const $results = $('#testsResults');
-            prepared.spec &&
-                prepared.spec.tests.forEach(function (t, i) {
-                    $results.append(
-                        $('<li class="nepoTestResult waiting"></li>')
-                            .attr('id', 'nepoTestResult' + i)
-                            .attr('data-block', t.block_id)
-                            .attr('data-workspace', 'tests')
-                            .append($('<span class="nepoTestIcon"></span>'))
-                            .append($('<span class="nepoTestName"></span>').text(t.name))
-                            .append($('<span class="nepoTestOutcome"></span>').text(text('waiting')))
-                    );
+                const total = prepared.tests.length;
+                let chain: Promise<any> = Promise.resolve();
+                prepared.spec.tests.forEach(function (test, i) {
+                    chain = chain.then(function () {
+                        if (cancelled) {
+                            throw new Error('cancelled');
+                        }
+                        $('#testsStatus').text(text('running', i + 1, total));
+                        const report = test.simulation ? runSimulationTest(test, xml).then((r) => (simulationReports.push(r), r)) : RUNNER.runOne(i);
+                        return report.then((r) => showReport(i, r));
+                    });
                 });
-            $('#testsStatus').text(total ? text('running', 1, total) : '');
-        }
-
-        function onProgress(index: number, report: any): void {
-            const $li = $('#nepoTestResult' + index).removeClass('waiting').addClass(report.outcome);
-            $li.find('.nepoTestOutcome').text(text(report.outcome));
-            const $details = $('<ul class="nepoTestDetails"></ul>');
-            (report.failures || []).forEach(function (f) {
-                if (!(f.expect === 'error' && f.expected === null && report.error)) {
-                    const $f = $('<li></li>').text(describeFailure(f)); // an unexpected runtime error is shown once, below
-                    if (f.block_id) {
-                        $f.attr('data-block', f.block_id).attr('data-workspace', 'program').addClass('linked'); // the block that caused the state
-                    }
-                    $details.append($f);
-                }
+                return chain
+                    .then(() => RUNNER.finish(simulationReports))
+                    .then(function (finish) {
+                        const s = finish.summary;
+                        finishRun(text('done', s.passed, s.failed, s.error));
+                        showCoverage(finish.coverage);
+                    });
+            })
+            .then(null, function (err) {
+                finishRun(err.message === 'cancelled' ? text('stopped') : text('runnerFailed', err.message));
             });
-            if (report.error) {
-                const where = report.error.block_id ? report.error.block_type + (report.error.function ? ' (' + report.error.function + ')' : '') : '';
-                const $e = $('<li class="nepoTestError"></li>').text(
-                    report.error.block_id ? text('runtimeError', where, report.error.message) : report.error.message
-                );
-                if (report.error.block_id) {
-                    $e.attr('data-block', report.error.block_id).attr('data-workspace', 'program');
-                }
-                $details.append($e);
+    });
+}
+
+/** a simulation test of the suite, on the Lab's simulator; a failure of the runner itself becomes the test's error */
+function runSimulationTest(test: any, xml: string): Promise<any> {
+    return SIMRUN.runTest(test, xml, { cancelled: () => cancelled }).then(null, function (err) {
+        if (err.message === 'cancelled') {
+            throw err;
+        }
+        return { name: test.name, block_id: test.block_id, outcome: 'error', failures: [], error: { kind: 'test_error', message: err.message } };
+    });
+}
+
+/** the problems of a prepared suite, and its tests as a list (waiting); false if nothing can run */
+function showPrepared(prepared: any): boolean {
+    if (prepared.conversion_errors.length) {
+        showList(
+            text('conversion'),
+            prepared.conversion_errors.map((e) => ({ message: e.block_type + ': ' + (Blockly.Msg[e.key] || e.key), block: e.block_id, where: 'program' }))
+        );
+        return false;
+    }
+    if (prepared.problems.length) {
+        showList(
+            text('problems'),
+            prepared.problems.map((p) => ({
+                message: (p.severity === 'warning' ? text('warning') + ': ' : '') + p.message,
+                block: p.block_id,
+                where: 'tests',
+                cls: p.severity,
+            }))
+        );
+    }
+    if (prepared.problems.some((p) => p.severity === 'error')) {
+        return false; // nothing runs: the problems above say why
+    }
+    const $results = $('#testsResults');
+    prepared.spec &&
+        prepared.spec.tests.forEach(function (t, i) {
+            $results.append(
+                $('<li class="nepoTestResult waiting"></li>')
+                    .attr('id', 'nepoTestResult' + i)
+                    .attr('data-block', t.block_id)
+                    .attr('data-workspace', 'tests')
+                    .append($('<span class="nepoTestIcon"></span>'))
+                    .append($('<span class="nepoTestName"></span>').text(t.name))
+                    .append($('<span class="nepoTestOutcome"></span>').text(text('waiting')))
+            );
+        });
+    return true;
+}
+
+function showReport(index: number, report: any): void {
+    const $li = $('#nepoTestResult' + index).removeClass('waiting').addClass(report.outcome);
+    $li.find('.nepoTestOutcome').text(text(report.outcome));
+    const $details = $('<ul class="nepoTestDetails"></ul>');
+    (report.failures || []).forEach(function (f) {
+        if (!(f.expect === 'error' && f.expected === null && report.error)) {
+            const $f = $('<li></li>').text(describeFailure(f)); // an unexpected runtime error is shown once, below
+            if (f.block_id) {
+                $f.attr('data-block', f.block_id).attr('data-workspace', 'program').addClass('linked'); // the block that caused the state
             }
-            if (report.simulation) {
-                simEditor.showRun(report.block_id, report, false); // the run can be replayed in the Simulation tab
-                $details.append($('<li class="linked nepoTestShowSim"></li>').text(text('showSim')).attr('data-block', report.block_id).attr('data-workspace', 'tests'));
-            }
-            $li.append($details);
-            if (index + 1 < total) {
-                $('#testsStatus').text(text('running', index + 2, total));
-            }
+            $details.append($f);
         }
     });
+    if (report.error) {
+        const where = report.error.block_id ? report.error.block_type + (report.error.function ? ' (' + report.error.function + ')' : '') : '';
+        const $e = $('<li class="nepoTestError"></li>').text(report.error.block_id ? text('runtimeError', where, report.error.message) : report.error.message);
+        if (report.error.block_id) {
+            $e.attr('data-block', report.error.block_id).attr('data-workspace', 'program');
+        }
+        $details.append($e);
+    }
+    if (report.simulation) {
+        simEditor.showRun(report.block_id, report, false); // the run can be replayed in the Simulation tab
+        $details.append($('<li class="linked nepoTestShowSim"></li>').text(text('showSim')).attr('data-block', report.block_id).attr('data-workspace', 'tests'));
+    }
+    $li.append($details);
 }
 
 function describeFailure(f: any): string {

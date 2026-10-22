@@ -206,6 +206,9 @@
       "robot.thymio": [
         "app/simulation/simulationLogic/robot.thymio"
       ],
+      "robot.edison": [
+        "app/simulation/simulationLogic/robot.edison"
+      ],
       "simulation.scene": [
         "app/simulation/simulationLogic/simulation.scene"
       ],
@@ -316,6 +319,9 @@
       ],
       "nepoTest.simEditor": [
         "app/nepotest/nepoTest.simEditor"
+      ],
+      "nepoTest.simRun": [
+        "app/nepotest/nepoTest.simRun"
       ],
       "tests.controller": [
         "app/roberta/controller/tests.controller"

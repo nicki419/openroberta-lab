@@ -1,21 +1,26 @@
 /**
- * The world of a simulation test (Tests tab): the data a simulation test block keeps (block.data, JSON), the geometry, and its picture (SVG).
- * NepoTest/nepotest/simulation.py computes with the same world and the same geometry (keep both in sync): units are cm, x points right and y
- * down, angles are degrees counterclockwise as seen from above (0 points right). Curves are the same Bezier segments here and there.
+ * The world of a simulation test (Tests tab): the data a simulation test block keeps (block.data, JSON), its geometry and its picture. The
+ * world is the Lab's simulator's (simulation/simulationLogic): the same backgrounds with the same wall around them, the same objects
+ * (obstacles and coloured areas as rectangles, circles and triangles), the same robot image and sizes. The test runs on the simulator itself
+ * (nepoTest.simRun); the editor (nepoTest.simEditor) draws and replays with what is here. NepoTest/nepotest/simulation.py checks the data.
  *
- *   {version: 1,
- *    world: {start: {x, y, heading}, items: [line | rect | ellipse], settings: {ambient_light, obstacle_range_cm}},
+ *   {version: 2,
+ *    world: {background, start: {x, y, heading}, items: [line | rect | circle | triangle]},
  *    reference: {path: [[x, y, heading], ...], time_ms, result}   a recorded run (optional)
  *    tolerance_cm: 2                                               how far the robot may leave the recorded path
  *    view: {x, y, scale}}                                          the editor's zoom (scale: pixels per cm) and centre
- * items: {id, kind: 'line', points: [[x, y], ...], smooth, closed, width} or {id, kind: 'rect' | 'ellipse', role, x, y, w, h, rot}
- * with role black | white (floor markings), obstacle, goal, fail.
+ * Units are cm from the background's top left corner; x points right and y down; angles are degrees counterclockwise (0 points right).
+ * The simulator works in units of 1/3 cm, with the background at (10, 10): u = 10 + 3 * cm.
+ * items: {id, kind: 'line', points: [[x, y], ...], smooth, closed, width} (the test's addition, drawn like the background's track),
+ * {id, kind: 'rect', role, x, y, w, h} (top left corner), {id, kind: 'circle', role, x, y, r}, {id, kind: 'triangle', role, points};
+ * role obstacle | color (a coloured area, with color) | goal | fail; color: a hex colour.
  */
 
 export interface SimItem {
     id: string;
-    kind: string; // line | rect | ellipse
-    role?: string; // rect, ellipse: black | white | obstacle | goal | fail
+    kind: string; // line | rect | circle | triangle
+    role?: string; // obstacle | color | goal | fail
+    color?: string;
     points?: number[][];
     smooth?: boolean;
     closed?: boolean;
@@ -24,13 +29,13 @@ export interface SimItem {
     y?: number;
     w?: number;
     h?: number;
-    rot?: number;
+    r?: number;
 }
 
 export interface SimWorld {
+    background: string;
     start: { x: number; y: number; heading: number };
     items: SimItem[];
-    settings?: { ambient_light?: number; obstacle_range_cm?: number };
 }
 
 export interface SimData {
@@ -41,26 +46,53 @@ export interface SimData {
     view?: { x: number; y: number; scale: number };
 }
 
-// the robot (simulation.py): cm in the robot's frame, "ahead" of the wheel axle's centre and to the "left"
-export const LENGTH_CM = 8.0;
-export const WIDTH_CM = 6.5;
-export const BACK_CM = 1.8;
-export const FRONT_CM = LENGTH_CM - BACK_CM;
-export const LINE_SENSOR_AHEAD_CM = 5.0;
-export const LINE_WIDTH_CM = 1.5;
-export const LINE_RIM_CM = 0.5;
+// ------------------------------------------------------------------------------------------------ the simulator's constants
+
+export const UNITS_PER_CM = 3;
+export const BORDER = 10; // units: the wall around the background (simulation.scene.ts)
+export const BACKGROUNDS: { [name: string]: number[] } = {
+    simpleBackgroundEdison: [260, 220],
+    drawBackground: [700, 500],
+    rescueBackground: [800, 540],
+    mathBackground: [700, 500],
+}; // RobotEdison.imgList; sizes in units (pixels of the images)
+export const DEFAULT_BACKGROUND = 'simpleBackgroundEdison';
+export const BACKGROUND_PATH = '/css/img/simBackgrounds/';
+export const ROBOT_IMAGE = '/css/img/simulator/edison.png';
+export const WALL_IMAGE = BACKGROUND_PATH + 'wallPattern.png';
+// EdisonChassis (units, robot frame: x ahead of the axle, y to the robot's right)
+export const CHASSIS = { x: -5.5, y: -11.25, w: 24, h: 22.5 };
+export const OUTLINE = [
+    [18.5, -11.25],
+    [18.5, 11.25],
+    [-5.5, 11.25],
+    [-5.5, -11.25],
+]; // front left, front right, back right, back left
+export const LINE_SENSOR = [15, 0];
+export const LIGHT_SENSORS = [
+    [16.5, -4.5],
+    [16.5, 4.5],
+]; // LLIGHT, RLIGHT
+export const IR_SENSORS = [
+    [17, -8],
+    [18, 0],
+    [17, 8],
+]; // LEFT, FRONT, RIGHT
+export const IR_MAX_CM = 3;
+export const IR_MAX_LENGTH = 9; // units
+export const IR_RAYS = [-Math.PI / 8, -Math.PI / 16, 0, Math.PI / 16, Math.PI / 8];
+export const LED_POINT = [16.5, 4.5]; // EdisonLeds; the left one at -y
+export const OBSTACLE_COLOR = '#33B8CA';
+export const COLOR_AREA_COLOR = '#FBED00';
+export const PALETTE = ['#000000', '#0056a6', '#00642f', '#532115', '#585858', '#b30006', '#f7e307', '#FBED00', '#ffffff']; // RobotBase.colorRange, the default area colour, white
+// the test's own things
+export const LINE_WIDTH_CM = 4.44 / UNITS_PER_CM; // the black core of simpleBackgroundEdison's track
+export const LINE_BAND = 16; // units: its white band
 export const DEFAULT_TOLERANCE_CM = 2;
-export const ROLES = ['black', 'white', 'obstacle', 'goal', 'fail'];
+export const ROLES = ['obstacle', 'color', 'goal', 'fail'];
 
 export const COLORS = {
-    background: '#ffe5d0', // light peach
-    grid: '#efc4a5',
-    grid10: '#e3a983',
-    black: '#141414',
-    white: '#ffffff',
-    whiteEdge: '#d9c2b0',
-    obstacle: '#8a6244',
-    obstacleEdge: '#4d3423',
+    outside: '#f4f4f4',
     goal: '#1f8f3a',
     fail: '#d0312d',
     swept: '#2f6fbf',
@@ -68,11 +100,62 @@ export const COLORS = {
     path: '#e67e00',
 };
 
-export function defaultData(): SimData {
-    return { version: 1, world: { start: { x: 20, y: 30, heading: 0 }, items: [] }, tolerance_cm: DEFAULT_TOLERANCE_CM };
+export function round2(v: number): number {
+    return Math.round(v * 100) / 100;
 }
 
-/** the data of a simulation test block; a fresh world if there is none (or it can't be read) */
+/** a new test's world: the simulator's own start (the robot at (60, 60) units and its standard obstacle) */
+export function defaultWorld(): SimWorld {
+    const [bw, bh] = BACKGROUNDS[DEFAULT_BACKGROUND];
+    const side = round2(bw / 9 / UNITS_PER_CM);
+    return {
+        background: DEFAULT_BACKGROUND,
+        start: { x: round2((60 - BORDER) / UNITS_PER_CM), y: round2((60 - BORDER) / UNITS_PER_CM), heading: 0 },
+        items: [
+            {
+                id: 'obstacle',
+                kind: 'rect',
+                role: 'obstacle',
+                x: round2(((bw * 7) / 9 - BORDER) / UNITS_PER_CM),
+                y: round2((bh - (bw * 2) / 9 - BORDER) / UNITS_PER_CM),
+                w: side,
+                h: side,
+            },
+        ],
+    };
+}
+
+export function defaultData(): SimData {
+    return { version: 2, world: defaultWorld(), tolerance_cm: DEFAULT_TOLERANCE_CM };
+}
+
+/** a world of the first version (an unbounded plain floor; rect and ellipse by their centre, rotated; roles black and white), as simulation.py
+ * migrate_v1: on the simulator's plain white background */
+function migrateV1(world: any): SimWorld {
+    const items: SimItem[] = [];
+    for (const item of (world && world.items) || []) {
+        if (item.kind === 'rect' || item.kind === 'ellipse') {
+            const role = item.role === 'black' || item.role === 'white' ? 'color' : item.role;
+            const next: SimItem = { id: item.id, kind: item.kind === 'rect' ? 'rect' : 'circle', role: role };
+            if (role === 'color') {
+                next.color = item.role === 'black' ? '#000000' : '#ffffff';
+            }
+            if (item.kind === 'rect') {
+                Object.assign(next, { x: item.x - item.w / 2, y: item.y - item.h / 2, w: item.w, h: item.h });
+            } else {
+                Object.assign(next, { x: item.x, y: item.y, r: (item.w + item.h) / 4 });
+            }
+            items.push(next);
+        } else if (item.kind === 'line') {
+            const line = Object.assign({}, item);
+            delete line.width;
+            items.push(line);
+        }
+    }
+    return { background: 'drawBackground', start: (world && world.start) || { x: 0, y: 0, heading: 0 }, items: items };
+}
+
+/** the data of a simulation test block; the simulator's default world if there is none (or it can't be read) */
 export function parseData(text: string): SimData {
     let data: any = null;
     try {
@@ -83,8 +166,15 @@ export function parseData(text: string): SimData {
     if (!data || typeof data !== 'object' || !data.world || typeof data.world !== 'object') {
         return defaultData();
     }
-    data.version = data.version || 1;
-    data.world.start = data.world.start || { x: 20, y: 30, heading: 0 };
+    if (!data.version || data.version < 2) {
+        data.world = migrateV1(data.world);
+        delete data.reference; // recorded with another robot
+        delete data.view;
+        data.version = 2;
+    }
+    delete data.floor; // a picture of the floor for NepoTest's copy of the simulator (until 2026-10-22): the simulator draws its own
+    data.world.background = BACKGROUNDS[data.world.background] ? data.world.background : DEFAULT_BACKGROUND;
+    data.world.start = data.world.start || defaultWorld().start;
     data.world.items = Array.isArray(data.world.items) ? data.world.items : [];
     if (typeof data.tolerance_cm !== 'number') {
         data.tolerance_cm = DEFAULT_TOLERANCE_CM;
@@ -96,20 +186,23 @@ export function clone<T>(value: T): T {
     return JSON.parse(JSON.stringify(value));
 }
 
-// ------------------------------------------------------------------------------------------------ geometry
-
-/** the point `ahead` cm in front of and `left` cm to the left of a pose */
-export function toWorld(x: number, y: number, heading: number, ahead: number, left: number): number[] {
-    const r = (heading * Math.PI) / 180;
-    const c = Math.cos(r);
-    const s = Math.sin(r);
-    return [x + ahead * c - left * s, y - ahead * s - left * c];
+export function backgroundSize(world: SimWorld): number[] {
+    return BACKGROUNDS[world.background] || BACKGROUNDS[DEFAULT_BACKGROUND];
 }
 
-/** the robot's outline at a pose: front left, front right, back right, back left */
+// ------------------------------------------------------------------------------------------------ geometry
+
+/** SIMATH.transform: a point of the robot frame (units) at a pose given in cm and degrees (counterclockwise); the result in cm */
+export function robotPoint(x: number, y: number, heading: number, p: number[]): number[] {
+    const theta = (-heading * Math.PI) / 180;
+    const s = Math.sin(theta);
+    const c = Math.cos(theta);
+    return [x + (p[0] * c - p[1] * s) / UNITS_PER_CM, y + (p[0] * s + p[1] * c) / UNITS_PER_CM];
+}
+
+/** the robot's outline at a pose (cm): front left, front right, back right, back left */
 export function footprint(x: number, y: number, heading: number): number[][] {
-    const w = WIDTH_CM / 2;
-    return [toWorld(x, y, heading, FRONT_CM, w), toWorld(x, y, heading, FRONT_CM, -w), toWorld(x, y, heading, -BACK_CM, -w), toWorld(x, y, heading, -BACK_CM, w)];
+    return OUTLINE.map((p) => robotPoint(x, y, heading, p));
 }
 
 /** a line as cubic Bezier segments [p0, c1, c2, p1]: straight between the points, or a Catmull-Rom curve through them (as simulation.py) */
@@ -147,22 +240,6 @@ export function linePathD(item: SimItem): string {
     return d + (item.closed && (item.points || []).length > 2 ? ' Z' : '');
 }
 
-/** rotates a local offset (dx, dy) of a shape's centre by rot degrees (counterclockwise as seen from above) */
-export function rotated(cx: number, cy: number, dx: number, dy: number, rot: number): number[] {
-    const r = (rot * Math.PI) / 180;
-    const c = Math.cos(r);
-    const s = Math.sin(r);
-    return [cx + dx * c + dy * s, cy - dx * s + dy * c];
-}
-
-/** a world point in the local frame of a shape (inverse of rotated) */
-export function toLocal(item: SimItem, x: number, y: number): number[] {
-    const r = (-(item.rot || 0) * Math.PI) / 180;
-    const dx = x - item.x;
-    const dy = y - item.y;
-    return [dx * Math.cos(r) + dy * Math.sin(r), -dx * Math.sin(r) + dy * Math.cos(r)];
-}
-
 export function distanceToSegment(px: number, py: number, a: number[], b: number[]): number {
     const dx = b[0] - a[0];
     const dy = b[1] - a[1];
@@ -191,11 +268,20 @@ export function linePolyline(item: SimItem): number[][] {
     return out;
 }
 
+function inTriangle(p: number[], a: number[], b: number[], c: number[]): boolean {
+    const d1 = (p[0] - b[0]) * (a[1] - b[1]) - (a[0] - b[0]) * (p[1] - b[1]);
+    const d2 = (p[0] - c[0]) * (b[1] - c[1]) - (b[0] - c[0]) * (p[1] - c[1]);
+    const d3 = (p[0] - a[0]) * (c[1] - a[1]) - (c[0] - a[0]) * (p[1] - a[1]);
+    const neg = d1 < 0 || d2 < 0 || d3 < 0;
+    const pos = d1 > 0 || d2 > 0 || d3 > 0;
+    return !(neg && pos);
+}
+
 /** is a world point on an item (within `slack` cm)? */
 export function hits(item: SimItem, x: number, y: number, slack: number): boolean {
     if (item.kind === 'line') {
         const poly = linePolyline(item);
-        const half = (item.width || LINE_WIDTH_CM) / 2 + LINE_RIM_CM + slack;
+        const half = LINE_BAND / UNITS_PER_CM / 2 + slack;
         for (let i = 1; i < poly.length; i++) {
             if (distanceToSegment(x, y, poly[i - 1], poly[i]) <= half) {
                 return true;
@@ -203,51 +289,239 @@ export function hits(item: SimItem, x: number, y: number, slack: number): boolea
         }
         return false;
     }
-    const [lx, ly] = toLocal(item, x, y);
-    const hw = item.w / 2 + slack;
-    const hh = item.h / 2 + slack;
     if (item.kind === 'rect') {
-        return Math.abs(lx) <= hw && Math.abs(ly) <= hh;
+        return x >= item.x - slack && x <= item.x + item.w + slack && y >= item.y - slack && y <= item.y + item.h + slack;
     }
-    return (lx * lx) / (hw * hw) + (ly * ly) / (hh * hh) <= 1;
+    if (item.kind === 'circle') {
+        return Math.hypot(x - item.x, y - item.y) <= item.r + slack;
+    }
+    const [a, b, c] = item.points;
+    return inTriangle([x, y], a, b, c) || [0, 1, 2].some((i) => distanceToSegment(x, y, item.points[i], item.points[(i + 1) % 3]) <= slack);
 }
 
-/** [minX, minY, maxX, maxY] of everything in a world (robot, items, recorded path) */
-export function bounds(data: SimData): number[] {
-    const pts: number[][] = footprint(data.world.start.x, data.world.start.y, data.world.start.heading);
-    for (const item of data.world.items) {
-        if (item.kind === 'line') {
-            (item.points || []).forEach((p) => pts.push(p));
-        } else {
-            const r = Math.hypot(item.w, item.h) / 2;
-            pts.push([item.x - r, item.y - r], [item.x + r, item.y + r]);
+/** [minX, minY, maxX, maxY] of the floor with its wall (cm) */
+export function groundBounds(world: SimWorld): number[] {
+    const [bw, bh] = backgroundSize(world);
+    const b = BORDER / UNITS_PER_CM;
+    return [-b, -b, bw / UNITS_PER_CM + b, bh / UNITS_PER_CM + b];
+}
+
+// ------------------------------------------------------------------------------------------------ images
+
+const images: { [url: string]: HTMLImageElement } = {};
+const loading: { [url: string]: Promise<HTMLImageElement> } = {};
+
+/** an image (cached); resolves when it is loaded */
+export function loadImage(url: string): Promise<HTMLImageElement> {
+    if (!loading[url]) {
+        loading[url] = new Promise(function (resolve, reject) {
+            const img = new Image();
+            img.onload = function () {
+                images[url] = img;
+                resolve(img);
+            };
+            img.onerror = function () {
+                delete loading[url];
+                reject(new Error('could not load ' + url));
+            };
+            img.src = url;
+        });
+    }
+    return loading[url];
+}
+
+export function backgroundUrl(name: string): string {
+    return BACKGROUND_PATH + name + '.svg';
+}
+
+// ------------------------------------------------------------------------------------------------ the floor the sensors see
+
+/** what the floor picture (nepoTest.simRun floorCanvas) is made from: the background, the coloured areas and the lines */
+export function floorKey(world: SimWorld): string {
+    const parts = world.items.filter((i) => i.kind === 'line' || i.role === 'color');
+    return '2|' + world.background + '|' + JSON.stringify(parts.map((i) => [i.kind, i.color, i.points, i.smooth, i.closed, i.width, i.x, i.y, i.w, i.h, i.r]));
+}
+
+function u(v: number): number {
+    return BORDER + v * UNITS_PER_CM;
+}
+
+/** draws the test's lines on the simulator's floor picture (units): like the background's track, a black core on a white band */
+export function drawLines(ctx: CanvasRenderingContext2D, world: SimWorld): void {
+    const lines = world.items.filter((i) => i.kind === 'line' && (i.points || []).length >= 2);
+    const stroke = (item: SimItem) => {
+        const segments = bezierSegments(item.points, !!item.smooth, !!item.closed);
+        ctx.beginPath();
+        ctx.moveTo(u(segments[0][0][0]), u(segments[0][0][1]));
+        for (const [, c1, c2, p1] of segments) {
+            ctx.bezierCurveTo(u(c1[0]), u(c1[1]), u(c2[0]), u(c2[1]), u(p1[0]), u(p1[1]));
+        }
+        if (item.closed && item.points.length > 2) {
+            ctx.closePath();
+        }
+        ctx.stroke();
+    };
+    ctx.lineJoin = 'round';
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = LINE_BAND;
+    lines.forEach(stroke);
+    ctx.strokeStyle = '#000000';
+    lines.forEach((item) => {
+        ctx.lineWidth = (item.width || LINE_WIDTH_CM) * UNITS_PER_CM;
+        stroke(item);
+    });
+}
+
+/** R + G + B per pixel of a canvas */
+export function pixelSums(canvas: HTMLCanvasElement): Uint16Array {
+    const data = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height).data;
+    const sums = new Uint16Array(canvas.width * canvas.height);
+    for (let i = 0, j = 0; j < sums.length; i += 4, j++) {
+        sums[j] = data[i] + data[i + 1] + data[i + 2];
+    }
+    return sums;
+}
+
+/** LineSensor.updateSensor (for the editor's readout): the light (0..100, unrounded) of the 5 pixels of a 3 x 3 cross at a point (units) */
+export function sampleFloor(sums: Uint16Array, width: number, height: number, px: number, py: number): number {
+    const x0 = Math.round(px - 1.5);
+    const y0 = Math.round(py - 1.5);
+    let total = 0;
+    for (const [dx, dy] of [
+        [1, 0],
+        [0, 1],
+        [1, 1],
+        [2, 1],
+        [1, 2],
+    ]) {
+        const x = x0 + dx;
+        const y = y0 + dy;
+        if (x >= 0 && x < width && y >= 0 && y < height) {
+            total += sums[y * width + x];
         }
     }
-    ((data.reference && data.reference.path) || []).forEach((p) => pts.push([p[0], p[1]]));
-    const xs = pts.map((p) => p[0]);
-    const ys = pts.map((p) => p[1]);
-    return [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)];
+    return total / 5 / 3 / 2.55;
 }
 
-// ------------------------------------------------------------------------------------------------ the picture
+// ------------------------------------------------------------------------------------------------ the robot's sensors, for the picture
+
+function intersection(l1: number[], l2: number[]): number[] {
+    const d = (l1[0] - l1[2]) * (l2[1] - l2[3]) - (l1[1] - l1[3]) * (l2[0] - l2[2]);
+    if (d === 0) {
+        return null;
+    }
+    const a = l1[0] * l1[3] - l1[1] * l1[2];
+    const b = l2[0] * l2[3] - l2[1] * l2[2];
+    const xi = ((l2[0] - l2[2]) * a - (l1[0] - l1[2]) * b) / d;
+    const yi = ((l2[1] - l2[3]) * a - (l1[1] - l1[3]) * b) / d;
+    const aligned = (l: number[]) =>
+        !(xi < Math.min(l[0], l[2]) - 0.01 || xi > Math.max(l[0], l[2]) + 0.01 || yi < Math.min(l[1], l[3]) - 0.01 || yi > Math.max(l[1], l[3]) + 0.01);
+    return aligned(l1) && aligned(l2) ? [xi, yi] : null;
+}
+
+function circleHits(line: number[], cx: number, cy: number, r: number): number[][] {
+    const [ax, ay, bx, by] = line;
+    const bax = bx - ax;
+    const bay = by - ay;
+    const a = bax * bax + bay * bay;
+    if (a === 0) {
+        return [];
+    }
+    const pBy2 = (bax * (cx - ax) + bay * (cy - ay)) / a;
+    const q = ((cx - ax) * (cx - ax) + (cy - ay) * (cy - ay) - r * r) / a;
+    const disc = pBy2 * pBy2 - q;
+    if (disc < 0) {
+        return [];
+    }
+    const root = Math.sqrt(disc);
+    const len = Math.hypot(bax, bay);
+    const onLine = (p: number[]) => Math.abs(Math.hypot(p[0] - ax, p[1] - ay) + Math.hypot(p[0] - bx, p[1] - by) - len) <= 2;
+    return [
+        [ax - bax * (-pBy2 + root), ay - bay * (-pBy2 + root)],
+        [ax - bax * (-pBy2 - root), ay - bay * (-pBy2 - root)],
+    ].filter(onLine);
+}
+
+/** DistanceSensor: the rays of the three infrared sensors at a pose (units, from the sensor to where they end) and what each sensor sees */
+export function infrared(world: SimWorld, x: number, y: number, heading: number): { rays: number[][]; hits: number[][]; seen: boolean[] } {
+    const [bw, bh] = backgroundSize(world);
+    const lines: number[][] = [
+        [BORDER, BORDER, BORDER, BORDER + bh],
+        [BORDER, BORDER, BORDER + bw, BORDER],
+        [BORDER + bw, BORDER + bh, BORDER, BORDER + bh],
+        [BORDER + bw, BORDER + bh, BORDER + bw, BORDER],
+    ];
+    const circles: number[][] = [];
+    for (const item of world.items) {
+        if (item.role !== 'obstacle') {
+            continue;
+        }
+        if (item.kind === 'rect') {
+            const [x0, y0, w, h] = [u(item.x), u(item.y), item.w * UNITS_PER_CM, item.h * UNITS_PER_CM];
+            lines.push([x0, y0, x0, y0 + h], [x0, y0, x0 + w, y0], [x0 + w, y0 + h, x0, y0 + h], [x0 + w, y0 + h, x0 + w, y0]);
+        } else if (item.kind === 'circle') {
+            circles.push([u(item.x), u(item.y), item.r * UNITS_PER_CM]);
+        } else {
+            const p = item.points.map((q) => [u(q[0]), u(q[1])]);
+            lines.push([p[0][0], p[0][1], p[1][0], p[1][1]], [p[1][0], p[1][1], p[2][0], p[2][1]], [p[0][0], p[0][1], p[2][0], p[2][1]]);
+        }
+    }
+    const theta = (-heading * Math.PI) / 180;
+    const ux = u(x);
+    const uy = u(y);
+    const rays: number[][] = [];
+    const hitList: number[][] = [];
+    const seen: boolean[] = [];
+    for (const [sx, sy] of IR_SENSORS) {
+        const rx = sx * Math.cos(theta) - sy * Math.sin(theta) + ux;
+        const ry = sx * Math.sin(theta) + sy * Math.cos(theta) + uy;
+        let best = IR_MAX_LENGTH;
+        let bestPoint: number[] = null;
+        for (const angle of IR_RAYS) {
+            const ray = [rx, ry, rx + IR_MAX_LENGTH * Math.cos(theta + angle), ry + IR_MAX_LENGTH * Math.sin(theta + angle)];
+            let end = [ray[2], ray[3]];
+            let endDist = IR_MAX_LENGTH;
+            const found: number[][] = lines.map((l) => intersection(ray, l)).filter((p) => p);
+            for (const c of circles) {
+                const cs = circleHits(ray, c[0], c[1], c[2]);
+                if (cs.length) {
+                    found.push(cs.reduce((m, p) => (Math.hypot(p[0] - rx, p[1] - ry) < Math.hypot(m[0] - rx, m[1] - ry) ? p : m)));
+                }
+            }
+            for (const p of found) {
+                const d = Math.hypot(p[0] - rx, p[1] - ry);
+                if (d < endDist) {
+                    endDist = d;
+                    end = p;
+                }
+                if (d < best) {
+                    best = d;
+                    bestPoint = p;
+                }
+            }
+            rays.push([rx, ry, end[0], end[1]]);
+        }
+        hitList.push(bestPoint ? [rx, ry, bestPoint[0], bestPoint[1]] : null);
+        seen.push(best / UNITS_PER_CM < IR_MAX_CM);
+    }
+    return { rays: rays, hits: hitList, seen: seen };
+}
+
+// ------------------------------------------------------------------------------------------------ the picture (SVG, in cm)
 
 function n(v: number): string {
-    return String(Math.round(v * 100) / 100);
+    return String(Math.round(v * 1000) / 1000);
 }
 
 function pt(p: number[]): string {
     return n(p[0]) + ' ' + n(p[1]);
 }
 
-function points(poly: number[][]): string {
-    return poly.map(pt).join(' ');
-}
-
 export function escapeXml(text: string): string {
     return String(text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
-/** the pattern definitions zones use (ids get a prefix, so several pictures can be on one page) */
+/** the patterns and filters the picture uses (ids get a prefix, so several pictures can be on one page) */
 export function defs(prefix: string): string {
     const hatch = (id: string, color: string) =>
         '<pattern id="' +
@@ -259,43 +533,112 @@ export function defs(prefix: string): string {
         '" fill-opacity="0.18"/><line x1="0" y1="0" x2="0" y2="2" stroke="' +
         color +
         '" stroke-width="0.7" stroke-opacity="0.55"/></pattern>';
-    return '<defs>' + hatch('goal', COLORS.goal) + hatch('fail', COLORS.fail) + '</defs>';
+    const wall = BORDER / UNITS_PER_CM;
+    return (
+        '<defs>' +
+        hatch('goal', COLORS.goal) +
+        hatch('fail', COLORS.fail) +
+        '<pattern id="' +
+        prefix +
+        'wall" patternUnits="userSpaceOnUse" x="' +
+        n(-wall) +
+        '" y="' +
+        n(-wall) +
+        '" width="' +
+        n(wall) +
+        '" height="' +
+        n(wall) +
+        '"><image href="' +
+        WALL_IMAGE +
+        '" width="' +
+        n(wall) +
+        '" height="' +
+        n(wall) +
+        '" preserveAspectRatio="none"/></pattern>' +
+        // canvas shadows are in screen pixels: the editor sets the filters' sizes for its zoom (shadowSizes)
+        '<filter id="' +
+        prefix +
+        'obstacleShadow" x="-50%" y="-50%" width="200%" height="200%"><feDropShadow dx="1.667" dy="1.667" stdDeviation="0.833" flood-color="#3e3e3e" flood-opacity="1"/></filter>' +
+        '<filter id="' +
+        prefix +
+        'robotShadow" x="-50%" y="-50%" width="200%" height="200%"><feDropShadow dx="0" dy="0" stdDeviation="0.833" flood-color="#000000" flood-opacity="1"/></filter>' +
+        '<radialGradient id="' +
+        prefix +
+        'led" cx="0.5" cy="0.5" r="0.3333"><stop offset="0" stop-color="#ff0000" stop-opacity="1"/><stop offset="1" stop-color="#ff0000" stop-opacity="0"/></radialGradient>' +
+        '</defs>'
+    );
+}
+
+/** canvas shadows have a size in screen pixels: the filter sizes in cm for a zoom (pixels per cm) */
+export function shadowSizes(svg: Element, prefix: string, scale: number): void {
+    const o = svg.querySelector('#' + prefix + 'obstacleShadow feDropShadow');
+    o && o.setAttribute('dx', n(5 / scale));
+    o && o.setAttribute('dy', n(5 / scale));
+    o && o.setAttribute('stdDeviation', n(2.5 / scale));
+    const r = svg.querySelector('#' + prefix + 'robotShadow feDropShadow');
+    r && r.setAttribute('stdDeviation', n(2.5 / scale));
 }
 
 function shapeSvg(item: SimItem, attrs: string): string {
-    const t = item.rot ? ' transform="rotate(' + n(-item.rot) + ' ' + n(item.x) + ' ' + n(item.y) + ')"' : '';
     if (item.kind === 'rect') {
-        return '<rect x="' + n(item.x - item.w / 2) + '" y="' + n(item.y - item.h / 2) + '" width="' + n(item.w) + '" height="' + n(item.h) + '"' + t + ' ' + attrs + '/>';
+        return '<rect x="' + n(item.x) + '" y="' + n(item.y) + '" width="' + n(item.w) + '" height="' + n(item.h) + '" ' + attrs + '/>';
     }
-    return '<ellipse cx="' + n(item.x) + '" cy="' + n(item.y) + '" rx="' + n(item.w / 2) + '" ry="' + n(item.h / 2) + '"' + t + ' ' + attrs + '/>';
+    if (item.kind === 'circle') {
+        return '<circle cx="' + n(item.x) + '" cy="' + n(item.y) + '" r="' + n(item.r) + '" ' + attrs + '/>';
+    }
+    return '<polygon points="' + item.points.map(pt).join(' ') + '" ' + attrs + '/>';
 }
 
-/** the floor and what's on it, in drawing order: floor shapes, line rims, line cores, obstacles, goal and fail areas */
+/** the floor: the background image with the wall around it */
+export function groundSvg(world: SimWorld, prefix: string): string {
+    const [bw, bh] = backgroundSize(world);
+    const w = bw / UNITS_PER_CM;
+    const h = bh / UNITS_PER_CM;
+    const b = BORDER / UNITS_PER_CM;
+    return (
+        '<image href="' +
+        backgroundUrl(world.background) +
+        '" x="0" y="0" width="' +
+        n(w) +
+        '" height="' +
+        n(h) +
+        '" preserveAspectRatio="none"/>' +
+        '<rect x="' +
+        n(-b / 2) +
+        '" y="' +
+        n(-b / 2) +
+        '" width="' +
+        n(w + b) +
+        '" height="' +
+        n(h + b) +
+        '" fill="none" stroke="url(#' +
+        prefix +
+        'wall)" stroke-width="' +
+        n(b) +
+        '"/>'
+    );
+}
+
+/** what lies on the floor, in the simulator's order: coloured areas, the lines (bands, then cores), obstacles; then goal and fail areas */
 export function worldSvg(world: SimWorld, prefix: string): string {
     const items = world.items;
     const id = (item: SimItem) => ' data-item="' + escapeXml(item.id) + '"';
     let svg = '';
     for (const item of items) {
-        if (item.kind !== 'line' && (item.role === 'black' || item.role === 'white')) {
-            const white = item.role === 'white';
-            svg += shapeSvg(
-                item,
-                'fill="' + (white ? COLORS.white : COLORS.black) + '"' + (white ? ' stroke="' + COLORS.whiteEdge + '" stroke-width="0.15"' : '') + id(item)
-            );
+        if (item.kind !== 'line' && item.role === 'color') {
+            svg += shapeSvg(item, 'fill="' + escapeXml(item.color || COLOR_AREA_COLOR) + '"' + id(item));
         }
     }
     const lines = items.filter((i) => i.kind === 'line' && (i.points || []).length >= 2);
     for (const item of lines) {
-        const width = (item.width || LINE_WIDTH_CM) + 2 * LINE_RIM_CM;
-        svg += '<path d="' + linePathD(item) + '" fill="none" stroke="' + COLORS.white + '" stroke-width="' + n(width) + '" stroke-linejoin="round"' + id(item) + '/>';
+        svg += '<path d="' + linePathD(item) + '" fill="none" stroke="#ffffff" stroke-width="' + n(LINE_BAND / UNITS_PER_CM) + '" stroke-linejoin="round"' + id(item) + '/>';
     }
     for (const item of lines) {
-        svg +=
-            '<path d="' + linePathD(item) + '" fill="none" stroke="' + COLORS.black + '" stroke-width="' + n(item.width || LINE_WIDTH_CM) + '" stroke-linejoin="round"' + id(item) + '/>';
+        svg += '<path d="' + linePathD(item) + '" fill="none" stroke="#000000" stroke-width="' + n(item.width || LINE_WIDTH_CM) + '" stroke-linejoin="round"' + id(item) + '/>';
     }
     for (const item of items) {
         if (item.kind !== 'line' && item.role === 'obstacle') {
-            svg += shapeSvg(item, 'fill="' + COLORS.obstacle + '" stroke="' + COLORS.obstacleEdge + '" stroke-width="0.4"' + id(item));
+            svg += shapeSvg(item, 'fill="' + escapeXml(item.color || OBSTACLE_COLOR) + '" filter="url(#' + prefix + 'obstacleShadow)"' + id(item));
         }
     }
     for (const item of items) {
@@ -322,74 +665,120 @@ export function referenceSvg(data: SimData): string {
     }
     svg += '<path d="' + d + '" fill="' + COLORS.swept + '" opacity="0.22"/>';
     for (let c = 0; c < 4; c++) {
-        svg += '<polyline points="' + points(outlines.map((o) => o[c])) + '" fill="none" stroke="' + COLORS.swept + '" stroke-width="0.12" opacity="0.9"/>';
+        svg += '<polyline points="' + outlines.map((o) => pt(o[c])).join(' ') + '" fill="none" stroke="' + COLORS.swept + '" stroke-width="0.12" opacity="0.9"/>';
     }
     return svg;
 }
 
 /**
- * the Edison seen from above, in its own frame: x ahead of the wheel axle, y to the robot's right (the screen's y points down, so
- * the robot's left is -y). leds: [left, right] on/off.
+ * the Edison as the simulator draws it, in its own frame and in units (x ahead of the axle, y to its right): EdisonChassis (the image with a
+ * shadow), the line tracker and the light sensors filled with the brightness they see (LineSensor.draw), the LEDs (EdisonLeds).
+ * light: [line tracker, LLIGHT, RLIGHT] in %; leds: [left, right].
  */
-export function robotSvg(leds?: boolean[]): string {
-    const w = WIDTH_CM / 2;
-    const led = (y: number, on: boolean) => '<circle cx="' + n(FRONT_CM - 0.7) + '" cy="' + n(y) + '" r="0.45" fill="' + (on ? '#ff2a00' : '#7a2a10') + '"' + (on ? ' stroke="#ffb199" stroke-width="0.25"' : '') + '/>';
+export function robotSvg(prefix: string, light?: number[], leds?: boolean[]): string {
+    const sensor = (p: number[], value: number) => {
+        const g = Math.round(((value || 0) / 100) * 255);
+        return '<circle cx="' + p[0] + '" cy="' + p[1] + '" r="1.5" fill="rgb(' + g + ',' + g + ',' + g + ')" stroke="#000000" stroke-width="0.1"/>';
+    };
+    const led = (y: number) => '<circle cx="' + LED_POINT[0] + '" cy="' + y + '" r="11.25" fill="url(#' + prefix + 'led)"/>';
     return (
-        '<rect x="' + n(-1.7) + '" y="' + n(-w) + '" width="3.4" height="1.0" rx="0.3" fill="#222"/>' +
-        '<rect x="' + n(-1.7) + '" y="' + n(w - 1.0) + '" width="3.4" height="1.0" rx="0.3" fill="#222"/>' +
-        '<rect x="' + n(-BACK_CM) + '" y="' + n(-w + 0.7) + '" width="' + n(LENGTH_CM) + '" height="' + n(WIDTH_CM - 1.4) + '" rx="1.1" fill="#3b3b3b" stroke="#111" stroke-width="0.15"/>' +
-        '<rect x="' + n(-BACK_CM + 0.8) + '" y="' + n(-w + 1.4) + '" width="' + n(LENGTH_CM - 2.4) + '" height="' + n(WIDTH_CM - 2.8) + '" rx="0.6" fill="#ff7a00" opacity="0.9"/>' +
-        '<path d="M' + n(FRONT_CM - 2.2) + ' -1 L' + n(FRONT_CM - 0.9) + ' 0 L' + n(FRONT_CM - 2.2) + ' 1 Z" fill="#fff"/>' +
-        led(-1.6, !!(leds && leds[0])) +
-        led(1.6, !!(leds && leds[1])) +
-        '<circle cx="' + n(LINE_SENSOR_AHEAD_CM) + '" cy="0" r="0.35" fill="#00c8ff" stroke="#003b4d" stroke-width="0.1"/>'
+        '<image href="' +
+        ROBOT_IMAGE +
+        '" x="' +
+        CHASSIS.x +
+        '" y="' +
+        CHASSIS.y +
+        '" width="' +
+        CHASSIS.w +
+        '" height="' +
+        CHASSIS.h +
+        '" preserveAspectRatio="none" filter="url(#' +
+        prefix +
+        'robotShadow)"/>' +
+        sensor(LINE_SENSOR, light ? light[0] : 0) +
+        sensor(LIGHT_SENSORS[0], light ? light[1] : 0) +
+        sensor(LIGHT_SENSORS[1], light ? light[2] : 0) +
+        (leds && leds[0] ? led(-LED_POINT[1]) : '') +
+        (leds && leds[1] ? led(LED_POINT[1]) : '')
     );
 }
 
+/** the transform of a robot group: from its frame in units to the world in cm */
 export function robotTransform(x: number, y: number, heading: number): string {
-    return 'translate(' + n(x) + ' ' + n(y) + ') rotate(' + n(-heading) + ')';
+    return 'translate(' + n(x) + ' ' + n(y) + ') rotate(' + n(-heading) + ') scale(' + n(1 / UNITS_PER_CM) + ')';
 }
 
-/** a small picture of a world (for the test block), as a data URL */
-export function thumbnail(data: SimData, width: number, height: number): string {
-    const [x0, y0, x1, y1] = bounds(data);
-    const margin = 4;
-    let w = Math.max(50, x1 - x0 + 2 * margin);
-    let h = Math.max(32, y1 - y0 + 2 * margin);
-    if (w / h > width / height) {
-        h = (w * height) / width;
-    } else {
-        w = (h * width) / height;
+/** DistanceSensor.draw: the rays (dashed grey) and the line to the nearest obstacle (black), in the world's cm */
+export function infraredSvg(world: SimWorld, x: number, y: number, heading: number, scale: number): string {
+    const ir = infrared(world, x, y, heading);
+    const c = (v: number) => n((v - BORDER) / UNITS_PER_CM);
+    let svg = '';
+    for (const r of ir.rays) {
+        svg += '<line x1="' + c(r[0]) + '" y1="' + c(r[1]) + '" x2="' + c(r[2]) + '" y2="' + c(r[3]) + '" stroke="#555555" stroke-width="' + n(0.5 / UNITS_PER_CM) + '"/>';
     }
-    const cx = (x0 + x1) / 2;
-    const cy = (y0 + y1) / 2;
-    const s = data.world.start;
-    const svg =
-        '<svg xmlns="http://www.w3.org/2000/svg" width="' +
-        width +
-        '" height="' +
-        height +
-        '" viewBox="' +
-        [cx - w / 2, cy - h / 2, w, h].map(n).join(' ') +
-        '">' +
-        defs('t') +
-        '<rect x="' +
-        n(cx - w / 2) +
-        '" y="' +
-        n(cy - h / 2) +
-        '" width="' +
-        n(w) +
-        '" height="' +
-        n(h) +
-        '" fill="' +
-        COLORS.background +
-        '"/>' +
-        referenceSvg(data) +
-        worldSvg(data.world, 't') +
-        '<g transform="' +
-        robotTransform(s.x, s.y, s.heading) +
-        '">' +
-        robotSvg() +
-        '</g></svg>';
-    return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+    for (const h of ir.hits) {
+        if (h) {
+            svg += '<line x1="' + c(h[0]) + '" y1="' + c(h[1]) + '" x2="' + c(h[2]) + '" y2="' + c(h[3]) + '" stroke="#000000" stroke-width="' + n(1 / UNITS_PER_CM) + '"/>';
+        }
+    }
+    return svg;
+}
+
+// ------------------------------------------------------------------------------------------------ the small picture of the block
+
+/** a small picture of a world (for the test block), as a PNG data URL: the floor (nepoTest.simRun floorCanvas), the objects and the robot */
+export function thumbnail(data: SimData, width: number, height: number, floor: HTMLCanvasElement): Promise<string> {
+    const world = data.world;
+    return loadImage(ROBOT_IMAGE).then(function (robot) {
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        const s = Math.min(width / floor.width, height / floor.height);
+        ctx.translate((width - floor.width * s) / 2, (height - floor.height * s) / 2);
+        ctx.scale(s, s);
+        ctx.drawImage(floor, 0, 0);
+        const shape = (item: SimItem) => {
+            ctx.beginPath();
+            if (item.kind === 'rect') {
+                ctx.rect(u(item.x), u(item.y), item.w * UNITS_PER_CM, item.h * UNITS_PER_CM);
+            } else if (item.kind === 'circle') {
+                ctx.arc(u(item.x), u(item.y), item.r * UNITS_PER_CM, 0, 2 * Math.PI);
+            } else {
+                ctx.moveTo(u(item.points[0][0]), u(item.points[0][1]));
+                ctx.lineTo(u(item.points[1][0]), u(item.points[1][1]));
+                ctx.lineTo(u(item.points[2][0]), u(item.points[2][1]));
+                ctx.closePath();
+            }
+        };
+        for (const item of world.items) {
+            if (item.kind === 'line' || item.role === 'color') {
+                continue;
+            }
+            shape(item);
+            if (item.role === 'obstacle') {
+                ctx.fillStyle = item.color || OBSTACLE_COLOR;
+                ctx.fill();
+            } else {
+                ctx.fillStyle = item.role === 'goal' ? 'rgba(31, 143, 58, 0.35)' : 'rgba(208, 49, 45, 0.35)';
+                ctx.fill();
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = item.role === 'goal' ? COLORS.goal : COLORS.fail;
+                ctx.stroke();
+            }
+        }
+        const path = (data.reference && data.reference.path) || [];
+        if (path.length) {
+            ctx.beginPath();
+            path.forEach((p, i) => (i ? ctx.lineTo(u(p[0]), u(p[1])) : ctx.moveTo(u(p[0]), u(p[1]))));
+            ctx.lineWidth = 3;
+            ctx.strokeStyle = 'rgba(47, 111, 191, 0.8)';
+            ctx.stroke();
+        }
+        const st = world.start;
+        ctx.translate(u(st.x), u(st.y));
+        ctx.rotate((-st.heading * Math.PI) / 180);
+        ctx.drawImage(robot, CHASSIS.x, CHASSIS.y, CHASSIS.w, CHASSIS.h);
+        return canvas.toDataURL('image/png');
+    });
 }
