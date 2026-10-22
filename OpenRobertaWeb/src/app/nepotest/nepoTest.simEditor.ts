@@ -4,8 +4,8 @@
  * triangles, in its colours), its robot image with the line tracker, the light sensors, the infrared rays and the LEDs.
  *
  * - The robot is dragged to where it starts, and turned with its handle (in steps of 15 degrees; Shift: freely).
- * - Line and Curve draw a line to follow, like the background's track (click the points; double-click or Enter to finish; a click on the
- *   first point closes it). Rectangle, Circle and Triangle draw an object (a click: the simulator's default size); what it is (obstacle,
+ * - Line and Curve draw a line to follow, like the background's track (click the points; a click on the last point again ends it, as
+ *   does a double-click of any speed, a right click or Enter; a click on the first point closes it). Rectangle, Circle and Triangle draw an object (a click: the simulator's default size); what it is (obstacle,
  *   coloured area, goal, fail) and its colour are chosen with the buttons.
  * - Select moves things; handles resize them and move the points of lines and triangles. Delete removes, Ctrl+Z / Ctrl+Y undo and redo.
  * - The mouse wheel and the buttons zoom; dragging the empty floor moves the view. The view is kept with the test (data.view).
@@ -72,7 +72,7 @@ const TEXT: { [lang: string]: { [key: string]: string } } = {
         rescueBackground: 'Rescue',
         mathBackground: 'Math',
         hintSelect: 'Drag the robot to its start; turn it with its round handle (Shift: freely). Drag the floor to move the view, the wheel zooms.',
-        hintLine: 'Click the points of the line. Double-click or Enter to finish; click the first point to close it. Esc cancels.',
+        hintLine: 'Click the points of the line. To end it, click its last point again (or double-click, right-click, Enter); click the first point to close it. Esc cancels.',
         hintShape: 'Drag to draw, or click for the simulator\'s size. Choose what it is with the buttons.',
         curved: 'curved',
         closed: 'closed',
@@ -133,7 +133,7 @@ const TEXT: { [lang: string]: { [key: string]: string } } = {
         rescueBackground: 'Rescue',
         mathBackground: 'Mathe',
         hintSelect: 'Zieh den Roboter an seinen Start; dreh ihn am runden Griff (Umschalt: stufenlos). Zieh den Boden, um die Ansicht zu verschieben; das Mausrad zoomt.',
-        hintLine: 'Klicke die Punkte der Linie. Doppelklick oder Enter beendet sie; ein Klick auf den ersten Punkt schließt sie. Esc bricht ab.',
+        hintLine: 'Klicke die Punkte der Linie. Ein zweiter Klick auf ihren letzten Punkt beendet sie (auch Doppelklick, Rechtsklick, Enter); ein Klick auf den ersten Punkt schließt sie. Esc bricht ab.',
         hintShape: 'Zum Zeichnen ziehen, oder klicken für die Größe der Simulation. Mit den Knöpfen wählst du, was es ist.',
         curved: 'gebogen',
         closed: 'geschlossen',
@@ -266,6 +266,7 @@ export class SimEditor {
     private floorTimer: any = null;
     private floorSums: { key: string; sums: Uint16Array; w: number; h: number } = null;
     private busy = false;
+    private finishedAt = -Infinity; // when the last line was finished
     private lastDown: { t: number; x: number; y: number } = null; // for double clicks: the handles under the pointer are redrawn after each click,
     // so the browser's dblclick (which needs the same element twice) doesn't always come
     private needsFit = false; // fit the view as soon as the window has a size
@@ -1280,6 +1281,10 @@ export class SimEditor {
     }
 
     private pointerDown(e: PointerEvent): void {
+        if (this.data && e.button === 2 && this.drawing) {
+            this.finishDrawing(true); // a right click ends the line
+            return;
+        }
         if (!this.data || (e.button !== 0 && e.button !== 1)) {
             return;
         }
@@ -1488,8 +1493,8 @@ export class SimEditor {
             this.finishDrawing(true);
             return;
         }
-        if (this.tool !== 'select') {
-            return;
+        if (this.tool !== 'select' || performance.now() - this.finishedAt < 800) {
+            return; // the browser's double-click that ended a line: it doesn't edit the new line
         }
         const p = this.toWorldPoint(e);
         const target = e.target as Element;
@@ -1538,6 +1543,11 @@ export class SimEditor {
             this.finishDrawing(true);
             return;
         }
+        const last = pts[pts.length - 2];
+        if (Math.hypot(last[0] - p[0], last[1] - p[1]) <= this.px(8)) {
+            this.finishDrawing(true); // the last point again (also the second click of a double-click, however slow): the line ends here
+            return;
+        }
         pts[pts.length - 1] = q;
         pts.push(q.slice());
         this.renderOverlay();
@@ -1550,6 +1560,7 @@ export class SimEditor {
             return;
         }
         this.drawing = null;
+        this.finishedAt = performance.now();
         if (!d.closed) {
             d.points.pop(); // the point that follows the pointer
         }

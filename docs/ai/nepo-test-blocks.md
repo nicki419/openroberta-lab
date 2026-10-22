@@ -402,8 +402,11 @@ line tracker white (87 %) · LLIGHT 87 % · RLIGHT 76 % · obstacle: none
 - **The robot:** drag it to its start. Turn it with its round handle, in steps of 15°; Shift turns it freely.
 - **Lines:** *Line* (straight segments) and *Curve* (smooth through the points) draw a line to follow, like the
   background's track: a black core on a white band.
-  - Click the points. A double-click or Enter finishes; a click on the first point closes the line; Esc cancels. The
-    editor detects the double click itself, because the handle under the pointer is redrawn after the first click.
+  - Click the points. A click on the last point again ends an open line, so a double-click of any speed does too; a
+    right click or Enter also ends it. A click on the first point closes the line; Esc cancels. The browser's own
+    double click isn't reliable here (the handle under the pointer is redrawn after the first click), and the
+    operating system's double-click time can be longer than the editor's own detection (400 ms; Windows: 500 ms by
+    default). A double click right after a line ends doesn't edit the new line.
   - A selected line shows its points: drag them. A double-click on a point removes it; a double-click on the line adds
     one.
   - Settings of a selected line: *curved*, *closed*, *width* (the core, 0.5–5 cm; the background's is 1.48 cm).
