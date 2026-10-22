@@ -1,7 +1,8 @@
 /**
  * The world of a simulation test (Tests tab): the data a simulation test block keeps (block.data, JSON), its geometry and its picture. The
- * world is the Lab's simulator's (simulation/simulationLogic): the same backgrounds with the same wall around them, the same objects
- * (obstacles and coloured areas as rectangles, circles and triangles), the same robot image and sizes. The test runs on the simulator itself
+ * world is the Lab's simulator's (simulation/simulationLogic): the tests' own plain peach floor (the default) or the simulator's backgrounds
+ * with its wall around them, the simulator's objects (obstacles and coloured areas as rectangles, circles and triangles), the same robot
+ * image and sizes. The test runs on the simulator itself
  * (nepoTest.simRun); the editor (nepoTest.simEditor) draws and replays with what is here. NepoTest/nepotest/simulation.py checks the data.
  *
  *   {version: 2,
@@ -50,13 +51,17 @@ export interface SimData {
 
 export const UNITS_PER_CM = 3;
 export const BORDER = 10; // units: the wall around the background (simulation.scene.ts)
+export const PEACH = 'peach'; // the tests' own floor: plain light peach, 3 x 2 m, without the simulator's wall
+export const PEACH_COLOR = '#f7d1b3'; // the sensors read 83 % on it: a light floor
 export const BACKGROUNDS: { [name: string]: number[] } = {
+    peach: [900, 600],
     simpleBackgroundEdison: [260, 220],
     drawBackground: [700, 500],
     rescueBackground: [800, 540],
     mathBackground: [700, 500],
-}; // RobotEdison.imgList; sizes in units (pixels of the images)
-export const DEFAULT_BACKGROUND = 'simpleBackgroundEdison';
+}; // peach and RobotEdison.imgList; sizes in units (for the simulator's: the pixels of the images)
+export const DEFAULT_BACKGROUND = PEACH;
+const OBJECT_BACKGROUND = 'simpleBackgroundEdison'; // on the peach floor, a clicked object gets the size it has on the simulator's default
 export const BACKGROUND_PATH = '/css/img/simBackgrounds/';
 export const ROBOT_IMAGE = '/css/img/simulator/edison.png';
 export const WALL_IMAGE = BACKGROUND_PATH + 'wallPattern.png';
@@ -104,33 +109,25 @@ export function round2(v: number): number {
     return Math.round(v * 100) / 100;
 }
 
-/** a new test's world: the simulator's own start (the robot at (60, 60) units and its standard obstacle) */
+/** a new test's world: the plain peach floor, the robot in its middle, nothing on it (as simulation.py default_world) */
 export function defaultWorld(): SimWorld {
     const [bw, bh] = BACKGROUNDS[DEFAULT_BACKGROUND];
-    const side = round2(bw / 9 / UNITS_PER_CM);
-    return {
-        background: DEFAULT_BACKGROUND,
-        start: { x: round2((60 - BORDER) / UNITS_PER_CM), y: round2((60 - BORDER) / UNITS_PER_CM), heading: 0 },
-        items: [
-            {
-                id: 'obstacle',
-                kind: 'rect',
-                role: 'obstacle',
-                x: round2(((bw * 7) / 9 - BORDER) / UNITS_PER_CM),
-                y: round2((bh - (bw * 2) / 9 - BORDER) / UNITS_PER_CM),
-                w: side,
-                h: side,
-            },
-        ],
-    };
+    return { background: DEFAULT_BACKGROUND, start: { x: round2(bw / 2 / UNITS_PER_CM), y: round2(bh / 2 / UNITS_PER_CM), heading: 0 }, items: [] };
 }
 
+/** a new test: its world, seen around the robot (4 pixels per cm) */
 export function defaultData(): SimData {
-    return { version: 2, world: defaultWorld(), tolerance_cm: DEFAULT_TOLERANCE_CM };
+    const world = defaultWorld();
+    return { version: 2, world: world, tolerance_cm: DEFAULT_TOLERANCE_CM, view: { x: world.start.x, y: world.start.y, scale: 4 } };
+}
+
+/** the simulator's size of a new object (simulation.scene.ts: a ninth of the background's width), in cm */
+export function objectSize(world: SimWorld): number {
+    return (world.background === PEACH ? BACKGROUNDS[OBJECT_BACKGROUND] : backgroundSize(world))[0] / 9 / UNITS_PER_CM;
 }
 
 /** a world of the first version (an unbounded plain floor; rect and ellipse by their centre, rotated; roles black and white), as simulation.py
- * migrate_v1: on the simulator's plain white background */
+ * migrate_v1: on the plain peach floor, as then */
 function migrateV1(world: any): SimWorld {
     const items: SimItem[] = [];
     for (const item of (world && world.items) || []) {
@@ -152,7 +149,7 @@ function migrateV1(world: any): SimWorld {
             items.push(line);
         }
     }
-    return { background: 'drawBackground', start: (world && world.start) || { x: 0, y: 0, heading: 0 }, items: items };
+    return { background: PEACH, start: (world && world.start) || { x: 0, y: 0, heading: 0 }, items: items };
 }
 
 /** the data of a simulation test block; the simulator's default world if there is none (or it can't be read) */
@@ -589,12 +586,15 @@ function shapeSvg(item: SimItem, attrs: string): string {
     return '<polygon points="' + item.points.map(pt).join(' ') + '" ' + attrs + '/>';
 }
 
-/** the floor: the background image with the wall around it */
+/** the floor: the plain peach floor, or the simulator's background image with the wall around it */
 export function groundSvg(world: SimWorld, prefix: string): string {
     const [bw, bh] = backgroundSize(world);
     const w = bw / UNITS_PER_CM;
     const h = bh / UNITS_PER_CM;
     const b = BORDER / UNITS_PER_CM;
+    if (world.background === PEACH) {
+        return '<rect x="0" y="0" width="' + n(w) + '" height="' + n(h) + '" fill="' + PEACH_COLOR + '"/>';
+    }
     return (
         '<image href="' +
         backgroundUrl(world.background) +
@@ -726,6 +726,37 @@ export function infraredSvg(world: SimWorld, x: number, y: number, heading: numb
 
 // ------------------------------------------------------------------------------------------------ the small picture of the block
 
+/** what the small picture shows (units): the whole background; on the large peach floor, what is on it, the robot and its path */
+function thumbnailBox(data: SimData, floor: HTMLCanvasElement): number[] {
+    if (data.world.background !== PEACH) {
+        return [0, 0, floor.width, floor.height];
+    }
+    const points: number[][] = footprint(data.world.start.x, data.world.start.y, data.world.start.heading);
+    for (const item of data.world.items) {
+        if (item.points) {
+            points.push(...item.points);
+        } else if (item.kind === 'circle') {
+            points.push([item.x - item.r, item.y - item.r], [item.x + item.r, item.y + item.r]);
+        } else {
+            points.push([item.x, item.y], [item.x + item.w, item.y + item.h]);
+        }
+    }
+    ((data.reference && data.reference.path) || []).forEach((p) => points.push([p[0], p[1]]));
+    const xs = points.map((p) => u(p[0]));
+    const ys = points.map((p) => u(p[1]));
+    const margin = 10 * UNITS_PER_CM;
+    let [x0, y0, x1, y1] = [Math.min(...xs) - margin, Math.min(...ys) - margin, Math.max(...xs) + margin, Math.max(...ys) + margin];
+    const minW = 60 * UNITS_PER_CM; // at least 60 x 50 cm, so a lone robot isn't huge
+    const minH = 50 * UNITS_PER_CM;
+    if (x1 - x0 < minW) {
+        [x0, x1] = [(x0 + x1 - minW) / 2, (x0 + x1 + minW) / 2];
+    }
+    if (y1 - y0 < minH) {
+        [y0, y1] = [(y0 + y1 - minH) / 2, (y0 + y1 + minH) / 2];
+    }
+    return [Math.max(0, x0), Math.max(0, y0), Math.min(floor.width, x1), Math.min(floor.height, y1)];
+}
+
 /** a small picture of a world (for the test block), as a PNG data URL: the floor (nepoTest.simRun floorCanvas), the objects and the robot */
 export function thumbnail(data: SimData, width: number, height: number, floor: HTMLCanvasElement): Promise<string> {
     const world = data.world;
@@ -734,8 +765,11 @@ export function thumbnail(data: SimData, width: number, height: number, floor: H
         canvas.width = width;
         canvas.height = height;
         const ctx = canvas.getContext('2d');
-        const s = Math.min(width / floor.width, height / floor.height);
-        ctx.translate((width - floor.width * s) / 2, (height - floor.height * s) / 2);
+        const [x0, y0, x1, y1] = thumbnailBox(data, floor);
+        const s = Math.min(width / (x1 - x0), height / (y1 - y0));
+        ctx.fillStyle = COLORS.outside;
+        ctx.fillRect(0, 0, width, height);
+        ctx.translate((width - (x1 - x0) * s) / 2 - x0 * s, (height - (y1 - y0) * s) / 2 - y0 * s);
         ctx.scale(s, s);
         ctx.drawImage(floor, 0, 0);
         const shape = (item: SimItem) => {

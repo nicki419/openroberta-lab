@@ -31,7 +31,8 @@
     "max_time_ms": {"type": "integer", "minimum": 1},
     "max_steps": {"type": "integer", "minimum": 1},
     "expect": {"$ref": "#/$defs/expect"},
-    "simulation": {"$ref": "#/$defs/simulation"}
+    "simulation": {"$ref": "#/$defs/simulation"},
+    "should": {"enum": ["pass", "fail"], "description": "fail: the test passes if its expectations (or its simulation) fail, and fails if they hold; default pass"}
    },
    "dependentRequired": {"args": ["call"], "globals": ["call"]}
   },
@@ -46,7 +47,8 @@
      "required": ["background", "start"],
      "additionalProperties": false,
      "properties": {
-      "background": {"enum": ["simpleBackgroundEdison", "drawBackground", "rescueBackground", "mathBackground"]},
+      "background": {"enum": ["peach", "simpleBackgroundEdison", "drawBackground", "rescueBackground", "mathBackground"],
+                     "description": "peach: the tests' own plain floor (#f7d1b3, 300 x 200 cm, no wall); the others are the Lab's simulator's"},
       "start": {"type": "object", "required": ["x", "y", "heading"], "additionalProperties": false,
                 "properties": {"x": {"type": "number"}, "y": {"type": "number"}, "heading": {"type": "number"}}},
       "items": {"type": "array", "items": {"$ref": "#/$defs/simItem"}}

@@ -158,6 +158,32 @@ class FormatAdditionsTest(unittest.TestCase):
                          {'not': 'passed', 'not fails': 'failed', 'any error': 'passed', 'count': 'passed', 'count range': 'failed'})
 
 
+class ShouldTest(unittest.TestCase):
+    """"this test should [pass / fail]": a test that should fail passes if it fails"""
+
+    def test_the_block_field(self):
+        should_fail = '<field name="SHOULD">fail</field>'
+        spec, problems = translate(suite(('clamped', CALL_CLAMP + EXPECT_100 + should_fail), ('plain', CALL_CLAMP + EXPECT_100)))
+        self.assertEqual(problems, [])
+        self.assertEqual([t.get('should') for t in spec['tests']], ['fail', None])  # "pass" is the default and left out
+
+    def test_a_test_that_should_fail(self):
+        subject = TestSubject.from_bundle(BUNDLE)
+        clamp = {'call': 'clampSpeed', 'args': [150]}
+        results = run_spec({'format': 'nepotest', 'tests': [
+            dict(clamp, name='fails, as it should', expect={'returns': 99}, should='fail'),
+            dict(clamp, name='passes, but should fail', expect={'returns': 100}, should='fail'),
+            dict(clamp, name='passes, as it should', expect={'returns': 100}, should='pass')]}, subject)
+        first, second, third = results['tests']
+        self.assertEqual((first['outcome'], first.get('expected_failure')), ('passed', True))
+        self.assertEqual(first['failures'][0]['expect'], 'returns')  # what failed is still reported
+        self.assertEqual((second['outcome'], second['failures'][0]['message']), ('failed', 'the test should fail, but it passed'))
+        self.assertEqual((third['outcome'], third.get('expected_failure')), ('passed', None))
+        self.assertEqual(results['summary'], {'passed': 2, 'failed': 1, 'error': 0})
+        problems = validate_spec({'format': 'nepotest', 'tests': [dict(clamp, name='x', expect={'returns': 1}, should='maybe')]})
+        self.assertIn('tests[0].should must be "pass" or "fail"', problems)
+
+
 PATROL_WITH_TESTS = os.path.join(EXAMPLES, 'patrol_with_tests.xml')
 PATROL_BUNDLE = os.path.join(EXAMPLES, 'patrol.bundle.json')
 

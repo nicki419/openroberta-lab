@@ -11,8 +11,9 @@ kept for now, with its tests (tests/test_simulation.py), as an approximation tha
 (OpenRobertaWeb/src/app/simulation/simulationLogic: robot.edison.ts, robot.actuators.ts EdisonChassis and
 ChassisDiffDrive, robot.sensors.ts LineSensor, EdisonLightSensors, EdisonInfraredSensors, simulation.scene.ts,
 simulation.math.ts):
-- the same backgrounds (simpleBackgroundEdison, drawBackground, rescueBackground, mathBackground), with the same wall
-  around them, which the robot can't leave;
+- the tests' own plain peach floor (3 x 2 m, the default), or the simulator's backgrounds (simpleBackgroundEdison,
+  drawBackground, rescueBackground, mathBackground) with the simulator's wall around them; the robot can't leave the
+  floor;
 - the same objects: obstacles and coloured areas, as rectangles, circles and triangles;
 - the same robot: 24 x 22.5 units (8 x 7.5 cm), the same wheel speed per %, moved in frames of 1/60 s with the
   simulator's kinematics, and bumping into obstacles and walls like there (the bumped side's wheel turns back);
@@ -28,8 +29,8 @@ areas** (touching one passes the test), **fail areas** (touching one fails it), 
 tolerance (leaving the corridor fails the test). Without a goal area, the test passes if none of that happens until the
 program ends (or its time is up). Touching an obstacle isn't a failure, as in the simulator: the robot bumps.
 
-    {"background": "simpleBackgroundEdison",
-     "start": {"x": 16.67, "y": 16.67, "heading": 0},
+    {"background": "peach",
+     "start": {"x": 150, "y": 100, "heading": 0},
      "items": [{"id": "l1", "kind": "line", "points": [[20, 17], [60, 17], [70, 40]], "smooth": true, "closed": false},
                {"id": "o1", "kind": "rect", "role": "obstacle", "x": 64, "y": 50.7, "w": 9.6, "h": 9.6},
                {"id": "c1", "kind": "circle", "role": "color", "color": "#000000", "x": 40, "y": 60, "r": 4},
@@ -62,10 +63,11 @@ from .engine.robot import TRACK_CM
 UNITS_PER_CM = 3.0
 BORDER = 10  # units: the wall around the background (simulation.scene.ts drawPattern; Ground(10, 10, w, h))
 FRAME_MS = 1000.0 / 60  # the simulator moves and senses once per animation frame (60 per second)
-BACKGROUNDS = {'simpleBackgroundEdison': (260, 220), 'drawBackground': (700, 500), 'rescueBackground': (800, 540),
-               'mathBackground': (700, 500)}  # RobotEdison.imgList; sizes in units (= pixels of the images)
-DEFAULT_BACKGROUND = 'simpleBackgroundEdison'
-WHITE_BACKGROUNDS = ('drawBackground',)  # backgrounds this module can draw itself (plain white)
+PEACH = 'peach'  # the tests' own floor: plain light peach (#f7d1b3), 3 x 2 m, without the simulator's wall
+BACKGROUNDS = {PEACH: (900, 600), 'simpleBackgroundEdison': (260, 220), 'drawBackground': (700, 500),
+               'rescueBackground': (800, 540), 'mathBackground': (700, 500)}  # and RobotEdison.imgList; sizes in units
+DEFAULT_BACKGROUND = PEACH
+PLAIN_BACKGROUNDS = {PEACH: 0xf7 + 0xd1 + 0xb3, 'drawBackground': 765}  # backgrounds this module can draw itself: R + G + B
 WALL_SUM = 3 * 153  # the wall pattern's brightness, for floors drawn here (never under a sensor: the robot can't get there)
 
 # EdisonChassis (units, robot frame: x ahead of the wheel axle, y to the robot's right, as on the canvas)
@@ -383,16 +385,17 @@ class Floor(object):
 
     @classmethod
     def draw(cls, world):
-        """A floor drawn here, for worlds without a stored picture: a white background, the coloured areas and the lines
-        (a pixel takes the colour of what covers its centre; a browser also blends the edges)."""
+        """A floor drawn here, for worlds without a stored picture: a plain background (peach without a wall, or white),
+        the coloured areas and the lines (a pixel takes the colour of what covers its centre; a browser also blends the
+        edges)."""
         bw, bh = world.background_size
         width, height = bw + 2 * BORDER, bh + 2 * BORDER
-        sums = array.array('H', [WALL_SUM]) * (width * height)
-        white = 765
+        plain = PLAIN_BACKGROUNDS.get(world.background, 765)
+        sums = array.array('H', [plain if world.background == PEACH else WALL_SUM]) * (width * height)
         for y in range(BORDER, BORDER + bh):
             row = y * width
             for x in range(BORDER, BORDER + bw):
-                sums[row + x] = white
+                sums[row + x] = plain
         floor = cls(width, height, sums)
         for shape in world.colors:
             floor._fill(shape, _hex_sum(shape.color))
@@ -445,18 +448,16 @@ class _Line(object):
 
 
 def default_world():
-    """a new test's world: the simulator's own start (robot at (60, 60) units, its standard obstacle)"""
+    """a new test's world: the plain peach floor, the robot in its middle, nothing on it"""
     bw, bh = BACKGROUNDS[DEFAULT_BACKGROUND]
-    side = round(bw / 9.0 / UNITS_PER_CM, 2)
-    return {'background': DEFAULT_BACKGROUND, 'start': {'x': round((60 - BORDER) / UNITS_PER_CM, 2), 'y': round((60 - BORDER) / UNITS_PER_CM, 2), 'heading': 0},
-            'items': [{'id': 'obstacle', 'kind': 'rect', 'role': 'obstacle', 'x': round((bw * 7 / 9.0 - BORDER) / UNITS_PER_CM, 2),
-                       'y': round((bh - bw * 2 / 9.0 - BORDER) / UNITS_PER_CM, 2), 'w': side, 'h': side}]}
+    return {'background': DEFAULT_BACKGROUND, 'start': {'x': round(bw / 2.0 / UNITS_PER_CM, 2), 'y': round(bh / 2.0 / UNITS_PER_CM, 2), 'heading': 0},
+            'items': []}
 
 
 def migrate_v1(world):
     """a world of the first version of simulation tests (block data version 1: an unbounded, plain peach floor; rect and
-    ellipse given by their centre, with a rotation; roles black and white) in today's terms, on the simulator's plain
-    white background (the largest, and without lines of its own)"""
+    ellipse given by their centre, with a rotation; roles black and white) in today's terms, on the plain peach
+    floor, as then"""
     items = []
     for item in (world or {}).get('items') or []:
         kind, role = item.get('kind'), item.get('role')
@@ -471,7 +472,7 @@ def migrate_v1(world):
             items.append(new)
         elif kind == 'line':
             items.append(dict((k, v) for k, v in item.items() if k != 'width'))  # the background's line width
-    return {'background': 'drawBackground', 'start': (world or {}).get('start') or {'x': 0, 'y': 0, 'heading': 0}, 'items': items}
+    return {'background': PEACH, 'start': (world or {}).get('start') or {'x': 0, 'y': 0, 'heading': 0}, 'items': items}
 
 
 class SimWorld(object):

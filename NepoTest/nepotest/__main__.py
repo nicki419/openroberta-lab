@@ -100,7 +100,7 @@ def _run_program_with_tests(args, lab_url):
 
 def _report(results, args):
     for t in results['tests']:
-        print('%-7s %s' % (t['outcome'].upper(), t['name']))
+        print('%-7s %s%s' % (t['outcome'].upper(), t['name'], ' (failed, as it should)' if t.get('expected_failure') else ''))
         for f in t['failures']:
             if f.get('described'):  # the message says what was expected and what happened
                 print('        %s: %s' % (f['expect'], f['message']))

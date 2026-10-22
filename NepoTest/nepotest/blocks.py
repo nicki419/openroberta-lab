@@ -4,8 +4,9 @@ The blocks (all types start with `nepoTest_`; the frontend defines them in nepoT
 
     nepoTest_suite                      the red start block; `nepoTest_run` blocks below it choose the tests to run
     nepoTest_run          NAME          run the test NAME
-    nepoTest_test         NAME          a test: statement inputs GIVEN (the world), WHEN (one action), THEN (expectations)
-    nepoTest_simtest      NAME SECONDS  a simulation test: the robot in a drawn world (block data: JSON, see below);
+    nepoTest_test         NAME SHOULD   a test: statement inputs GIVEN (the world), WHEN (one action), THEN (expectations);
+                                        SHOULD: pass | fail ("this test should fail": it passes if it fails)
+    nepoTest_simtest      NAME SECONDS SHOULD  a simulation test: the robot in a drawn world (block data: JSON, see below);
                                         statement inputs GIVEN (claps, keys, variables) and RUN (empty: the program;
                                         or one nepoTest_when_call). It runs on the Lab's simulator (the Tests tab).
   GIVEN
@@ -418,9 +419,19 @@ def _call(w, test, program, problems):
     test['args'] = [_literal(w, 'ARG%d' % i, problems) for i in range(arity)]
 
 
+def _should(test_block, test, problems):
+    """"this test should [pass / fail]": "should" of the test (only when it should fail)"""
+    should = test_block.fields.get('SHOULD') or 'pass'
+    if should == 'fail':
+        test['should'] = 'fail'
+    elif should != 'pass':
+        problems.add(test_block, 'a test should "pass" or "fail", not %r' % should)
+
+
 def _translate_test(test_block, program, problems):
     name = (test_block.fields.get('NAME') or '').strip()
     test = {'name': name, 'origin': 'blocks', 'block_id': test_block.id}
+    _should(test_block, test, problems)
     expect = {}
     world, globals_ = _given(test_block, program, problems)
     if world:
@@ -551,6 +562,7 @@ def simulation_data(block):
 def _translate_simtest(test_block, program, problems):
     name = (test_block.fields.get('NAME') or '').strip()
     test = {'name': name, 'origin': 'blocks', 'block_id': test_block.id}
+    _should(test_block, test, problems)
     data = simulation_data(test_block)
     if data is None:
         problems.add(test_block, 'the simulation of test "%s" cannot be read: draw it again' % name)

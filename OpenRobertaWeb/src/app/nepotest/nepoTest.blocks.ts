@@ -31,7 +31,11 @@ const MESSAGES: { [lang: string]: { [key: string]: string } } = {
         NEPOTEST_GIVEN: 'given',
         NEPOTEST_WHEN: 'when',
         NEPOTEST_THEN: 'then',
-        NEPOTEST_TEST_TOOLTIP: 'A test: given what happens around the robot, when the program runs (or a function is called), then these expectations must hold.',
+        NEPOTEST_TEST_TOOLTIP:
+            'A test: given what happens around the robot, when the program runs (or a function is called), then these expectations must hold. At the bottom: whether the test should pass or fail.',
+        NEPOTEST_SHOULD: 'this test should',
+        NEPOTEST_SHOULD_PASS: 'pass',
+        NEPOTEST_SHOULD_FAIL: 'fail',
         NEPOTEST_AT: 'at',
         NEPOTEST_FROM: 'from',
         NEPOTEST_FOR: 'for',
@@ -58,7 +62,7 @@ const MESSAGES: { [lang: string]: { [key: string]: string } } = {
         NEPOTEST_CALL_TOOLTIP: 'Calls one function of the program. The program itself does not run.',
         NEPOTEST_SIMTEST: 'simulation test',
         NEPOTEST_SIMTEST_TOOLTIP:
-            'A simulation test: the robot drives through a world you draw (click the test to open it on the right). Touching a goal area passes the test; touching a fail area or an obstacle, or leaving the recorded path, fails it.',
+            'A simulation test: the robot drives through a world you draw (click the test to open it on the right). Touching a goal area passes the test; touching a fail area, or leaving the recorded path, fails it. At the bottom: whether the test should pass or fail.',
         NEPOTEST_SIM_RUN: 'run',
         NEPOTEST_SIM_RUN_EMPTY: '(empty: the whole program)',
         NEPOTEST_SIM_FOR: 'for at most',
@@ -204,7 +208,11 @@ const MESSAGES: { [lang: string]: { [key: string]: string } } = {
         NEPOTEST_GIVEN: 'gegeben',
         NEPOTEST_WHEN: 'wenn',
         NEPOTEST_THEN: 'dann',
-        NEPOTEST_TEST_TOOLTIP: 'Ein Test: gegeben, was um den Roboter passiert, wenn das Programm läuft (oder eine Funktion aufgerufen wird), dann müssen diese Erwartungen stimmen.',
+        NEPOTEST_TEST_TOOLTIP:
+            'Ein Test: gegeben, was um den Roboter passiert, wenn das Programm läuft (oder eine Funktion aufgerufen wird), dann müssen diese Erwartungen stimmen. Unten: ob der Test bestehen oder scheitern soll.',
+        NEPOTEST_SHOULD: 'dieser Test soll',
+        NEPOTEST_SHOULD_PASS: 'bestehen',
+        NEPOTEST_SHOULD_FAIL: 'scheitern',
         NEPOTEST_AT: 'bei',
         NEPOTEST_FROM: 'ab',
         NEPOTEST_FOR: 'für',
@@ -229,7 +237,7 @@ const MESSAGES: { [lang: string]: { [key: string]: string } } = {
         NEPOTEST_CALL_TOOLTIP: 'Ruft eine Funktion des Programms auf. Das Programm selbst läuft nicht.',
         NEPOTEST_SIMTEST: 'Simulationstest',
         NEPOTEST_SIMTEST_TOOLTIP:
-            'Ein Simulationstest: der Roboter fährt durch eine Welt, die du zeichnest (klicke den Test an, dann erscheint sie rechts). Wer einen Zielbereich berührt, besteht den Test; ein Fehlerbereich, ein Hindernis oder das Verlassen des aufgenommenen Wegs lassen ihn scheitern.',
+            'Ein Simulationstest: der Roboter fährt durch eine Welt, die du zeichnest (klicke den Test an, dann erscheint sie rechts). Wer einen Zielbereich berührt, besteht den Test; ein Fehlerbereich oder das Verlassen des aufgenommenen Wegs lassen ihn scheitern. Unten: ob der Test bestehen oder scheitern soll.',
         NEPOTEST_SIM_RUN: 'ausführen',
         NEPOTEST_SIM_RUN_EMPTY: '(leer: das ganze Programm)',
         NEPOTEST_SIM_FOR: 'höchstens',
@@ -415,6 +423,20 @@ function dropdown(options: string[][]): any {
     return new Blockly.FieldDropdown(options.map((o) => [msg(o[0]), o[1]]));
 }
 
+/** the last row of a test: "this test should [pass / fail]" (SHOULD: pass | fail; a test that should fail passes if it fails) */
+function shouldRow(block: any): void {
+    block
+        .appendDummyInput('SHOULD_ROW')
+        .appendField(msg('NEPOTEST_SHOULD'))
+        .appendField(
+            dropdown([
+                ['NEPOTEST_SHOULD_PASS', 'pass'],
+                ['NEPOTEST_SHOULD_FAIL', 'fail'],
+            ]),
+            'SHOULD'
+        );
+}
+
 function comparison(): any {
     return new Blockly.FieldDropdown([
         ['=', 'EQ'],
@@ -597,6 +619,7 @@ const DEFINITIONS: { [type: string]: any } = {
             this.appendStatementInput('GIVEN').setCheck(GIVEN).appendField(msg('NEPOTEST_GIVEN'));
             this.appendStatementInput('WHEN').setCheck(WHEN).appendField(msg('NEPOTEST_WHEN'));
             this.appendStatementInput('THEN').setCheck(THEN).appendField(msg('NEPOTEST_THEN'));
+            shouldRow(this);
         },
     },
     nepoTest_simtest: {
@@ -613,6 +636,7 @@ const DEFINITIONS: { [type: string]: any } = {
                 .appendField(msg('NEPOTEST_SIM_FOR'))
                 .appendField(number(30), 'SECONDS')
                 .appendField(msg('NEPOTEST_SECONDS'));
+            shouldRow(this);
             this.thumbData_ = null;
             const block = this;
             setTimeout(() => block.updateThumbnail(), 0); // after loading: the data is set right after init

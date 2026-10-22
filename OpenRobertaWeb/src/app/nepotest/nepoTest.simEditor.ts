@@ -35,6 +35,8 @@ interface Run {
     point: number[];
     failure: string; // NepoTest's message (English), if it failed
     passed: boolean;
+    expectedFailure: boolean; // it should fail, and it did: passed
+    unexpectedPass: boolean; // it should fail, but it passed
     stale: boolean; // the world changed since
 }
 
@@ -67,6 +69,7 @@ const TEXT: { [lang: string]: { [key: string]: string } } = {
         wide: 'Wider window',
         fromSim: 'Take the scene of the simulator (background, obstacles, coloured areas, robot)',
         background: 'Background',
+        peach: 'Peach (plain, 3 × 2 m)',
         simpleBackgroundEdison: 'Edison track',
         drawBackground: 'White',
         rescueBackground: 'Rescue',
@@ -91,6 +94,7 @@ const TEXT: { [lang: string]: { [key: string]: string } } = {
         loading: 'Starting the test runner (the first time, Python is downloaded: about 12 MB)…',
         passed: '✓ passed: {0}',
         failed: '✗ failed: {0}',
+        expectedFailure: '✓ failed, as it should: {0}',
         goalReached: 'the robot reached the goal after {0} s',
         ended: 'the program ended after {0} s',
         returned: 'the function returned after {0} s',
@@ -128,6 +132,7 @@ const TEXT: { [lang: string]: { [key: string]: string } } = {
         wide: 'Breiteres Fenster',
         fromSim: 'Die Szene der Simulation übernehmen (Hintergrund, Hindernisse, Farbflächen, Roboter)',
         background: 'Hintergrund',
+        peach: 'Pfirsich (einfarbig, 3 × 2 m)',
         simpleBackgroundEdison: 'Edison-Strecke',
         drawBackground: 'Weiß',
         rescueBackground: 'Rescue',
@@ -152,6 +157,7 @@ const TEXT: { [lang: string]: { [key: string]: string } } = {
         loading: 'Der Testlauf startet (beim ersten Mal wird Python geladen: etwa 12 MB)…',
         passed: '✓ bestanden: {0}',
         failed: '✗ nicht bestanden: {0}',
+        expectedFailure: '✓ gescheitert, wie es soll: {0}',
         goalReached: 'der Roboter hat das Ziel nach {0} s erreicht',
         ended: 'das Programm war nach {0} s zu Ende',
         returned: 'die Funktion war nach {0} s zu Ende',
@@ -565,6 +571,8 @@ export class SimEditor {
             item: sim.item,
             point: sim.point,
             passed: report.outcome === 'passed',
+            expectedFailure: !!report.expected_failure,
+            unexpectedPass: !!failure && failure.expect === 'should',
             failure: failure ? failure.message : report.error ? report.error.message : null,
             stale: false,
         };
@@ -588,6 +596,9 @@ export class SimEditor {
 
     /** what happened in a run, in the window's language (failures come from NepoTest, in English) */
     private describe(run: Run): string {
+        if (run.failure && run.unexpectedPass) {
+            return run.failure + ' (' + this.describe(Object.assign({}, run, { failure: null })) + ')';
+        }
         if (run.failure) {
             return run.failure;
         }
@@ -957,7 +968,9 @@ export class SimEditor {
         this.timeSlider.disabled = false;
         this.status.className = 'nepoSimStatus ' + (run.passed ? 'passed' : 'failed');
         this.status.textContent =
-            (recorded ? this.text('recorded', this.describe(run)) : this.text(run.passed ? 'passed' : 'failed', this.describe(run))) + (run.stale ? ' ' + this.text('stale') : '');
+            (recorded
+                ? this.text('recorded', this.describe(run))
+                : this.text(run.expectedFailure ? 'expectedFailure' : run.passed ? 'passed' : 'failed', this.describe(run))) + (run.stale ? ' ' + this.text('stale') : '');
     }
 
     /** what the robot's sensors see where it is drawn (as the simulator's sensor values view) */
@@ -1256,7 +1269,7 @@ export class SimEditor {
 
     /** the simulator's default size of new objects (simulation.scene.ts: a ninth of the background's width) */
     private defaultSize(): number {
-        return SIM.backgroundSize(this.data.world)[0] / 9 / SIM.UNITS_PER_CM;
+        return SIM.objectSize(this.data.world);
     }
 
     private newShape(kind: string, p: number[]): SIM.SimItem {

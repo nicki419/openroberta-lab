@@ -216,6 +216,7 @@ const TEXT: { [lang: string]: { [key: string]: string } } = {
         running: 'Running test {0} of {1}…',
         passed: 'passed',
         failed: 'failed',
+        expectedFailure: 'failed, as it should',
         error: 'test error',
         waiting: 'waiting',
         done: '{0} passed, {1} failed, {2} test errors',
@@ -236,6 +237,7 @@ const TEXT: { [lang: string]: { [key: string]: string } } = {
         running: 'Test {0} von {1} läuft…',
         passed: 'bestanden',
         failed: 'fehlgeschlagen',
+        expectedFailure: 'gescheitert, wie es soll',
         error: 'Testfehler',
         waiting: 'wartet',
         done: '{0} bestanden, {1} fehlgeschlagen, {2} Testfehler',
@@ -782,7 +784,7 @@ function showPrepared(prepared: any): boolean {
 
 function showReport(index: number, report: any): void {
     const $li = $('#nepoTestResult' + index).removeClass('waiting').addClass(report.outcome);
-    $li.find('.nepoTestOutcome').text(text(report.outcome));
+    $li.find('.nepoTestOutcome').text(text(report.expected_failure ? 'expectedFailure' : report.outcome)); // it should fail, and it did: passed
     const $details = $('<ul class="nepoTestDetails"></ul>');
     (report.failures || []).forEach(function (f) {
         if (!(f.expect === 'error' && f.expected === null && report.error)) {

@@ -127,8 +127,8 @@ sync:** the field and input names below are the contract between them.
 |---|---|---|---|
 | `nepoTest_suite` | red: *test suite: run these tests* | (next: `run` blocks) | the list and order of the tests |
 | `nepoTest_run` | *run test* [name ▾] | `NAME` (dropdown of the workspace's tests; `''` shown as `?` = none chosen) | selects a test |
-| `nepoTest_test` | *test* [name] *given / when / then* | `NAME`; statements `GIVEN`, `WHEN`, `THEN` | one test (`name`, `block_id`, `origin: "blocks"`) |
-| `nepoTest_simtest` | *simulation test* [name], a picture of its world, *given*, *run* (empty: the whole program), *for at most* [30] *s* | `NAME`, `SECONDS`; statements `GIVEN` (clap, key, variable only: the simulator has no IR remote and no IR messages), `RUN` (one *call function*, or nothing); **the world is the block's `data`** (JSON, §5); the picture is a `FieldImage` without a value, drawn asynchronously (a PNG of the floor, the objects and the robot) | a simulation test (`simulation` with `world`, `reference`, `tolerance_cm`; `max_time_ms`, optionally `call`/`args`/`globals`, `world` events) |
+| `nepoTest_test` | *test* [name] *given / when / then*, *this test should* [pass ▾ / fail] | `NAME`, `SHOULD` (`pass`, `fail`); statements `GIVEN`, `WHEN`, `THEN` | one test (`name`, `block_id`, `origin: "blocks"`; `should: "fail"`) |
+| `nepoTest_simtest` | *simulation test* [name], a picture of its world, *given*, *run* (empty: the whole program), *for at most* [30] *s*, *this test should* [pass ▾ / fail] | `NAME`, `SECONDS`, `SHOULD`; statements `GIVEN` (clap, key, variable only: the simulator has no IR remote and no IR messages), `RUN` (one *call function*, or nothing); **the world is the block's `data`** (JSON, §5); the picture is a `FieldImage` without a value, drawn asynchronously (a PNG of the floor, the objects and the robot) | a simulation test (`simulation` with `world`, `reference`, `tolerance_cm`; `max_time_ms`, optionally `call`/`args`/`globals`, `world` events) |
 | `nepoTest_given_clap` | *at* [1000] *ms: a clap* | `AT` | world `clap` |
 | `nepoTest_given_key` | *at … ms: key* [▶ PLAY ▾] *is pressed* | `AT`, `PORT` (PLAY/REC) | world `key` |
 | `nepoTest_given_obstacle` | *from … ms for … ms: an obstacle* [FRONT ▾] | `FROM`, `DURATION` (0 = until the end), `PORT` | world `obstacle` |
@@ -376,13 +376,15 @@ is the example.
 that test. The tab *Simulation* shows the test last opened.
 
 **It looks like the Lab's simulator:**
-- its backgrounds, with the striped wall around them;
+- its backgrounds, with the striped wall around them (and the tests' own plain peach floor, without a wall);
 - its obstacles (teal, with their shadow) and coloured areas, as rectangles, circles and triangles, in its colours;
 - its robot image (`css/img/simulator/edison.png`, with its shadow);
 - the line tracker and the light sensors, filled with the brightness they see;
 - the infrared rays, and the LEDs' red glow.
 
-A new test starts with the simulator's own scene: the Edison track, the robot at its start, and the standard obstacle.
+A new test starts on a plain light peach floor (3 × 2 m, `#f7d1b3`), with the robot in
+its middle and nothing else on it. The view shows the area around the robot; the block's picture shows what is drawn,
+not the whole floor.
 
 ```
 Simulation test: follows the track to the finish
@@ -416,7 +418,8 @@ line tracker white (87 %) · LLIGHT 87 % · RLIGHT 76 % · obstacle: none
   - Obstacles and coloured areas take a colour from the simulator's palette.
   - Handles resize rectangles (corners) and circles (the radius), and move the corners of triangles. Like the
     simulator's, objects don't turn.
-- **Background:** the simulator's four for the Edison.
+- **Background:** the plain peach floor, or the simulator's four for the Edison. On the peach floor, a click makes an
+  object of the size it has on the simulator's Edison track (9.6 cm).
 - **From the simulator:** takes over the scene of the Lab's simulator, if it was opened (Program tab → SIM):
   - background, obstacles and coloured areas;
   - where the robot starts.
@@ -485,7 +488,7 @@ suite is loaded.
 
 `blocks.py` turns it into the test's `simulation` and leaves `view` out. Data of version 1 (before the world copied
 the simulator) is migrated:
-- the world goes onto the simulator's plain white background;
+- the world goes onto the plain peach floor, as then;
 - rectangles and ellipses become the simulator's rectangles and circles;
 - black and white floor become coloured areas;
 - the recorded path is dropped.

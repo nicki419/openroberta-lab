@@ -17,6 +17,7 @@
  *   {name, block_id, kind: 'simulation', outcome, failures, error, time_ms, variables, covered_blocks, status | returned,
  *    simulation: {result, t, item, point, path: [[t_ms, x, y, heading], ...], leds: [[t_ms, left, right], ...], recorded, goals, bumps}}
  * result: goal | fail_area | deviation | finished | returned | time_limit | error. Positions in cm, headings in degrees (not wrapped).
+ * A test that should fail (`should: "fail"`) is turned round as in spec.py apply_should.
  */
 import * as COMM from 'comm';
 import * as GUISTATE_C from 'guiState.controller';
@@ -84,19 +85,28 @@ function isShape(item: SIM.SimItem): boolean {
 
 /**
  * the picture the robot's floor sensors see (the simulator's uCtx): the background at (10, 10) with the wall pattern around it
- * (SimulationScene.drawColorAreas, drawPattern), the coloured areas drawn by the simulator's objects, then the test's lines (nepoTest.sim)
+ * (SimulationScene.drawColorAreas, drawPattern), or the plain peach floor (peach to the canvas's edge: it has no wall); then the coloured
+ * areas drawn by the simulator's objects, then the test's lines (nepoTest.sim)
  */
 export function floorCanvas(world: SIM.SimWorld): Promise<HTMLCanvasElement> {
-    return Promise.all([SIM.loadImage(SIM.backgroundUrl(world.background)), SIM.loadImage(SIM.WALL_IMAGE)]).then(function ([bg, wall]) {
+    const peach = world.background === SIM.PEACH;
+    const images = peach ? [] : [SIM.loadImage(SIM.backgroundUrl(world.background)), SIM.loadImage(SIM.WALL_IMAGE)];
+    return Promise.all(images).then(function ([bg, wall]) {
+        const [bw, bh] = SIM.backgroundSize(world);
         const canvas = document.createElement('canvas');
-        canvas.width = bg.width + 2 * SIM.BORDER;
-        canvas.height = bg.height + 2 * SIM.BORDER;
+        canvas.width = bw + 2 * SIM.BORDER;
+        canvas.height = bh + 2 * SIM.BORDER;
         const ctx = canvas.getContext('2d', { willReadFrequently: true } as any) as CanvasRenderingContext2D;
-        ctx.drawImage(bg, 10, 10, bg.width, bg.height);
-        ctx.beginPath();
-        ctx.strokeStyle = ctx.createPattern(wall, 'repeat');
-        ctx.lineWidth = 10;
-        ctx.strokeRect(5, 5, bg.width + 10, bg.height + 10);
+        if (peach) {
+            ctx.fillStyle = SIM.PEACH_COLOR;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        } else {
+            ctx.drawImage(bg, 10, 10, bg.width, bg.height);
+            ctx.beginPath();
+            ctx.strokeStyle = ctx.createPattern(wall, 'repeat');
+            ctx.lineWidth = 10;
+            ctx.strokeRect(5, 5, bg.width + 10, bg.height + 10);
+        }
         const listener = new SelectionListener();
         const visible = document.createElement('canvas').getContext('2d'); // the objects draw on the visible layer too
         const areas = world.items.filter((item) => item.role === 'color' && isShape(item));
@@ -810,6 +820,26 @@ function blockType(source: string, id: string): string {
     return null;
 }
 
+export const SHOULD_FAIL_MESSAGE = 'the test should fail, but it passed';
+
+/**
+ * a test that should fail (test.should: "fail", the block's "this test should fail"), as spec.py apply_should: it passes if its checks fail
+ * (the failures stay, with expected_failure), and fails if they pass. A test error stays an error.
+ */
+export function applyShould(report: any, test: any): any {
+    if (test.should !== 'fail' || (report.outcome !== 'passed' && report.outcome !== 'failed')) {
+        return report;
+    }
+    if (report.outcome === 'failed') {
+        report.outcome = 'passed';
+        report.expected_failure = true;
+    } else {
+        report.outcome = 'failed';
+        report.failures = [{ expect: 'should', expected: 'fail', actual: 'passed', message: SHOULD_FAIL_MESSAGE, described: true }];
+    }
+    return report;
+}
+
 function errorReport(test: any, message: string): any {
     return { name: test.name, block_id: test.block_id, kind: 'simulation', outcome: 'error', failures: [], error: { kind: 'test_error', message: message } };
 }
@@ -830,6 +860,6 @@ export function runTest(test: any, programXml: string, options: RunOptions = {})
             return errorReport(test, compileProblem(result));
         }
         const run = new Run(test, result, floor.getContext('2d', { willReadFrequently: true } as any) as CanvasRenderingContext2D, options);
-        return run.run().then(() => run.report(source));
+        return run.run().then(() => applyShould(run.report(source), test));
     });
 }

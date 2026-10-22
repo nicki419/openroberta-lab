@@ -243,6 +243,7 @@ A **test**:
 | `world` | events (§4.4), for runs and for calls |
 | `max_time_ms`, `max_steps` | budgets. Defaults: 60,000 ms virtual; 2,000,000 steps for runs, 100,000 for calls. |
 | `expect` (required) | expectations (§4.5); all must hold |
+| `should` | `"pass"` (the default) or `"fail"`: a test that should fail passes if its expectations (or its simulation) fail, and fails if they hold (§4.8). The test blocks' *this test should* [pass / fail]. |
 
 NEPO values are ints (−32768…32767), booleans, and lists of ints. There are no floats and no strings: the Edison has
 none.
@@ -379,7 +380,14 @@ so tests and AI generators can copy them from the program. All these decoders we
 
 - `outcome` is `passed`, `failed` (an expectation didn't hold, including an unexpected runtime error), or `error`: the
   *test* is broken, e.g. it passes a string as a NEPO value. That separates bad tests from bad programs, which
-  matters when tests are generated.
+  matters when tests are generated. (`skipped`: a simulation test outside the Lab, §4.11.)
+- **A test that should fail** (`"should": "fail"`, `spec.apply_should`; for simulation tests `nepoTest.simRun applyShould`):
+  - if it failed, its `outcome` is `passed`, with `"expected_failure": true`, and its `failures` stay, so the report
+    still says what failed;
+  - if it passed, its `outcome` is `failed`, with the failure `{"expect": "should", "message": "the test should fail,
+    but it passed"}`;
+  - an `error` stays an error. The CLI shows such a pass as `PASSED  name (failed, as it should)`; the Tests tab as
+    "failed, as it should".
 - Failures name the expectation, like `variables.claps` or `actions[1]`, and give the expected and actual values. For
   action expectations, `actual` is the (shortened) list of actions.
 - `uncovered` lists blocks that no test executed, as `{block_id, type, function}`.
@@ -534,9 +542,15 @@ A **simulation test** puts the Edison into a world the learner draws (the Tests 
   degrees, counterclockwise as seen from above, 0 pointing right. `start` is the robot's pose: the centre of its wheel
   axle and where it faces. The simulator itself works in units of 1/3 cm, with the background at (10, 10):
   u = 10 + 3 × cm.
-- **`background`:** one of the Edison's in the simulator: `simpleBackgroundEdison` (its default), `drawBackground`
-  (white), `rescueBackground`, `mathBackground`. The floor has the simulator's wall around it, 10 units wide, which the
-  robot can't leave.
+- **`background`:**
+  - `peach` (the default for a new test): the tests' own floor, plain light peach (`#f7d1b3`), 300 × 200 cm, without
+    the simulator's striped wall. Its edge is still the floor's edge: the robot bumps into it, and the obstacle
+    detection sees it, as at the simulator's wall. The sensors read 83 % on it.
+  - The Edison's backgrounds in the simulator: `simpleBackgroundEdison` (the simulator's default), `drawBackground`
+    (white), `rescueBackground`, `mathBackground`. The floor has the simulator's wall around it, 10 units wide, which
+    the robot can't leave.
+- **A new test** (`simulation.default_world`, `nepoTest.sim.ts defaultWorld`): the peach floor, the robot in its middle
+  (150, 100) facing right, and nothing on it.
 - **Items:**
   - The simulator's objects: `rect` (top left `x`, `y`; `w`, `h`; not rotated, as there), `circle` (`x`, `y`, `r`) and
     `triangle` (`points`). Their `role`:

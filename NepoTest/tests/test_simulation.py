@@ -132,6 +132,14 @@ class FloorTest(unittest.TestCase):
         edge = floor.sample(*SIM.to_units(50, 20 + SIM.LINE_WIDTH_CM / 2))
         self.assertTrue(0 < edge < 100, edge)  # the 5-pixel cross is half on the core
 
+    def test_the_peach_floor(self):
+        world = SIM.default_world()  # a new test: the plain peach floor, the robot in its middle, nothing on it
+        self.assertEqual((world['background'], world['start'], world['items']), ('peach', {'x': 150.0, 'y': 100.0, 'heading': 0}, []))
+        floor = SIM.SimWorld(world).floor
+        self.assertEqual((floor.width, floor.height), (920, 620))  # 300 x 200 cm and the border, which is peach too
+        self.assertAlmostEqual(floor.sample(*SIM.to_units(150, 100)), (0xf7 + 0xd1 + 0xb3) / 3 / 2.55)  # 83 %: light
+        self.assertAlmostEqual(floor.sample(5, 5), floor.sample(*SIM.to_units(150, 100)))  # no wall in the border (units)
+
     def test_a_stored_floor(self):
         sums = array.array('H', [765, 0, 765, 0, 0, 0, 765, 0, 765])  # a 3 x 3 picture: a black cross
         floor = SIM.Floor.decode({'w': 3, 'h': 3, 'sum': base64.b64encode(zlib.compress(sums.tobytes())).decode()})
@@ -157,7 +165,7 @@ class FloorTest(unittest.TestCase):
             {'id': 'e', 'kind': 'ellipse', 'role': 'goal', 'x': 5, 'y': 5, 'w': 4, 'h': 6},
             {'id': 'l', 'kind': 'line', 'points': [[0, 0], [1, 1]], 'width': 1.5}]}
         world = SIM.migrate_v1(old)
-        self.assertEqual(world['background'], 'drawBackground')
+        self.assertEqual(world['background'], 'peach')
         self.assertEqual(world['items'][0], {'id': 'r', 'role': 'color', 'color': '#000000', 'kind': 'rect', 'x': 8.0, 'y': 9.0, 'w': 4, 'h': 2})
         self.assertEqual(world['items'][1], {'id': 'e', 'role': 'goal', 'kind': 'circle', 'x': 5, 'y': 5, 'r': 2.5})
         self.assertNotIn('width', world['items'][2])
@@ -322,6 +330,10 @@ class SimulationBlockTest(unittest.TestCase):
         self.assertEqual(spec['tests'], [{'name': 'drive', 'origin': 'blocks', 'block_id': 't', 'world': [{'event': 'clap', 'at': 500}],
                                           'max_time_ms': 12000, 'simulation': {'world': world, 'tolerance_cm': 3,
                                                                                'reference': {'path': [[60, 69.3, 0]]}}}])
+
+    def test_a_simulation_test_that_should_fail(self):
+        spec, problems = translate(suite_xml(v2(oval_world()), '<field name="SHOULD">fail</field>'))
+        self.assertEqual(spec['tests'][0]['should'], 'fail')  # the Lab's runner turns its result round (nepoTest.simRun applyShould)
 
     def test_a_function_runs_instead_of_the_program(self):
         run = ('<statement name="RUN"><block type="nepoTest_when_call" id="w"><mutation name="toTheWall"/>'

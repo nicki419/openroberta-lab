@@ -11,6 +11,9 @@ code of its own. See docs/ai/nepo-unit-testing.md for the full reference.
        {"name": "follows the line", "simulation": {"world": {...}, "reference": {"path": [...]}, "tolerance_cm": 2},
         "max_time_ms": 30000}]}
 
+"should": "fail" turns a test round: it passes if its expectations fail (the failures stay in the report, with
+"expected_failure": true), and fails if they hold ("the test should fail, but it passed"). Default: "pass".
+
 A test with "simulation" is a simulation test: the robot drives through a drawn world, and the world decides. Its
 "expect" is optional. Simulation tests run on the Lab's own simulator, in the Tests tab (nepoTest.simRun.ts); here they
 are only checked (simulation.py validate) and reported as skipped.
@@ -27,7 +30,9 @@ from .world import EVENTS, World
 EXPECT_KEYS = ('returns', 'status', 'finished_within_ms', 'variables', 'actions', 'actions_exactly', 'no_actions',
                'action_count', 'calls', 'error', 'covers', 'states', 'distance_cm', 'heading_deg', 'end_position')
 TEST_KEYS = ('name', 'description', 'call', 'args', 'globals', 'world', 'max_time_ms', 'max_steps', 'expect', 'origin', 'block_id',
-             'simulation')
+             'simulation', 'should')
+SHOULD_VALUES = ('pass', 'fail')
+SHOULD_FAIL_MESSAGE = 'the test should fail, but it passed'
 STATUS_VALUES = ('finished', 'running', 'time_limit', 'step_limit')
 OUTCOMES = ('passed', 'failed', 'error', 'skipped')
 SIMULATION_SKIPPED = "simulation tests run on the Lab's simulator: run them in the Tests tab"
@@ -58,6 +63,8 @@ def validate_spec(spec, subject=None):
         elif name in names:
             problems.append('%s: duplicate name %r' % (where, name))
         names.add(name)
+        if test.get('should', 'pass') not in SHOULD_VALUES:
+            problems.append('%s.should must be "pass" or "fail"' % where)
         expect = test.get('expect')
         is_simulation = 'simulation' in test
         if is_simulation:
@@ -189,6 +196,19 @@ def check_expectations(expect, test, result, is_call):
 
 # ---------------------------------------------------------------------- running
 
+def apply_should(report, test):
+    """a test that should fail ("should": "fail"): it passes if it failed (the failures stay, with expected_failure), and
+    fails if it passed. A test error or a skipped test stays as it is. (nepoTest.simRun.ts applyShould does the same.)"""
+    if test.get('should', 'pass') != 'fail' or report['outcome'] not in ('passed', 'failed'):
+        return report
+    if report['outcome'] == 'failed':
+        report.update(outcome='passed', expected_failure=True)
+    else:
+        report.update(outcome='failed', failures=[{'expect': 'should', 'expected': 'fail', 'actual': 'passed',
+                                                   'message': SHOULD_FAIL_MESSAGE, 'described': True}])
+    return report
+
+
 def run_test(subject, test, defaults=None):
     """(report, coverage) of a test; a simulation test is skipped (report outcome "skipped", coverage None)"""
     if 'simulation' in test:
@@ -215,7 +235,7 @@ def run_test(subject, test, defaults=None):
         report['returned'] = result._returned
     else:
         report['status'] = result.status
-    return report, result.coverage
+    return apply_should(report, test), result.coverage
 
 
 def run_spec(spec, subject):
