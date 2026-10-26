@@ -79,20 +79,23 @@ programs, which implements the project goal. It covers:
   engine's state log;
 - **simulation tests:** the robot drives through a **drawn world on the Lab's own simulator**: the program compiled
   for the simulator (`sourceSimulation`), run by the simulator's interpreter, Edison and objects, offscreen and in
-  virtual time, in the Tests tab (`OpenRobertaWeb/src/app/nepotest/nepoTest.simRun.ts`). The tests add lines to follow,
-  goal and fail areas, and a recorded path with a tolerance. Touching a goal passes the test; touching a fail area, or
-  leaving the path, fails it. They have the simulator's semantics, not the robot's (sensors are states). The command
-  line skips them; `NepoTest/nepotest/simulation.py` checks their data (its copy of the simulator is no longer used);
+  virtual time, in the Tests tab (`OpenRobertaWeb/src/app/nepotest/nepoTest.simRun.ts`). A **simulation world** (lines
+  to follow, obstacles, goal and fail areas, named starts) holds many tests: each is set up (a start, the past: claps,
+  keys, variables), runs the whole program (for N s, or until it touches an area) and checks (reaches, never touches,
+  ends in, never bumps into, stays on its recorded path ± cm). A test passes only if every check, and every rule of its
+  world, holds; a run never stops at the first failure. They have the simulator's semantics, not the robot's (sensors
+  are states). The command line skips them; `NepoTest/nepotest/simulation.py` checks their data (its copy of the
+  simulator is no longer used);
 - **results per block:** failures, runtime errors attributed to blocks, and block coverage;
 - `describe()`: a program summary with test hints, as input for AI test generation.
 
 Read it before working on testing.
 
 **`docs/ai/nepo-test-blocks.md`** documents the Lab's **Tests tab**: learners build test suites from NEPO test blocks
-(red start block, test blocks with given / when / then, simulation test blocks, run-test blocks), see the converted
-code, and run the tests in the browser (NepoTest in Pyodide, in a Web Worker; simulation tests on the Lab's
-simulator). For a simulation test, the **Simulation** panel (it looks like the Lab's simulator) draws its world,
-records the path and replays runs. It covers
+(red start block, test blocks with given / when / then, simulation worlds with their tests and checks, run-test
+blocks), see the converted code, and run the tests in the browser (NepoTest in Pyodide, in a Web Worker; simulation
+tests on the Lab's simulator). For a simulation world, the **Simulation** panel (it looks like the Lab's simulator)
+draws the world and its starts, lists its tests, runs them, records a test's path and replays runs. It covers
 the block vocabulary (the contract between `nepoTest.blocks.ts` and `NepoTest/nepotest/blocks.py`), how suites are
 saved inside the program XML, and how results link back to blocks. Read it before changing the Tests tab or adding a test block.
 
@@ -175,11 +178,11 @@ python -m nepotest run examples/patrol.tests.json      # state tests (patrol_wit
 python -m nepotest run examples/line_follower.tests.json   # its simulation tests are skipped: they run in the Tests tab
 ```
 
-These passed on 2026-10-22: 133 + 8 tests, including the live-Lab tests and the schema check; the reference-compiler
+These passed on 2026-10-26: 140 + 8 tests, including the live-Lab tests and the schema check; the reference-compiler
 check last ran on 2026-10-18. Each suite has one deliberate expected failure, which shows generator quirk #14. The clap
 counter and patrol example test files each report one deliberate failure: quirk #14 (clap counter), and a square
 driven while the obstacle is still there (patrol). The line follower's file runs its BDD test and skips its two
-simulation tests; in the Tests tab (`line_follower_with_tests.xml`), all three pass.
+simulation tests (one world, starts A and B); in the Tests tab (`line_follower_with_tests.xml`), all three pass.
 The live-Lab tests skip if no Lab answers at `$NEPOTEST_LAB` (default `http://localhost:1999`). The Level-0 check skips
 unless `EDPY_HOME`/`EDPY_PYTHON` point to the reference compiler, and the schema check unless `jsonschema` is
 installed. The tests also ran with pytest on 2026-09-25. After generator

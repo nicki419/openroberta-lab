@@ -7,10 +7,12 @@ All functions take and return JSON strings, so nothing but strings crosses the J
     run_one(index)                            -> the report of test `index` (spec.run_test)
     finish(simulation_reports_json)           -> {"summary", "coverage"} over all tests run since prepare(), and the
                                                  simulation tests the Lab ran on its simulator (their reports, a JSON
-                                                 list: they count, and so do the blocks they covered)
+                                                 list of {name, block_id, outcome, covered_blocks}: they count, and so
+                                                 do the blocks they covered)
     simulation_test(tests_xml, block_id, program_xml)
-                                              -> {"test", "problems"}: one test on its own, as JSON (the Simulation
-                                                 tab's "record" and "run")
+                                              -> {"tests", "problems"}: the tests of a simulation world, or one test of a
+                                                 world, on their own, as JSON (the Simulation tab's "run" and "record");
+                                                 a test with errors is left out (the problems say why)
 
 Simulation tests run on the Lab's simulator (OpenRobertaWeb/src/app/nepotest/nepoTest.simRun.ts), not here: the Lab
 asks for the tests (prepare), runs the other tests here one by one (run_one), runs the simulation tests itself, and
@@ -21,7 +23,7 @@ A prepared session is kept in this module, so a suite can be run test by test an
 
 import json
 
-from .blocks import translate, translate_one
+from .blocks import translate, translate_simulation
 from .lab import Bundle
 from .nepo import NepoProgram
 from .spec import run_test, validate_spec
@@ -76,7 +78,9 @@ def run_one(index):
 def finish(simulation_reports_json='[]'):
     simulated = json.loads(simulation_reports_json or '[]')
     reports = _session.get('reports', []) + simulated
-    counts = dict((o, sum(1 for r in reports if r['outcome'] == o)) for o in ('passed', 'failed', 'error'))
+    counts = dict((o, sum(1 for r in reports if r['outcome'] == o)) for o in ('passed', 'failed', 'error', 'skipped'))
+    if not counts['skipped']:
+        del counts['skipped']
     coverage = _session.get('coverage')
     covered = set(b for r in simulated for b in r.get('covered_blocks') or [])
     if covered and _session.get('subject') is not None:
@@ -86,8 +90,5 @@ def finish(simulation_reports_json='[]'):
 
 
 def simulation_test(tests_xml, block_id, program_xml=None):
-    test, problems = translate_one(tests_xml, block_id, _program(program_xml))
-    if test is not None and not [p for p in problems if p['severity'] == 'error']:
-        problems += [{'block_id': block_id, 'message': p, 'severity': 'error'}
-                     for p in validate_spec({'format': 'nepotest', 'tests': [test]})]
-    return json.dumps({'test': test, 'problems': problems})
+    tests, problems = translate_simulation(tests_xml, block_id, _program(program_xml))
+    return json.dumps({'tests': tests, 'problems': problems})

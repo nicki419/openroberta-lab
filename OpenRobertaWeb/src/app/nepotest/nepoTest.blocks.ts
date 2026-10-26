@@ -2,8 +2,11 @@
  * The NEPO test blocks of the Tests tab (block types nepoTest_*). They are defined here at runtime (Blockly itself is built elsewhere) and translated
  * into NepoTest's JSON test format by NepoTest/nepotest/blocks.py, which documents every block's fields and inputs. Keep both in sync.
  *
- * A test suite: the red start block "nepoTest_suite" with "nepoTest_run" blocks below it; each runs one "nepoTest_test" (given / when / then)
- * or one "nepoTest_simtest" (the robot in a drawn world; its world is the block's data, see nepoTest.sim).
+ * A test suite: the red start block "nepoTest_suite" with "nepoTest_run" blocks below it; each runs one "nepoTest_test" (given / when / then),
+ * one simulation world "nepoTest_world" (all its tests) or one test of a world. A world (its data: the drawn world, see nepoTest.sim) holds
+ * tests "nepoTest_simcase" (set up: a start and the past; run: the whole program; check: "nepoTest_check_*" blocks) and rules (checks for all
+ * of its tests). The tests and checks refer to the world's starts and items by their ids (fields START, UNTIL, AREA, OBSTACLE) and show their
+ * names: refreshWorldLabels keeps the names up to date.
  */
 // @ts-ignore (Blockly has no type declarations)
 import * as Blockly from 'blockly';
@@ -60,12 +63,46 @@ const MESSAGES: { [lang: string]: { [key: string]: string } } = {
         NEPOTEST_RUN_PROGRAM_TOOLTIP: 'Runs the whole program. It stops when it ends, or after this time (virtual time: a test takes much less).',
         NEPOTEST_CALL: 'call function',
         NEPOTEST_CALL_TOOLTIP: 'Calls one function of the program. The program itself does not run.',
-        NEPOTEST_SIMTEST: 'simulation test',
-        NEPOTEST_SIMTEST_TOOLTIP:
-            'A simulation test: the robot drives through a world you draw (click the test to open it on the right). Touching a goal area passes the test; touching a fail area, or leaving the recorded path, fails it. At the bottom: whether the test should pass or fail.',
-        NEPOTEST_SIM_RUN: 'run',
-        NEPOTEST_SIM_RUN_EMPTY: '(empty: the whole program)',
-        NEPOTEST_SIM_FOR: 'for at most',
+        NEPOTEST_WORLD: 'simulation world',
+        NEPOTEST_WORLD_TOOLTIP:
+            'A world the robot drives through: click it to draw it on the right (lines, obstacles, areas, and where the robot can start). Each test below starts the robot somewhere, runs the program and checks what the robot does. The rules are checks for every test.',
+        NEPOTEST_RULES: 'rules for every test',
+        NEPOTEST_TESTS_IN_WORLD: 'tests',
+        NEPOTEST_SIMCASE: 'test',
+        NEPOTEST_SIMCASE_TOOLTIP:
+            'A test in this world. Set up: where the robot starts, and what happened before (claps, keys, variables). Run: the whole program. Check: it passes only if every check holds (and every rule of the world). Untick the box to skip the test. At the bottom: whether the test should pass or fail.',
+        NEPOTEST_SET_UP: 'set up:',
+        NEPOTEST_START_AT: 'the robot starts at',
+        NEPOTEST_RUN_LABEL: 'run:',
+        NEPOTEST_THE_PROGRAM_RUNS: 'the program',
+        NEPOTEST_MODE_FOR: 'for',
+        NEPOTEST_MODE_UNTIL: 'until the robot touches',
+        NEPOTEST_AT_MOST_COMMA: ', at most',
+        NEPOTEST_CHECK: 'check:',
+        NEPOTEST_CHECK_REACHES: 'the robot reaches',
+        NEPOTEST_CHECK_REACHES_TOOLTIP: 'Holds if the robot touches this area at some time during the run.',
+        NEPOTEST_CHECK_NEVER_TOUCHES: 'the robot never touches',
+        NEPOTEST_CHECK_NEVER_TOUCHES_TOOLTIP: 'Fails as soon as the robot touches this area. The run goes on: every check is checked.',
+        NEPOTEST_CHECK_ENDS_IN: 'at the end, the robot is completely in',
+        NEPOTEST_CHECK_ENDS_IN_TOOLTIP: 'Holds if the whole robot is inside this area when the run ends.',
+        NEPOTEST_CHECK_NEVER_BUMPS: 'the robot never bumps into',
+        NEPOTEST_CHECK_NEVER_BUMPS_TOOLTIP: 'Fails when the robot drives against this obstacle (or against anything, the wall too).',
+        NEPOTEST_CHECK_PATH: 'the robot stays on its recorded path ±',
+        NEPOTEST_CHECK_PATH_TOOLTIP:
+            'The robot must stay within this many cm of the path it took when the path was recorded. To record it: select the test, then "Record path" in the Simulation tab.',
+        NEPOTEST_NOT_RECORDED: '(not recorded yet)',
+        NEPOTEST_RECORDED: '(recorded: {0} s)',
+        NEPOTEST_ANY_GOAL: 'any goal area',
+        NEPOTEST_ANY_FAIL: 'any fail area',
+        NEPOTEST_ANYTHING: 'anything (the wall too)',
+        NEPOTEST_KIND_GOAL: 'Goal',
+        NEPOTEST_KIND_FAIL: 'Fail area',
+        NEPOTEST_KIND_COLOR: 'Area',
+        NEPOTEST_KIND_OBSTACLE: 'Obstacle',
+        NEPOTEST_KIND_LINE: 'Line',
+        NEPOTEST_UNKNOWN_START: 'This start is not in the world of this test: choose one of its starts.',
+        NEPOTEST_UNKNOWN_ITEM: 'This is not in the world of this test (any more): choose something else.',
+        NEPOTEST_OUTSIDE_WORLD: 'Put this into a simulation world.',
         NEPOTEST_EXPECT: 'expect',
         NEPOTEST_EXPECT_NO: 'expect no',
         NEPOTEST_TIMES: 'times',
@@ -193,6 +230,7 @@ const MESSAGES: { [lang: string]: { [key: string]: string } } = {
         NEPOTEST_EXPECT_MEASURE_TOOLTIP:
             'Measured at the end. After "drive ... cm" and "turn ... °" blocks this is exact; after drives stopped by a wait it depends on the assumed speed.',
         TOOLBOX_NEPOTEST_TESTS: 'Tests',
+        TOOLBOX_NEPOTEST_CHECKS: 'Checks',
         TOOLBOX_NEPOTEST_GIVEN: 'Given',
         TOOLBOX_NEPOTEST_WHEN: 'When',
         TOOLBOX_NEPOTEST_THEN: 'Expect',
@@ -235,12 +273,46 @@ const MESSAGES: { [lang: string]: { [key: string]: string } } = {
         NEPOTEST_RUN_PROGRAM_TOOLTIP: 'Führt das ganze Programm aus. Es stoppt, wenn es endet, oder nach dieser Zeit (virtuelle Zeit: ein Test dauert viel kürzer).',
         NEPOTEST_CALL: 'rufe Funktion',
         NEPOTEST_CALL_TOOLTIP: 'Ruft eine Funktion des Programms auf. Das Programm selbst läuft nicht.',
-        NEPOTEST_SIMTEST: 'Simulationstest',
-        NEPOTEST_SIMTEST_TOOLTIP:
-            'Ein Simulationstest: der Roboter fährt durch eine Welt, die du zeichnest (klicke den Test an, dann erscheint sie rechts). Wer einen Zielbereich berührt, besteht den Test; ein Fehlerbereich oder das Verlassen des aufgenommenen Wegs lassen ihn scheitern. Unten: ob der Test bestehen oder scheitern soll.',
-        NEPOTEST_SIM_RUN: 'ausführen',
-        NEPOTEST_SIM_RUN_EMPTY: '(leer: das ganze Programm)',
-        NEPOTEST_SIM_FOR: 'höchstens',
+        NEPOTEST_WORLD: 'Simulationswelt',
+        NEPOTEST_WORLD_TOOLTIP:
+            'Eine Welt, durch die der Roboter fährt: klicke sie an und zeichne sie rechts (Linien, Hindernisse, Flächen, und wo der Roboter starten kann). Jeder Test darunter startet den Roboter irgendwo, führt das Programm aus und prüft, was der Roboter tut. Die Regeln sind Prüfungen für jeden Test.',
+        NEPOTEST_RULES: 'Regeln für jeden Test',
+        NEPOTEST_TESTS_IN_WORLD: 'Tests',
+        NEPOTEST_SIMCASE: 'Test',
+        NEPOTEST_SIMCASE_TOOLTIP:
+            'Ein Test in dieser Welt. Vorbereiten: wo der Roboter startet, und was vorher passiert ist (Klatschen, Tasten, Variablen). Ausführen: das ganze Programm. Prüfen: er besteht nur, wenn jede Prüfung stimmt (und jede Regel der Welt). Nimm das Häkchen weg, um den Test auszulassen. Unten: ob der Test bestehen oder scheitern soll.',
+        NEPOTEST_SET_UP: 'vorbereiten:',
+        NEPOTEST_START_AT: 'der Roboter startet bei',
+        NEPOTEST_RUN_LABEL: 'ausführen:',
+        NEPOTEST_THE_PROGRAM_RUNS: 'das Programm',
+        NEPOTEST_MODE_FOR: 'für',
+        NEPOTEST_MODE_UNTIL: 'bis der Roboter berührt:',
+        NEPOTEST_AT_MOST_COMMA: ', höchstens',
+        NEPOTEST_CHECK: 'prüfen:',
+        NEPOTEST_CHECK_REACHES: 'der Roboter erreicht',
+        NEPOTEST_CHECK_REACHES_TOOLTIP: 'Stimmt, wenn der Roboter diese Fläche irgendwann während der Fahrt berührt.',
+        NEPOTEST_CHECK_NEVER_TOUCHES: 'der Roboter berührt nie',
+        NEPOTEST_CHECK_NEVER_TOUCHES_TOOLTIP: 'Scheitert, sobald der Roboter diese Fläche berührt. Die Fahrt geht weiter: jede Prüfung wird geprüft.',
+        NEPOTEST_CHECK_ENDS_IN: 'am Ende ist der Roboter ganz in',
+        NEPOTEST_CHECK_ENDS_IN_TOOLTIP: 'Stimmt, wenn der ganze Roboter am Ende der Fahrt in dieser Fläche ist.',
+        NEPOTEST_CHECK_NEVER_BUMPS: 'der Roboter stößt nie an',
+        NEPOTEST_CHECK_NEVER_BUMPS_TOOLTIP: 'Scheitert, wenn der Roboter gegen dieses Hindernis fährt (oder gegen irgendetwas, auch die Wand).',
+        NEPOTEST_CHECK_PATH: 'der Roboter bleibt auf seinem aufgenommenen Weg ±',
+        NEPOTEST_CHECK_PATH_TOOLTIP:
+            'Der Roboter muss weniger als so viele cm von dem Weg abweichen, den er beim Aufnehmen gefahren ist. Zum Aufnehmen: wähle den Test aus, dann „Weg aufnehmen“ im Simulations-Tab.',
+        NEPOTEST_NOT_RECORDED: '(noch nicht aufgenommen)',
+        NEPOTEST_RECORDED: '(aufgenommen: {0} s)',
+        NEPOTEST_ANY_GOAL: 'irgendeinen Zielbereich',
+        NEPOTEST_ANY_FAIL: 'irgendeinen Fehlerbereich',
+        NEPOTEST_ANYTHING: 'irgendetwas (auch die Wand)',
+        NEPOTEST_KIND_GOAL: 'Ziel',
+        NEPOTEST_KIND_FAIL: 'Fehlerbereich',
+        NEPOTEST_KIND_COLOR: 'Fläche',
+        NEPOTEST_KIND_OBSTACLE: 'Hindernis',
+        NEPOTEST_KIND_LINE: 'Linie',
+        NEPOTEST_UNKNOWN_START: 'Dieser Start ist nicht in der Welt dieses Tests: wähle einen ihrer Starts.',
+        NEPOTEST_UNKNOWN_ITEM: 'Das ist nicht (mehr) in der Welt dieses Tests: wähle etwas anderes.',
+        NEPOTEST_OUTSIDE_WORLD: 'Lege das in eine Simulationswelt.',
         NEPOTEST_EXPECT: 'erwarte',
         NEPOTEST_EXPECT_NO: 'erwarte kein(e)',
         NEPOTEST_TIMES: 'mal',
@@ -367,6 +439,7 @@ const MESSAGES: { [lang: string]: { [key: string]: string } } = {
         NEPOTEST_EXPECT_MEASURE_TOOLTIP:
             'Am Ende gemessen. Nach „fahre … cm“ und „drehe … °“ genau; nach Fahrten, die ein Warten beendet, hängt es von der angenommenen Geschwindigkeit ab.',
         TOOLBOX_NEPOTEST_TESTS: 'Tests',
+        TOOLBOX_NEPOTEST_CHECKS: 'Prüfungen',
         TOOLBOX_NEPOTEST_GIVEN: 'Gegeben',
         TOOLBOX_NEPOTEST_WHEN: 'Wenn',
         TOOLBOX_NEPOTEST_THEN: 'Erwarte',
@@ -401,14 +474,29 @@ const RUN = 'nepoTestRun';
 const ACTION = 'nepoTestAction';
 const STATE = 'nepoTestState';
 const CONDITION = 'nepoTestCondition';
-const SIM_RUN = 'nepoTestSimRun';
-const TEST_TYPES = ['nepoTest_test', 'nepoTest_simtest'];
+const SIM_CASE = 'nepoTestSimCase';
+const SIM_CHECK = 'nepoTestSimCheck';
+export const WORLD = 'nepoTest_world';
+export const SIM_TEST = 'nepoTest_simcase';
+export const PATH_CHECK = 'nepoTest_check_path';
+const TEST_TYPES = ['nepoTest_test', WORLD, SIM_TEST]; // their names are one namespace: "run test" runs any of them by its name
+const CHECK_TYPES = ['nepoTest_check_reaches', 'nepoTest_check_never_touches', 'nepoTest_check_ends_in', 'nepoTest_check_never_bumps', PATH_CHECK];
+const WORLD_FIELDS = ['START', 'UNTIL', 'AREA', 'OBSTACLE']; // the fields that hold the id of a start or an item of the world
+export const ANY_ITEM = 'ANY'; // "any goal area", "any fail area", "anything"
 const THUMB_W = 132;
 const THUMB_H = 110;
 const THUMB_EMPTY = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="132" height="110"><rect width="132" height="110" fill="#f4f4f4"/></svg>');
 
 function number(value: string | number): any {
     return new Blockly.FieldTextInput(String(value), Blockly.FieldTextInput.nonnegativeIntegerValidator);
+}
+
+/** a number field for cm, with one decimal (a tolerance) */
+function decimal(value: string | number): any {
+    return new Blockly.FieldTextInput(String(value), function (text: string) {
+        const n = parseFloat(String(text).replace(',', '.'));
+        return isNaN(n) || n < 0 ? null : String(Math.round(n * 10) / 10);
+    });
 }
 
 /** a whole number field that may be empty (empty: "not set") */
@@ -421,6 +509,16 @@ function optionalNumber(value: string | number): any {
 
 function dropdown(options: string[][]): any {
     return new Blockly.FieldDropdown(options.map((o) => [msg(o[0]), o[1]]));
+}
+
+/** a checkbox field. The bundled Blockly's undo gives it true / false, which its own setValue takes as "unchecked": both kinds are taken here. */
+function checkbox(value: string): any {
+    const box = new Blockly.FieldCheckbox(value);
+    const set = box.setValue;
+    box.setValue = function (a: any) {
+        set.call(this, a === true || String(a).toUpperCase() === 'TRUE' ? 'TRUE' : 'FALSE');
+    };
+    return box;
 }
 
 /** the last row of a test: "this test should [pass / fail]" (SHOULD: pass | fail; a test that should fail passes if it fails) */
@@ -466,21 +564,176 @@ function nameOptions(field: any, names: string[]): string[][] {
     return options;
 }
 
-/** the names of the test blocks (both kinds) of a workspace, in their order on the workspace */
+/** the tests of a simulation world (its blocks), in their order */
+export function testsOf(world: any): any[] {
+    const tests = [];
+    for (let b = world.getInputTargetBlock('TESTS'); b; b = b.getNextBlock()) {
+        b.type === SIM_TEST && tests.push(b);
+    }
+    return tests;
+}
+
+/** the names a new "run test" block can get, in their order on the workspace: the tests (given / when / then) and the simulation worlds */
 export function testNamesOf(workspace: any): string[] {
     return workspace
         .getTopBlocks(true)
-        .filter((b) => TEST_TYPES.indexOf(b.type) >= 0)
+        .filter((b) => b.type === 'nepoTest_test' || b.type === WORLD)
         .map((b) => b.getFieldValue('NAME'));
 }
 
+/** what a "run test" block can run, as dropdown options [label, name]: the tests, the worlds (all their tests) and each test of a world */
+function runnableOptions(workspace: any): string[][] {
+    const options: string[][] = [];
+    for (const top of workspace.getTopBlocks(true)) {
+        const name = top.getFieldValue('NAME');
+        if (top.type === 'nepoTest_test') {
+            options.push([name, name]);
+        } else if (top.type === WORLD) {
+            options.push([name, name]);
+            testsOf(top).forEach((t) => options.push([name + ' ▸ ' + t.getFieldValue('NAME'), t.getFieldValue('NAME')]));
+        }
+    }
+    return options;
+}
+
+/** a test (given / when / then), a simulation world, or a test of a world: what "run test" runs by its name */
 export function isTestBlock(block: any): boolean {
     return !!block && TEST_TYPES.indexOf(block.type) >= 0;
 }
 
 function testNames(this: any): string[][] {
     const block = this && this.sourceBlock_;
-    return nameOptions(this, block && block.workspace ? testNamesOf(block.workspace) : []);
+    const options = block && block.workspace ? runnableOptions(block.workspace) : [];
+    const current = this && this.getValue && this.getValue();
+    if (current && !options.some((o) => o[1] === current)) {
+        options.push([current, current]);
+    }
+    if (current === '' || !options.length) {
+        options.unshift(['?', '']);
+    }
+    return options;
+}
+
+// ------------------------------------------------------------------------------------------------ the blocks in a simulation world
+
+/** the simulation world a block is in (a test of it, a check of a test, a rule), or null */
+export function worldOf(block: any): any {
+    let b = block;
+    while (b && b.type !== WORLD) {
+        b = b.getParent();
+    }
+    return b || null;
+}
+
+/** the word for a kind of item (goal, fail, color, obstacle, line), for the names of items without one */
+export function kindWord(kind: string): string {
+    return msg('NEPOTEST_KIND_' + String(kind).toUpperCase());
+}
+
+/**
+ * the options of a dropdown that holds the id of a start or an item of the block's world, called with the field as `this`. Without a world
+ * (while a block is loaded or in the toolbox) a new world's: the toolbox's test starts at its start A. A value that isn't in the world shows
+ * as "?" (refreshWorldLabels warns).
+ */
+function worldOptions(field: any, make: (world: SIM.SimWorld) => string[][]): string[][] {
+    const block = field && field.sourceBlock_;
+    const world = block && worldOf(block);
+    const options = make(world ? SIM.parseData(world.data).world : SIM.defaultWorld());
+    const current = field && field.getValue && field.getValue();
+    if (current && !options.some((o) => o[1] === current)) {
+        options.push(['?', current]);
+    }
+    if (current === '' || !options.length) {
+        options.unshift(['?', '']);
+    }
+    return options;
+}
+
+function startMenu(this: any): string[][] {
+    return worldOptions(this, (world) => world.starts.map((s) => [s.name, s.id]));
+}
+
+/** the areas of the world (goal, fail and coloured areas), those with `role` first; with "any ... area" first if anyKey is given */
+function areaMenu(role: string, anyKey?: string): (this: any) => string[][] {
+    return function (this: any) {
+        return worldOptions(this, function (world) {
+            const areas = world.items.filter(SIM.isArea);
+            const sorted = areas.filter((i) => i.role === role).concat(areas.filter((i) => i.role !== role));
+            return (anyKey ? [[msg(anyKey), ANY_ITEM]] : []).concat(sorted.map((i) => [SIM.itemName(world, i, kindWord), i.id]));
+        });
+    };
+}
+
+function obstacleMenu(this: any): string[][] {
+    return worldOptions(this, (world) =>
+        [[msg('NEPOTEST_ANYTHING'), ANY_ITEM]].concat(world.items.filter((i) => i.kind !== 'line' && i.role === 'obstacle').map((i) => [SIM.itemName(world, i, kindWord), i.id]))
+    );
+}
+
+function isWorldPart(block: any): boolean {
+    return block.type === SIM_TEST || CHECK_TYPES.indexOf(block.type) >= 0;
+}
+
+/**
+ * keeps the blocks in a world (all blocks under `root`) in step with the world: the names of its starts and items in their dropdowns (Blockly
+ * only sets a dropdown's text when its value changes), the warnings of blocks whose start or item isn't in their world, the recorded path of
+ * path checks. A dropdown without a value gets the first item that fits (in the undo step `group`, if given). Called when a world changed,
+ * after a suite was loaded, and when such a block is moved or created.
+ */
+export function refreshWorldLabels(root: any, group?: string): void {
+    if (!root || !root.workspace || root.workspace.isFlyout) {
+        return;
+    }
+    for (const block of root.getDescendants()) {
+        if (!isWorldPart(block)) {
+            continue;
+        }
+        const world = worldOf(block);
+        let warning: string = world ? null : msg('NEPOTEST_OUTSIDE_WORLD');
+        for (const name of WORLD_FIELDS) {
+            const field = block.getField(name);
+            if (!field || !field.isVisible()) {
+                continue;
+            }
+            const options: string[][] = field.getOptions_ ? field.getOptions_() : field.getOptions();
+            let value = field.getValue();
+            const known = options.filter((o) => o[1] === value && o[0] !== '?')[0];
+            if (world && value === '' && options.some((o) => o[1] !== '')) {
+                const old = Blockly.Events.getGroup();
+                group && Blockly.Events.setGroup(group);
+                field.setValue((value = options.filter((o) => o[1] !== '')[0][1]));
+                Blockly.Events.setGroup(old);
+            } else {
+                field.setText(known ? known[0] : '?');
+                if (world && !known && value !== '' && !warning) {
+                    warning = msg(name === 'START' ? 'NEPOTEST_UNKNOWN_START' : 'NEPOTEST_UNKNOWN_ITEM');
+                }
+            }
+        }
+        if (block.type === PATH_CHECK) {
+            const path = SIM.parsePath(block.data);
+            const info = block.getField('PATH_INFO');
+            info && info.setText(path ? msg('NEPOTEST_RECORDED').replace('{0}', String(Math.round((path.time_ms || 0) / 100) / 10)) : msg('NEPOTEST_NOT_RECORDED'));
+        }
+        if (block.worldWarning_ !== warning && block.setWarningText) {
+            block.worldWarning_ = warning;
+            block.setWarningText(warning);
+        }
+    }
+}
+
+/** the onchange of the blocks in a world: moved into a world, out of it, or created (pasted) */
+function followWorld(block: any, event: any): void {
+    if (event && (event.type === Blockly.Events.MOVE || event.type === Blockly.Events.CREATE) && event.blockId === block.id) {
+        refreshWorldLabels(block, event.group);
+    }
+}
+
+function checkBlock(block: any, tooltip: string): void {
+    block.setColour(Blockly.CAT_LOGIC_RGB);
+    block.setTooltip(msg(tooltip));
+    block.setPreviousStatement(true, SIM_CHECK);
+    block.setNextStatement(true, SIM_CHECK);
 }
 
 function functionNames(this: any): string[][] {
@@ -492,7 +745,7 @@ function variableNames(this: any): string[][] {
     return nameOptions(this, programInfo().variables.slice());
 }
 
-/** a test name that no other test block of the workspace has */
+/** a test name that no other test block of the workspace has (tests, simulation worlds and their tests: one namespace) */
 function uniqueTestName(this: any, name: string): string {
     const block = this.sourceBlock_;
     name = (name || '').trim() || msg('NEPOTEST_TEST');
@@ -500,7 +753,7 @@ function uniqueTestName(this: any, name: string): string {
         return name;
     }
     const taken = block.workspace
-        .getTopBlocks(false)
+        .getAllBlocks()
         .filter((b) => TEST_TYPES.indexOf(b.type) >= 0 && b.id !== block.id)
         .map((b) => b.getFieldValue('NAME'));
     let candidate = name;
@@ -622,21 +875,13 @@ const DEFINITIONS: { [type: string]: any } = {
             shouldRow(this);
         },
     },
-    nepoTest_simtest: {
+    nepoTest_world: {
         init: function () {
-            hat(this, Blockly.CAT_PROCEDURE_RGB, 'NEPOTEST_SIMTEST_TOOLTIP');
-            this.appendDummyInput()
-                .appendField(msg('NEPOTEST_SIMTEST'))
-                .appendField(new Blockly.FieldTextInput(msg('NEPOTEST_SIMTEST'), uniqueTestName), 'NAME');
+            hat(this, Blockly.CAT_PROCEDURE_RGB, 'NEPOTEST_WORLD_TOOLTIP');
+            this.appendDummyInput().appendField(msg('NEPOTEST_WORLD')).appendField(new Blockly.FieldTextInput(msg('NEPOTEST_WORLD'), uniqueTestName), 'NAME');
             this.appendDummyInput('PREVIEW').appendField(new Blockly.FieldImage(THUMB_EMPTY, THUMB_W, THUMB_H, '*'), 'PREVIEW');
-            this.appendStatementInput('GIVEN').setCheck(GIVEN).appendField(msg('NEPOTEST_GIVEN'));
-            this.appendStatementInput('RUN').setCheck(SIM_RUN).appendField(msg('NEPOTEST_SIM_RUN'));
-            this.appendDummyInput('EMPTY').appendField(msg('NEPOTEST_SIM_RUN_EMPTY'));
-            this.appendDummyInput()
-                .appendField(msg('NEPOTEST_SIM_FOR'))
-                .appendField(number(30), 'SECONDS')
-                .appendField(msg('NEPOTEST_SECONDS'));
-            shouldRow(this);
+            this.appendStatementInput('RULES').setCheck(SIM_CHECK).appendField(msg('NEPOTEST_RULES'));
+            this.appendStatementInput('TESTS').setCheck(SIM_CASE).appendField(msg('NEPOTEST_TESTS_IN_WORLD'));
             this.thumbData_ = null;
             const block = this;
             setTimeout(() => block.updateThumbnail(), 0); // after loading: the data is set right after init
@@ -664,8 +909,114 @@ const DEFINITIONS: { [type: string]: any } = {
         },
         onchange: function () {
             this.updateThumbnail();
-            const input = this.getInput('RUN');
-            showOptional(this, 'EMPTY', !(input && input.connection && input.connection.targetBlock()));
+        },
+    },
+    nepoTest_simcase: {
+        init: function () {
+            const block = this;
+            this.setColour(Blockly.CAT_PROCEDURE_RGB);
+            this.setTooltip(msg('NEPOTEST_SIMCASE_TOOLTIP'));
+            this.setPreviousStatement(true, SIM_CASE);
+            this.setNextStatement(true, SIM_CASE);
+            this.appendDummyInput('HEAD')
+                .appendField(checkbox('TRUE'), 'ACTIVE')
+                .appendField(msg('NEPOTEST_SIMCASE'))
+                .appendField(new Blockly.FieldTextInput(msg('NEPOTEST_SIMCASE'), uniqueTestName), 'NAME');
+            this.appendDummyInput('START_ROW').appendField(msg('NEPOTEST_SET_UP')).appendField(msg('NEPOTEST_START_AT')).appendField(new Blockly.FieldDropdown(startMenu), 'START');
+            this.appendStatementInput('SETUP').setCheck(GIVEN);
+            this.appendDummyInput('RUN_ROW')
+                .appendField(msg('NEPOTEST_RUN_LABEL'))
+                .appendField(msg('NEPOTEST_THE_PROGRAM_RUNS'))
+                .appendField(
+                    new Blockly.FieldDropdown(
+                        [
+                            [msg('NEPOTEST_MODE_FOR'), 'for'],
+                            [msg('NEPOTEST_MODE_UNTIL'), 'until'],
+                        ],
+                        function (mode: string) {
+                            block.showMode_(mode);
+                            return mode;
+                        }
+                    ),
+                    'MODE'
+                )
+                .appendField(new Blockly.FieldDropdown(areaMenu('goal')), 'UNTIL')
+                .appendField(msg('NEPOTEST_AT_MOST_COMMA'), 'AT_MOST')
+                .appendField(number(5), 'SECONDS')
+                .appendField(msg('NEPOTEST_SECONDS'));
+            this.appendStatementInput('CHECKS').setCheck(SIM_CHECK).appendField(msg('NEPOTEST_CHECK'));
+            shouldRow(this);
+            this.showMode_();
+        },
+        /** "until the robot touches [area], at most": only in the mode "until" (the area stays, so switching back and forth keeps it) */
+        showMode_: function (mode?: string) {
+            const until = (mode || this.getFieldValue('MODE')) === 'until';
+            let changed = false;
+            for (const name of ['UNTIL', 'AT_MOST']) {
+                const field = this.getField(name);
+                if (field && field.isVisible() !== until) {
+                    field.setVisible(until);
+                    changed = true;
+                }
+            }
+            if (changed && this.rendered) {
+                this.render();
+                until && refreshWorldLabels(this);
+            }
+        },
+        onchange: function (event: any) {
+            this.showMode_();
+            followWorld(this, event);
+        },
+    },
+    nepoTest_check_reaches: {
+        init: function () {
+            checkBlock(this, 'NEPOTEST_CHECK_REACHES_TOOLTIP');
+            this.appendDummyInput().appendField(msg('NEPOTEST_CHECK_REACHES')).appendField(new Blockly.FieldDropdown(areaMenu('goal', 'NEPOTEST_ANY_GOAL')), 'AREA');
+        },
+        onchange: function (event: any) {
+            followWorld(this, event);
+        },
+    },
+    nepoTest_check_never_touches: {
+        init: function () {
+            checkBlock(this, 'NEPOTEST_CHECK_NEVER_TOUCHES_TOOLTIP');
+            this.appendDummyInput().appendField(msg('NEPOTEST_CHECK_NEVER_TOUCHES')).appendField(new Blockly.FieldDropdown(areaMenu('fail', 'NEPOTEST_ANY_FAIL')), 'AREA');
+        },
+        onchange: function (event: any) {
+            followWorld(this, event);
+        },
+    },
+    nepoTest_check_ends_in: {
+        init: function () {
+            checkBlock(this, 'NEPOTEST_CHECK_ENDS_IN_TOOLTIP');
+            this.appendDummyInput().appendField(msg('NEPOTEST_CHECK_ENDS_IN')).appendField(new Blockly.FieldDropdown(areaMenu('goal')), 'AREA');
+        },
+        onchange: function (event: any) {
+            followWorld(this, event);
+        },
+    },
+    nepoTest_check_never_bumps: {
+        init: function () {
+            checkBlock(this, 'NEPOTEST_CHECK_NEVER_BUMPS_TOOLTIP');
+            this.appendDummyInput().appendField(msg('NEPOTEST_CHECK_NEVER_BUMPS')).appendField(new Blockly.FieldDropdown(obstacleMenu), 'OBSTACLE');
+        },
+        onchange: function (event: any) {
+            followWorld(this, event);
+        },
+    },
+    nepoTest_check_path: {
+        /** its data: the recorded path (nepoTest.sim SimPath), set by the Simulation tab's "Record path" */
+        init: function () {
+            checkBlock(this, 'NEPOTEST_CHECK_PATH_TOOLTIP');
+            this.appendDummyInput()
+                .appendField(msg('NEPOTEST_CHECK_PATH'))
+                .appendField(decimal(SIM.DEFAULT_TOLERANCE_CM), 'TOL')
+                .appendField(msg('NEPOTEST_CM'))
+                .appendField(msg('NEPOTEST_NOT_RECORDED'), 'PATH_INFO');
+        },
+        onchange: function (event: any) {
+            followWorld(this, event);
         },
     },
     nepoTest_given_clap: {
@@ -806,7 +1157,7 @@ const DEFINITIONS: { [type: string]: any } = {
                     }),
                     'FUNCTION'
                 );
-            this.setPreviousStatement(true, [WHEN, SIM_RUN]);
+            this.setPreviousStatement(true, WHEN);
             this.params_ = [];
             const first = programInfo().functions[0];
             if (first) {
@@ -1424,6 +1775,7 @@ function paramsOf(functionName: string): { name: string; type: string }[] {
 
 const CATEGORIES: { [name: string]: [string, string] } = {
     NEPOTEST_TESTS: ['CAT_PROCEDURE_RGB', 'flag-outline'],
+    NEPOTEST_CHECKS: ['CAT_LOGIC_RGB', 'input-checked'],
     NEPOTEST_GIVEN: ['CAT_SENSOR_RGB', 'sensor'],
     NEPOTEST_WHEN: ['CAT_CONTROL_RGB', 'media-play-outline'],
     NEPOTEST_THEN: ['CAT_LOGIC_RGB', 'input-checked'],
@@ -1457,13 +1809,23 @@ export function toolbox(): string {
     const motor = b('nepoTest_state_motor', f('PORT', 'left') + f('IS', 'forward') + v('POWER', num(50)));
     const still = b('nepoTest_state_robot', f('MOVE', 'still'));
     const ledOn = b('nepoTest_state_led', f('PORT', 'left') + f('IS', 'on'));
+    const simTest = b(SIM_TEST, f('START', SIM.DEFAULT_START) + f('MODE', 'for') + f('SECONDS', '5'));
     return (
         '<toolbox_set id="nepoTestToolbox" style="display: none">' +
         cat(
             'NEPOTEST_TESTS',
             b('nepoTest_test', '<statement name="WHEN">' + b('nepoTest_when_run') + '</statement><statement name="THEN">' + b('nepoTest_expect_status') + '</statement>') +
-                b('nepoTest_simtest') +
+                b(WORLD, '<statement name="TESTS">' + simTest + '</statement>') +
+                simTest +
                 b('nepoTest_run')
+        ) +
+        cat(
+            'NEPOTEST_CHECKS',
+            b('nepoTest_check_reaches', f('AREA', ANY_ITEM)) +
+                b('nepoTest_check_never_touches', f('AREA', ANY_ITEM)) +
+                b('nepoTest_check_ends_in') +
+                b('nepoTest_check_never_bumps', f('OBSTACLE', ANY_ITEM)) +
+                b(PATH_CHECK)
         ) +
         cat(
             'NEPOTEST_GIVEN',

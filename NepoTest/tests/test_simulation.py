@@ -1,7 +1,8 @@
-"""Simulation tests (nepotest.simulation): the simulation test block and its data, the example suite (which run_spec skips:
-simulation tests run on the Lab's simulator, in the Tests tab), and the copy of the Lab's simulator that NepoTest no longer
-uses (geometry, the floor picture and how the sensors read it, the infrared rays, the robot's speed, kinematics and
-bumping, how a run ends: goal, fail area, recorded path).
+"""Simulation tests (nepotest.simulation): simulation worlds and their tests (the blocks, their data and their checks), the
+example suite (which run_spec skips: simulation tests run on the Lab's simulator, in the Tests tab), and the copy of the
+Lab's simulator that NepoTest no longer uses (geometry, the floor picture and how the sensors read it, the infrared rays,
+the robot's speed, kinematics and bumping, how a run of the first kind of simulation tests ends: goal, fail area, recorded
+path).
 Offline: uses examples/line_follower.bundle.json (converted by the Lab) and tests/data/edison_track_floor.json (the floor
 picture of the simulator's Edison track, as the Lab's Tests tab draws it: the copy needs it to run on that background).
 
@@ -17,10 +18,11 @@ import unittest
 import zlib
 from xml.sax.saxutils import escape
 
-from nepotest import TestSubject, load_spec, run_spec, subject_for, validate_spec
+from nepotest import TestSubject, browser, load_spec, run_spec, subject_for, validate_spec
 from nepotest import simulation as SIM
-from nepotest.blocks import split_program, translate, translate_one
+from nepotest.blocks import split_program, translate
 from nepotest.engine import values as V
+from nepotest.spec import run_test
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 EXAMPLES = os.path.join(os.path.dirname(HERE), 'examples')
@@ -35,7 +37,7 @@ def follower():
 
 
 def white_world(*items, **start):
-    """a world on the simulator's white background, which this module can draw itself"""
+    """a world of the first kind (one start) on the simulator's white background, which this module can draw itself"""
     return {'background': 'drawBackground', 'start': dict({'x': 10, 'y': 20, 'heading': 0}, **start), 'items': list(items)}
 
 
@@ -133,8 +135,9 @@ class FloorTest(unittest.TestCase):
         self.assertTrue(0 < edge < 100, edge)  # the 5-pixel cross is half on the core
 
     def test_the_peach_floor(self):
-        world = SIM.default_world()  # a new test: the plain peach floor, the robot in its middle, nothing on it
-        self.assertEqual((world['background'], world['start'], world['items']), ('peach', {'x': 150.0, 'y': 100.0, 'heading': 0}, []))
+        world = SIM.default_world()  # a new world: the plain peach floor, the robot's start A in its middle, nothing on it
+        self.assertEqual((world['background'], world['starts'], world['items']),
+                         ('peach', [{'id': 'A', 'name': 'A', 'x': 150.0, 'y': 100.0, 'heading': 0}], []))
         floor = SIM.SimWorld(world).floor
         self.assertEqual((floor.width, floor.height), (920, 620))  # 300 x 200 cm and the border, which is peach too
         self.assertAlmostEqual(floor.sample(*SIM.to_units(150, 100)), (0xf7 + 0xd1 + 0xb3) / 3 / 2.55)  # 83 %: light
@@ -231,10 +234,16 @@ class SensorAndPhysicsTest(unittest.TestCase):
 
     def test_start_problems(self):
         goal = {'id': 'g', 'kind': 'rect', 'role': 'goal', 'x': 9, 'y': 19, 'w': 2, 'h': 2}
-        problems = SIM.start_problems(white_world(goal))
-        self.assertEqual([p[0] for p in problems], ['g'])
-        self.assertIn('goal area', problems[0][1])
-        self.assertEqual([p[0] for p in SIM.start_problems(white_world(x=-5))], [None])  # off the floor
+        self.assertEqual(SIM.start_problems(white_world(goal)), [])  # an area no check is about
+        problems = SIM.start_problems(white_world(goal), checked=['g'])
+        self.assertEqual([(p[0], p[2]) for p in problems], [('g', 'warning')])
+        self.assertIn('"Goal 1", which the test checks', problems[0][1])
+        wall = {'id': 'o', 'kind': 'rect', 'role': 'obstacle', 'x': 9, 'y': 19, 'w': 2, 'h': 2}
+        self.assertEqual([(p[0], p[2]) for p in SIM.start_problems(white_world(wall))], [('o', 'error')])
+        self.assertEqual([(p[0], p[2]) for p in SIM.start_problems(white_world(x=-5))], [(None, 'error')])  # off the floor
+        world = SIM.world_v3(white_world(goal))
+        world['starts'].append({'id': 'far', 'name': 'B', 'x': 100, 'y': 100, 'heading': 0})
+        self.assertEqual(SIM.start_problems(world, 'far', checked=['g']), [])
 
 
 class RunTest(unittest.TestCase):
@@ -294,89 +303,188 @@ class RunTest(unittest.TestCase):
         self.assertEqual(self.run_sim(test, record=True)['outcome'], 'passed')  # recording ignores the old path
 
     def test_spec_validation(self):
-        test = sim_test(oval_world())
-        self.assertEqual(validate_spec({'format': 'nepotest', 'tests': [test]}), [])  # no "expect" needed
-        test['world'] = [{'event': 'obstacle', 'port': 'FRONT', 'from': 0}]
-        problems = validate_spec({'format': 'nepotest', 'tests': [test]})
+        def spec(world, **sim):
+            test = {'name': 'sim', 'max_time_ms': 3000, 'simulation': dict({'world': SIM.world_v3(world), 'start': 'A', 'checks': []}, **sim)}
+            return {'format': 'nepotest', 'tests': [test]}
+
+        test = spec(oval_world())
+        self.assertEqual(validate_spec(test), [])  # no "expect" needed
+        test['tests'][0]['world'] = [{'event': 'obstacle', 'port': 'FRONT', 'from': 0}]
+        problems = validate_spec(test)
         self.assertTrue(any('only takes clap, key;' in p for p in problems), problems)
-        test['world'] = [{'event': 'remote', 'code': 1, 'at': 0}]  # the Lab's simulator has no IR remote control
-        self.assertTrue(validate_spec({'format': 'nepotest', 'tests': [test]}))
-        bad = sim_test(white_world({'kind': 'rect', 'role': 'lava', 'x': 0, 'y': 0, 'w': 1, 'h': 1}))
-        self.assertTrue(any('"role" must be one of' in p for p in validate_spec({'format': 'nepotest', 'tests': [bad]})))
-        image = sim_test(dict(oval_world(), background='simpleBackgroundEdison'))
-        self.assertEqual(validate_spec({'format': 'nepotest', 'tests': [image]}), [])  # the simulator draws the floor
+        test['tests'][0]['world'] = [{'event': 'remote', 'code': 1, 'at': 0}]  # the Lab's simulator has no IR remote control
+        self.assertTrue(validate_spec(test))
+        bad = spec(white_world({'kind': 'rect', 'role': 'lava', 'x': 0, 'y': 0, 'w': 1, 'h': 1}))
+        self.assertTrue(any('"role" must be one of' in p for p in validate_spec(bad)))
+        image = spec(dict(oval_world(), background='simpleBackgroundEdison'))
+        self.assertEqual(validate_spec(image), [])  # the simulator draws the floor
+        self.assertTrue(any("there is no start 'B'" in p for p in validate_spec(spec(oval_world(), start='B'))))
+        self.assertTrue(any('"check" must be one of' in p for p in validate_spec(spec(oval_world(), checks=[{'check': 'flies'}]))))
+        self.assertTrue(any("is not an area" in p for p in validate_spec(spec(oval_world(), until='track'))))  # a line
 
 
-def suite_xml(data, extra='', name='drive', run=''):
+def world_xml(data, rules='', tests='', world_id='w', name='course', extra=''):
+    """a simulation world block with its data, rules and tests (XML)"""
     data_el = '<data>%s</data>' % escape(json.dumps(data)) if data is not None else ''
+    return ('<block type="nepoTest_world" id="%s"><field name="NAME">%s</field>%s<statement name="RULES">%s</statement>'
+            '<statement name="TESTS">%s</statement>%s</block>') % (world_id, name, data_el, rules, tests, extra)
+
+
+def case_xml(case_id, name, start='A', checks='', setup='', mode='for', until='', seconds=5, active='TRUE', should='pass'):
+    """a test of a world (XML)"""
+    return ('<block type="nepoTest_simcase" id="%s"><field name="ACTIVE">%s</field><field name="NAME">%s</field>'
+            '<field name="START">%s</field><field name="MODE">%s</field><field name="UNTIL">%s</field><field name="SECONDS">%d</field>'
+            '<field name="SHOULD">%s</field><statement name="SETUP">%s</statement><statement name="CHECKS">%s</statement></block>'
+            ) % (case_id, active, name, start, mode, until, seconds, should, setup, checks)
+
+
+def check_xml(kind, block_id, value=None, data=None, tol=None):
+    field = {'never_bumps': 'OBSTACLE', 'path': 'TOL'}.get(kind, 'AREA')
+    value = tol if kind == 'path' else value
+    return '<block type="nepoTest_check_%s" id="%s">%s%s</block>' % (
+        kind, block_id, '<field name="%s">%s</field>' % (field, value) if value is not None else '',
+        '<data>%s</data>' % escape(json.dumps(data)) if data is not None else '')
+
+
+def suite_of(*instances, run=('course',)):
+    runs = ''.join('<block type="nepoTest_run" id="r%d"><field name="NAME">%s</field></block>' % (i, n) for i, n in enumerate(run))
     return ('<block_set xmlns="http://de.fhg.iais.roberta.blockly" robottype="edison">'
-            '<instance x="0" y="0"><block type="nepoTest_suite" id="s"/><block type="nepoTest_run" id="r"><field name="NAME">%s</field></block></instance>'
-            '<instance x="0" y="100"><block type="nepoTest_simtest" id="t"><field name="NAME">%s</field><field name="SECONDS">12</field>%s%s%s</block></instance>'
-            '</block_set>') % (name, name, data_el, extra, run)
+            '<instance x="0" y="0"><block type="nepoTest_suite" id="s"/>%s</instance>%s</block_set>'
+            ) % (runs, ''.join('<instance x="0" y="100">%s</instance>' % i for i in instances))
 
 
-def v2(world, **more):
-    return dict({'version': 2, 'world': world}, **more)
+def course(*items, **more):
+    """a world with two starts (A in the middle, B at the left) and some items"""
+    world = SIM.default_world()
+    world['starts'].append({'id': 'st2', 'name': 'B', 'x': 30, 'y': 100, 'heading': 0})
+    world['items'] = list(items)
+    data = {'version': 3, 'world': world}
+    data.update(more)
+    return data
 
 
-class SimulationBlockTest(unittest.TestCase):
-    def test_translation(self):
-        world = oval_world({'id': 'g', 'kind': 'rect', 'role': 'goal', 'x': 64, 'y': 12, 'w': 12, 'h': 8})
-        floor = {'w': 1, 'h': 1, 'sum': 'eJxjYAAAAAIAAQ==', 'key': 'k'}  # stored until 2026-10-22: ignored
-        data = v2(world, tolerance_cm=3, floor=floor, reference={'path': [[60, 69.3, 0]], 'time_ms': 10}, view={'x': 0, 'y': 0, 'scale': 4})
-        given = '<statement name="GIVEN"><block type="nepoTest_given_clap" id="c"><field name="AT">500</field></block></statement>'
-        spec, problems = translate(suite_xml(data, given))
+GOAL = {'id': 'g', 'name': 'Finish', 'kind': 'rect', 'role': 'goal', 'x': 200, 'y': 90, 'w': 10, 'h': 20}
+FAIL = {'id': 'f', 'kind': 'circle', 'role': 'fail', 'x': 100, 'y': 40, 'r': 5}
+WALL = {'id': 'o', 'name': 'Wall', 'kind': 'rect', 'role': 'obstacle', 'x': 250, 'y': 50, 'w': 4, 'h': 100}
+PATH = {'path': [[150, 100, 0], [160, 100, 0]], 'time_ms': 900}
+
+
+def messages(problems, severity=None):
+    return [p['message'] for p in problems if severity is None or p['severity'] == severity]
+
+
+class SimulationWorldTest(unittest.TestCase):
+    def test_a_world_with_tests(self):
+        rules = check_xml('never_touches', 'c1', 'ANY')
+        tests = (case_xml('t1', 'to the finish', checks=check_xml('reaches', 'c2', 'g') + check_xml('path', 'c3', data=PATH, tol='1.5'),
+                          mode='until', until='g', seconds=12)
+                 + case_xml('t2', 'from the left', start='st2', checks=check_xml('never_bumps', 'c4', 'o') + check_xml('ends_in', 'c5', 'g'),
+                            setup='<block type="nepoTest_given_clap" id="cl"><field name="AT">500</field></block>', should='fail')
+                 + case_xml('t3', 'skipped one', active='FALSE', checks=check_xml('never_bumps', 'c6', 'ANY')))
+        spec, problems = translate(suite_of(world_xml(course(GOAL, FAIL, WALL, view={'x': 0, 'y': 0, 'scale': 4}), rules, tests)))
         self.assertEqual(problems, [])
-        self.assertEqual(spec['tests'], [{'name': 'drive', 'origin': 'blocks', 'block_id': 't', 'world': [{'event': 'clap', 'at': 500}],
-                                          'max_time_ms': 12000, 'simulation': {'world': world, 'tolerance_cm': 3,
-                                                                               'reference': {'path': [[60, 69.3, 0]]}}}])
+        world = SIM.world_v3(course(GOAL, FAIL, WALL)['world'])
+        rule = {'check': 'never_touches', 'block_id': 'c1', 'rule': True}
+        self.assertEqual(spec['tests'][0], {
+            'name': 'to the finish', 'origin': 'blocks', 'block_id': 't1', 'max_time_ms': 12000,
+            'simulation': {'world_block_id': 'w', 'world_name': 'course', 'world': world, 'start': 'A', 'until': 'g',
+                           'checks': [rule, {'check': 'reaches', 'block_id': 'c2', 'item': 'g'},
+                                      {'check': 'path', 'block_id': 'c3', 'tolerance_cm': 1.5, 'path': PATH['path'], 'time_ms': 900}]}})
+        second = spec['tests'][1]
+        self.assertEqual((second['should'], second['world'], second['simulation']['start'], 'until' in second['simulation']),
+                         ('fail', [{'event': 'clap', 'at': 500}], 'st2', False))
+        self.assertEqual(second['simulation']['checks'][1:], [{'check': 'never_bumps', 'block_id': 'c4', 'item': 'o'},
+                                                              {'check': 'ends_in', 'block_id': 'c5', 'item': 'g'}])
+        self.assertEqual((spec['tests'][2]['skip'], spec['tests'][2]['simulation']['checks'][1]), (True, {'check': 'never_bumps', 'block_id': 'c6'}))
+        self.assertEqual(validate_spec(spec), [])
 
-    def test_a_simulation_test_that_should_fail(self):
-        spec, problems = translate(suite_xml(v2(oval_world()), '<field name="SHOULD">fail</field>'))
-        self.assertEqual(spec['tests'][0]['should'], 'fail')  # the Lab's runner turns its result round (nepoTest.simRun applyShould)
+    def test_one_test_of_a_world_and_each_test_once(self):
+        tests = case_xml('t1', 'one', checks=check_xml('reaches', 'c1', 'ANY')) + case_xml('t2', 'two', checks=check_xml('reaches', 'c2', 'ANY'))
+        world = world_xml(course(GOAL), tests=tests)
+        spec, problems = translate(suite_of(world, run=('two',)))
+        self.assertEqual(([t['name'] for t in spec['tests']], problems), (['two'], []))  # the other test of the world doesn't run, no warning
+        spec, problems = translate(suite_of(world, run=('two', 'course')))
+        self.assertEqual([t['name'] for t in spec['tests']], ['two', 'one'])
+        self.assertEqual(messages(problems), ['test "two" is already in the suite (with its world)'])
+        _, problems = translate(suite_of(world, run=()))
+        self.assertIn('the tests of world "course" are not under the start block, so they do not run', messages(problems, 'warning'))
 
-    def test_a_function_runs_instead_of_the_program(self):
-        run = ('<statement name="RUN"><block type="nepoTest_when_call" id="w"><mutation name="toTheWall"/>'
-               '<field name="FUNCTION">toTheWall</field></block></statement>')
-        spec, problems = translate(suite_xml(v2(oval_world()), run=run))
-        self.assertEqual([p for p in problems if p['severity'] == 'error'], [])
-        self.assertEqual((spec['tests'][0]['call'], spec['tests'][0]['args']), ('toTheWall', []))
+    def test_names_are_one_namespace(self):
+        tests = case_xml('t1', 'course', checks=check_xml('reaches', 'c1', 'ANY'))
+        bdd = '<block type="nepoTest_test" id="b"><field name="NAME">one</field></block>'
+        _, problems = translate(suite_of(world_xml(course(GOAL), tests=tests), bdd, run=('one',)))
+        self.assertIn('there are two tests named "course"', messages(problems))
 
-    def test_old_and_missing_data(self):
-        spec, _ = translate(suite_xml({'version': 1, 'world': {'start': {'x': 1, 'y': 2, 'heading': 0}, 'items': [
-            {'id': 'e', 'kind': 'ellipse', 'role': 'fail', 'x': 30, 'y': 30, 'w': 4, 'h': 4}]}}))
-        self.assertEqual(spec['tests'][0]['simulation']['world']['items'], [{'id': 'e', 'role': 'fail', 'kind': 'circle', 'x': 30, 'y': 30, 'r': 2.0}])
-        spec, problems = translate(suite_xml(None))  # a new block: the simulator's default world
-        self.assertEqual(spec['tests'][0]['simulation']['world'], SIM.default_world())
-        self.assertEqual([p['message'] for p in problems if p['severity'] == 'error'], [])
+    def test_a_test_outside_a_world(self):
+        loose = case_xml('t9', 'loose', checks=check_xml('reaches', 'c1', 'ANY'))
+        _, problems = translate(suite_of(world_xml(course(GOAL)), loose, run=('loose',)))
+        self.assertEqual([(p['block_id'], p['severity']) for p in problems if 'into a simulation world' in p['message']], [('t9', 'error')])
 
-    def test_problems(self):
-        on_goal = oval_world({'id': 'g', 'kind': 'rect', 'role': 'goal', 'x': 58, 'y': 67, 'w': 4, 'h': 4})
-        _, problems = translate(suite_xml(v2(on_goal)))
-        self.assertIn('test "drive": the robot starts touching a goal area: move it or the goal area', [p['message'] for p in problems])
-        obstacle = '<statement name="GIVEN"><block type="nepoTest_given_obstacle" id="o"><field name="FROM">0</field><field name="DURATION">0</field></block></statement>'
-        _, problems = translate(suite_xml(v2(oval_world()), obstacle))
-        self.assertEqual([(p['block_id'], p['severity']) for p in problems if 'draw obstacles' in p['message']], [('o', 'error')])
-        _, problems = translate(suite_xml(v2(oval_world())))
-        self.assertEqual([p['severity'] for p in problems if 'checks nothing' in p['message']], ['warning'])
-        broken = suite_xml(None).replace('<field name="SECONDS">12</field>', '<field name="SECONDS">12</field><data>{not json</data>')
-        _, problems = translate(broken)
-        self.assertTrue(any('cannot be read' in p['message'] for p in problems), problems)
-        remote = '<statement name="GIVEN"><block type="nepoTest_given_remote" id="rc"><field name="AT">0</field><field name="CODE">1</field></block></statement>'
-        _, problems = translate(suite_xml(v2(oval_world()), remote))
-        self.assertEqual([(p['block_id'], p['severity']) for p in problems if 'no IR remote control' in p['message']], [('rc', 'error')])
+    def test_references_that_are_not_in_the_world(self):
+        tests = (case_xml('t1', 'gone', start='nope', checks=check_xml('reaches', 'c1', 'x') + check_xml('never_bumps', 'c2', 'g'), mode='until', until='o')
+                 + case_xml('t2', 'empty', checks=check_xml('ends_in', 'c3', 'ANY')))
+        _, problems = translate(suite_of(world_xml(course(GOAL, WALL), tests=tests)))
+        errors = [(p['block_id'], p['message']) for p in problems if p['severity'] == 'error']
+        self.assertEqual([e[0] for e in errors], ['t1', 't1', 'c1', 'c2', 'c3'], errors)
+        self.assertIn('its start is not in the world', errors[0][1])
+        self.assertIn('the area that ends the run is not in the world', errors[1][1])  # an obstacle is no area
 
-    def test_one_test_on_its_own(self):
-        xml = suite_xml(v2(oval_world())).replace('<field name="NAME">drive</field></block></instance>', '<field name="NAME">other</field></block></instance>', 1)
-        test, problems = translate_one(xml, 't')
-        self.assertEqual(test['name'], 'drive')  # not under the start block, but it can run on its own
-        self.assertEqual(translate_one(xml, 'nope')[0], None)
+    def test_warnings(self):
+        rules = check_xml('path', 'c0', tol='2')
+        tests = (case_xml('t1', 'nothing') + case_xml('t2', 'no path', checks=check_xml('path', 'c1', tol='2'))
+                 + case_xml('t3', 'on the goal', checks=check_xml('reaches', 'c2', 'g')))
+        on_start = dict(GOAL, x=145, y=95)
+        _, problems = translate(suite_of(world_xml(course(on_start), rules, tests)))
+        found = [(p['block_id'], p['severity']) for p in problems]
+        self.assertIn(('c0', 'error'), found)  # a recorded path is no rule
+        self.assertIn(('t1', 'warning'), found)  # checks nothing
+        self.assertIn(('c1', 'warning'), found)  # not recorded yet
+        self.assertIn('test "on the goal": the robot starts on "Finish", which the test checks: move the start or the area', messages(problems, 'warning'))
 
-    def test_names_are_shared_with_bdd_tests(self):
-        xml = suite_xml(v2(oval_world())).replace(
-            '</block_set>', '<instance x="0" y="0"><block type="nepoTest_test" id="b"><field name="NAME">drive</field></block></instance></block_set>')
-        _, problems = translate(xml)
-        self.assertIn('there are two tests named "drive"', [p['message'] for p in problems])
+    def test_set_up(self):
+        setup = ('<block type="nepoTest_given_variable" id="v"><field name="VAR">claps</field><value name="VALUE">'
+                 '<block type="math_number" id="n"><field name="NUM">2</field></block></value></block>'
+                 '<block type="nepoTest_given_obstacle" id="o"><field name="FROM">0</field><field name="DURATION">0</field></block>')
+        spec, problems = translate(suite_of(world_xml(course(GOAL), tests=case_xml('t1', 'past', setup=setup, checks=check_xml('reaches', 'c1', 'ANY')))))
+        self.assertEqual(spec['tests'][0]['globals'], {'claps': 2})  # no "call" needed
+        self.assertEqual([(p['block_id'], p['severity']) for p in problems], [('o', 'error')])  # draw obstacles into the world
+        self.assertEqual(validate_spec({'format': 'nepotest', 'tests': [spec['tests'][0]]}), [])
+
+    def test_old_world_data(self):
+        old = {'version': 2, 'tolerance_cm': 3, 'reference': {'path': [[1, 2, 0]]}, 'world': {
+            'background': 'peach', 'start': {'x': 30, 'y': 40, 'heading': 90}, 'items': []}}
+        spec, _ = translate(suite_of(world_xml(old, tests=case_xml('t1', 'old', checks=check_xml('reaches', 'c1', 'ANY')))))
+        self.assertEqual(spec['tests'][0]['simulation']['world']['starts'], [{'id': 'A', 'name': 'A', 'x': 30, 'y': 40, 'heading': 90}])
+        spec, problems = translate(suite_of(world_xml(None, tests=case_xml('t1', 'new', checks=check_xml('reaches', 'c1', 'ANY')))))
+        self.assertEqual(spec['tests'][0]['simulation']['world'], SIM.default_world())  # a new world: start A in the middle
+        self.assertEqual(messages(problems, 'error'), [])
+
+    def test_simulation_tests_of_the_first_kind_are_left_out(self):
+        old = ('<block type="nepoTest_simtest" id="old"><field name="NAME">old</field><field name="SECONDS">12</field></block>')
+        tests = case_xml('t1', 'new', checks=check_xml('reaches', 'c1', 'ANY'))
+        spec, problems = translate(suite_of(world_xml(course(GOAL), tests=tests), old, run=('old', 'course')))
+        self.assertEqual([t['name'] for t in spec['tests']], ['new'])
+        self.assertEqual([(p['block_id'], p['severity']) for p in problems], [('old', 'warning')])  # the command line still runs
+
+    def test_the_simulation_tab_runs_a_world_or_one_test(self):
+        tests = (case_xml('t1', 'one', checks=check_xml('reaches', 'c1', 'ANY'))
+                 + case_xml('t2', 'broken', start='nope', checks=check_xml('reaches', 'c2', 'ANY')))
+        xml = suite_of(world_xml(course(GOAL), tests=tests), run=())  # whether the suite runs them or not
+        result = json.loads(browser.simulation_test(xml, 'w'))
+        self.assertEqual([t['name'] for t in result['tests']], ['one'])  # a test with errors is left out
+        self.assertEqual([p['block_id'] for p in result['problems'] if p['severity'] == 'error'], ['t2'])
+        self.assertEqual([t['name'] for t in json.loads(browser.simulation_test(xml, 't1'))['tests']], ['one'])
+        self.assertEqual(json.loads(browser.simulation_test(xml, 'nope'))['tests'], [])
+
+    def test_skip_and_rules(self):
+        skipped = {'name': 'x', 'skip': True, 'expect': {'status': 'finished'}}
+        report, coverage = run_test(None, skipped)
+        self.assertEqual((report['outcome'], coverage), ('skipped', None))
+        spec = {'format': 'nepotest', 'tests': [{'name': 'x', 'max_time_ms': 1000, 'simulation': {
+            'world': SIM.default_world(), 'start': 'A', 'checks': [{'check': 'path', 'rule': True}]}}]}
+        self.assertTrue(any("can't be a rule" in p for p in validate_spec(spec)))
+        spec['tests'][0]['call'] = 'f'
+        self.assertTrue(any('always runs the whole program' in p for p in validate_spec(spec)))
 
 
 class ExampleSuiteTest(unittest.TestCase):
@@ -392,20 +500,11 @@ class ExampleSuiteTest(unittest.TestCase):
     def test_the_suite_saved_in_the_program(self):
         spec, problems = example_tests()
         self.assertEqual(problems, [])
+        self.assertEqual(validate_spec(spec), [])
         results = run_spec(spec, follower())
         self.assertEqual([(t['name'], t['outcome']) for t in results['tests']],
-                         [('follows the track to the finish', 'skipped'), ('stops at the wall', 'skipped'),
+                         [('follows the track to the finish', 'skipped'), ('from halfway, it reaches the finish too', 'skipped'),
                           ('stops at the wall (no simulation)', 'passed')])
-
-    def test_the_copy_of_the_simulator_still_runs_the_example(self):
-        """the copy (no longer used) on the example's worlds, with the path recorded on the Lab's simulator"""
-        spec, _ = example_tests()
-        subject = follower()
-        for test in spec['tests'][:2]:
-            test['simulation']['floor'] = track_floor()
-            report, coverage = SIM.run_simulation_test(subject, test)
-            self.assertEqual(report['outcome'], 'passed', (test['name'], report['failures']))
-        self.assertEqual(report['simulation']['result'], 'returned')
 
 
 if __name__ == '__main__':

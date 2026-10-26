@@ -1,24 +1,26 @@
 /**
- * The world of a simulation test (Tests tab): the data a simulation test block keeps (block.data, JSON), its geometry and its picture. The
- * world is the Lab's simulator's (simulation/simulationLogic): the tests' own plain peach floor (the default) or the simulator's backgrounds
- * with its wall around them, the simulator's objects (obstacles and coloured areas as rectangles, circles and triangles), the same robot
- * image and sizes. The test runs on the simulator itself
- * (nepoTest.simRun); the editor (nepoTest.simEditor) draws and replays with what is here. NepoTest/nepotest/simulation.py checks the data.
+ * A simulation world (Tests tab): the data a simulation world block keeps (block.data, JSON), its geometry and its picture. The world is
+ * the Lab's simulator's (simulation/simulationLogic): the tests' own plain peach floor (the default) or the simulator's backgrounds with
+ * its wall around them, the simulator's objects (obstacles and coloured areas as rectangles, circles and triangles), the same robot image
+ * and sizes. Its tests run on the simulator itself (nepoTest.simRun); the editor (nepoTest.simEditor) draws and replays with what is here.
+ * NepoTest/nepotest/simulation.py checks the data.
  *
- *   {version: 2,
- *    world: {background, start: {x, y, heading}, items: [line | rect | circle | triangle]},
- *    reference: {path: [[x, y, heading], ...], time_ms, result}   a recorded run (optional)
- *    tolerance_cm: 2                                               how far the robot may leave the recorded path
- *    view: {x, y, scale}}                                          the editor's zoom (scale: pixels per cm) and centre
+ *   {version: 3,
+ *    world: {background, starts: [{id, name, x, y, heading}, ...], items: [line | rect | circle | triangle]},
+ *    view: {x, y, scale}}      the editor's zoom (scale: pixels per cm) and centre
  * Units are cm from the background's top left corner; x points right and y down; angles are degrees counterclockwise (0 points right).
  * The simulator works in units of 1/3 cm, with the background at (10, 10): u = 10 + 3 * cm.
- * items: {id, kind: 'line', points: [[x, y], ...], smooth, closed, width} (the test's addition, drawn like the background's track),
- * {id, kind: 'rect', role, x, y, w, h} (top left corner), {id, kind: 'circle', role, x, y, r}, {id, kind: 'triangle', role, points};
- * role obstacle | color (a coloured area, with color) | goal | fail; color: a hex colour.
+ * starts: where the robot can start (a test of the world chooses one by its id; the name is what the blocks show, A, B, ...).
+ * items: {id, name, kind: 'line', points: [[x, y], ...], smooth, closed, width} (the test's addition, drawn like the background's track),
+ * {id, name, kind: 'rect', role, x, y, w, h} (top left corner), {id, name, kind: 'circle', role, x, y, r}, {id, name, kind: 'triangle', role,
+ * points}; role obstacle | color (a coloured area, with color) | goal | fail; color: a hex colour. The tests' blocks refer to starts and items
+ * by their ids, and show their names.
+ * Version 2 (one simulation test per world, until 2026-10-26) had one start and the test's recorded path: the start becomes start A.
  */
 
 export interface SimItem {
     id: string;
+    name?: string;
     kind: string; // line | rect | circle | triangle
     role?: string; // obstacle | color | goal | fail
     color?: string;
@@ -33,19 +35,33 @@ export interface SimItem {
     r?: number;
 }
 
+export interface SimStart {
+    id: string;
+    name: string;
+    x: number;
+    y: number;
+    heading: number;
+}
+
 export interface SimWorld {
     background: string;
-    start: { x: number; y: number; heading: number };
+    starts: SimStart[];
     items: SimItem[];
 }
 
 export interface SimData {
     version: number;
     world: SimWorld;
-    reference?: { path: number[][]; time_ms?: number; result?: string };
-    tolerance_cm: number;
     view?: { x: number; y: number; scale: number };
 }
+
+/** a recorded path (the data of a "stays on its recorded path" check block): poses [x, y, heading], and how long the run took */
+export interface SimPath {
+    path: number[][];
+    time_ms?: number;
+}
+
+export const DATA_VERSION = 3;
 
 // ------------------------------------------------------------------------------------------------ the simulator's constants
 
@@ -109,16 +125,66 @@ export function round2(v: number): number {
     return Math.round(v * 100) / 100;
 }
 
-/** a new test's world: the plain peach floor, the robot in its middle, nothing on it (as simulation.py default_world) */
+export const DEFAULT_START = 'A'; // the id (and name) of a new world's start: the toolbox's test of a new world starts there
+
+/** a new world: the plain peach floor, the robot's start A in its middle, nothing on it (as simulation.py default_world) */
 export function defaultWorld(): SimWorld {
     const [bw, bh] = BACKGROUNDS[DEFAULT_BACKGROUND];
-    return { background: DEFAULT_BACKGROUND, start: { x: round2(bw / 2 / UNITS_PER_CM), y: round2(bh / 2 / UNITS_PER_CM), heading: 0 }, items: [] };
+    const start = { id: DEFAULT_START, name: DEFAULT_START, x: round2(bw / 2 / UNITS_PER_CM), y: round2(bh / 2 / UNITS_PER_CM), heading: 0 };
+    return { background: DEFAULT_BACKGROUND, starts: [start], items: [] };
 }
 
-/** a new test: its world, seen around the robot (4 pixels per cm) */
+/** a new world: seen around the robot (4 pixels per cm) */
 export function defaultData(): SimData {
     const world = defaultWorld();
-    return { version: 2, world: world, tolerance_cm: DEFAULT_TOLERANCE_CM, view: { x: world.start.x, y: world.start.y, scale: 4 } };
+    return { version: DATA_VERSION, world: world, view: { x: world.starts[0].x, y: world.starts[0].y, scale: 4 } };
+}
+
+/** a start by its id; the first start if there is no such one (a test whose start was deleted shows a warning, see nepoTest.blocks) */
+export function startOf(world: SimWorld, id: string): SimStart {
+    return world.starts.filter((s) => s.id === id)[0] || world.starts[0];
+}
+
+/** the name of a new start: the first free letter, A to Z, then A2, B2, ... */
+export function nextStartName(world: SimWorld): string {
+    const taken = world.starts.map((s) => s.name);
+    for (let round = 1; ; round++) {
+        for (let c = 0; c < 26; c++) {
+            const name = String.fromCharCode(65 + c) + (round > 1 ? round : '');
+            if (taken.indexOf(name) < 0) {
+                return name;
+            }
+        }
+    }
+}
+
+/** the kind of thing an item is, for its name: a line, or its role */
+export function itemKind(item: SimItem): string {
+    return item.kind === 'line' ? 'line' : item.role;
+}
+
+/** an item's name; an item without one (from the simulator's scene, or older data) is called by its kind and number, "Goal 2" */
+export function itemName(world: SimWorld, item: SimItem, word: (kind: string) => string): string {
+    if (item.name) {
+        return item.name;
+    }
+    const same = world.items.filter((i) => itemKind(i) === itemKind(item));
+    return word(itemKind(item)) + ' ' + (same.indexOf(item) + 1);
+}
+
+/** the name of a new item: its kind's word and the first free number, "Goal 1", "Goal 2" */
+export function newItemName(world: SimWorld, item: SimItem, word: (kind: string) => string): string {
+    const taken = world.items.filter((i) => i !== item).map((i) => itemName(world, i, word));
+    let n = 1;
+    while (taken.indexOf(word(itemKind(item)) + ' ' + n) >= 0) {
+        n++;
+    }
+    return word(itemKind(item)) + ' ' + n;
+}
+
+/** the areas a test can touch (goal, fail and coloured areas; not lines or obstacles) */
+export function isArea(item: SimItem): boolean {
+    return item.kind !== 'line' && (item.role === 'goal' || item.role === 'fail' || item.role === 'color');
 }
 
 /** the simulator's size of a new object (simulation.scene.ts: a ninth of the background's width), in cm */
@@ -149,11 +215,27 @@ function migrateV1(world: any): SimWorld {
             items.push(line);
         }
     }
-    return { background: PEACH, start: (world && world.start) || { x: 0, y: 0, heading: 0 }, items: items };
+    return { background: PEACH, start: (world && world.start) || { x: 0, y: 0, heading: 0 }, items: items } as any;
 }
 
-/** the data of a simulation test block; the simulator's default world if there is none (or it can't be read) */
+const parsed: { text: string; data: SimData }[] = [];
+
+/**
+ * the data of a simulation world block (a copy: change it freely); a new world if there is none (or it can't be read). The last few are
+ * kept: the blocks' dropdowns ask for them often.
+ */
 export function parseData(text: string): SimData {
+    const known = parsed.filter((p) => p.text === text)[0];
+    if (known) {
+        return clone(known.data);
+    }
+    const data = readData(text);
+    parsed.push({ text: text, data: clone(data) });
+    parsed.length > 8 && parsed.shift();
+    return data;
+}
+
+function readData(text: string): SimData {
     let data: any = null;
     try {
         data = text ? JSON.parse(text) : null;
@@ -165,18 +247,31 @@ export function parseData(text: string): SimData {
     }
     if (!data.version || data.version < 2) {
         data.world = migrateV1(data.world);
-        delete data.reference; // recorded with another robot
         delete data.view;
-        data.version = 2;
+    }
+    if (!data.version || data.version < DATA_VERSION) {
+        const start = data.world.start || {};
+        data.world.starts = [{ id: DEFAULT_START, name: DEFAULT_START, x: Number(start.x) || 0, y: Number(start.y) || 0, heading: Number(start.heading) || 0 }];
+        delete data.world.start;
+        delete data.reference; // a recorded path belongs to a test now (its "stays on its recorded path" check)
+        delete data.tolerance_cm;
+        data.version = DATA_VERSION;
     }
     delete data.floor; // a picture of the floor for NepoTest's copy of the simulator (until 2026-10-22): the simulator draws its own
     data.world.background = BACKGROUNDS[data.world.background] ? data.world.background : DEFAULT_BACKGROUND;
-    data.world.start = data.world.start || defaultWorld().start;
+    data.world.starts = Array.isArray(data.world.starts) && data.world.starts.length ? data.world.starts : defaultWorld().starts;
     data.world.items = Array.isArray(data.world.items) ? data.world.items : [];
-    if (typeof data.tolerance_cm !== 'number') {
-        data.tolerance_cm = DEFAULT_TOLERANCE_CM;
-    }
     return data as SimData;
+}
+
+/** the data of a "stays on its recorded path" check block: its recorded path, or null */
+export function parsePath(text: string): SimPath {
+    try {
+        const data = text ? JSON.parse(text) : null;
+        return data && Array.isArray(data.path) && data.path.length ? data : null;
+    } catch (e) {
+        return null;
+    }
 }
 
 export function clone<T>(value: T): T {
@@ -650,16 +745,15 @@ export function worldSvg(world: SimWorld, prefix: string): string {
     return svg;
 }
 
-/** the recorded path: the area the robot covered (its outline at every pose), widened by the tolerance, and the paths of its corners */
-export function referenceSvg(data: SimData): string {
-    const path = (data.reference && data.reference.path) || [];
-    if (!path.length) {
+/** a recorded path: the area the robot covered (its outline at every pose), widened by the tolerance (cm), and the paths of its corners */
+export function referenceSvg(path: number[][], tolerance: number): string {
+    if (!path || !path.length) {
         return '';
     }
     const outlines = path.map((p) => footprint(p[0], p[1], p[2]));
     const d = outlines.map((o) => 'M' + o.map(pt).join('L') + 'Z').join('');
     let svg = '';
-    const tol = Math.max(0, data.tolerance_cm || 0);
+    const tol = Math.max(0, tolerance || 0);
     if (tol > 0) {
         svg += '<path d="' + d + '" fill="' + COLORS.corridor + '" stroke="' + COLORS.corridor + '" stroke-width="' + n(2 * tol) + '" stroke-linejoin="round" opacity="0.28"/>';
     }
@@ -726,12 +820,13 @@ export function infraredSvg(world: SimWorld, x: number, y: number, heading: numb
 
 // ------------------------------------------------------------------------------------------------ the small picture of the block
 
-/** what the small picture shows (units): the whole background; on the large peach floor, what is on it, the robot and its path */
+/** what the small picture shows (units): the whole background; on the large peach floor, what is on it and the robot's starts */
 function thumbnailBox(data: SimData, floor: HTMLCanvasElement): number[] {
     if (data.world.background !== PEACH) {
         return [0, 0, floor.width, floor.height];
     }
-    const points: number[][] = footprint(data.world.start.x, data.world.start.y, data.world.start.heading);
+    const points: number[][] = [];
+    data.world.starts.forEach((s) => points.push(...footprint(s.x, s.y, s.heading)));
     for (const item of data.world.items) {
         if (item.points) {
             points.push(...item.points);
@@ -741,7 +836,6 @@ function thumbnailBox(data: SimData, floor: HTMLCanvasElement): number[] {
             points.push([item.x, item.y], [item.x + item.w, item.y + item.h]);
         }
     }
-    ((data.reference && data.reference.path) || []).forEach((p) => points.push([p[0], p[1]]));
     const xs = points.map((p) => u(p[0]));
     const ys = points.map((p) => u(p[1]));
     const margin = 10 * UNITS_PER_CM;
@@ -757,7 +851,7 @@ function thumbnailBox(data: SimData, floor: HTMLCanvasElement): number[] {
     return [Math.max(0, x0), Math.max(0, y0), Math.min(floor.width, x1), Math.min(floor.height, y1)];
 }
 
-/** a small picture of a world (for the test block), as a PNG data URL: the floor (nepoTest.simRun floorCanvas), the objects and the robot */
+/** a small picture of a world (for its block), as a PNG data URL: the floor (nepoTest.simRun floorCanvas), the objects and the robot at its starts */
 export function thumbnail(data: SimData, width: number, height: number, floor: HTMLCanvasElement): Promise<string> {
     const world = data.world;
     return loadImage(ROBOT_IMAGE).then(function (robot) {
@@ -801,18 +895,13 @@ export function thumbnail(data: SimData, width: number, height: number, floor: H
                 ctx.stroke();
             }
         }
-        const path = (data.reference && data.reference.path) || [];
-        if (path.length) {
-            ctx.beginPath();
-            path.forEach((p, i) => (i ? ctx.lineTo(u(p[0]), u(p[1])) : ctx.moveTo(u(p[0]), u(p[1]))));
-            ctx.lineWidth = 3;
-            ctx.strokeStyle = 'rgba(47, 111, 191, 0.8)';
-            ctx.stroke();
+        for (const st of world.starts) {
+            ctx.save();
+            ctx.translate(u(st.x), u(st.y));
+            ctx.rotate((-st.heading * Math.PI) / 180);
+            ctx.drawImage(robot, CHASSIS.x, CHASSIS.y, CHASSIS.w, CHASSIS.h);
+            ctx.restore();
         }
-        const st = world.start;
-        ctx.translate(u(st.x), u(st.y));
-        ctx.rotate((-st.heading * Math.PI) / 180);
-        ctx.drawImage(robot, CHASSIS.x, CHASSIS.y, CHASSIS.w, CHASSIS.h);
         return canvas.toDataURL('image/png');
     });
 }

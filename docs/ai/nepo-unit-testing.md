@@ -9,8 +9,9 @@ for the robot. The EdPy runs against a virtual robot, and everything it does is 
 - which blocks no test executed;
 - what the robot was doing over time (motors in the robot's speed steps, LEDs, sound, variables), and where it ended
   (distance, turn, position): **states** and **measurements** (§4.10);
-- how it drives through a **drawn world** on the Lab's own simulator: its backgrounds, obstacles and coloured areas,
-  lines to follow, goal and fail areas, a recorded path it must keep to: **simulation tests** (§4.11). They run in the
+- how it drives through a **drawn world** on the Lab's own simulator (its backgrounds, obstacles and coloured areas,
+  lines to follow, goal and fail areas, starts): **simulation worlds** with many tests, each from one start, with
+  checks such as "reaches", "never touches", "never bumps into", "stays on its recorded path" (§4.11). They run in the
   Lab's Tests tab, on the simulator's code, not on the EdPy engine.
 
 Tests are written in NEPO terms too. They're either a JSON file (made for test editors and **AI test generators**) or
@@ -132,7 +133,7 @@ functions  clampSpeed(speed) returns: if speed > 100 return 100; if speed < 0 re
 | **status** | of a run: `finished`, or still running when the budget ran out (`time_limit`, `step_limit`), or `error` |
 | **error** | a runtime problem (16-bit overflow, division by zero, list index out of range, …) with the block where it happened |
 | **virtual time** | milliseconds from program start. Nothing runs in real time; a 60-second scenario takes milliseconds. |
-| **simulation test** | a run (or call) in a **drawn world** on the Lab's own simulator: the robot starts at a pose, its sensors read the world, and the world decides whether the test passes (§4.11) |
+| **simulation test** | a test of a **simulation world**, a world drawn once on the Lab's own simulator: the robot starts at one of the world's starts, the whole program runs, its sensors read the world, and the test's checks (and the world's rules) decide whether it passes (§4.11) |
 
 ---
 
@@ -503,15 +504,17 @@ still there. `patrol_with_tests.xml` is the same suite made of test blocks.
 
 ### 4.11 Simulation tests
 
-A **simulation test** puts the Edison into a world the learner draws (the Tests tab's *Simulation* window,
-`nepo-test-blocks.md` §5), and the world decides the outcome. It has no `expect`.
+A **simulation test** is a test of a **simulation world**: a world the learner draws once (the Tests tab's
+*Simulation* window, `nepo-test-blocks.md` §5), with the places the robot can start. A world holds many tests. Each
+test starts the robot at one of the world's starts (and can set up the past: claps, keys, variables), runs the whole
+program, and checks what the robot did. **It passes only if every check holds**, and the program doesn't fail. It has
+no `expect`. (Until 2026-10-26, a simulation test had a world of its own, and its goal and fail areas decided.)
 
 **It runs on the Lab's own simulator** (since 2026-10-22), in the Tests tab
 (`OpenRobertaWeb/src/app/nepotest/nepoTest.simRun.ts`), not on the EdPy engine:
 - **The program** is compiled for the simulator, as the Program tab's simulation does it (`POST
-  /rest/projectWorkflow/sourceSimulation`): the stack machine's program, not EdPy. For `call`, the start block calls only
-  the function; a function's result goes into a variable of its own, `nepoTestReturned`. `globals` replace the start
-  values the program declares.
+  /rest/projectWorkflow/sourceSimulation`): the stack machine's program, not EdPy. It is always the whole program;
+  `globals` (the set-up's variables) replace the start values the program declares.
 - **The simulator's own code runs it:**
   - the interpreter (`interpreter.interpreter`, `interpreter.robotSimBehaviour`);
   - the Edison (`robot.edison`): `EdisonChassis` with its motion and bumping, the line tracker, the light and obstacle
@@ -529,14 +532,39 @@ A **simulation test** puts the Edison into a world the learner draws (the Tests 
 ```json
 {"name": "follows the track to the finish", "max_time_ms": 20000,
  "simulation": {
+   "world_name": "Edison track",
    "world": {"background": "simpleBackgroundEdison",
-             "start": {"x": 46.67, "y": 10, "heading": -30},
-             "items": [{"id": "obstacle", "kind": "rect", "role": "obstacle", "x": 64.07, "y": 50.74, "w": 9.63, "h": 9.63},
-                       {"id": "finish", "kind": "circle", "role": "goal", "x": 28, "y": 67.5, "r": 3.5},
-                       {"id": "shortcut", "kind": "rect", "role": "fail", "x": 55, "y": 28, "w": 10, "h": 10}]},
-   "reference": {"path": [[46.67, 10, -30], [47.04, 10.24, -34.3], ...]},
-   "tolerance_cm": 2}}
+             "starts": [{"id": "A", "name": "A", "x": 46.67, "y": 10, "heading": -30},
+                        {"id": "B", "name": "B", "x": 49.87, "y": 39.25, "heading": -84.2}],
+             "items": [{"id": "obstacle", "name": "Obstacle", "kind": "rect", "role": "obstacle", "x": 64.07, "y": 50.74, "w": 9.63, "h": 9.63},
+                       {"id": "finish", "name": "Finish", "kind": "circle", "role": "goal", "x": 28, "y": 67.5, "r": 3.5},
+                       {"id": "shortcut", "name": "Shortcut", "kind": "rect", "role": "fail", "x": 55, "y": 28, "w": 10, "h": 10}]},
+   "start": "A",
+   "until": "finish",
+   "checks": [{"check": "never_touches", "item": "shortcut", "rule": true},
+              {"check": "reaches", "item": "finish"},
+              {"check": "path", "path": [[46.67, 10, -30], [47.04, 10.24, -34.3], ...], "time_ms": 7383.3, "tolerance_cm": 2}]}}
 ```
+
+- **`start`:** the id of one of the world's `starts` (each: `id`, `name`, `x`, `y`, `heading`).
+- **`until`:** optional, the id of an area (goal, fail or coloured): the run ends when the robot touches it. If the
+  robot starts on it, it has to leave it first.
+- **`max_time_ms`:** the run ends then at the latest (default 30 s). It also ends when the program ends, or fails.
+- **`checks`:** what must hold. A check with `"rule": true` is a rule of the world: the Tests tab copies the world's
+  rules into each of its tests.
+
+| Check | Holds if | `item` |
+|---|---|---|
+| `reaches` | the robot's outline touches the area at some time | an area; none: any goal area |
+| `never_touches` | it never touches the area | an area; none: any fail area |
+| `ends_in` | the whole outline is in the area when the run ends | an area |
+| `never_bumps` | it never bumps into the obstacle (its wheels are turned back, as in the simulator) | an obstacle; none: anything, the wall too |
+| `path` | a corner or the middle of an edge of the robot's outline never gets farther than `tolerance_cm` (default 2) from the robot's outline at some pose of `path`, the recorded run | – (`path`, `time_ms`, `tolerance_cm`; no `path`: not recorded yet, the check checks nothing) |
+
+**A run never stops at a failed check:** every check is decided, after every simulator frame in which the robot moved.
+`reaches` that hasn't held at the end fails; the `never_…` checks and `path` that haven't failed hold. After a runtime
+error, the checks still open aren't decided (`passed: null`), and the test fails. The bumped obstacle is the one at most
+1 cm from the robot's outline (none: the wall).
 
 - **Coordinates:** cm from the background's top left corner; x points right and y down, as on the screen. Angles are
   degrees, counterclockwise as seen from above, 0 pointing right. `start` is the robot's pose: the centre of its wheel
@@ -549,38 +577,28 @@ A **simulation test** puts the Edison into a world the learner draws (the Tests 
   - The Edison's backgrounds in the simulator: `simpleBackgroundEdison` (the simulator's default), `drawBackground`
     (white), `rescueBackground`, `mathBackground`. The floor has the simulator's wall around it, 10 units wide, which
     the robot can't leave.
-- **A new test** (`simulation.default_world`, `nepoTest.sim.ts defaultWorld`): the peach floor, the robot in its middle
+- **A new world** (`simulation.default_world`, `nepoTest.sim.ts defaultWorld`): the peach floor, start A in its middle
   (150, 100) facing right, and nothing on it.
 - **Items:**
   - The simulator's objects: `rect` (top left `x`, `y`; `w`, `h`; not rotated, as there), `circle` (`x`, `y`, `r`) and
     `triangle` (`points`). Their `role`:
     - `obstacle`: the robot bumps into it and the obstacle detection sees it (default colour `#33B8CA`);
     - `color`: a coloured area the line tracker and the light sensors see (`color`, default `#FBED00`);
-    - `goal`, `fail`: the test's areas; the robot touches them but doesn't see them.
+    - `goal`, `fail`: areas for the checks; the robot touches them but doesn't see them. They are what the checks are
+      usually about, but any area works (a check "never touches" a coloured area, too).
+  - `name`: optional, what the blocks show (without one: its kind and number, "Goal 2").
   - The test's own `line` (`points`; optionally `smooth`, a Catmull-Rom curve through them; `closed`; `width`, the
     black core): drawn like the track of `simpleBackgroundEdison`, a black core of 4.44 units on a white band of 16
     units.
   - Drawing order on the floor: the background, the wall, the coloured areas, every line's band, every line's core.
-- **"given":** a simulation test's `world` events may only be `clap` and `key`. The drawn world gives the obstacles,
-  the line and the light. The simulator has no IR remote control and no IR messages: the Tests tab rejects those
-  blocks in simulation tests.
-- **`call`, `args`, `globals`:** run a function instead of the whole program, as in §4.2. The simulation ends when it
-  returns.
-- **`floor`** (stored by the Tests tab until 2026-10-22: the floor picture, for the copy) is ignored.
+- **The set-up:** a simulation test's `world` events may only be `clap` and `key` (the past, or events during the
+  run). The drawn world gives the obstacles, the line and the light. The simulator has no IR remote control and no IR
+  messages: the Tests tab rejects those blocks in simulation worlds. `globals` need no `call`.
+- **No `call`, no `args`:** a test of a world always runs the whole program.
+- **`skip`: true:** the test doesn't run (`skipped`). **`should`: "fail"** turns only the test's own checks round
+  (and a runtime error): a failed rule fails the test anyway.
 
-**How a run ends**, checked after every simulator frame in which the robot moved:
-
-| Result | When | Outcome |
-|---|---|---|
-| `fail_area` | the robot's outline touches a fail area | failed |
-| `deviation` | a corner or the middle of an edge of the robot's outline gets farther than `tolerance_cm` from the robot's outline at every pose of the recorded path | failed |
-| `goal` | … touches a goal area (if nothing above happens at the same moment) | passed |
-| `finished`, `returned`, `time_limit` | the program ended, the function returned, or the time ran out (`max_time_ms`, default 30 s) | passed without goal areas; failed with goal areas ("did not reach a goal area") |
-| `error` | the interpreter failed | failed ("the program failed: …"), with the block that ran last |
-
-When the program ends, the robot moves for the rest of that frame and then stops, as in the simulator. Touching an
-obstacle doesn't end the run: the robot bumps (the report counts the frames in `bumps`). Put a fail area in front of an
-obstacle to make touching it a failure.
+When the program ends, the robot moves for the rest of that frame and then stops, as in the simulator.
 
 **What a test run does differently from the simulator's own loop** (`SimulationRoberta.render`,
 `SimulationScene.update`):
@@ -620,24 +638,28 @@ the Edison does:
   the sensor has no `WebAudio` to connect the microphone to (verified 2026-10-22: its `webAudio` is undefined). A test
   sets the meter's volume itself, so "given" claps work.
 
-**The recorded path.** A run with *Record path* ignores the old path. Its `path` becomes the new `reference`:
+**The recorded path.** A run with *Record path* doesn't check the test's path; its path becomes the new `path` of the
+test's `path` check (the check block's data):
 - **The corridor:** the robot's outline at each recorded pose (poses at least every 0.5 cm or 3°), widened by
   `tolerance_cm`.
 - **The check:** looks near the last matching pose first, then in a grid, so long paths stay cheap.
 
-**The report** of a simulation test has the shape of the others (§4.8), with `kind: "simulation"` and `simulation`:
-- `result`, `t`: when it ended (ms);
-- `item`: the id of the area that ended it;
-- `point`: where the robot left the corridor;
-- `path`: `[[t, x, y, heading], …]`, for the replay;
+**The report** of a simulation test has the shape of the others (§4.8), with `kind: "simulation"`, `world_block_id`,
+`checks` and `simulation`:
+- `checks`: `[{block_id, check, text, rule, passed, t, item, point, message}]`, every check with what it found
+  (`passed`: true, false, or null: not decided);
+- `simulation.result`, `t`: why and when the run ended (ms): `finished`, `until`, `time_limit`, `error`;
+- `item`, `point`: what the replay marks: the area touched or obstacle bumped into by the first failed check, where
+  the robot left its path;
+- `path`: `[[t, x, y, heading], …]`, for the replay; `start`: `[x, y, heading]`;
 - `leds`: `[[t, left, right], …]`;
-- `goals`: the number of goal areas;
 - `bumps`: the frames in which the robot pushed against something.
 
-Failures have `expect: "simulation"` and a message in words ("the robot left the recorded path (by more than 2 cm)
-after 0.6 s"). `covered_blocks` are the blocks whose operations ran (the stack machine's operations carry their block
-ids), so simulation tests count for coverage. A runtime error is `{"kind": "runtime_error", "message", "block_id",
-"block_type"}`, with the block whose operation ran last.
+Failures: one per failed check, `expect: "simulation"`, a message in words ("the robot left its recorded path (by
+more than 2 cm) after 0.6 s"; a rule's starts with "rule:") and `check_block_id`. `covered_blocks` are the blocks whose
+operations ran (the stack machine's operations carry their block ids), so simulation tests count for coverage. A
+runtime error is `{"kind": "runtime_error", "message", "block_id", "block_type"}`, with the block whose operation ran
+last.
 
 **Goal and fail areas are coordinates, not colours.** We considered painting goal and fail areas in special colours
 into the background and checking the pixels under the robot. Instead, they are invisible shapes with coordinates:
@@ -649,23 +671,24 @@ into the background and checking the pixels under the robot. Instead, they are i
 What the sensors see, on the other hand, *is* a picture: the simulator's sensors read the pixels of its sensor canvas.
 
 **Validation:**
-- `spec.validate_spec` checks the `simulation` object (`simulation.validate`): background, objects, roles and the
-  allowed events.
-- The Tests tab also reports a robot that starts off the floor, or touching an obstacle, a goal or a fail area.
-- It warns about a test that can't fail: no goal area, no fail area and no recorded path.
+- `spec.validate_spec` checks the `simulation` object (`simulation.validate`): the world (background, starts,
+  objects, roles), the start, the `until` area, the checks and what they refer to, and the allowed events.
+- The Tests tab (`blocks.py`) also reports, at the block: a start or an item that isn't in the world (any more), a
+  test outside a world, a robot that starts off the floor or on an obstacle (errors); a robot that starts on an area
+  the test checks, a test that checks nothing, a path not recorded yet, a set-up variable the program sets at once
+  (warnings).
 
 **The example:**
 - **The program:** `examples/line_follower.xml` follows the left edge of a line with the single line tracker. On black
   it curves left (10 % / 40 %), on white it curves right (40 % / 10 %). Its function `toTheWall()` drives until the
   obstacle detection sees something ahead, and stops.
-- **The suite:** `line_follower_with_tests.xml` was made in the Tests tab; its path was recorded on the simulator.
+- **The suite:** `line_follower_with_tests.xml` has the world "Edison track" with two starts and the rule "the robot
+  never touches Shortcut" (a fail area beside the track); its path was recorded on the simulator.
   `line_follower.tests.json` is the same suite as JSON (the command line runs only its third test). In the Tests tab,
   its three tests pass:
-  - on the Edison track, along the middle line to a goal area, with a recorded path and a fail area beside the track
-    (7.4 s);
-  - `toTheWall()` in front of the simulator's standard obstacle: it stops after 1.1 s, about 3 cm before the obstacle
-    and short of a fail area in front of it;
-  - the same function as a BDD test with a scripted obstacle.
+  - from start A, until it touches the goal area "Finish": it reaches it and stays on its recorded path (7.4 s);
+  - from start B, halfway down the track: it reaches "Finish" too (3.9 s);
+  - `toTheWall()` as a BDD test with a scripted obstacle (a world's test always runs the whole program).
 
 ---
 

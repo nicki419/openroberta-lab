@@ -1,6 +1,6 @@
 /**
- * Simulation tests run on the Lab's own simulator. The program is compiled for the simulator (REST /projectWorkflow/sourceSimulation, as the
- * Program tab's simulation does), and the simulator's own code runs it in the test's world (nepoTest.sim): the stack machine's interpreter
+ * The tests of simulation worlds run on the Lab's own simulator. The program is compiled for the simulator (REST /projectWorkflow/sourceSimulation,
+ * as the Program tab's simulation does), and the simulator's own code runs it in the test's world (nepoTest.sim): the stack machine's interpreter
  * (interpreter.interpreter, interpreter.robotSimBehaviour), the Edison (robot.edison: EdisonChassis with its kinematics and bumping, the line
  * tracker, the light and infrared sensors, the LEDs, the keys, the sound sensor) and the simulator's objects (obstacles, coloured areas, the
  * ground). Nothing is shown while a test runs: it runs offscreen, and the Simulation tab replays it (nepoTest.simEditor).
@@ -11,13 +11,21 @@
  *   gives the same result every time;
  * - no sound is played: a tone only takes its time; the claps and key presses of "given" reach the simulator's sound sensor (through its
  *   volume meter: a clap is heard for about 0.3 s, as long as it is loud) and its keys (held for KEY_MS);
- * - the test adds lines to follow (drawn on the floor picture the sensors see), goal and fail areas, and the recorded path.
+ * - the world adds lines to follow (drawn on the floor picture the sensors see), goal and fail areas, and the robot's starts.
  *
- * The report has the shape of NepoTest's reports (NepoTest/nepotest/spec.py), so the Tests tab shows both kinds of tests alike:
- *   {name, block_id, kind: 'simulation', outcome, failures, error, time_ms, variables, covered_blocks, status | returned,
- *    simulation: {result, t, item, point, path: [[t_ms, x, y, heading], ...], leds: [[t_ms, left, right], ...], recorded, goals, bumps}}
- * result: goal | fail_area | deviation | finished | returned | time_limit | error. Positions in cm, headings in degrees (not wrapped).
- * A test that should fail (`should: "fail"`) is turned round as in spec.py apply_should.
+ * A test (NepoTest JSON, made by nepotest/blocks.py from a test of a world) starts the robot at one of the world's starts, runs the whole program
+ * (until it ends, until the robot touches the test's "until" area, or for max_time_ms) and checks what the robot does: its checks and the
+ * world's rules (simulation.checks, rule: true). A run never stops at a failed check: every check is decided. The test passes only if every
+ * check holds and the program didn't fail. A test that should fail (`should: "fail"`) is turned round as in spec.py apply_should, but only by
+ * its own checks: a failed rule of the world fails it anyway. A skipped test (`skip: true`) doesn't run.
+ *
+ * The report has the shape of NepoTest's reports (NepoTest/nepotest/spec.py), so the Tests tab shows all tests alike:
+ *   {name, block_id (the test), world_block_id, kind: 'simulation', outcome, expected_failure, failures, error, time_ms, variables,
+ *    covered_blocks, status, checks: [{block_id, check, text, rule, passed, t, item, point, message}],
+ *    simulation: {result, t, item, point, path: [[t_ms, x, y, heading], ...], leds: [[t_ms, left, right], ...], start, recorded, bumps}}
+ * passed: true, false, or null (not decided: a path not recorded yet, or the program failed before). result: why the run ended: finished |
+ * until | time_limit | error. item and point: what the picture marks (the first area touched or obstacle bumped into by a failed check, where
+ * the robot left its path). Positions in cm, headings in degrees (not wrapped).
  */
 import * as COMM from 'comm';
 import * as GUISTATE_C from 'guiState.controller';
@@ -42,8 +50,9 @@ const TONE_FILE_MS = [200, 500, 1100, 1100, 200]; // WebAudio.tone.file: how lon
 const DEFAULT_MAX_TIME_MS = 30000;
 const SAMPLE_CM = 0.5; // the path gets a new pose after this much movement (as simulation.py)
 const SAMPLE_DEG = 3;
-const RESULT_VARIABLE = 'nepoTestReturned';
 const CHUNK_MS = 30; // the browser gets a chance to draw after this much computing
+const BUMP_MARGIN = 3; // units: the robot bumped into the obstacle that is at most this far from its outline (else into the wall)
+const KIND_WORDS: { [kind: string]: string } = { goal: 'Goal', fail: 'Fail area', color: 'Area', obstacle: 'Obstacle', line: 'Line' }; // reports are in English
 
 function u(v: number): number {
     return SIM.BORDER + v * SIM.UNITS_PER_CM;
@@ -178,12 +187,9 @@ class XmlBuilder {
     }
 }
 
-/**
- * the program a test runs: the whole program, or a program whose start block calls the test's function (a function with a result stores it in
- * a variable of its own); the global variables of "given" start with their values instead of the declared ones
- */
+/** the program a test runs: the whole program; the global variables of its "set up" start with their values instead of the declared ones */
 export function programFor(programXml: string, test: any): string {
-    if (!test.call && !test.globals) {
+    if (!test.globals || !Object.keys(test.globals).length) {
         return programXml;
     }
     const doc = new DOMParser().parseFromString(programXml, 'text/xml');
@@ -194,7 +200,7 @@ export function programFor(programXml: string, test: any): string {
     }
     const x = new XmlBuilder(doc, start.namespaceURI);
     const declarations = blocks.filter((b) => b.getAttribute('type') === 'robGlobalVariables_declare');
-    Object.keys(test.globals || {}).forEach(function (name) {
+    Object.keys(test.globals).forEach(function (name) {
         const declaration = declarations.filter((d) => field(d, 'VAR') === name)[0];
         if (!declaration) {
             throw new Error('the program has no variable "' + name + '"');
@@ -208,71 +214,14 @@ export function programFor(programXml: string, test: any): string {
             declaration.appendChild(x.value('VALUE', literal));
         }
     });
-    if (test.call) {
-        const definition = blocks.filter(
-            (b) => (b.getAttribute('type') === 'robProcedures_defnoreturn' || b.getAttribute('type') === 'robProcedures_defreturn') && field(b, 'NAME') === test.call
-        )[0];
-        if (!definition) {
-            throw new Error('the program has no function "' + test.call + '"');
-        }
-        const st = childElements(definition)
-            .filter((c) => c.localName === 'statement' && c.getAttribute('name') === 'ST')
-            .concat(childElements(definition, 'repetitions').reduce((all, r) => all.concat(childElements(r, 'statement').filter((s) => s.getAttribute('name') === 'ST')), []))[0];
-        const params = st ? childElements(st, 'block').map((p) => ({ name: field(p, 'VAR'), type: field(p, 'TYPE') || 'Number' })) : [];
-        const args = test.args || [];
-        const mutation = x.el(
-            'mutation',
-            { name: test.call },
-            params.map((p) => x.el('arg', { name: p.name, type: p.type }))
-        );
-        const values = params.map((p, i) => x.value('ARG' + i, x.literal(args[i], p.type)));
-        let statement: Element;
-        if (definition.getAttribute('type') === 'robProcedures_defreturn') {
-            const returnType = childElements(definition, 'mutation')[0].getAttribute('return_type') || 'Number';
-            mutation.setAttribute('output_type', returnType);
-            const call = x.block('robProcedures_callreturn', [mutation, ...values]);
-            statement = x.block('variables_set', [x.el('mutation', { datatype: returnType }), x.field('VAR', RESULT_VARIABLE), x.value('VALUE', call)]);
-            declareGlobal(x, start, RESULT_VARIABLE, returnType);
-        } else {
-            statement = x.block('robProcedures_callnoreturn', [mutation, ...values]);
-        }
-        for (const next of childElements(start, 'next')) {
-            start.removeChild(next);
-        }
-        while (start.nextSibling) {
-            start.parentNode.removeChild(start.nextSibling); // the main program: blocks after the start block in its instance
-        }
-        start.parentNode.appendChild(statement);
-    }
     return new XMLSerializer().serializeToString(doc);
-}
-
-function declareGlobal(x: XmlBuilder, start: Element, name: string, type: string): void {
-    childElements(start, 'mutation').forEach((m) => m.setAttribute('declare', 'true'));
-    let st = childElements(start, 'statement').filter((s) => s.getAttribute('name') === 'ST')[0];
-    if (!st) {
-        st = x.el('statement', { name: 'ST' });
-        start.appendChild(st);
-    }
-    const last = childElements(st, 'block').pop();
-    last && childElements(last, 'mutation').forEach((m) => m.setAttribute('next', 'true'));
-    const initial = x.literal(/^Array_/.test(type) ? [type === 'Array_Boolean' ? false : 0] : type === 'Boolean' ? false : 0, type);
-    const declaration = x.block('robGlobalVariables_declare', [
-        x.el('mutation', { next: 'false', declaration_type: type }),
-        x.field('VAR', name),
-        x.field('TYPE', type),
-        x.value('VALUE', initial),
-    ]);
-    declaration.setAttribute('deletable', 'false');
-    declaration.setAttribute('movable', 'false');
-    st.appendChild(declaration);
 }
 
 // ------------------------------------------------------------------------------------------------ compiling
 
 const compiled: { key: string; result: Promise<any> }[] = [];
 
-/** the program compiled for the simulator (the answer of sourceSimulation); the last few are kept */
+/** the program compiled for the simulator (the answer of sourceSimulation); the last few are kept (each set of "set up" variables is a program) */
 export function compile(programXml: string): Promise<any> {
     const isNamedConfig = !GUISTATE_C.isConfigurationStandard() && !GUISTATE_C.isConfigurationAnonymous();
     const configurationName = isNamedConfig ? GUISTATE_C.getConfigurationName() : undefined;
@@ -303,7 +252,7 @@ export function compile(programXml: string): Promise<any> {
         () => forget(key)
     );
     compiled.push({ key: key, result: result });
-    compiled.length > 6 && compiled.shift();
+    compiled.length > 16 && compiled.shift();
     return result;
 }
 
@@ -495,7 +444,7 @@ class Corridor {
 // ------------------------------------------------------------------------------------------------ running
 
 export interface RunOptions {
-    /** a recording: the recorded path isn't checked, so the run can become the new one */
+    /** a recording: the test's recorded path isn't checked, so the run can become the new one */
     record?: boolean;
     /** asked between pieces of the run: true stops it (the promise is rejected with "cancelled") */
     cancelled?: () => boolean;
@@ -544,43 +493,82 @@ function createRobot(id: number, configuration: any, interpreter: Interpreter, l
 
 let nextRobotId = 9000000;
 
+/** the name of an item of the world, for the reports (in English, as NepoTest's) */
+function nameOf(world: SIM.SimWorld, id: string): string {
+    const item = world.items.filter((i) => i.id === id)[0];
+    return item ? '"' + SIM.itemName(world, item, (kind) => KIND_WORDS[kind] || kind) + '"' : '"' + id + '"';
+}
+
+/** what a check of a test checks, in words */
+export function describeCheck(check: any, world: SIM.SimWorld): string {
+    const item = check.item ? nameOf(world, check.item) : null;
+    switch (check.check) {
+        case 'reaches':
+            return 'the robot reaches ' + (item || 'a goal area');
+        case 'never_touches':
+            return 'the robot never touches ' + (item || 'a fail area');
+        case 'ends_in':
+            return 'at the end, the robot is completely in ' + item;
+        case 'never_bumps':
+            return 'the robot never bumps into ' + (item || 'anything');
+        case 'path':
+            return 'the robot stays on its recorded path ± ' + (typeof check.tolerance_cm === 'number' ? check.tolerance_cm : SIM.DEFAULT_TOLERANCE_CM) + ' cm';
+        default:
+            return check.check;
+    }
+}
+
+/** a check during a run: decided (passed true or false) as soon as it can be, the others at the end */
+interface CheckState {
+    spec: any;
+    text: string;
+    passed: boolean;
+    t: number;
+    item: string;
+    point: number[];
+    message: string;
+    corridor?: Corridor;
+    skipped?: boolean; // a path check without a path, or while it is recorded: it checks nothing
+}
+
 class Run {
     private listener = new SelectionListener();
     private interpreter: Interpreter;
     private robot: any;
+    private world: SIM.SimWorld;
     private obstacles: any[];
+    private shapes: { [id: string]: Shape } = {};
+    private checks: CheckState[];
+    private until: Shape = null;
+    private touchingUntil = false;
     private ground: any;
     private udCtx: CanvasRenderingContext2D;
-    private goals: Shape[];
-    private fails: Shape[];
-    private corridor: Corridor;
-    private tolerance: number;
     private now = 0;
     private renderUntil = 0;
     private terminated = false;
     private toneUntil: number = null;
     private covered: { [id: string]: boolean } = {};
     private lastBlock: string = null;
+    private start: SIM.SimStart;
     private heading: number;
     private theta: number;
     private path: number[][] = [];
     private leds: any[][] = [];
     private bumps = 0;
     private checked: string = null;
-    outcome: { result: string; t: number; item: string; point: number[] } = null;
+    outcome: { result: string; t: number } = null;
     error: any = null;
 
     constructor(private test: any, compiled: any, private uCtx: CanvasRenderingContext2D, private options: RunOptions) {
         const sim = test.simulation;
         const world: SIM.SimWorld = sim.world;
+        this.world = world;
         const [bw, bh] = SIM.backgroundSize(world);
         this.ground = new Ground(10, 10, bw, bh);
         this.obstacles = world.items.filter((i) => i.role === 'obstacle' && isShape(i)).map((i) => simObject(i, SimObjectType.Obstacle, this.listener));
-        this.goals = world.items.filter((i) => i.role === 'goal' && isShape(i)).map(shapeOf);
-        this.fails = world.items.filter((i) => i.role === 'fail' && isShape(i)).map(shapeOf);
-        const path = sim.reference && sim.reference.path;
-        this.tolerance = typeof sim.tolerance_cm === 'number' ? sim.tolerance_cm : SIM.DEFAULT_TOLERANCE_CM;
-        this.corridor = !options.record && path && path.length ? new Corridor(path, this.tolerance * SIM.UNITS_PER_CM) : null;
+        world.items.filter((i) => i.kind !== 'line' && isShape(i)).forEach((i) => (this.shapes[i.id] = shapeOf(i)));
+        this.checks = (sim.checks || []).map((c: any) => this.checkState(c));
+        this.until = sim.until ? this.shapes[sim.until] || null : null;
         const ud = document.createElement('canvas'); // the simulator's trail canvas: no trail is drawn
         ud.width = uCtx.canvas.width;
         ud.height = uCtx.canvas.height;
@@ -602,11 +590,12 @@ class Run {
             return op;
         };
         this.robot = createRobot(nextRobotId++, compiled.configuration, this.interpreter, this.listener);
-        const theta = (-world.start.heading * Math.PI) / 180;
-        this.robot.pose = new Pose(u(world.start.x), u(world.start.y), theta);
-        this.robot.initialPose = new Pose(u(world.start.x), u(world.start.y), theta);
+        this.start = SIM.startOf(world, sim.start);
+        const theta = (-this.start.heading * Math.PI) / 180;
+        this.robot.pose = new Pose(u(this.start.x), u(this.start.y), theta);
+        this.robot.initialPose = new Pose(u(this.start.x), u(this.start.y), theta);
         this.robot.chassis.transformNewPose(this.robot.pose, this.robot.chassis);
-        this.heading = world.start.heading;
+        this.heading = this.start.heading;
         this.theta = this.robot.pose.theta;
         const behaviour = this.interpreter.getRobotBehaviour();
         const self = this;
@@ -626,6 +615,43 @@ class Run {
         };
     }
 
+    private checkState(spec: any): CheckState {
+        const state: CheckState = { spec: spec, text: describeCheck(spec, this.world), passed: null, t: null, item: null, point: null, message: null };
+        if (spec.check === 'path') {
+            if (this.options.record) {
+                state.skipped = true;
+                state.message = 'not checked: the path is recorded in this run';
+            } else if (!spec.path || !spec.path.length) {
+                state.skipped = true;
+                state.message = 'not checked: no path recorded yet (select the test in the Simulation tab and press "Record path")';
+            } else {
+                const tolerance = typeof spec.tolerance_cm === 'number' ? spec.tolerance_cm : SIM.DEFAULT_TOLERANCE_CM;
+                state.corridor = new Corridor(spec.path, tolerance * SIM.UNITS_PER_CM);
+            }
+        }
+        return state;
+    }
+
+    /** the shapes a check is about: its item, or all goal areas ("reaches any goal area") or fail areas ("never touches any fail area") */
+    private targets(check: CheckState): Shape[] {
+        if (check.spec.item) {
+            return this.shapes[check.spec.item] ? [this.shapes[check.spec.item]] : [];
+        }
+        const role = check.spec.check === 'reaches' ? 'goal' : 'fail';
+        return this.world.items.filter((i) => i.role === role && this.shapes[i.id]).map((i) => this.shapes[i.id]);
+    }
+
+    private settle(check: CheckState, passed: boolean, item: string = null, point: number[] = null): void {
+        check.passed = passed;
+        check.t = this.time();
+        check.item = item;
+        check.point = point;
+    }
+
+    private time(): number {
+        return Math.round(this.now * 10) / 10;
+    }
+
     private given(): void {
         const events = this.test.world || [];
         const now = this.now;
@@ -638,6 +664,11 @@ class Run {
         });
     }
 
+    private outline(): number[][] {
+        const c = this.robot.chassis;
+        return [c.frontLeft, c.frontRight, c.backRight, c.backLeft].map((p) => [p.rx, p.ry]);
+    }
+
     /** one frame of SimulationRoberta.render: the interpreter, then SimulationScene.update (the robot's actions, then its sensors) */
     private frame(running: boolean): void {
         if (running && !this.terminated && this.renderUntil <= this.now) {
@@ -645,7 +676,7 @@ class Run {
                 this.renderUntil = this.now + runFrame(this.interpreter);
             } catch (e) {
                 this.error = { kind: 'runtime_error', message: String((e && e.message) || e), block_id: this.lastBlock };
-                this.decide('error');
+                this.end('error');
                 return;
             }
         }
@@ -660,6 +691,7 @@ class Run {
             (chassis.backRight.bumped && chassis.right.speed < 0)
         ) {
             this.bumps++; // ChassisDiffDrive.updateAction turned a wheel back
+            running && this.bumped();
         }
         const personal = this.obstacles.concat([chassis, this.ground]);
         robot.updateSensors(running, FRAME_MS / 1000, this.uCtx, this.udCtx, personal, [], []);
@@ -673,6 +705,26 @@ class Run {
         if (last ? last[1] !== leds[0] || last[2] !== leds[1] : leds[0] || leds[1]) {
             this.leds.push([Math.round(this.now * 10) / 10, leds[0], leds[1]]);
         }
+    }
+
+    /** the robot bumped: the "never bumps into" checks of the obstacle it bumped into (the nearest one; none: the wall) fail */
+    private bumped(): void {
+        const open = this.checks.filter((c) => c.spec.check === 'never_bumps' && c.passed === null);
+        if (!open.length) {
+            return;
+        }
+        const poly = this.outline();
+        let into: string = null;
+        let best = BUMP_MARGIN;
+        for (const item of this.world.items) {
+            const shape = item.role === 'obstacle' && this.shapes[item.id];
+            const distance = shape ? shapeDistance(shape, poly) : Infinity;
+            if (distance <= best) {
+                best = distance;
+                into = item.id;
+            }
+        }
+        open.filter((c) => !c.spec.item || c.spec.item === into).forEach((c) => this.settle(c, false, into));
     }
 
     private pose(): number[] {
@@ -692,34 +744,44 @@ class Run {
         }
     }
 
-    /** the test's checks after a frame in which the robot moved: fail areas, the recorded path, goal areas */
+    /** after a frame in which the robot moved: the checks of areas and of the recorded path, and the area the run ends at */
     private check(): void {
         const c = this.robot.chassis;
         const key = [c.frontLeft.rx, c.frontLeft.ry, c.backRight.rx, c.backRight.ry].join();
         if (key === this.checked) {
-            return;
+            return; // nothing changed: what the robot touches stays as it was
         }
         this.checked = key;
         this.sample();
-        const poly = [c.frontLeft, c.frontRight, c.backRight, c.backLeft].map((p) => [p.rx, p.ry]);
+        const poly = this.outline();
         const box = bbox(poly);
-        const fail = this.fails.filter((s) => touches(s, poly, box))[0];
-        if (fail) {
-            return this.decide('fail_area', fail.id);
+        for (const check of this.checks) {
+            if (check.passed !== null || check.skipped) {
+                continue;
+            }
+            const kind = check.spec.check;
+            if (kind === 'reaches' || kind === 'never_touches') {
+                const hit = this.targets(check).filter((s) => touches(s, poly, box))[0];
+                hit && this.settle(check, kind === 'reaches', hit.id);
+            } else if (kind === 'path') {
+                const point = check.corridor.outside(poly);
+                point && this.settle(check, false, null, [SIM.round2(cm(point[0])), SIM.round2(cm(point[1]))]);
+            }
         }
-        const point = this.corridor && this.corridor.outside(poly);
-        if (point) {
-            return this.decide('deviation', null, [SIM.round2(cm(point[0])), SIM.round2(cm(point[1]))]);
-        }
-        const goal = this.goals.filter((s) => touches(s, poly, box))[0];
-        if (goal) {
-            return this.decide('goal', goal.id);
+        if (this.until) {
+            const touching = touches(this.until, poly, box);
+            if (touching && !this.touchingUntil) {
+                this.end('until'); // it touches the area anew (if it started on it, it has to leave it first)
+            }
+            this.touchingUntil = touching;
         }
     }
 
-    private decide(result: string, item: string = null, point: number[] = null): void {
-        this.sample(true);
-        this.outcome = { result: result, t: Math.round(this.now * 10) / 10, item: item, point: point };
+    private end(result: string): void {
+        if (!this.outcome) {
+            this.sample(true);
+            this.outcome = { result: result, t: this.time() };
+        }
     }
 
     /** the whole run, in pieces (the browser can draw in between) */
@@ -729,6 +791,10 @@ class Run {
         this.now = 0;
         this.robot.time = 0;
         this.sample(true);
+        if (this.until) {
+            const poly = this.outline();
+            this.touchingUntil = touches(this.until, poly, bbox(poly));
+        }
         const piece = (resolve: () => void, reject: (e: Error) => void) => {
             if (this.options.cancelled && this.options.cancelled()) {
                 reject(new Error('cancelled'));
@@ -742,9 +808,9 @@ class Run {
                 }
                 this.check();
                 if (!this.outcome && this.terminated) {
-                    this.decide(this.test.call ? 'returned' : 'finished');
+                    this.end('finished');
                 } else if (!this.outcome && this.now >= maxTime) {
-                    this.decide('time_limit');
+                    this.end('time_limit');
                 }
             }
             this.outcome ? resolve() : setTimeout(() => piece(resolve, reject), 0);
@@ -752,59 +818,155 @@ class Run {
         return new Promise(piece);
     }
 
+    /** the checks still open at the end: "reaches" failed, "never ..." held, "ends in" is checked now; after a runtime error, they aren't decided */
+    private decideRest(): void {
+        const outcome = this.outcome;
+        const poly = this.outline();
+        const at = seconds(outcome.t);
+        const ended =
+            outcome.result === 'until'
+                ? ': the run ended when the robot touched ' + nameOf(this.world, this.test.simulation.until) + ' after ' + at + ' s'
+                : outcome.result === 'time_limit'
+                ? ' within ' + seconds(this.test.max_time_ms || DEFAULT_MAX_TIME_MS) + ' s'
+                : ': the program ended after ' + at + ' s';
+        for (const check of this.checks) {
+            const kind = check.spec.check;
+            if (check.skipped) {
+                continue;
+            }
+            if (check.passed === null && this.error) {
+                check.message = 'not decided: the program failed after ' + at + ' s';
+                continue;
+            }
+            if (kind === 'reaches') {
+                if (check.passed) {
+                    check.message = 'the robot reached ' + nameOf(this.world, check.item) + ' after ' + seconds(check.t) + ' s';
+                } else {
+                    this.settle(check, false);
+                    check.message = 'the robot did not reach ' + (check.spec.item ? nameOf(this.world, check.spec.item) : 'a goal area') + ended;
+                }
+            } else if (kind === 'never_touches') {
+                check.passed === null && this.settle(check, true);
+                check.message = check.passed ? 'the robot never touched ' + (check.spec.item ? nameOf(this.world, check.spec.item) : 'a fail area') : 'the robot touched ' + nameOf(this.world, check.item) + ' after ' + seconds(check.t) + ' s';
+            } else if (kind === 'never_bumps') {
+                check.passed === null && this.settle(check, true);
+                check.message = check.passed
+                    ? 'the robot never bumped into ' + (check.spec.item ? nameOf(this.world, check.spec.item) : 'anything')
+                    : 'the robot bumped into ' + (check.item ? nameOf(this.world, check.item) : 'the wall') + ' after ' + seconds(check.t) + ' s';
+            } else if (kind === 'path') {
+                check.passed === null && this.settle(check, true);
+                const tolerance = typeof check.spec.tolerance_cm === 'number' ? check.spec.tolerance_cm : SIM.DEFAULT_TOLERANCE_CM;
+                check.message = check.passed ? 'the robot stayed on its recorded path' : 'the robot left its recorded path (by more than ' + tolerance + ' cm) after ' + seconds(check.t) + ' s';
+            } else if (kind === 'ends_in') {
+                const shape = this.shapes[check.spec.item];
+                this.settle(check, !!shape && inside(shape, poly), check.spec.item);
+                check.message = (check.passed ? 'at the end, the robot was completely in ' : 'at the end (after ' + at + ' s), the robot was not completely in ') + nameOf(this.world, check.spec.item);
+            }
+        }
+    }
+
     report(source: string): any {
         const test = this.test;
         const outcome = this.outcome;
-        const isCall = !!test.call;
+        this.decideRest();
         const failures: any[] = [];
-        const fail = (message: string) => failures.push({ expect: 'simulation', expected: null, actual: outcome, message: message, described: true });
-        const at = seconds(outcome.t);
-        if (outcome.result === 'fail_area') {
-            fail('the robot touched a fail area after ' + at + ' s');
-        } else if (outcome.result === 'deviation') {
-            fail('the robot left the recorded path (by more than ' + this.tolerance + ' cm) after ' + at + ' s');
-        } else if (outcome.result === 'error') {
+        if (outcome.result === 'error') {
             this.error.block_type = blockType(source, this.error.block_id);
             failures.push({ expect: 'error', expected: null, actual: this.error, message: 'the program failed: ' + this.error.message });
-        } else if (outcome.result !== 'goal' && this.goals.length) {
-            if (outcome.result === 'time_limit') {
-                fail('the robot did not reach a goal area within ' + seconds(test.max_time_ms || DEFAULT_MAX_TIME_MS) + ' s');
-            } else {
-                fail('the robot did not reach a goal area: the ' + (isCall ? 'function' : 'program') + ' ended after ' + at + ' s');
+        }
+        for (const check of this.checks) {
+            if (check.passed === false) {
+                failures.push({
+                    expect: 'simulation',
+                    expected: check.text,
+                    actual: { t: check.t, item: check.item, point: check.point },
+                    message: (check.spec.rule ? 'rule: ' : '') + check.message,
+                    described: true,
+                    check_block_id: check.spec.block_id,
+                });
             }
         }
+        const failedRule = this.checks.some((c) => c.spec.rule && c.passed === false);
+        const failedOwn = !!this.error || this.checks.some((c) => !c.spec.rule && c.passed === false);
+        let result = failedRule || failedOwn ? 'failed' : 'passed';
+        let expectedFailure = false;
+        if (test.should === 'fail' && !failedRule) {
+            // it should fail by its own checks; a rule of the world must hold anyway
+            if (failedOwn) {
+                result = 'passed';
+                expectedFailure = true;
+            } else {
+                result = 'failed';
+                failures.push({ expect: 'should', expected: 'fail', actual: 'passed', message: SHOULD_FAIL_MESSAGE, described: true });
+            }
+        }
+        const failedArea = this.checks.filter((c) => c.passed === false && c.item)[0];
+        const deviation = this.checks.filter((c) => c.passed === false && c.point)[0];
         const variables = {};
         const bindings = this.interpreter.getVariables() || {};
-        Object.keys(bindings).forEach((name) => name !== RESULT_VARIABLE && (variables[name] = bindings[name][0]));
+        Object.keys(bindings).forEach((name) => (variables[name] = bindings[name][0]));
         const report: any = {
             name: test.name,
             block_id: test.block_id,
+            world_block_id: test.simulation.world_block_id,
             kind: 'simulation',
-            outcome: failures.length ? 'failed' : 'passed',
+            outcome: result,
             failures: failures,
             error: this.error,
             time_ms: Math.round(outcome.t),
             variables: variables,
             covered_blocks: Object.keys(this.covered).filter((id) => id.indexOf('nepoTest') !== 0),
+            status: outcome.result === 'error' ? 'error' : outcome.result === 'until' ? 'simulation' : outcome.result,
+            checks: this.checks.map((c) => ({
+                block_id: c.spec.block_id,
+                check: c.spec.check,
+                text: c.text,
+                rule: !!c.spec.rule,
+                passed: c.passed,
+                t: c.t,
+                item: c.item,
+                point: c.point,
+                message: c.message,
+            })),
             simulation: {
                 result: outcome.result,
                 t: outcome.t,
-                item: outcome.item,
-                point: outcome.point,
+                item: failedArea ? failedArea.item : null,
+                point: deviation ? deviation.point : null,
                 path: this.path,
                 leds: this.leds,
+                start: [this.start.x, this.start.y, this.start.heading],
                 recorded: !!this.options.record,
-                goals: this.goals.length,
                 bumps: this.bumps,
             },
         };
-        if (isCall) {
-            report.returned = outcome.result === 'returned' && bindings[RESULT_VARIABLE] ? bindings[RESULT_VARIABLE][0] : null;
-        } else {
-            report.status = outcome.result === 'error' ? 'error' : ['finished', 'time_limit'].indexOf(outcome.result) >= 0 ? outcome.result : 'simulation';
+        if (expectedFailure) {
+            report.expected_failure = true;
         }
         return report;
     }
+}
+
+/** how far a shape is from the robot's outline (units; 0: they touch) */
+function shapeDistance(shape: Shape, poly: number[][]): number {
+    if (touches(shape, poly, bbox(poly))) {
+        return 0;
+    }
+    if (shape.kind === 'circle') {
+        return polygonDistance(shape.x, shape.y, poly) - shape.r;
+    }
+    let best = Infinity;
+    poly.forEach((p) => (best = Math.min(best, polygonDistance(p[0], p[1], shape.polygon))));
+    shape.polygon.forEach((q) => (best = Math.min(best, polygonDistance(q[0], q[1], poly))));
+    return best;
+}
+
+/** is the whole outline inside the shape? (the shapes are convex: its corners are enough) */
+function inside(shape: Shape, poly: number[][]): boolean {
+    if (shape.kind === 'circle') {
+        return poly.every((p) => Math.hypot(p[0] - shape.x, p[1] - shape.y) <= shape.r);
+    }
+    return poly.every((p) => pointInPolygon(p[0], p[1], shape.polygon));
 }
 
 function blockType(source: string, id: string): string {
@@ -822,44 +984,63 @@ function blockType(source: string, id: string): string {
 
 export const SHOULD_FAIL_MESSAGE = 'the test should fail, but it passed';
 
-/**
- * a test that should fail (test.should: "fail", the block's "this test should fail"), as spec.py apply_should: it passes if its checks fail
- * (the failures stay, with expected_failure), and fails if they pass. A test error stays an error.
- */
-export function applyShould(report: any, test: any): any {
-    if (test.should !== 'fail' || (report.outcome !== 'passed' && report.outcome !== 'failed')) {
-        return report;
-    }
-    if (report.outcome === 'failed') {
-        report.outcome = 'passed';
-        report.expected_failure = true;
-    } else {
-        report.outcome = 'failed';
-        report.failures = [{ expect: 'should', expected: 'fail', actual: 'passed', message: SHOULD_FAIL_MESSAGE, described: true }];
-    }
-    return report;
-}
-
 function errorReport(test: any, message: string): any {
-    return { name: test.name, block_id: test.block_id, kind: 'simulation', outcome: 'error', failures: [], error: { kind: 'test_error', message: message } };
+    return {
+        name: test.name,
+        block_id: test.block_id,
+        world_block_id: test.simulation && test.simulation.world_block_id,
+        kind: 'simulation',
+        outcome: 'error',
+        failures: [],
+        error: { kind: 'test_error', message: message },
+    };
+}
+
+const floors: { key: string; canvas: Promise<HTMLCanvasElement> }[] = [];
+
+/** the floor picture of a world; the last few are kept (the tests of a world share theirs: the robot doesn't draw on it) */
+function floorFor(world: SIM.SimWorld): Promise<HTMLCanvasElement> {
+    const key = SIM.floorKey(world);
+    const known = floors.filter((f) => f.key === key)[0];
+    if (known) {
+        return known.canvas;
+    }
+    const canvas = floorCanvas(world);
+    floors.push({ key: key, canvas: canvas });
+    floors.length > 4 && floors.shift();
+    canvas.then(null, () => floors.splice(floors.map((f) => f.key).indexOf(key), 1));
+    return canvas;
 }
 
 /**
- * runs a simulation test (NepoTest JSON, as nepotest/blocks.py makes it from the test block) on the simulator, for the program in the Program
- * tab (its block_set XML). Resolves with the report; a program that can't run gives a report with outcome "error".
+ * runs a test of a simulation world (NepoTest JSON, as nepotest/blocks.py makes it from the test block) on the simulator, for the program in
+ * the Program tab (its block_set XML). Resolves with the report; a program that can't run gives a report with outcome "error", a test that is
+ * skipped one with outcome "skipped".
  */
 export function runTest(test: any, programXml: string, options: RunOptions = {}): Promise<any> {
+    if (test.skip) {
+        return Promise.resolve({
+            name: test.name,
+            block_id: test.block_id,
+            world_block_id: test.simulation.world_block_id,
+            kind: 'simulation',
+            outcome: 'skipped',
+            failures: [],
+            error: null,
+            message: 'skipped',
+        });
+    }
     let source: string;
     try {
         source = programFor(programXml, test);
     } catch (e) {
         return Promise.resolve(errorReport(test, e.message));
     }
-    return Promise.all([compile(source), floorCanvas(test.simulation.world)]).then(function ([result, floor]: [any, HTMLCanvasElement]) {
+    return Promise.all([compile(source), floorFor(test.simulation.world)]).then(function ([result, floor]: [any, HTMLCanvasElement]) {
         if (result.rc !== 'ok') {
             return errorReport(test, compileProblem(result));
         }
         const run = new Run(test, result, floor.getContext('2d', { willReadFrequently: true } as any) as CanvasRenderingContext2D, options);
-        return run.run().then(() => applyShould(run.report(source), test));
+        return run.run().then(() => run.report(source));
     });
 }

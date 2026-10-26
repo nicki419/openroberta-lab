@@ -423,6 +423,11 @@ body.blocklyMinimalBody * {
     color: #b36b00;
 }
 
+.nepoTestResult.skipped .nepoTestIcon:before {
+    content: '\2013';
+    color: #999;
+}
+
 .nepoTestResult .nepoTestOutcome {
     float: right;
     color: #777;
@@ -611,7 +616,8 @@ body.blocklyMinimalBody * {
     background: #f4f4f4;
 }
 
-.nepoSimCanvas[data-tool='line'], .nepoSimCanvas[data-tool='curve'], .nepoSimCanvas[data-tool='rect'], .nepoSimCanvas[data-tool='ellipse'] {
+.nepoSimCanvas[data-tool='line'], .nepoSimCanvas[data-tool='curve'], .nepoSimCanvas[data-tool='rect'], .nepoSimCanvas[data-tool='circle'],
+.nepoSimCanvas[data-tool='triangle'], .nepoSimCanvas[data-tool='start'] {
     cursor: crosshair;
 }
 
@@ -720,6 +726,127 @@ body.blocklyMinimalBody * {
 .nepoTestDetails li.nepoTestShowSim {
     color: #1e5aa8;
     text-decoration: underline;
+}
+
+.nepoSimName {
+    width: 10em;
+}
+
+.nepoSimChecks {
+    list-style: none;
+    padding-left: 0;
+    margin: 2px 0 0 0;
+    font-size: 90%;
+}
+
+.nepoSimChecks li.passed {
+    color: #179C7D;
+}
+
+.nepoSimChecks li.failed {
+    color: #E2001A;
+}
+
+.nepoSimChecks li.open {
+    color: #777;
+}
+
+.nepoSimTestsTitle {
+    margin-top: 8px;
+    font-weight: bold;
+}
+
+.nepoSimTests {
+    list-style: none;
+    padding-left: 0;
+    margin: 2px 0 0 0;
+    max-height: 9.5em;
+    overflow-y: auto;
+    border-top: 1px solid #eee;
+}
+
+.nepoSimTest {
+    padding: 3px 4px;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.nepoSimTest:hover {
+    background: #f0f4fa;
+}
+
+.nepoSimTest.selected {
+    background: #dbe9f9;
+}
+
+.nepoSimTest.skipped .nepoSimTestName, .nepoSimTest.stale .nepoSimTestName {
+    color: #888;
+}
+
+.nepoSimTestIcon {
+    display: inline-block;
+    width: 1.3em;
+    font-weight: bold;
+}
+
+.nepoSimTest.passed .nepoSimTestIcon:before {
+    content: '\2714';
+    color: #179C7D;
+}
+
+.nepoSimTest.failed .nepoSimTestIcon:before {
+    content: '\2718';
+    color: #E2001A;
+}
+
+.nepoSimTest.skipped .nepoSimTestIcon:before {
+    content: '\2013';
+    color: #999;
+}
+
+.nepoSimTest.none .nepoSimTestIcon:before {
+    content: '\25CB';
+    color: #aaa;
+}
+
+.nepoSimBadge {
+    display: inline-block;
+    min-width: 1.6em;
+    margin-right: 6px;
+    padding: 0 4px;
+    border-radius: 0.8em;
+    background: #1e5aa8;
+    color: #fff;
+    font-size: 85%;
+    text-align: center;
+}
+
+.nepoSimBadge.unknown {
+    background: #E2001A;
+}
+
+.nepoSimTestEmpty {
+    padding: 4px;
+    color: #777;
+}
+
+.nepoSimBadgeSvg {
+    pointer-events: none;
+}
+
+.nepoSimBadgeSvg circle {
+    fill: #1e5aa8;
+    stroke: #fff;
+    opacity: 0.9;
+}
+
+.nepoSimBadgeSvg text {
+    fill: #fff;
+    font-weight: bold;
+    font-family: sans-serif;
 }
 
 .log {

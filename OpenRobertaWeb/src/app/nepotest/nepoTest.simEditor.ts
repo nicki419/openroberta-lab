@@ -1,40 +1,78 @@
 /**
- * The simulation window of the Tests tab: an editor for the world of one simulation test (nepoTest.sim), and the replay of its runs. The world
+ * The simulation window of the Tests tab: an editor for a simulation world (nepoTest.sim), its tests, and the replay of their runs. The world
  * and the robot look and behave as in the Lab's simulator: its backgrounds and wall, its obstacles and coloured areas (rectangles, circles,
  * triangles, in its colours), its robot image with the line tracker, the light sensors, the infrared rays and the LEDs.
  *
- * - The robot is dragged to where it starts, and turned with its handle (in steps of 15 degrees; Shift: freely).
+ * - The world has starts (A, B, ...): a robot each, dragged to where it is and turned with its handle (in steps of 15 degrees; Shift: freely).
+ *   The start tool adds one. The selected test's start is drawn solid, the others faded.
+ * - Below the picture: the world's tests. One is selected (here, or by clicking its block): "Run test" runs it, its run is replayed, and
+ *   "Record path" records its path (into its "stays on its recorded path" check). "Run all" runs every test of the world.
  * - Line and Curve draw a line to follow, like the background's track (click the points; a click on the last point again ends it, as
  *   does a double-click of any speed, a right click or Enter; a click on the first point closes it). Rectangle, Circle and Triangle draw an object (a click: the simulator's default size); what it is (obstacle,
  *   coloured area, goal, fail) and its colour are chosen with the buttons.
  * - Select moves things; handles resize them and move the points of lines and triangles. Delete removes, Ctrl+Z / Ctrl+Y undo and redo.
- * - The mouse wheel and the buttons zoom; dragging the empty floor moves the view. The view is kept with the test (data.view).
+ *   A selected start or item can be named: the tests' blocks show the names.
+ * - The mouse wheel and the buttons zoom; dragging the empty floor moves the view. The view is kept with the world (data.view).
  * - The background is chosen from the simulator's; "from the simulator" takes over the simulator's current scene.
- * - Record runs the test and keeps the run as the recorded path; the tolerance widens it to the corridor the robot must stay in.
- * - Run runs the test; the run is replayed (play, or drag the time slider).
+ * - The tolerance widens the recorded path to the corridor the robot must stay in (the TOL of the test's path check).
+ * - A run is replayed (play, or drag the time slider), with what each check found.
  * The editor knows nothing about Blockly or the test runner: the tests controller passes the data in and gets it back (EditorHost).
  */
 import * as SIM from 'nepoTest.sim';
 import * as SIMRUN from 'nepoTest.simRun';
 
+/** a test of the world shown, as its block says */
+export interface SimTest {
+    id: string;
+    name: string;
+    start: string; // the id of its start
+    active: boolean; // false: skipped
+    checks: number; // its checks and the world's rules
+    refs: string[]; // the starts and items it refers to
+    pathCheck: boolean; // it has a "stays on its recorded path" check
+    path: SIM.SimPath; // that check's recorded path, or null
+    tolerance: number; // that check's tolerance (cm)
+}
+
+/** the scene of the Lab's simulator */
+export interface SimScene {
+    background: string;
+    start: { x: number; y: number; heading: number };
+    items: SIM.SimItem[];
+}
+
 export interface EditorHost {
     /** the data changed: an edit (save it, the program is unsaved), or only the view (quiet: save it quietly) */
     changed(data: SIM.SimData, quiet: boolean): void;
-    record(): void;
-    run(): void;
-    /** the scene of the Lab's simulator as a world, or a message why there is none */
-    simulatorScene(): SIM.SimWorld | string;
+    /** the tests of the world shown */
+    tests(): SimTest[];
+    /** a test was chosen in the list (its block is selected) */
+    select(testId: string): void;
+    /** runs these tests of the world shown */
+    run(testIds: string[]): void;
+    /** runs a test and keeps its path (in its path check) */
+    record(testId: string): void;
+    /** the tolerance of a test's path check (cm) */
+    setTolerance(testId: string, cm: number): void;
+    forgetPath(testId: string): void;
+    /** the scene of the Lab's simulator, or a message why there is none */
+    simulatorScene(): SimScene | string;
 }
 
 interface Run {
+    worldId: string;
     path: number[][]; // [t, x, y, heading]
     leds: any[][]; // [t, left, right]
+    start: number[]; // [x, y, heading]
     result: string;
     t: number;
     item: string;
     point: number[];
-    failure: string; // NepoTest's message (English), if it failed
+    checks: any[]; // the report's checks: {text, rule, passed, message}
+    recorded: boolean; // its path was recorded
+    failure: string; // the first failure's message (English, as NepoTest's), if it failed
     passed: boolean;
+    skipped: boolean;
     expectedFailure: boolean; // it should fail, and it did: passed
     unexpectedPass: boolean; // it should fail, but it passed
     stale: boolean; // the world changed since
@@ -44,13 +82,15 @@ const SVGNS = 'http://www.w3.org/2000/svg';
 const MIN_SCALE = 0.4;
 const MAX_SCALE = 40;
 const HANDLE_PX = 6;
-const TOOLS = ['select', 'line', 'curve', 'rect', 'circle', 'triangle'];
+const TOOLS = ['select', 'start', 'line', 'curve', 'rect', 'circle', 'triangle'];
+const START = 'start:'; // the prefix of a selected start (selected: an item's id, or START + a start's id)
 
 const TEXT: { [lang: string]: { [key: string]: string } } = {
     en: {
-        title: 'Simulation test',
-        none: 'Select a simulation test, or take one from "Tests" in the toolbox.',
+        title: 'Simulation world',
+        none: 'Select a simulation world or one of its tests, or take a world from "Tests" in the toolbox.',
         select: 'Select and move',
+        start: 'Start: click where the robot can start (a test chooses one of the starts)',
         line: 'Line',
         curve: 'Curve',
         rect: 'Rectangle',
@@ -58,8 +98,8 @@ const TEXT: { [lang: string]: { [key: string]: string } } = {
         triangle: 'Triangle',
         obstacle: 'Obstacle',
         color: 'Coloured area (the sensors see it)',
-        goal: 'Goal: touching it passes the test',
-        fail: 'Fail: touching it fails the test',
+        goal: 'Goal area (a test can check that the robot reaches it)',
+        fail: 'Fail area (a test can check that the robot never touches it)',
         zoomIn: 'Zoom in',
         zoomOut: 'Zoom out',
         fit: 'Show everything',
@@ -74,7 +114,8 @@ const TEXT: { [lang: string]: { [key: string]: string } } = {
         drawBackground: 'White',
         rescueBackground: 'Rescue',
         mathBackground: 'Math',
-        hintSelect: 'Drag the robot to its start; turn it with its round handle (Shift: freely). Drag the floor to move the view, the wheel zooms.',
+        hintSelect: 'Drag a robot (a start) to move it; turn it with its round handle (Shift: freely). Drag the floor to move the view, the wheel zooms.',
+        hintStart: 'Click where the robot can start: a new start (A, B, ...). The tests choose their start in their block.',
         hintLine: 'Click the points of the line. To end it, click its last point again (or double-click, right-click, Enter); click the first point to close it. Esc cancels.',
         hintShape: 'Drag to draw, or click for the simulator\'s size. Choose what it is with the buttons.',
         curved: 'curved',
@@ -82,25 +123,37 @@ const TEXT: { [lang: string]: { [key: string]: string } } = {
         width: 'width',
         cm: 'cm',
         record: '● Record path',
-        recordTitle: 'Run the test and keep the run as the path the robot must follow',
+        recordTitle: 'Run the selected test and keep the run as the path the robot must follow (its "stays on its recorded path" check)',
+        recordNoCheck: 'Put a "stays on its recorded path" check (from "Checks") into the selected test to record its path',
         clearRecord: 'Forget path',
         tolerance: 'allowed deviation',
         run: '▶ Run test',
+        runAll: '▶▶ Run all',
+        runAllTitle: 'Run all tests of this world',
         play: 'Replay',
         recorded: 'Path recorded: {0}',
-        noPath: 'No path recorded: the robot may go anywhere (except into fail areas).',
-        pathInfo: 'Recorded path: {0} s; the robot must stay within {1} cm of it.',
+        noPath: 'The path of "{0}" is not recorded yet: press "Record path".',
+        noPathCheck: '"{0}" checks no recorded path.',
+        pathInfo: 'Recorded path of "{0}": {1} s; the robot must stay within {2} cm of it.',
+        tests: 'Tests in this world',
+        noTests: 'This world has no tests yet: put a "test" from "Tests" into it.',
+        noTest: 'Select a test (below, or its block) to run it.',
+        skipped: 'skipped (its box is not ticked)',
+        startName: 'name',
+        itemName: 'name',
+        lastStart: 'A world needs a start: this one can\'t be deleted.',
+        usedBy: '"{0}" was used by: {1}. They now show a warning: choose something else in them (or undo).',
+        notDecided: 'not decided',
         working: 'Running…',
         loading: 'Starting the test runner (the first time, Python is downloaded: about 12 MB)…',
         passed: '✓ passed: {0}',
         failed: '✗ failed: {0}',
         expectedFailure: '✓ failed, as it should: {0}',
-        goalReached: 'the robot reached the goal after {0} s',
+        untilEnd: 'the run ended at its area after {0} s',
         ended: 'the program ended after {0} s',
-        returned: 'the function returned after {0} s',
         timeUp: 'the time was up after {0} s',
         stale: 'The world changed since this run.',
-        noGoal: 'No goal area: the test passes if nothing goes wrong until the program ends or the time is up.',
+        noChecks: 'This test checks nothing yet: put checks from "Checks" into it.',
         sensors: 'line tracker {0} ({1} %) · LLIGHT {2} % · RLIGHT {3} % · obstacle: {4}',
         black: 'black',
         white: 'white',
@@ -109,11 +162,17 @@ const TEXT: { [lang: string]: { [key: string]: string } } = {
         front: 'front',
         right: 'right',
         imported: 'The scene of the simulator was taken over.',
+        kind_goal: 'Goal',
+        kind_fail: 'Fail area',
+        kind_color: 'Area',
+        kind_obstacle: 'Obstacle',
+        kind_line: 'Line',
     },
     de: {
-        title: 'Simulationstest',
-        none: 'Wähle einen Simulationstest aus, oder nimm einen aus "Tests" im Werkzeugkasten.',
+        title: 'Simulationswelt',
+        none: 'Wähle eine Simulationswelt oder einen ihrer Tests aus, oder nimm eine Welt aus "Tests" im Werkzeugkasten.',
         select: 'Auswählen und verschieben',
+        start: 'Start: klicke dorthin, wo der Roboter starten kann (ein Test wählt einen der Starts)',
         line: 'Linie',
         curve: 'Kurve',
         rect: 'Rechteck',
@@ -121,8 +180,8 @@ const TEXT: { [lang: string]: { [key: string]: string } } = {
         triangle: 'Dreieck',
         obstacle: 'Hindernis',
         color: 'Farbfläche (die Sensoren sehen sie)',
-        goal: 'Ziel: wer es berührt, besteht den Test',
-        fail: 'Fehler: wer es berührt, besteht den Test nicht',
+        goal: 'Zielbereich (ein Test kann prüfen, ob der Roboter ihn erreicht)',
+        fail: 'Fehlerbereich (ein Test kann prüfen, dass der Roboter ihn nie berührt)',
         zoomIn: 'Vergrößern',
         zoomOut: 'Verkleinern',
         fit: 'Alles zeigen',
@@ -137,7 +196,8 @@ const TEXT: { [lang: string]: { [key: string]: string } } = {
         drawBackground: 'Weiß',
         rescueBackground: 'Rescue',
         mathBackground: 'Mathe',
-        hintSelect: 'Zieh den Roboter an seinen Start; dreh ihn am runden Griff (Umschalt: stufenlos). Zieh den Boden, um die Ansicht zu verschieben; das Mausrad zoomt.',
+        hintSelect: 'Zieh einen Roboter (einen Start), um ihn zu verschieben; dreh ihn am runden Griff (Umschalt: stufenlos). Zieh den Boden, um die Ansicht zu verschieben; das Mausrad zoomt.',
+        hintStart: 'Klicke dorthin, wo der Roboter starten kann: ein neuer Start (A, B, ...). Die Tests wählen ihren Start in ihrem Block.',
         hintLine: 'Klicke die Punkte der Linie. Ein zweiter Klick auf ihren letzten Punkt beendet sie (auch Doppelklick, Rechtsklick, Enter); ein Klick auf den ersten Punkt schließt sie. Esc bricht ab.',
         hintShape: 'Zum Zeichnen ziehen, oder klicken für die Größe der Simulation. Mit den Knöpfen wählst du, was es ist.',
         curved: 'gebogen',
@@ -145,25 +205,37 @@ const TEXT: { [lang: string]: { [key: string]: string } } = {
         width: 'Breite',
         cm: 'cm',
         record: '● Weg aufnehmen',
-        recordTitle: 'Den Test ausführen und die Fahrt als Weg behalten, dem der Roboter folgen muss',
+        recordTitle: 'Den ausgewählten Test ausführen und die Fahrt als Weg behalten, dem der Roboter folgen muss (seine Prüfung „bleibt auf seinem aufgenommenen Weg“)',
+        recordNoCheck: 'Lege eine Prüfung „bleibt auf seinem aufgenommenen Weg“ (aus „Prüfungen“) in den ausgewählten Test, um seinen Weg aufzunehmen',
         clearRecord: 'Weg vergessen',
         tolerance: 'erlaubte Abweichung',
         run: '▶ Test ausführen',
+        runAll: '▶▶ Alle ausführen',
+        runAllTitle: 'Alle Tests dieser Welt ausführen',
         play: 'Abspielen',
         recorded: 'Weg aufgenommen: {0}',
-        noPath: 'Kein Weg aufgenommen: der Roboter darf überall hin (außer in Fehlerbereiche).',
-        pathInfo: 'Aufgenommener Weg: {0} s; der Roboter muss weniger als {1} cm davon abweichen.',
+        noPath: 'Der Weg von „{0}“ ist noch nicht aufgenommen: drücke „Weg aufnehmen“.',
+        noPathCheck: '„{0}“ prüft keinen aufgenommenen Weg.',
+        pathInfo: 'Aufgenommener Weg von „{0}“: {1} s; der Roboter muss weniger als {2} cm davon abweichen.',
+        tests: 'Tests in dieser Welt',
+        noTests: 'Diese Welt hat noch keine Tests: lege einen „Test“ aus „Tests“ hinein.',
+        noTest: 'Wähle einen Test aus (unten, oder seinen Block), um ihn auszuführen.',
+        skipped: 'ausgelassen (sein Häkchen fehlt)',
+        startName: 'Name',
+        itemName: 'Name',
+        lastStart: 'Eine Welt braucht einen Start: dieser kann nicht gelöscht werden.',
+        usedBy: '„{0}“ wurde verwendet von: {1}. Sie zeigen jetzt eine Warnung: wähle dort etwas anderes (oder mach es rückgängig).',
+        notDecided: 'nicht entschieden',
         working: 'Läuft…',
         loading: 'Der Testlauf startet (beim ersten Mal wird Python geladen: etwa 12 MB)…',
         passed: '✓ bestanden: {0}',
         failed: '✗ nicht bestanden: {0}',
         expectedFailure: '✓ gescheitert, wie es soll: {0}',
-        goalReached: 'der Roboter hat das Ziel nach {0} s erreicht',
+        untilEnd: 'die Fahrt war nach {0} s an ihrer Fläche zu Ende',
         ended: 'das Programm war nach {0} s zu Ende',
-        returned: 'die Funktion war nach {0} s zu Ende',
         timeUp: 'die Zeit war nach {0} s um',
         stale: 'Die Welt hat sich seit dieser Fahrt geändert.',
-        noGoal: 'Kein Zielbereich: der Test ist bestanden, wenn nichts schiefgeht, bis das Programm endet oder die Zeit um ist.',
+        noChecks: 'Dieser Test prüft noch nichts: lege Prüfungen aus „Prüfungen“ hinein.',
         sensors: 'Linienfolger {0} ({1} %) · LLIGHT {2} % · RLIGHT {3} % · Hindernis: {4}',
         black: 'schwarz',
         white: 'weiß',
@@ -172,12 +244,18 @@ const TEXT: { [lang: string]: { [key: string]: string } } = {
         front: 'vorne',
         right: 'rechts',
         imported: 'Die Szene der Simulation wurde übernommen.',
+        kind_goal: 'Ziel',
+        kind_fail: 'Fehlerbereich',
+        kind_color: 'Fläche',
+        kind_obstacle: 'Hindernis',
+        kind_line: 'Linie',
     },
 };
 
 /** the icons of the tool buttons (24 x 24) */
 const ICONS: { [name: string]: string } = {
     select: '<path d="M6 3 L6 19 L10 15 L13 21 L15.5 20 L12.5 14 L18 14 Z" fill="currentColor"/>',
+    start: '<rect x="4" y="6" width="12" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16 9 L21 12 L16 15 Z" fill="currentColor"/><text x="10" y="15.5" font-size="8" font-weight="bold" text-anchor="middle" fill="currentColor">A</text>',
     line: '<polyline points="3,19 10,8 15,15 21,5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/>',
     curve: '<path d="M3 18 C7 2, 13 24, 21 6" fill="none" stroke="currentColor" stroke-width="2.4"/>',
     rect: '<rect x="4" y="6" width="16" height="12" fill="none" stroke="currentColor" stroke-width="2.2"/>',
@@ -249,22 +327,26 @@ export class SimEditor {
     private buttons: { [name: string]: HTMLElement } = {};
     private tolerance: HTMLInputElement;
     private toleranceLabel: HTMLElement;
+    private previewTolerance: number = null; // while the tolerance slider is dragged
     private timeSlider: HTMLInputElement;
     private timeLabel: HTMLElement;
     private scaleBar: HTMLElement;
-    private snapshotBefore: string = null;
+    private testsTitle: HTMLElement;
+    private testList: HTMLElement;
 
     private data: SIM.SimData = null;
-    private blockId: string = null;
+    private blockId: string = null; // the world's block
     private name = '';
+    private testsOfWorld: SimTest[] = [];
+    private selectedTest: string = null; // the id of a test's block
     private tool = 'select';
     private role = 'obstacle';
     private color: string = null; // the colour new objects get (null: the simulator's default for their role)
-    private selected: string = null; // an item id, or 'robot'
+    private selected: string = null; // an item id, or START + a start's id
     private drag: any = null;
     private drawing: SIM.SimItem = null;
     private history: { [blockId: string]: { undo: string[]; redo: string[] } } = {};
-    private runs: { [blockId: string]: Run } = {};
+    private runs: { [testId: string]: Run } = {};
     private replayT = 0;
     private playing = false;
     private frame = 0;
@@ -333,8 +415,8 @@ export class SimEditor {
         this.sensorInfo = html('div', 'nepoSimSensors', this.body);
 
         const recordRow = html('div', 'nepoSimRow', this.body);
-        this.buttons.record = this.textButton(recordRow, 'btn btn-default nepoSimRecord', () => !this.busy && this.host.record());
-        this.buttons.clearRecord = this.textButton(recordRow, 'btn btn-default', () => this.clearRecording());
+        this.buttons.record = this.textButton(recordRow, 'btn btn-default nepoSimRecord', () => !this.busy && this.selectedTest && this.host.record(this.selectedTest));
+        this.buttons.clearRecord = this.textButton(recordRow, 'btn btn-default', () => this.selectedTest && this.host.forgetPath(this.selectedTest));
         const tol = html('label', 'nepoSimTolerance', recordRow);
         this.buttons.toleranceText = html('span', '', tol);
         this.tolerance = html('input', '', tol);
@@ -344,21 +426,20 @@ export class SimEditor {
         this.tolerance.step = '0.5';
         this.toleranceLabel = html('span', 'nepoSimToleranceValue', tol);
         this.tolerance.addEventListener('input', () => {
-            this.data.tolerance_cm = Number(this.tolerance.value);
+            this.previewTolerance = Number(this.tolerance.value);
             this.toleranceLabel.textContent = this.tolerance.value + ' cm';
             this.renderReference();
         });
         this.tolerance.addEventListener('change', () => {
-            const before = this.snapshotBefore;
-            this.snapshotBefore = null;
-            before ? this.commit(before) : this.afterEdit();
+            const tolerance = Number(this.tolerance.value);
+            this.previewTolerance = null;
+            this.selectedTest && this.host.setTolerance(this.selectedTest, tolerance); // it is the TOL of the test's path check
         });
-        this.tolerance.addEventListener('pointerdown', () => (this.snapshotBefore = this.snapshot()));
-        this.tolerance.addEventListener('keydown', () => (this.snapshotBefore = this.snapshot()));
         this.pathInfo = html('div', 'nepoSimPathInfo', this.body);
 
         const runRow = html('div', 'nepoSimRow', this.body);
-        this.buttons.run = this.textButton(runRow, 'btn btn-primary', () => !this.busy && this.host.run());
+        this.buttons.run = this.textButton(runRow, 'btn btn-primary', () => !this.busy && this.selectedTest && this.host.run([this.selectedTest]));
+        this.buttons.runAll = this.textButton(runRow, 'btn btn-default', () => !this.busy && this.host.run(this.testsOfWorld.map((t) => t.id)));
         this.buttons.play = this.textButton(runRow, 'btn btn-default', () => this.togglePlay());
         this.timeSlider = html('input', 'nepoSimTime', runRow);
         this.timeSlider.type = 'range';
@@ -372,6 +453,8 @@ export class SimEditor {
         });
         this.timeLabel = html('span', 'nepoSimTimeLabel', runRow);
         this.status = html('div', 'nepoSimStatus', this.body);
+        this.testsTitle = html('div', 'nepoSimTestsTitle', this.body);
+        this.testList = html('ul', 'nepoSimTests', this.body);
         this.setLanguage(this.lang);
         this.show(null, null, '');
     }
@@ -412,6 +495,9 @@ export class SimEditor {
         this.buttons.clearRecord.textContent = this.text('clearRecord');
         this.buttons.toleranceText.textContent = this.text('tolerance') + ' ';
         this.buttons.run.textContent = this.text('run');
+        this.buttons.runAll.textContent = this.text('runAll');
+        this.buttons.runAll.title = this.text('runAllTitle');
+        this.testsTitle.textContent = this.text('tests');
         this.buttons.play.textContent = '▶ ' + this.text('play');
         this.none.textContent = this.text('none');
         this.backgroundSelect.title = this.text('background');
@@ -429,6 +515,7 @@ export class SimEditor {
         this.renderPathInfo();
         this.renderStatus();
         this.renderSensors();
+        this.renderTests();
     }
 
     setTitle(name: string): void {
@@ -436,13 +523,17 @@ export class SimEditor {
         this.title.textContent = this.text('title') + ': ' + this.name;
     }
 
-    /** shows a test's world (null: no simulation test selected) */
+    /** shows a world (null: no simulation world selected) */
     show(blockId: string, data: SIM.SimData, name: string): void {
         this.finishDrawing(false);
         this.stopPlay();
+        if (blockId !== this.blockId) {
+            this.selectedTest = null;
+        }
         this.blockId = blockId;
         this.data = data;
         this.selected = null;
+        this.testsOfWorld = [];
         this.none.style.display = data ? 'none' : '';
         this.body.style.display = data ? '' : 'none';
         if (!data) {
@@ -452,8 +543,6 @@ export class SimEditor {
         if (!this.history[blockId]) {
             this.history[blockId] = { undo: [], redo: [] };
         }
-        this.tolerance.value = String(data.tolerance_cm);
-        this.toleranceLabel.textContent = data.tolerance_cm + ' cm';
         this.backgroundSelect.value = data.world.background;
         this.setTool('select');
         if (data.view) {
@@ -461,19 +550,79 @@ export class SimEditor {
         } else if (this.visible()) {
             this.fit();
         } else {
-            this.data.view = { x: data.world.start.x, y: data.world.start.y, scale: 4 };
+            this.data.view = { x: data.world.starts[0].x, y: data.world.starts[0].y, scale: 4 };
             this.needsFit = true;
         }
-        this.renderAll();
-        const run = this.currentRun();
-        this.replayT = run ? this.runEnd(run) : 0;
-        this.renderRun();
-        this.renderStatus();
+        this.refreshTests();
         this.scheduleFloor(0);
     }
 
     currentBlockId(): string {
         return this.blockId;
+    }
+
+    currentTestId(): string {
+        return this.selectedTest;
+    }
+
+    /** the world's tests changed (added, removed, renamed, ticked, their start, their recorded path): the window follows */
+    refreshTests(): void {
+        if (!this.data) {
+            return;
+        }
+        this.testsOfWorld = this.host.tests();
+        if (!this.testsOfWorld.some((t) => t.id === this.selectedTest)) {
+            this.selectedTest = this.testsOfWorld.length ? this.testsOfWorld[0].id : null;
+            this.stopPlay();
+            const run = this.currentRun();
+            this.replayT = run ? this.runEnd(run) : 0;
+        }
+        this.renderAll();
+        this.renderRun();
+    }
+
+    /** a test of the world shown becomes the selected one: its start, its path, its run */
+    selectTest(testId: string): void {
+        if (!this.data || testId === this.selectedTest) {
+            return;
+        }
+        this.stopPlay();
+        this.selectedTest = testId;
+        this.selected = null;
+        this.refreshTests();
+        const run = this.currentRun();
+        this.replayT = run ? this.runEnd(run) : 0;
+        this.renderRun();
+    }
+
+    private test(): SimTest {
+        return this.testsOfWorld.filter((t) => t.id === this.selectedTest)[0] || null;
+    }
+
+    /** the start the window works with: the selected one, else the selected test's, else the first */
+    private activeStart(): SIM.SimStart {
+        const world = this.data.world;
+        const selected = this.selected && this.selected.indexOf(START) === 0 ? this.startById(this.selected.substring(START.length)) : null;
+        const test = this.test();
+        const ofTest = test ? world.starts.filter((s) => s.id === test.start)[0] : null;
+        return selected || ofTest || world.starts[0];
+    }
+
+    private startById(id: string): SIM.SimStart {
+        return this.data.world.starts.filter((s) => s.id === id)[0] || null;
+    }
+
+    private selectedItem(): SIM.SimItem {
+        return this.selected && this.selected.indexOf(START) !== 0 ? this.item(this.selected) : null;
+    }
+
+    /** the names of the tests that use a start or an item */
+    private users(id: string): string[] {
+        return this.testsOfWorld.filter((t) => t.refs.indexOf(id) >= 0).map((t) => t.name);
+    }
+
+    private kindWord(kind: string): string {
+        return this.text('kind_' + kind);
     }
 
     /** the window became visible or changed its size */
@@ -496,12 +645,14 @@ export class SimEditor {
 
     setBusy(busy: boolean, message?: string): void {
         this.busy = busy;
-        (this.buttons.record as HTMLButtonElement).disabled = busy;
-        (this.buttons.run as HTMLButtonElement).disabled = busy;
+        (this.buttons.run as HTMLButtonElement).disabled = busy || !this.selectedTest;
+        (this.buttons.runAll as HTMLButtonElement).disabled = busy || !this.testsOfWorld.length;
         if (busy) {
+            (this.buttons.record as HTMLButtonElement).disabled = true;
             this.status.className = 'nepoSimStatus';
             this.status.textContent = message || this.text('working');
         } else {
+            this.renderPathInfo();
             this.renderStatus();
         }
     }
@@ -556,46 +707,50 @@ export class SimEditor {
 
     // -------------------------------------------------------------------------------------------- runs
 
-    /** a run of a test (a report of NepoTest with "simulation"); recorded: it becomes the recorded path */
-    showRun(blockId: string, report: any, recorded: boolean): void {
+    /** the run of a test (its report from nepoTest.simRun); recorded: its path was recorded */
+    showRun(testId: string, report: any, recorded: boolean): void {
         const sim = report && report.simulation;
-        if (!sim) {
+        if (!report || (!sim && report.outcome !== 'skipped')) {
             return;
         }
         const failure = (report.failures || [])[0];
         const run: Run = {
-            path: sim.path || [],
-            leds: sim.leds || [],
-            result: sim.result,
-            t: sim.t,
-            item: sim.item,
-            point: sim.point,
+            worldId: report.world_block_id,
+            path: (sim && sim.path) || [],
+            leds: (sim && sim.leds) || [],
+            start: sim && sim.start,
+            result: sim && sim.result,
+            t: sim ? sim.t : 0,
+            item: sim && sim.item,
+            point: sim && sim.point,
+            checks: report.checks || [],
+            recorded: recorded,
             passed: report.outcome === 'passed',
+            skipped: report.outcome === 'skipped',
             expectedFailure: !!report.expected_failure,
             unexpectedPass: !!failure && failure.expect === 'should',
             failure: failure ? failure.message : report.error ? report.error.message : null,
             stale: false,
         };
-        if (recorded && blockId === this.blockId) {
-            const before = this.snapshot();
-            this.data.reference = { path: run.path.map((p) => [p[1], p[2], p[3]]), time_ms: sim.t, result: sim.result };
-            this.commit(before);
-        }
-        this.runs[blockId] = run;
-        if (blockId === this.blockId) {
+        this.runs[testId] = run;
+        if (testId === this.selectedTest && run.worldId === this.blockId) {
             this.stopPlay();
             this.replayT = this.runEnd(run);
             this.renderReference();
             this.renderRun();
-            this.renderStatus(recorded);
-            if (this.root.offsetParent) {
+            this.renderStatus();
+            if (this.root.offsetParent && run.path.length) {
                 this.startPlay(true); // only when the window is shown
             }
         }
+        this.renderTests();
     }
 
     /** what happened in a run, in the window's language (failures come from NepoTest, in English) */
     private describe(run: Run): string {
+        if (run.skipped) {
+            return this.text('skipped');
+        }
         if (run.failure && run.unexpectedPass) {
             return run.failure + ' (' + this.describe(Object.assign({}, run, { failure: null })) + ')';
         }
@@ -603,25 +758,17 @@ export class SimEditor {
             return run.failure;
         }
         const t = seconds(run.t);
-        const key = { goal: 'goalReached', time_limit: 'timeUp', step_limit: 'timeUp', returned: 'returned' }[run.result] || 'ended';
+        const key = { until: 'untilEnd', time_limit: 'timeUp', step_limit: 'timeUp' }[run.result] || 'ended';
         return this.text(key, t);
     }
 
     private currentRun(): Run {
-        return this.blockId ? this.runs[this.blockId] : null;
+        const run = this.selectedTest ? this.runs[this.selectedTest] : null;
+        return run && run.worldId === this.blockId ? run : null;
     }
 
     private runEnd(run: Run): number {
         return run.path.length ? run.path[run.path.length - 1][0] : 0;
-    }
-
-    private clearRecording(): void {
-        if (!this.data || !this.data.reference) {
-            return;
-        }
-        const before = this.snapshot();
-        delete this.data.reference;
-        this.commit(before);
     }
 
     private togglePlay(): void {
@@ -736,10 +883,7 @@ export class SimEditor {
     }
 
     private afterEdit(): void {
-        const run = this.currentRun();
-        if (run) {
-            run.stale = true;
-        }
+        Object.keys(this.runs).forEach((id) => this.runs[id].worldId === this.blockId && (this.runs[id].stale = true));
         this.renderAll();
         this.host.changed(this.data, false);
         this.scheduleFloor();
@@ -747,16 +891,11 @@ export class SimEditor {
 
     private restore(state: string): void {
         const keep = { view: this.data.view };
-        const next = JSON.parse(state);
-        this.data = Object.assign(this.data, { reference: undefined }, next);
-        if (!next.reference) {
-            delete this.data.reference;
-        }
+        this.data = Object.assign(this.data, JSON.parse(state));
         this.data.view = keep.view;
-        this.tolerance.value = String(this.data.tolerance_cm);
-        this.toleranceLabel.textContent = this.data.tolerance_cm + ' cm';
         this.backgroundSelect.value = this.data.world.background;
-        this.selected = this.selected && (this.selected === 'robot' || this.item(this.selected)) ? this.selected : null;
+        const start = this.selected && this.selected.indexOf(START) === 0;
+        this.selected = this.selected && (start ? this.startById(this.selected.substring(START.length)) : this.item(this.selected)) ? this.selected : null;
         this.renderAll();
         this.host.changed(this.data, false);
         this.scheduleFloor();
@@ -784,14 +923,30 @@ export class SimEditor {
         return this.data ? this.data.world.items.filter((i) => i.id === id)[0] : null;
     }
 
+    /** deletes the selected start or item; the tests that used it show a warning (their blocks) */
     private removeSelected(): void {
-        if (!this.selected || this.selected === 'robot') {
+        if (!this.selected) {
             return;
         }
+        const world = this.data.world;
+        const isStart = this.selected.indexOf(START) === 0;
+        const id = isStart ? this.selected.substring(START.length) : this.selected;
+        if (isStart && world.starts.length <= 1) {
+            this.showMessage(this.text('lastStart'), true);
+            return;
+        }
+        const thing = isStart ? this.startById(id) : this.item(id);
+        const name = thing ? (isStart ? (thing as SIM.SimStart).name : SIM.itemName(world, thing as SIM.SimItem, (k) => this.kindWord(k))) : id;
+        const users = this.users(id);
         const before = this.snapshot();
-        this.data.world.items = this.data.world.items.filter((i) => i.id !== this.selected);
+        if (isStart) {
+            world.starts = world.starts.filter((s) => s.id !== id);
+        } else {
+            world.items = world.items.filter((i) => i.id !== id);
+        }
         this.selected = null;
         this.commit(before);
+        users.length && this.showMessage(this.text('usedBy', name, users.join(', ')), true);
     }
 
     private setTool(tool: string): void {
@@ -806,7 +961,7 @@ export class SimEditor {
     private setRole(role: string): void {
         this.role = role;
         this.color = null;
-        const item = this.selected && this.item(this.selected);
+        const item = this.selectedItem();
         if (item && item.kind !== 'line' && item.role !== role) {
             const before = this.snapshot();
             item.role = role;
@@ -818,7 +973,7 @@ export class SimEditor {
 
     private setColor(color: string): void {
         this.color = color;
-        const item = this.selected && this.item(this.selected);
+        const item = this.selectedItem();
         if (item && (item.role === 'obstacle' || item.role === 'color')) {
             const before = this.snapshot();
             item.color = color;
@@ -848,17 +1003,25 @@ export class SimEditor {
             return;
         }
         const before = this.snapshot();
-        const lines = this.data.world.items.filter((i) => i.kind === 'line' || i.role === 'goal' || i.role === 'fail');
-        this.data.world = { background: scene.background, start: scene.start, items: scene.items.concat(lines) };
+        const world = this.data.world;
+        const keep = world.items.filter((i) => i.kind === 'line' || i.role === 'goal' || i.role === 'fail');
+        const active = this.activeStart(); // the simulator's robot: it keeps its id and its name
+        Object.assign(active, { x: scene.start.x, y: scene.start.y, heading: scene.start.heading });
+        this.data.world = { background: scene.background, starts: world.starts, items: [] };
+        for (const item of scene.items) {
+            item.id = newId('s');
+            this.data.world.items.push(item);
+            item.name = SIM.newItemName(this.data.world, item, (k) => this.kindWord(k));
+        }
+        this.data.world.items = this.data.world.items.concat(keep);
         this.backgroundSelect.value = scene.background;
-        delete this.data.reference; // it was recorded in another world
         this.commit(before);
         this.fit();
         this.showMessage(this.text('imported'), false);
     }
 
     private renderRoles(): void {
-        const item = this.selected && this.item(this.selected);
+        const item = this.selectedItem();
         const role = item && item.kind !== 'line' ? item.role : this.role;
         SIM.ROLES.forEach((r) => this.buttons[r].classList.toggle('active', r === role));
         this.renderPalette();
@@ -871,7 +1034,7 @@ export class SimEditor {
             return;
         }
         p.innerHTML = '';
-        const item = this.selected && this.selected !== 'robot' ? this.item(this.selected) : null;
+        const item = this.selectedItem();
         const role = item ? item.role : this.role;
         if (role !== 'obstacle' && role !== 'color') {
             p.style.display = 'none'; // also for lines: they are drawn like the background's track
@@ -893,20 +1056,43 @@ export class SimEditor {
     }
 
     private updateHint(): void {
-        this.hint.textContent = this.text(this.tool === 'select' ? 'hintSelect' : this.tool === 'line' || this.tool === 'curve' ? 'hintLine' : 'hintShape');
+        const key = { select: 'hintSelect', start: 'hintStart', line: 'hintLine', curve: 'hintLine' }[this.tool] || 'hintShape';
+        this.hint.textContent = this.text(key);
     }
 
     // -------------------------------------------------------------------------------------------- properties
 
+    /** the name of the selected start or item (the tests' blocks show it), and the look of a selected line */
     private renderProps(): void {
         const props = this.props;
         props.innerHTML = '';
-        const item = this.selected && this.selected !== 'robot' ? this.item(this.selected) : null;
-        if (!item || item.kind !== 'line') {
+        const item = this.selectedItem();
+        const start = this.selected && this.selected.indexOf(START) === 0 ? this.startById(this.selected.substring(START.length)) : null;
+        if (!item && !start) {
             props.style.display = 'none';
             return;
         }
         props.style.display = '';
+        const nameLabel = html('label', '', props);
+        nameLabel.appendChild(document.createTextNode(this.text(start ? 'startName' : 'itemName') + ' '));
+        const name = html('input', 'nepoSimName', nameLabel);
+        name.type = 'text';
+        name.maxLength = 40;
+        name.value = start ? start.name : SIM.itemName(this.data.world, item, (k) => this.kindWord(k));
+        name.addEventListener('keydown', (e: KeyboardEvent) => e.stopPropagation());
+        name.addEventListener('change', () => {
+            const value = String(name.value).trim();
+            const before = this.snapshot();
+            if (start) {
+                start.name = value || start.name;
+            } else {
+                item.name = value || SIM.newItemName(this.data.world, item, (k) => this.kindWord(k));
+            }
+            this.commit(before);
+        });
+        if (!item || item.kind !== 'line') {
+            return;
+        }
         const check = (key: string, label: string) => {
             const l = html('label', '', props);
             const c = html('input', '', l);
@@ -940,25 +1126,49 @@ export class SimEditor {
         });
     }
 
+    /** the recorded path of the selected test (its path check): record, forget, tolerance */
     private renderPathInfo(): void {
         if (!this.pathInfo || !this.data) {
             return;
         }
-        const ref = this.data.reference;
-        this.pathInfo.textContent = ref ? this.text('pathInfo', seconds(ref.time_ms || 0), this.data.tolerance_cm) : this.text('noPath');
-        (this.buttons.clearRecord as HTMLButtonElement).disabled = !ref;
-        (this.tolerance as HTMLInputElement).disabled = !ref;
+        const test = this.test();
+        const record = this.buttons.record as HTMLButtonElement;
+        record.disabled = this.busy || !test || !test.pathCheck;
+        record.title = this.text(test && !test.pathCheck ? 'recordNoCheck' : 'recordTitle');
+        (this.buttons.clearRecord as HTMLButtonElement).disabled = !test || !test.path;
+        this.tolerance.disabled = !test || !test.pathCheck;
+        if (test && test.pathCheck && this.previewTolerance === null) {
+            this.tolerance.value = String(test.tolerance);
+            this.toleranceLabel.textContent = test.tolerance + ' cm';
+        }
+        if (!test) {
+            this.pathInfo.textContent = '';
+        } else if (!test.pathCheck) {
+            this.pathInfo.textContent = this.text('noPathCheck', test.name);
+        } else if (!test.path) {
+            this.pathInfo.textContent = this.text('noPath', test.name);
+        } else {
+            this.pathInfo.textContent = this.text('pathInfo', test.name, seconds(test.path.time_ms || 0), test.tolerance);
+        }
     }
 
-    private renderStatus(recorded?: boolean): void {
+    /** the selected test: how its run went, and what each of its checks found */
+    private renderStatus(): void {
         if (!this.status || !this.data) {
             return;
         }
+        const test = this.test();
         const run = this.currentRun();
-        const goals = this.data.world.items.some((i) => i.kind !== 'line' && i.role === 'goal');
-        if (!run) {
+        this.status.innerHTML = '';
+        if (!run || run.skipped) {
             this.status.className = 'nepoSimStatus';
-            this.status.textContent = goals ? '' : this.text('noGoal');
+            this.status.textContent = !test
+                ? this.text(this.testsOfWorld.length ? 'noTest' : 'noTests')
+                : !test.active || (run && run.skipped)
+                ? this.text('skipped')
+                : test.checks
+                ? ''
+                : this.text('noChecks');
             (this.buttons.play as HTMLButtonElement).disabled = true;
             this.timeSlider.disabled = true;
             this.timeLabel.textContent = '';
@@ -967,10 +1177,44 @@ export class SimEditor {
         (this.buttons.play as HTMLButtonElement).disabled = false;
         this.timeSlider.disabled = false;
         this.status.className = 'nepoSimStatus ' + (run.passed ? 'passed' : 'failed');
-        this.status.textContent =
-            (recorded
+        html('div', '', this.status).textContent =
+            (run.recorded
                 ? this.text('recorded', this.describe(run))
                 : this.text(run.expectedFailure ? 'expectedFailure' : run.passed ? 'passed' : 'failed', this.describe(run))) + (run.stale ? ' ' + this.text('stale') : '');
+        const list = html('ul', 'nepoSimChecks', this.status);
+        for (const check of run.checks) {
+            const li = html('li', check.passed === true ? 'passed' : check.passed === false ? 'failed' : 'open', list);
+            li.textContent = (check.passed === true ? '✓ ' : check.passed === false ? '✗ ' : '– ') + (check.message || check.text);
+            li.title = check.text + (check.rule ? ' (rule)' : '');
+        }
+    }
+
+    /** the tests of the world: select one to see its start, its path and its run */
+    private renderTests(): void {
+        const ul = this.testList;
+        if (!ul) {
+            return;
+        }
+        ul.innerHTML = '';
+        if (!this.data) {
+            return;
+        }
+        if (!this.testsOfWorld.length) {
+            html('li', 'nepoSimTestEmpty', ul).textContent = this.text('noTests');
+        }
+        for (const test of this.testsOfWorld) {
+            const run = this.runs[test.id] && this.runs[test.id].worldId === this.blockId ? this.runs[test.id] : null;
+            const state = !test.active ? 'skipped' : run && !run.skipped ? (run.passed ? 'passed' : 'failed') : 'none';
+            const li = html('li', 'nepoSimTest ' + state + (test.id === this.selectedTest ? ' selected' : '') + (run && run.stale ? ' stale' : ''), ul);
+            html('span', 'nepoSimTestIcon', li);
+            const start = this.startById(test.start);
+            html('span', 'nepoSimBadge' + (start ? '' : ' unknown'), li).textContent = start ? start.name : '?';
+            html('span', 'nepoSimTestName', li).textContent = test.name;
+            li.addEventListener('click', () => {
+                this.selectTest(test.id);
+                this.host.select(test.id);
+            });
+        }
     }
 
     /** what the robot's sensors see where it is drawn (as the simulator's sensor values view) */
@@ -1033,24 +1277,27 @@ export class SimEditor {
         this.renderStatus();
         this.renderZoomed();
         this.renderSensorsOfRobots();
+        this.renderTests();
     }
 
-    /** the robots: at the start (to edit) and, if a run is shown, where it is in the replay; both as the simulator draws them */
+    /** the robots: at the starts (to edit; the active one solid) and, if a run is shown, where it is in the replay; as the simulator draws them */
     private renderSensorsOfRobots(): void {
         if (!this.data) {
             return;
         }
         const world = this.data.world;
-        const s = world.start;
+        const active = this.activeStart();
         const run = this.currentRun();
         const replay = this.replayPose();
-        const start = this.layers.robot;
-        start.setAttribute('transform', SIM.robotTransform(s.x, s.y, s.heading));
-        start.setAttribute('opacity', replay ? '0.45' : '1');
-        const shown = replay || [s.x, s.y, s.heading];
+        const starts = this.layers.robot;
+        starts.innerHTML = '';
+        const shown = replay || [active.x, active.y, active.heading];
         const light = this.lightAt(shown[0], shown[1], shown[2]);
         const ir = SIM.infrared(world, shown[0], shown[1], shown[2]);
-        start.innerHTML = SIM.robotSvg('e', replay ? this.lightAt(s.x, s.y, s.heading) : light);
+        for (const s of world.starts) {
+            const g = el('g', { transform: SIM.robotTransform(s.x, s.y, s.heading), opacity: s === active && !replay ? 1 : 0.4 }, starts);
+            g.innerHTML = SIM.robotSvg('e', s === active && !replay ? light : this.lightAt(s.x, s.y, s.heading));
+        }
         this.layers.infrared.innerHTML = SIM.infraredSvg(world, shown[0], shown[1], shown[2], this.data.view ? this.data.view.scale : 4);
         const g = this.layers.replayRobot;
         if (replay) {
@@ -1064,8 +1311,11 @@ export class SimEditor {
         this.renderSensors(light, ir.seen);
     }
 
+    /** the selected test's recorded path, widened by its tolerance */
     private renderReference(): void {
-        this.layers.reference.innerHTML = this.data ? SIM.referenceSvg(this.data) : '';
+        const test = this.data && this.test();
+        const tolerance = this.previewTolerance !== null ? this.previewTolerance : test ? test.tolerance : 0;
+        this.layers.reference.innerHTML = test && test.path ? SIM.referenceSvg(test.path.path, tolerance) : '';
         this.renderPathInfo();
     }
 
@@ -1119,16 +1369,22 @@ export class SimEditor {
             round
                 ? el('circle', { cx: x, cy: y, r: r, class: 'nepoSimHandle', 'data-handle': kind, 'stroke-width': this.px(1.5) }, g)
                 : el('rect', { x: x - r, y: y - r, width: 2 * r, height: 2 * r, class: 'nepoSimHandle', 'data-handle': kind, 'stroke-width': this.px(1.5) }, g);
-        const s = this.data.world.start;
-        // the robot's turning handle is always there: the robot is always "selected" in a way, as it can't be deleted
+        // the names of the starts; the active start's turning handle is always there
+        for (const st of this.data.world.starts) {
+            const badge = el('g', { class: 'nepoSimBadgeSvg', transform: 'translate(' + st.x + ' ' + st.y + ')' }, g);
+            el('circle', { r: this.px(9), 'stroke-width': this.px(1.5) }, badge);
+            const label = el('text', { 'font-size': this.px(11), y: this.px(4), 'text-anchor': 'middle' }, badge);
+            label.textContent = st.name.length > 3 ? st.name.substring(0, 3) : st.name;
+        }
+        const s = this.activeStart();
         const tip = SIM.robotPoint(s.x, s.y, s.heading, [SIM.OUTLINE[0][0] + 9, 0]);
         const nose = SIM.robotPoint(s.x, s.y, s.heading, [SIM.OUTLINE[0][0], 0]);
         el('line', { x1: nose[0], y1: nose[1], x2: tip[0], y2: tip[1], stroke: '#1e5aa8', 'stroke-width': this.px(1.5) }, g);
-        handle(tip[0], tip[1], 'robot-turn', true).classList.add('nepoSimRobotHandle');
-        if (this.selected === 'robot') {
+        handle(tip[0], tip[1], 'start-turn', true).classList.add('nepoSimRobotHandle');
+        if (this.selected === START + s.id) {
             el('polygon', { points: SIM.footprint(s.x, s.y, s.heading).map((p) => p.join(' ')).join(' '), class: 'nepoSimSelection', 'stroke-width': this.px(1.5) }, g);
         }
-        const item = this.selected && this.selected !== 'robot' ? this.item(this.selected) : null;
+        const item = this.selectedItem();
         if (item && item.kind === 'line') {
             el('path', { d: SIM.linePathD(item), class: 'nepoSimSelection', 'stroke-width': this.px(1.5) }, g);
             (item.points || []).forEach((p, i) => handle(p[0], p[1], 'point:' + i, true));
@@ -1240,9 +1496,12 @@ export class SimEditor {
         if (h) {
             return { handle: h };
         }
-        const local = this.robotLocal(p);
-        if (local[0] >= SIM.CHASSIS.x && local[0] <= SIM.CHASSIS.x + SIM.CHASSIS.w && local[1] >= SIM.CHASSIS.y && local[1] <= SIM.CHASSIS.y + SIM.CHASSIS.h) {
-            return { robot: true };
+        const active = this.activeStart();
+        for (const s of [active].concat(this.data.world.starts.filter((st) => st !== active))) {
+            const local = this.robotLocal(p, s);
+            if (local[0] >= SIM.CHASSIS.x && local[0] <= SIM.CHASSIS.x + SIM.CHASSIS.w && local[1] >= SIM.CHASSIS.y && local[1] <= SIM.CHASSIS.y + SIM.CHASSIS.h) {
+                return { start: s.id };
+            }
         }
         const slack = this.px(3);
         const order = (item: SIM.SimItem) => (item.role === 'goal' || item.role === 'fail' ? 3 : item.role === 'obstacle' ? 2 : item.kind === 'line' ? 1 : 0);
@@ -1258,9 +1517,8 @@ export class SimEditor {
         return {};
     }
 
-    /** a world point (cm) in the robot frame at its start (units: x ahead, y to the right) */
-    private robotLocal(p: number[]): number[] {
-        const s = this.data.world.start;
+    /** a world point (cm) in the robot frame at a start (units: x ahead, y to the right) */
+    private robotLocal(p: number[], s: SIM.SimStart): number[] {
         const theta = (-s.heading * Math.PI) / 180;
         const dx = (p[0] - s.x) * SIM.UNITS_PER_CM;
         const dy = (p[1] - s.y) * SIM.UNITS_PER_CM;
@@ -1274,6 +1532,7 @@ export class SimEditor {
 
     private newShape(kind: string, p: number[]): SIM.SimItem {
         const item: SIM.SimItem = { id: newId('s'), kind: kind, role: this.role };
+        item.name = SIM.newItemName(this.data.world, item, (k) => this.kindWord(k));
         if (this.color && (this.role === 'obstacle' || this.role === 'color')) {
             item.color = this.color;
         }
@@ -1320,6 +1579,16 @@ export class SimEditor {
             this.addLinePoint(p);
             return;
         }
+        if (this.tool === 'start') {
+            const before = this.snapshot();
+            const world = this.data.world;
+            const start = { id: newId('st'), name: SIM.nextStartName(world), x: round(p[0]), y: round(p[1]), heading: this.activeStart().heading };
+            world.starts.push(start);
+            this.selected = START + start.id;
+            this.setTool('select');
+            this.commit(before);
+            return;
+        }
         if (this.tool === 'rect' || this.tool === 'circle' || this.tool === 'triangle') {
             const item = this.newShape(this.tool, p);
             this.beginDrag(e, { kind: 'create', item: item, anchor: p, before: this.snapshot(), moved: false });
@@ -1330,9 +1599,10 @@ export class SimEditor {
         const before = this.snapshot();
         if (hit.handle) {
             const h: string = hit.handle;
-            if (h === 'robot-turn') {
-                this.selected = 'robot';
-                this.beginDrag(e, { kind: 'robot-turn', before: before });
+            if (h === 'start-turn') {
+                const s = this.activeStart();
+                this.selected = START + s.id;
+                this.beginDrag(e, { kind: 'start-turn', id: s.id, before: before });
             } else if (h.indexOf('point:') === 0) {
                 this.beginDrag(e, { kind: 'point', index: Number(h.substring(6)), before: before });
             } else if (h.indexOf('corner:') === 0) {
@@ -1340,10 +1610,11 @@ export class SimEditor {
             } else if (h === 'radius') {
                 this.beginDrag(e, { kind: 'radius', before: before });
             }
-        } else if (hit.robot) {
-            this.selected = 'robot';
-            const s = this.data.world.start;
-            this.beginDrag(e, { kind: 'robot', start: p, origin: [s.x, s.y], before: before });
+        } else if (hit.start) {
+            this.selected = START + hit.start;
+            const s = this.startById(hit.start);
+            this.beginDrag(e, { kind: 'start', id: s.id, start: p, origin: [s.x, s.y], before: before });
+            this.renderSensorsOfRobots();
         } else if (hit.item) {
             this.selected = hit.item.id;
             this.beginDrag(e, { kind: 'move', start: p, original: SIM.clone(hit.item), before: before });
@@ -1379,7 +1650,7 @@ export class SimEditor {
             return;
         }
         const p = this.toWorldPoint(e);
-        const s = this.data.world.start;
+        const s = d.id ? this.startById(d.id) : null;
         if (d.kind === 'pan') {
             const dx = (e.clientX - d.start[0]) / d.view.scale;
             const dy = (e.clientY - d.start[1]) / d.view.scale;
@@ -1389,10 +1660,10 @@ export class SimEditor {
             this.setView(d.view.x - dx, d.view.y - dy, d.view.scale);
             return;
         }
-        if (d.kind === 'robot') {
+        if (d.kind === 'start') {
             s.x = round(d.origin[0] + p[0] - d.start[0]);
             s.y = round(d.origin[1] + p[1] - d.start[1]);
-        } else if (d.kind === 'robot-turn') {
+        } else if (d.kind === 'start-turn') {
             s.heading = this.angle(Math.atan2(-(p[1] - s.y), p[0] - s.x), e);
         } else if (d.kind === 'move') {
             const item = this.item(this.selected);
@@ -1512,7 +1783,7 @@ export class SimEditor {
         const p = this.toWorldPoint(e);
         const target = e.target as Element;
         const h = target && target.getAttribute && target.getAttribute('data-handle');
-        const item = this.selected && this.item(this.selected);
+        const item = this.selectedItem();
         if (!item || item.kind !== 'line') {
             return;
         }
@@ -1590,6 +1861,7 @@ export class SimEditor {
         if (keep && pts.length >= 2) {
             const before = this.snapshot();
             this.data.world.items.push(d);
+            d.name = SIM.newItemName(this.data.world, d, (k) => this.kindWord(k));
             this.selected = d.id;
             this.setTool('select');
             this.commit(before);
@@ -1631,9 +1903,10 @@ export class SimEditor {
             const dx = e.key === 'ArrowLeft' ? -step : e.key === 'ArrowRight' ? step : 0;
             const dy = e.key === 'ArrowUp' ? -step : e.key === 'ArrowDown' ? step : 0;
             const before = this.snapshot();
-            if (this.selected === 'robot') {
-                this.data.world.start.x = round(this.data.world.start.x + dx);
-                this.data.world.start.y = round(this.data.world.start.y + dy);
+            if (this.selected.indexOf(START) === 0) {
+                const s = this.startById(this.selected.substring(START.length));
+                s.x = round(s.x + dx);
+                s.y = round(s.y + dy);
             } else {
                 const item = this.item(this.selected);
                 if (item.points) {

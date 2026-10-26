@@ -8,15 +8,17 @@ code of its own. See docs/ai/nepo-unit-testing.md for the full reference.
        {"name": "three claps", "world": [{"event": "clap", "at": 1000}, ...], "max_time_ms": 10000,
         "expect": {"status": "finished", "variables": {"claps": 3},
                    "actions": [{"block": "robActions_motorDiff_on_for", "power": 100, "distance_cm": 10}]}},
-       {"name": "follows the line", "simulation": {"world": {...}, "reference": {"path": [...]}, "tolerance_cm": 2},
-        "max_time_ms": 30000}]}
+       {"name": "on the line, it reaches the finish", "max_time_ms": 20000,
+        "simulation": {"world": {...}, "start": "A", "checks": [{"check": "reaches", "item": "finish"}, ...]}}]}
 
 "should": "fail" turns a test round: it passes if its expectations fail (the failures stay in the report, with
 "expected_failure": true), and fails if they hold ("the test should fail, but it passed"). Default: "pass".
+"skip": true: the test doesn't run (outcome "skipped").
 
-A test with "simulation" is a simulation test: the robot drives through a drawn world, and the world decides. Its
-"expect" is optional. Simulation tests run on the Lab's own simulator, in the Tests tab (nepoTest.simRun.ts); here they
-are only checked (simulation.py validate) and reported as skipped.
+A test with "simulation" is a test of a simulation world: the robot starts at one of the world's starts, the whole
+program runs, and the test's checks decide (simulation.py). Its "expect" is optional, its "globals" (the set-up's
+variables) need no "call". Simulation tests run on the Lab's own simulator, in the Tests tab (nepoTest.simRun.ts); here
+they are only checked (simulation.py validate) and reported as skipped.
 """
 
 import json
@@ -30,7 +32,7 @@ from .world import EVENTS, World
 EXPECT_KEYS = ('returns', 'status', 'finished_within_ms', 'variables', 'actions', 'actions_exactly', 'no_actions',
                'action_count', 'calls', 'error', 'covers', 'states', 'distance_cm', 'heading_deg', 'end_position')
 TEST_KEYS = ('name', 'description', 'call', 'args', 'globals', 'world', 'max_time_ms', 'max_steps', 'expect', 'origin', 'block_id',
-             'simulation', 'should')
+             'simulation', 'should', 'skip')
 SHOULD_VALUES = ('pass', 'fail')
 SHOULD_FAIL_MESSAGE = 'the test should fail, but it passed'
 STATUS_VALUES = ('finished', 'running', 'time_limit', 'step_limit')
@@ -65,6 +67,8 @@ def validate_spec(spec, subject=None):
         names.add(name)
         if test.get('should', 'pass') not in SHOULD_VALUES:
             problems.append('%s.should must be "pass" or "fail"' % where)
+        if test.get('skip', False) not in (True, False):
+            problems.append('%s.skip must be true or false' % where)
         expect = test.get('expect')
         is_simulation = 'simulation' in test
         if is_simulation:
@@ -74,6 +78,8 @@ def validate_spec(spec, subject=None):
                 problems.append('%s.world: a simulation test only takes %s; the drawn world gives the rest (not: %s)'
                                 % (where, ', '.join(SIM.GIVEN_EVENTS), ', '.join(map(str, others))))
             expect = expect if isinstance(expect, dict) else {}
+            if 'call' in test or 'args' in test:
+                problems.append('%s: a test of a simulation world always runs the whole program: no "call" or "args"' % where)
         elif not isinstance(expect, dict) or not expect:
             problems.append('%s: "expect" must be a non-empty object' % where)
             expect = {}
@@ -83,7 +89,7 @@ def validate_spec(spec, subject=None):
         is_call = 'call' in test
         if is_call and 'status' in expect:
             problems.append('%s.expect.status only applies to program runs, not to calls' % where)
-        if not is_call and ('returns' in expect or 'args' in test or 'globals' in test):
+        if not is_call and not is_simulation and ('returns' in expect or 'args' in test or 'globals' in test):
             problems.append('%s: "returns", "args" and "globals" need "call"' % where)
         if expect.get('status') is not None and expect['status'] not in STATUS_VALUES:
             problems.append('%s.expect.status must be one of %s' % (where, ', '.join(STATUS_VALUES)))
@@ -210,7 +216,11 @@ def apply_should(report, test):
 
 
 def run_test(subject, test, defaults=None):
-    """(report, coverage) of a test; a simulation test is skipped (report outcome "skipped", coverage None)"""
+    """(report, coverage) of a test; a test with "skip" and a simulation test are skipped (report outcome "skipped",
+    coverage None)"""
+    if test.get('skip'):
+        return {'name': test['name'], 'block_id': test.get('block_id'), 'outcome': 'skipped', 'failures': [], 'error': None,
+                'message': 'skipped'}, None
     if 'simulation' in test:
         return {'name': test['name'], 'block_id': test.get('block_id'), 'kind': 'simulation', 'outcome': 'skipped',
                 'failures': [], 'error': None, 'message': SIMULATION_SKIPPED}, None
@@ -252,7 +262,7 @@ def run_spec(spec, subject):
         reports.append(report)
     counts = dict((o, sum(1 for r in reports if r['outcome'] == o)) for o in OUTCOMES)
     if not counts['skipped']:
-        del counts['skipped']  # only simulation tests are skipped
+        del counts['skipped']  # only tests with "skip" and simulation tests are skipped
     return {'format': 'nepotest-results', 'version': 1, 'program': spec.get('program'), 'summary': counts,
             'coverage': coverage.to_json() if coverage is not None else None, 'tests': reports}
 

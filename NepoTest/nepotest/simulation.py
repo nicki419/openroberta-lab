@@ -1,11 +1,12 @@
-"""Simulation tests: the program drives the Edison through a world the learner drew (the Tests tab's Simulation panel),
-and the world decides whether the test passes.
+"""Simulation worlds and their tests: the program drives the Edison through a world the learner drew (the Tests tab's
+Simulation panel), and the test's checks say whether it did what it should.
 
 **Simulation tests run on the Lab's own simulator** (since 2026-10-22: OpenRobertaWeb/src/app/nepotest/nepoTest.simRun.ts),
-not here. Of this module, NepoTest uses the data format and its checks (validate, start_problems, can_fail,
-default_world, migrate_v1: the translation of the test blocks and spec.validate_spec). The rest, the copy of the
-simulator below that drives the EdPy engine's robot (SimRobot, run_simulation_test, Floor), is no longer used: it is
-kept for now, with its tests (tests/test_simulation.py), as an approximation that runs without a browser.
+not here. Of this module, NepoTest uses the data format and its checks (validate, start_problems, start_pose,
+default_world, migrate_v1, world_v3: the translation of the test blocks and spec.validate_spec). The rest, the copy of
+the simulator below that drives the EdPy engine's robot (SimRobot, run_simulation_test, Floor), is no longer used: it
+is kept for now, with its tests (tests/test_simulation.py), as an approximation that runs without a browser. It knows
+the tests of the first kind only (one start, a goal decides, a recorded path).
 
 **The world is the Lab's simulator.** Everything the robot meets here copies the simulator of the Lab
 (OpenRobertaWeb/src/app/simulation/simulationLogic: robot.edison.ts, robot.actuators.ts EdisonChassis and
@@ -24,27 +25,33 @@ The program is the generated EdPy on NepoTest's engine. So what the EdPy does di
 program stays different: powers in the robot's 10 % steps, turns and drives measured in wheel ticks, sensors read and
 cleared like on the robot.
 
-Added by the tests: **lines** to follow (drawn like the background's track: a black core on a white band), **goal
-areas** (touching one passes the test), **fail areas** (touching one fails it), and **a recorded path** with a
-tolerance (leaving the corridor fails the test). Without a goal area, the test passes if none of that happens until the
-program ends (or its time is up). Touching an obstacle isn't a failure, as in the simulator: the robot bumps.
+Added by the world: **lines** to follow (drawn like the background's track: a black core on a white band), **goal
+areas** and **fail areas** (the tests check whether the robot reaches or touches them), and **starts**: where the robot
+can start (each test chooses one). Touching an obstacle is no failure of its own, as in the simulator: the robot bumps
+(a test can check that it never does).
 
     {"background": "peach",
-     "start": {"x": 150, "y": 100, "heading": 0},
-     "items": [{"id": "l1", "kind": "line", "points": [[20, 17], [60, 17], [70, 40]], "smooth": true, "closed": false},
-               {"id": "o1", "kind": "rect", "role": "obstacle", "x": 64, "y": 50.7, "w": 9.6, "h": 9.6},
+     "starts": [{"id": "A", "name": "A", "x": 150, "y": 100, "heading": 0}, {"id": "st2", "name": "on the line", ...}],
+     "items": [{"id": "l1", "name": "Line 1", "kind": "line", "points": [[20, 17], [60, 17], [70, 40]], "smooth": true},
+               {"id": "o1", "name": "Obstacle 1", "kind": "rect", "role": "obstacle", "x": 64, "y": 50.7, "w": 9.6, "h": 9.6},
                {"id": "c1", "kind": "circle", "role": "color", "color": "#000000", "x": 40, "y": 60, "r": 4},
-               {"id": "g1", "kind": "triangle", "role": "goal", "points": [[70, 5], [80, 5], [75, 12]]}]}
+               {"id": "g1", "name": "Finish", "kind": "triangle", "role": "goal", "points": [[70, 5], [80, 5], [75, 12]]}]}
 
 Units are cm, measured from the top left corner of the background; x points right and y down (as on the screen).
 Angles are degrees, counterclockwise as seen from above; 0 points right. Roles: obstacle, color (a coloured area the
-sensors see; "color" is a hex colour), goal, fail. The simulator itself works in units of 1/3 cm with the background at
-(10, 10): this module does too, internally.
+sensors see; "color" is a hex colour), goal, fail. Names are optional (the blocks show them). The simulator itself works
+in units of 1/3 cm with the background at (10, 10): this module does too, internally.
 
-A test (JSON, see spec.py): {"name", "simulation": {"world", "floor": {"w", "h", "sum"}, "reference": {"path":
-[[x, y, heading], ...]}, "tolerance_cm"}, "max_time_ms", optional "call"/"args"/"globals", and "world" with claps,
-keys, remote codes and IR messages only. `floor` is the picture the sensors see (R + G + B per pixel, 16 bits, zlib,
-base64); without it, the floor is drawn here (white background only, and without the anti-aliasing of a browser).
+A test of a world (JSON, see spec.py): {"name", "simulation": {"world_block_id", "world_name", "world", "start": a start's
+id, "until": an area's id (the run ends when the robot touches it), "checks": [...]}, "max_time_ms", "globals" (the
+set-up's variables), "world" (claps and keys only), "skip", "should"}. A check: {"check": "reaches" | "never_touches" |
+"ends_in" | "never_bumps" | "path", "item": an id (reaches, never_touches: an area, none: any goal / fail area; ends_in:
+an area; never_bumps: an obstacle, none: anything), "path": [[x, y, heading], ...] and "tolerance_cm" (path; no path:
+not recorded yet), "rule": true (a rule of the world: it holds for every test, and "should": "fail" doesn't turn it
+round), "block_id"}.
+
+The world of the first kind of simulation tests (until 2026-10-26: one test per world) had one "start" instead of
+"starts", and the test had its "reference" path and "tolerance_cm"; run_simulation_test still takes that.
 """
 
 import array
@@ -107,6 +114,9 @@ DEFAULT_MAX_TIME_MS = 30000
 DEFAULT_TOLERANCE_CM = 2
 CURVE_PIECES = 16
 GIVEN_EVENTS = ('clap', 'key')  # what "given" may add (the simulator has no IR remote and messages); the drawn world does the rest
+DEFAULT_START = 'A'  # the id and name of a new world's start
+CHECKS = ('reaches', 'never_touches', 'ends_in', 'never_bumps', 'path')
+AREA_ROLES = ('goal', 'fail', 'color')
 
 
 def js_round(v):
@@ -448,10 +458,43 @@ class _Line(object):
 
 
 def default_world():
-    """a new test's world: the plain peach floor, the robot in its middle, nothing on it"""
+    """a new world: the plain peach floor, the robot's start A in its middle, nothing on it"""
     bw, bh = BACKGROUNDS[DEFAULT_BACKGROUND]
-    return {'background': DEFAULT_BACKGROUND, 'start': {'x': round(bw / 2.0 / UNITS_PER_CM, 2), 'y': round(bh / 2.0 / UNITS_PER_CM, 2), 'heading': 0},
+    return {'background': DEFAULT_BACKGROUND, 'starts': [{'id': DEFAULT_START, 'name': DEFAULT_START, 'x': round(bw / 2.0 / UNITS_PER_CM, 2),
+                                                          'y': round(bh / 2.0 / UNITS_PER_CM, 2), 'heading': 0}],
             'items': []}
+
+
+def world_v3(world):
+    """a world with one "start" (block data version 2, until 2026-10-26) as one with "starts": the start becomes start A"""
+    world = dict(world)
+    if 'starts' not in world:
+        start = world.pop('start', None) or {}
+        world['starts'] = [{'id': DEFAULT_START, 'name': DEFAULT_START, 'x': start.get('x', 0), 'y': start.get('y', 0),
+                            'heading': start.get('heading', 0)}]
+    world.setdefault('items', [])
+    return world
+
+
+def start_pose(world_data, start_id=None):
+    """the start (a dict with x, y, heading) of a world by its id; a world of the first kind has one "start"; None if there
+    is no such start"""
+    if start_id is None and isinstance(world_data.get('start'), dict):
+        return world_data['start']
+    starts = [s for s in world_data.get('starts') or [] if isinstance(s, dict)]
+    if start_id is None:
+        return starts[0] if starts else None
+    return next((s for s in starts if s.get('id') == start_id), None)
+
+
+def item_name(world_data, item):
+    """an item's name: its own, or its kind and number ("Goal 2"), as the blocks show it"""
+    if item.get('name'):
+        return item['name']
+    kind = 'line' if item.get('kind') == 'line' else item.get('role')
+    same = [i for i in world_data.get('items') or [] if ('line' if i.get('kind') == 'line' else i.get('role')) == kind]
+    word = {'goal': 'Goal', 'fail': 'Fail area', 'color': 'Area', 'obstacle': 'Obstacle', 'line': 'Line'}.get(kind, kind)
+    return '%s %d' % (word, same.index(item) + 1 if item in same else 1)
 
 
 def migrate_v1(world):
@@ -476,15 +519,16 @@ def migrate_v1(world):
 
 
 class SimWorld(object):
-    """the drawn world: background, start pose, floor picture, obstacles, goal and fail areas"""
+    """the drawn world: background, start pose (start: a start's id; none: the world's only or first start), floor
+    picture, obstacles, goal and fail areas"""
 
-    def __init__(self, data, floor=None):
+    def __init__(self, data, floor=None, start=None):
         data = data or {}
         self.background = data.get('background') or DEFAULT_BACKGROUND
         self.background_size = BACKGROUNDS.get(self.background, BACKGROUNDS[DEFAULT_BACKGROUND])
         bw, bh = self.background_size
         self.ground = (BORDER, BORDER, BORDER + bw, BORDER + bh)  # Ground(10, 10, w, h) as (x0, y0, x1, y1)
-        start = data.get('start') or {}
+        start = start_pose(data, start) or {}
         self.start = (float(start.get('x', 0)), float(start.get('y', 0)), float(start.get('heading', 0)))
         self.lines, self.obstacles, self.colors, self.goals, self.fails = [], [], [], [], []
         for item in data.get('items') or []:
@@ -819,19 +863,27 @@ def _number(v):
     return isinstance(v, (int, float)) and not isinstance(v, bool)
 
 
-def validate(sim, where):
-    """[problem] of a test's "simulation" object"""
+def validate_world(world, where):
+    """[problem] of a simulation world: background, starts, items"""
     problems = []
-    if not isinstance(sim, dict) or not isinstance(sim.get('world'), dict):
-        return ['%s: "simulation" needs a "world" object' % where]
-    world = sim['world']
+    if not isinstance(world, dict):
+        return ['%s must be an object' % where]
     if world.get('background') not in BACKGROUNDS:
-        problems.append('%s.world.background must be one of %s' % (where, ', '.join(BACKGROUNDS)))
-    start = world.get('start')
-    if not isinstance(start, dict) or not all(_number(start.get(k)) for k in ('x', 'y', 'heading')):
-        problems.append('%s.world.start needs numbers x, y and heading' % where)
+        problems.append('%s.background must be one of %s' % (where, ', '.join(BACKGROUNDS)))
+    starts = world.get('starts')
+    if not isinstance(starts, list) or not starts:
+        problems.append('%s.starts must be a list of at least one start' % where)
+        starts = []
+    ids = set()
+    for i, start in enumerate(starts):
+        if not isinstance(start, dict) or not isinstance(start.get('id'), str) or not all(_number(start.get(k)) for k in ('x', 'y', 'heading')):
+            problems.append('%s.starts[%d] needs an id and numbers x, y and heading' % (where, i))
+        elif start['id'] in ids:
+            problems.append('%s.starts[%d]: there are two starts with the id %r' % (where, i, start['id']))
+        else:
+            ids.add(start['id'])
     for i, item in enumerate(world.get('items') or []):
-        w = '%s.world.items[%d]' % (where, i)
+        w = '%s.items[%d]' % (where, i)
         kind = item.get('kind') if isinstance(item, dict) else None
         if kind not in KINDS:
             problems.append('%s: "kind" must be one of %s' % (w, ', '.join(KINDS)))
@@ -848,38 +900,86 @@ def validate(sim, where):
                 problems.append('%s: a %s needs numbers %s' % (w, kind, ', '.join(keys)))
         if kind != 'line' and item.get('role') not in ROLES:
             problems.append('%s: "role" must be one of %s' % (w, ', '.join(ROLES)))
-    floor = sim.get('floor')  # only for run_simulation_test (no longer used): the simulator draws its own floor
-    if floor is not None and (not isinstance(floor, dict) or not all(k in floor for k in ('w', 'h', 'sum'))):
-        problems.append('%s.floor needs w, h and sum' % where)
-    reference = sim.get('reference')
-    if reference is not None:
-        path = reference.get('path') if isinstance(reference, dict) else None
-        if not isinstance(path, list) or not all(isinstance(p, list) and len(p) >= 3 for p in path):
-            problems.append('%s.reference.path must be a list of poses [x, y, heading]' % where)
-    tolerance = sim.get('tolerance_cm', DEFAULT_TOLERANCE_CM)
-    if not _number(tolerance) or tolerance < 0:
-        problems.append('%s.tolerance_cm must be a number >= 0' % where)
+        if item.get('name') is not None and not isinstance(item.get('name'), str):
+            problems.append('%s: "name" must be a string' % w)
     return problems
 
 
-def start_problems(world_data):
-    """what's wrong with where the robot starts: [(item id, message)]"""
-    world = SimWorld(world_data, floor={'w': 1, 'h': 1, 'sum': base64.b64encode(zlib.compress(b'\0\0')).decode()})
+def _poses(path):
+    return isinstance(path, list) and all(isinstance(p, list) and len(p) >= 3 and all(_number(c) for c in p[:3]) for p in path)
+
+
+def validate(sim, where):
+    """[problem] of a test's "simulation" object: its world, its start, its "until" area and its checks"""
+    if not isinstance(sim, dict) or not isinstance(sim.get('world'), dict):
+        return ['%s: "simulation" needs a "world" object' % where]
+    world = sim['world']
+    problems = validate_world(world, where + '.world')
+    if problems:
+        return problems
+    items = dict((i.get('id'), i) for i in world.get('items') or [] if isinstance(i, dict) and i.get('id'))
+
+    def item_problem(key, item_id, roles, what):
+        item = items.get(item_id)
+        if item is None:
+            return '%s: there is no item %r in the world' % (key, item_id)
+        if item.get('kind') == 'line' or item.get('role') not in roles:
+            return '%s: %r is not %s' % (key, item_id, what)
+        return None
+
+    if start_pose(world, sim.get('start')) is None:
+        problems.append('%s.start: there is no start %r in the world (it has: %s)'
+                        % (where, sim.get('start'), ', '.join(s.get('id') for s in world['starts'])))
+    if sim.get('until') is not None:
+        problem = item_problem(where + '.until', sim['until'], AREA_ROLES, 'an area')
+        problem and problems.append(problem)
+    checks = sim.get('checks', [])
+    if not isinstance(checks, list):
+        return problems + ['%s.checks must be a list' % where]
+    for i, check in enumerate(checks):
+        w = '%s.checks[%d]' % (where, i)
+        kind = check.get('check') if isinstance(check, dict) else None
+        if kind not in CHECKS:
+            problems.append('%s: "check" must be one of %s' % (w, ', '.join(CHECKS)))
+            continue
+        item = check.get('item')
+        if kind == 'ends_in' and item is None:
+            problems.append('%s: "ends_in" needs the "item" the robot ends in' % w)
+        elif item is not None and kind != 'path':
+            problem = item_problem(w + '.item', item, ('obstacle',) if kind == 'never_bumps' else AREA_ROLES,
+                                   'an obstacle' if kind == 'never_bumps' else 'an area')
+            problem and problems.append(problem)
+        if kind == 'path':
+            if check.get('path') is not None and not _poses(check['path']):
+                problems.append('%s.path must be a list of poses [x, y, heading]' % w)
+            tolerance = check.get('tolerance_cm', DEFAULT_TOLERANCE_CM)
+            if not _number(tolerance) or tolerance < 0:
+                problems.append('%s.tolerance_cm must be a number >= 0' % w)
+            if check.get('rule'):
+                problems.append('%s: a recorded path belongs to one test: it can\'t be a rule' % w)
+        if check.get('rule') not in (None, True, False):
+            problems.append('%s.rule must be true or false' % w)
+    return problems
+
+
+def start_problems(world_data, start_id=None, checked=()):
+    """what's wrong with where the robot starts: [(item id, message, severity)]. Outside the floor or on an obstacle: an
+    error; on an area the test checks (`checked`: their ids; reaches, never touches, until), a warning."""
+    world = SimWorld(world_data, floor={'w': 1, 'h': 1, 'sum': base64.b64encode(zlib.compress(b'\0\0')).decode()}, start=start_id)
     poly = outline(sim_pose(*world.start))
     problems = []
     x0, y0, x1, y1 = world.ground
     if any(p[0] < x0 or p[0] > x1 or p[1] < y0 or p[1] > y1 for p in poly):
-        problems.append((None, 'the robot starts outside the floor: move it onto the background'))
-    for shapes, what in ((world.obstacles, 'an obstacle'), (world.fails, 'a fail area'), (world.goals, 'a goal area')):
-        hit = world.touching(poly, shapes)
-        if hit is not None:
-            problems.append((hit.id, 'the robot starts touching %s: move it or the %s' % (what, what.split(' ', 1)[1])))
+        problems.append((None, 'the robot starts outside the floor: move the start onto the background', 'error'))
+    hit = world.touching(poly, world.obstacles)
+    if hit is not None:
+        problems.append((hit.id, 'the robot starts on an obstacle: move the start or the obstacle', 'error'))
+    names = dict((i.get('id'), item_name(world_data, i)) for i in world_data.get('items') or [])
+    for shape in world.goals + world.fails + world.colors:
+        if shape.id in checked and world.touching(poly, [shape]) is not None:
+            problems.append((shape.id, 'the robot starts on "%s", which the test checks: move the start or the area'
+                             % names.get(shape.id, shape.id), 'warning'))
     return problems
-
-
-def can_fail(sim):
-    world = sim.get('world') or {}
-    return bool(any(i.get('role') in ('goal', 'fail') for i in world.get('items') or []) or (sim.get('reference') or {}).get('path'))
 
 
 # ---------------------------------------------------------------------- running
@@ -893,7 +993,7 @@ def run_simulation_test(subject, test, record=False):
     from .spec import check_expectations  # spec imports this module
     from .world import World
     sim = test['simulation']
-    world = SimWorld(sim['world'], sim.get('floor'))
+    world = SimWorld(sim['world'], sim.get('floor'), sim.get('start'))
     path = None if record else (sim.get('reference') or {}).get('path')
     tolerance = sim.get('tolerance_cm', DEFAULT_TOLERANCE_CM)
     robot = SimRobot(world, Corridor(path, tolerance) if path else None)

@@ -5,10 +5,12 @@
  * - the suite is saved with the program (nepoTest.suite: extra instances of the program's XML)
  * - "Code" shows the suite as NepoTest JSON and the program's generated EdPy
  * - "Test runner" converts the program with the Lab (REST /projectWorkflow/sourceForTest: EdPy + source map) and runs the suite in the browser
- *   with NepoTest in Pyodide (nepoTest.runner); the simulation tests run on the Lab's simulator (nepoTest.simRun). Results come back per test,
- *   errors and coverage per block
- * - "Simulation" shows the world of the selected simulation test (nepoTest.simEditor): it is drawn there, recorded, run and replayed. The world
- *   is the test block's data (JSON), so it is saved with the suite, and undo of a deleted block brings it back.
+ *   with NepoTest in Pyodide (nepoTest.runner); the tests of simulation worlds run on the Lab's simulator (nepoTest.simRun). Results come back
+ *   per test, errors and coverage per block
+ * - "Simulation" shows the selected simulation world and its tests (nepoTest.simEditor): the world is drawn there, its tests are run and
+ *   replayed, and their paths recorded. The world is the world block's data (JSON), a recorded path the data of the test's path check, so both
+ *   are saved with the suite, and undo of a deleted block brings them back.
+ * Suites saved before 2026-10-26 had simulation tests of their own ("nepoTest_simtest", one world each): they are dropped when they are loaded.
  * Only for the Edison robots (NepoTest supports them).
  */
 import * as GUISTATE_C from 'guiState.controller';
@@ -22,7 +24,7 @@ import * as SUITE from 'nepoTest.suite';
 import * as RUNNER from 'nepoTest.runner';
 import * as SIM from 'nepoTest.sim';
 import * as SIMRUN from 'nepoTest.simRun';
-import { SimEditor } from 'nepoTest.simEditor';
+import { SimEditor, SimScene, SimTest } from 'nepoTest.simEditor';
 
 const SUPPORTED_GROUPS = ['edison'];
 
@@ -34,6 +36,9 @@ let codeTimer: any = null;
 let running = false;
 let cancelled = false; // "stop": a simulation test that runs stops too
 let simEditor: SimEditor = null;
+let simTimer: any = null;
+let unloadable: string = null; // a suite that could not be loaded: it is saved as it was, not as the empty suite shown instead
+const OLD_SIM_TEST = 'nepoTest_simtest'; // a simulation test of its own (until 2026-10-26)
 
 // ------------------------------------------------------------------------------------------------ setup
 
@@ -59,12 +64,19 @@ export function init(): void {
     });
     simEditor = new SimEditor(document.getElementById('testsSimPane'), {
         changed: simChanged,
-        record: function () {
-            simulate(true);
+        tests: simTests,
+        select: function (testId: string) {
+            const block = workspace.getBlockById(testId);
+            block && block.select();
         },
-        run: function () {
-            simulate(false);
+        run: function (testIds: string[]) {
+            simulate(testIds, false);
         },
+        record: function (testId: string) {
+            simulate([testId], true);
+        },
+        setTolerance: setTolerance,
+        forgetPath: forgetPath,
         simulatorScene: simulatorScene,
     });
     simEditor.setLanguage(blocksLanguage);
@@ -216,10 +228,14 @@ const TEXT: { [lang: string]: { [key: string]: string } } = {
         running: 'Running test {0} of {1}…',
         passed: 'passed',
         failed: 'failed',
+        skipped: 'skipped',
         expectedFailure: 'failed, as it should',
         error: 'test error',
         waiting: 'waiting',
         done: '{0} passed, {1} failed, {2} test errors',
+        doneSkipped: '{0} passed, {1} failed, {2} test errors, {3} skipped',
+        oldSimTests: 'This program had {0} simulation test(s) of an older kind: they were removed. Build them again as tests of a "simulation world" (in "Tests").',
+        unloadable: 'The test suite of this program could not be loaded ({0}). It stays as it was when the program is saved; changes made here are not saved.',
         coverage: 'Blocks of the program executed by these tests: {0} of {1}',
         uncovered: 'never executed:',
         stopped: 'Stopped.',
@@ -237,10 +253,14 @@ const TEXT: { [lang: string]: { [key: string]: string } } = {
         running: 'Test {0} von {1} läuft…',
         passed: 'bestanden',
         failed: 'fehlgeschlagen',
+        skipped: 'ausgelassen',
         expectedFailure: 'gescheitert, wie es soll',
         error: 'Testfehler',
         waiting: 'wartet',
         done: '{0} bestanden, {1} fehlgeschlagen, {2} Testfehler',
+        doneSkipped: '{0} bestanden, {1} fehlgeschlagen, {2} Testfehler, {3} ausgelassen',
+        oldSimTests: 'Dieses Programm hatte {0} Simulationstest(s) einer älteren Art: sie wurden entfernt. Baue sie als Tests einer „Simulationswelt“ (in „Tests“) neu.',
+        unloadable: 'Die Testsammlung dieses Programms konnte nicht geladen werden ({0}). Sie bleibt beim Speichern des Programms, wie sie war; Änderungen hier werden nicht gespeichert.',
         coverage: 'Von diesen Tests ausgeführte Blöcke des Programms: {0} von {1}',
         uncovered: 'nie ausgeführt:',
         stopped: 'Gestoppt.',
@@ -370,11 +390,46 @@ function serializeSuite(always?: boolean): string {
     if (!workspace) {
         return null;
     }
+    if (unloadable) {
+        return unloadable;
+    }
     const blocks = workspace.getAllBlocks();
     if (!always && blocks.length <= 1) {
         return null;
     }
     return Blockly.Xml.domToText(Blockly.Xml.workspaceToDom(workspace));
+}
+
+/**
+ * a suite without the simulation tests of the older kind (nepoTest_simtest) and the "run test" blocks that ran them: {xml, dropped}. The
+ * suite is changed as XML, before Blockly sees it (it doesn't know the block any more). Nothing changes in a suite without them.
+ */
+function dropOldSimTests(xml: string): { xml: string; dropped: number } {
+    if (!xml || xml.indexOf(OLD_SIM_TEST) < 0) {
+        return { xml: xml, dropped: 0 };
+    }
+    const doc = new DOMParser().parseFromString(xml, 'text/xml');
+    const root = doc.documentElement;
+    const children = (el: Element, name: string) => Array.prototype.slice.call(el.childNodes).filter((c: Node) => c.nodeType === 1 && (c as Element).localName === name) as Element[];
+    const nameOf = (block: Element) => (children(block, 'field').filter((f) => f.getAttribute('name') === 'NAME')[0] || { textContent: '' }).textContent;
+    const names: string[] = [];
+    let dropped = 0;
+    for (const instance of children(root, 'instance')) {
+        const first = children(instance, 'block')[0];
+        if (first && first.getAttribute('type') === OLD_SIM_TEST) {
+            names.push(nameOf(first));
+            root.removeChild(instance);
+            dropped++;
+        }
+    }
+    for (const instance of children(root, 'instance')) {
+        for (const block of children(instance, 'block')) {
+            if (block.getAttribute('type') === 'nepoTest_run' && names.indexOf(nameOf(block)) >= 0) {
+                instance.removeChild(block);
+            }
+        }
+    }
+    return { xml: new XMLSerializer().serializeToString(doc), dropped: dropped };
 }
 
 /** puts a suite into the workspace (null: a new suite with just the start block) */
@@ -384,25 +439,31 @@ function loadSuite(testsXml: string): void {
     }
     updateAvailability();
     listen = false;
+    unloadable = null;
     workspace.clear();
-    const xml = testsXml || BLOCKS.emptySuite(GUISTATE_C.getRobotGroup());
+    const old = dropOldSimTests(testsXml);
+    const xml = old.xml || BLOCKS.emptySuite(GUISTATE_C.getRobotGroup());
+    let failure: string = null;
     try {
         Blockly.Xml.domToWorkspace(Blockly.Xml.textToDom(xml, workspace), workspace);
     } catch (e) {
         LOG.error('could not load the test suite: ' + e);
+        failure = String((e && e.message) || e);
+        unloadable = testsXml; // saved as it was: the empty suite shown instead would delete the tests
         workspace.clear();
         Blockly.Xml.domToWorkspace(Blockly.Xml.textToDom(BLOCKS.emptySuite(GUISTATE_C.getRobotGroup()), workspace), workspace);
     }
     if (!workspace.getTopBlocks(false).some((b) => b.type === 'nepoTest_suite')) {
         Blockly.Xml.domToWorkspace(Blockly.Xml.textToDom(BLOCKS.emptySuite(GUISTATE_C.getRobotGroup()), workspace), workspace);
     }
-    for (const block of workspace.getAllBlocks()) {
-        if (block.type === 'nepoTest_simtest' && block.data && block.data.indexOf('"floor"') >= 0) {
-            block.data = JSON.stringify(SIM.parseData(block.data)); // without the floor picture of earlier versions: the simulator draws its own
-        }
-    }
+    workspace.getTopBlocks(false).forEach((b) => BLOCKS.refreshWorldLabels(b)); // the dropdowns show the names of the worlds' starts and items
     $('#testsResults, #testsProblems, #testsCoverage').empty();
     $('#testsStatus').text('');
+    if (failure) {
+        showList(text('unloadable', failure), []);
+    } else if (old.dropped) {
+        showList(text('oldSimTests', old.dropped), []);
+    }
     reopenSim();
     setTimeout(() => (listen = true), 300);
 }
@@ -424,46 +485,124 @@ function showSide(which: string): void {
     }
 }
 
-// ------------------------------------------------------------------------------------------------ simulation tests
+// ------------------------------------------------------------------------------------------------ simulation worlds
 
-/** the simulation test a block belongs to (the block itself, or the test it is in), or null */
+/** the test of a world a block belongs to (the test itself, or a block in it), or null */
 function simTestOf(block: any): any {
     let b = block;
-    while (b && b.type !== 'nepoTest_simtest') {
+    while (b && b.type !== BLOCKS.SIM_TEST) {
         b = b.getParent();
     }
     return b;
 }
 
-/** a simulation test was selected (or a block in it): its world is shown in the Simulation tab */
-function openSimOf(blockId: string): void {
-    const test = blockId && simTestOf(workspace.getBlockById(blockId));
-    if (!test) {
+/** the blocks of a statement input, in their order, without the disabled ones */
+function chainOf(block: any, input: string): any[] {
+    const blocks = [];
+    for (let b = block.getInputTargetBlock(input); b; b = b.getNextBlock()) {
+        !b.disabled && blocks.push(b);
+    }
+    return blocks;
+}
+
+/** the first "stays on its recorded path" check of a test, or null */
+function pathCheckOf(test: any): any {
+    return chainOf(test, 'CHECKS').filter((b) => b.type === BLOCKS.PATH_CHECK)[0] || null;
+}
+
+/** the tests of the world shown in the Simulation tab, as it needs them */
+function simTests(): SimTest[] {
+    const world = workspace.getBlockById(simEditor.currentBlockId());
+    if (!world) {
+        return [];
+    }
+    const rules = chainOf(world, 'RULES');
+    const itemsOf = (checks: any[]) => checks.map((c) => c.getFieldValue('AREA') || c.getFieldValue('OBSTACLE')).filter((id) => id && id !== BLOCKS.ANY_ITEM);
+    return BLOCKS.testsOf(world).map(function (test) {
+        const checks = chainOf(test, 'CHECKS');
+        const pathCheck = pathCheckOf(test);
+        const until = test.getFieldValue('MODE') === 'until' ? [test.getFieldValue('UNTIL')] : [];
+        return {
+            id: test.id,
+            name: test.getFieldValue('NAME'),
+            start: test.getFieldValue('START'),
+            active: test.getFieldValue('ACTIVE') !== 'FALSE' && !test.disabled,
+            checks: checks.length + rules.length,
+            refs: [test.getFieldValue('START')].concat(until, itemsOf(checks), itemsOf(rules)),
+            pathCheck: !!pathCheck,
+            path: pathCheck ? SIM.parsePath(pathCheck.data) : null,
+            tolerance: pathCheck ? Number(pathCheck.getFieldValue('TOL')) || 0 : SIM.DEFAULT_TOLERANCE_CM,
+        };
+    });
+}
+
+/** the program is unsaved, and the code shown follows */
+function suiteEdited(): void {
+    if (GUISTATE_C.isProgramSaved()) {
+        GUISTATE_C.setProgramSaved(false);
+    }
+    if ($('#testsCodePane').is(':visible')) {
+        clearTimeout(codeTimer);
+        codeTimer = setTimeout(refreshCode, 600);
+    }
+}
+
+function setTolerance(testId: string, cm: number): void {
+    const check = workspace.getBlockById(testId) && pathCheckOf(workspace.getBlockById(testId));
+    check && check.setFieldValue(String(cm), 'TOL'); // a change of the block: undo takes it back
+}
+
+/** the recorded path of a test's path check: a run of the test (record), or nothing (forget) */
+function storePath(testId: string, path: SIM.SimPath): void {
+    const test = workspace.getBlockById(testId);
+    const check = test && pathCheckOf(test);
+    if (!check) {
         return;
     }
-    if (simEditor.currentBlockId() !== test.id) {
-        simEditor.show(test.id, SIM.parseData(test.data), test.getFieldValue('NAME'));
+    check.data = path ? JSON.stringify(path) : null;
+    BLOCKS.refreshWorldLabels(check);
+    suiteEdited();
+    simEditor.refreshTests();
+}
+
+function forgetPath(testId: string): void {
+    storePath(testId, null);
+}
+
+/** a world, or a block in it, was selected: the world is shown in the Simulation tab (and the test the block is in is selected there) */
+function openSimOf(blockId: string): void {
+    const block = blockId && workspace.getBlockById(blockId);
+    const world = block && BLOCKS.worldOf(block);
+    if (!world) {
+        return;
     }
+    if (simEditor.currentBlockId() !== world.id) {
+        simEditor.show(world.id, SIM.parseData(world.data), world.getFieldValue('NAME'));
+    }
+    const test = simTestOf(block);
+    test && simEditor.selectTest(test.id);
     if (!$('#testsSimPane').is(':visible')) {
         showSide('sim');
     }
 }
 
-/** shows the same test again after the workspace was loaded anew (language change, ...), or nothing if it is gone */
+/** shows the same world again after the workspace was loaded anew (language change, ...), or nothing if it is gone */
 function reopenSim(): void {
     if (!simEditor) {
         return;
     }
     const id = simEditor.currentBlockId();
-    const test = id && workspace.getBlockById(id);
-    if (test && test.type === 'nepoTest_simtest') {
-        simEditor.show(test.id, SIM.parseData(test.data), test.getFieldValue('NAME'));
+    const world = id && workspace.getBlockById(id);
+    if (world && world.type === BLOCKS.WORLD) {
+        const selected = simEditor.currentTestId();
+        simEditor.show(world.id, SIM.parseData(world.data), world.getFieldValue('NAME'));
+        selected && simEditor.selectTest(selected);
     } else {
         simEditor.show(null, null, '');
     }
 }
 
-/** keeps the Simulation tab in step with its test block: renamed, deleted */
+/** keeps the Simulation tab in step with its world block: renamed, deleted, and its tests (added, removed, changed) */
 function followSimTest(event: any): void {
     const id = simEditor && simEditor.currentBlockId();
     if (!id) {
@@ -473,10 +612,13 @@ function followSimTest(event: any): void {
         simEditor.show(null, null, '');
     } else if (event.type === Blockly.Events.CHANGE && event.blockId === id && event.element === 'field' && event.name === 'NAME') {
         simEditor.setTitle(event.newValue);
+    } else {
+        clearTimeout(simTimer);
+        simTimer = setTimeout(() => simEditor.refreshTests(), 50);
     }
 }
 
-/** the simulation window changed the world: it goes into the test block's data (an edit makes the program unsaved, a zoom doesn't) */
+/** the simulation window changed the world: it goes into the world block's data (an edit makes the program unsaved, a zoom doesn't) */
 function simChanged(data: SIM.SimData, quiet: boolean): void {
     const block = workspace.getBlockById(simEditor.currentBlockId());
     if (!block) {
@@ -484,6 +626,7 @@ function simChanged(data: SIM.SimData, quiet: boolean): void {
     }
     block.data = JSON.stringify(data);
     block.updateThumbnail && block.updateThumbnail();
+    BLOCKS.refreshWorldLabels(block); // the names of its starts and items
     if (!quiet) {
         if (GUISTATE_C.isProgramSaved()) {
             GUISTATE_C.setProgramSaved(false);
@@ -495,8 +638,8 @@ function simChanged(data: SIM.SimData, quiet: boolean): void {
     }
 }
 
-/** the scene of the Lab's simulator (its background, obstacles, coloured areas and robot) as a world, or a message why there is none */
-function simulatorScene(): SIM.SimWorld | string {
+/** the scene of the Lab's simulator (its background, obstacles, coloured areas and robot), or a message why there is none */
+function simulatorScene(): SimScene | string {
     const notOpened = GUISTATE_C.getLanguage() === 'de' ? 'Öffne zuerst die Simulation (im Programm-Tab).' : 'Open the simulation first (in the Program tab).';
     let scene: any = null;
     try {
@@ -546,37 +689,53 @@ function simulatorScene(): SIM.SimWorld | string {
     return { background: background, start: { x: cm(pose.x), y: cm(pose.y), heading: ((heading % 360) + 540) % 360 - 180 }, items: items };
 }
 
-/** records (record: the run becomes the recorded path) or runs the test shown in the Simulation tab, on the Lab's simulator */
-function simulate(record: boolean): void {
-    const blockId = simEditor.currentBlockId();
-    if (!blockId || running) {
+/**
+ * runs tests of the world shown in the Simulation tab on the Lab's simulator, one after the other (record: one test, and its run becomes the
+ * recorded path of its path check). A test with problems doesn't run: the problems are shown.
+ */
+function simulate(testIds: string[], record: boolean): void {
+    const worldId = simEditor.currentBlockId();
+    if (!worldId || running || !testIds.length) {
         return;
     }
     running = true;
     cancelled = false;
     simEditor.setBusy(true, RUNNER.isReady() ? null : simEditor.loadingText());
+    let problems: string[] = [];
     const done = function (message?: string, isError?: boolean) {
         running = false;
         simEditor.setBusy(false);
-        message && simEditor.showMessage(message, isError);
+        message = message || (problems.length ? text('problems') + ' ' + problems.join('; ') : null);
+        message && simEditor.showMessage(message, isError || problems.length > 0);
     };
     const xml = programXml();
-    RUNNER.simulationTest(serializeSuite(true), blockId, xml)
+    RUNNER.simulationTest(serializeSuite(true), testIds.length === 1 ? testIds[0] : worldId, xml)
         .then(function (answer) {
-            const errors = answer.problems.filter((p) => p.severity === 'error');
-            if (errors.length || !answer.test) {
-                done(text('problems') + ' ' + errors.map((p) => p.message).join('; '), true);
+            problems = answer.problems.filter((p) => p.severity === 'error').map((p) => p.message);
+            if (!answer.tests.length) {
+                done();
                 return;
             }
             simEditor.setBusy(true);
-            return SIMRUN.runTest(answer.test, xml, { record: record, cancelled: () => cancelled }).then(function (report) {
-                done();
-                if (report.simulation) {
-                    simEditor.showRun(blockId, report, record);
-                } else {
-                    simEditor.showMessage(report.error ? report.error.message : report.outcome, report.outcome !== 'passed');
-                }
+            let chain: Promise<any> = Promise.resolve();
+            answer.tests.forEach(function (test) {
+                chain = chain.then(function () {
+                    if (cancelled) {
+                        throw new Error('cancelled');
+                    }
+                    return SIMRUN.runTest(test, xml, { record: record, cancelled: () => cancelled }).then(function (report) {
+                        if (record && report.simulation) {
+                            storePath(test.block_id, { path: report.simulation.path.map((p) => [p[1], p[2], p[3]]), time_ms: report.simulation.t });
+                        }
+                        if (report.simulation || report.outcome === 'skipped') {
+                            simEditor.showRun(test.block_id, report, record);
+                        } else if (report.error) {
+                            problems.push(test.name + ': ' + report.error.message);
+                        }
+                    });
+                });
             });
+            return chain.then(() => done());
         })
         .then(null, function (err) {
             done(err.message === 'cancelled' ? text('stopped') : text('runnerFailed', err.message), true);
@@ -715,7 +874,7 @@ function runTests(): void {
                             throw new Error('cancelled');
                         }
                         $('#testsStatus').text(text('running', i + 1, total));
-                        const report = test.simulation ? runSimulationTest(test, xml).then((r) => (simulationReports.push(r), r)) : RUNNER.runOne(i);
+                        const report = test.simulation ? runSimulationTest(test, xml).then((r) => (simulationReports.push(compactReport(r)), r)) : RUNNER.runOne(i);
                         return report.then((r) => showReport(i, r));
                     });
                 });
@@ -723,7 +882,7 @@ function runTests(): void {
                     .then(() => RUNNER.finish(simulationReports))
                     .then(function (finish) {
                         const s = finish.summary;
-                        finishRun(text('done', s.passed, s.failed, s.error));
+                        finishRun(s.skipped ? text('doneSkipped', s.passed, s.failed, s.error, s.skipped) : text('done', s.passed, s.failed, s.error));
                         showCoverage(finish.coverage);
                     });
             })
@@ -733,7 +892,7 @@ function runTests(): void {
     });
 }
 
-/** a simulation test of the suite, on the Lab's simulator; a failure of the runner itself becomes the test's error */
+/** a test of a simulation world, on the Lab's simulator; a failure of the runner itself becomes the test's error */
 function runSimulationTest(test: any, xml: string): Promise<any> {
     return SIMRUN.runTest(test, xml, { cancelled: () => cancelled }).then(null, function (err) {
         if (err.message === 'cancelled') {
@@ -741,6 +900,11 @@ function runSimulationTest(test: any, xml: string): Promise<any> {
         }
         return { name: test.name, block_id: test.block_id, outcome: 'error', failures: [], error: { kind: 'test_error', message: err.message } };
     });
+}
+
+/** what NepoTest needs of a simulation report for the summary and the coverage (not the path: it is long) */
+function compactReport(report: any): any {
+    return { name: report.name, block_id: report.block_id, outcome: report.outcome, covered_blocks: report.covered_blocks || [] };
 }
 
 /** the problems of a prepared suite, and its tests as a list (waiting); false if nothing can run */
@@ -775,7 +939,7 @@ function showPrepared(prepared: any): boolean {
                     .attr('data-block', t.block_id)
                     .attr('data-workspace', 'tests')
                     .append($('<span class="nepoTestIcon"></span>'))
-                    .append($('<span class="nepoTestName"></span>').text(t.name))
+                    .append($('<span class="nepoTestName"></span>').text(t.simulation ? t.simulation.world_name + ' ▸ ' + t.name : t.name))
                     .append($('<span class="nepoTestOutcome"></span>').text(text('waiting')))
             );
         });
@@ -789,7 +953,9 @@ function showReport(index: number, report: any): void {
     (report.failures || []).forEach(function (f) {
         if (!(f.expect === 'error' && f.expected === null && report.error)) {
             const $f = $('<li></li>').text(describeFailure(f)); // an unexpected runtime error is shown once, below
-            if (f.block_id) {
+            if (f.check_block_id) {
+                $f.attr('data-block', f.check_block_id).attr('data-workspace', 'tests').addClass('linked'); // the check of a simulation world's test
+            } else if (f.block_id) {
                 $f.attr('data-block', f.block_id).attr('data-workspace', 'program').addClass('linked'); // the block that caused the state
             }
             $details.append($f);
