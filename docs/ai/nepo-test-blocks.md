@@ -138,6 +138,18 @@ with `ora.sh start-from-git`:**
 - **New world, German, from the simulator:** a world from the toolbox started its test at A; the German labels
   followed; *From the simulator* kept the start's id and named the new obstacle "Hindernis 1".
 
+**The facts of a failure (2026-10-26), verified in headless Chrome against a Lab built from this repository:**
+- **A bug planted in the line follower** (on black it curved right, left 40 % / right 10 %): test A failed ("did not reach
+  "Finish" within 20 s", "left its recorded path … after 1.2 s"). Under each failed check, the panel showed the second
+  before it: *sensed* the line tracker block, "line tracker sees black: no 49×, yes 11×"; *ran* the `if` block ("yes
+  11×, no 49×") and the curve blocks in effect ("curves forward, left 40 %, right 10 % when [if] says no"); *did* "drove
+  8.7 cm and turned 85.6° to the right; wheels left 13.9, right 3.5 cm/s".
+- **The clap counter** in a world (three claps set up, a goal too far away): *remembered* "claps = 3, goal = 3", the LED
+  blocks and the drive block in effect, and the run's trace held the decisions of its `wait until` and `repeat while`.
+- **Chips:** a click on a block chip (in the panel and in the runner's results) opened the Program tab with that block
+  selected.
+- **Cost:** a run of 7.4 s took 93 ms with the record; its report was 17 KB.
+
 ---
 
 ## 1. The blocks
@@ -308,6 +320,7 @@ OpenRobertaWeb/src/app/nepotest/nepoTest.suite.ts      split/merge of test insta
 OpenRobertaWeb/src/app/nepotest/nepoTest.runner.ts     client of the Web Worker (promises, cancel; prepare, runOne, finish, simulationTest)
 OpenRobertaWeb/src/app/nepotest/nepoTest.sim.ts        a simulation world: data format, starts and names, the simulator's geometry and look (for drawing and replay)
 OpenRobertaWeb/src/app/nepotest/nepoTest.simRun.ts     the tests of worlds on the Lab's simulator: the program for a test, compiling, the run and its checks, the floor picture
+OpenRobertaWeb/src/app/nepotest/nepoTest.simProgram.ts the record of a run (decisions, readings, blocks in effect, variables, motion) and the facts of a failure
 OpenRobertaWeb/src/app/nepotest/nepoTest.simEditor.ts  the Simulation panel: drawing, starts, the world's tests, zoom, undo, record/run, replay (no Blockly inside)
 OpenRobertaWeb/src/app/nepotest/nepotest.worker.js     module Web Worker: Pyodide + nepotest.browser
 OpenRobertaWeb/src/app/roberta/controller/tests.controller.ts   the tab: workspace, dropdowns, panels, running
@@ -319,7 +332,7 @@ NepoTest/nepotest/simulation.py                        simulation worlds and the
 ```
 
 The wiring into the Lab consists of:
-- `main.js`: a path per module (also `nepoTest.sim`, `nepoTest.simRun`, `nepoTest.simEditor`), a `blockly` shim for the
+- `main.js`: a path per module (also `nepoTest.sim`, `nepoTest.simRun`, `nepoTest.simProgram`, `nepoTest.simEditor`), a `blockly` shim for the
   blocks module, the require list, and `testsController.init()` right after `configurationController.init()`;
 - `tsconfig.json`: `paths` (also `robot.edison`, which `nepoTest.simRun` imports);
 - `guiState.controller.js`: a `tabTests` branch in `setView`, which keeps the program menu, and `addLanguageListener`;
@@ -549,6 +562,38 @@ suite is loaded.
   - *Replay* plays it again, faster for long runs (at most about 8 s); the slider scrubs.
 - **Run tests in the runner:** runs simulation tests like any other test. Their runs are kept, and the result line has
   *show the run*.
+
+**Why it failed: the facts** (`nepoTest.simProgram.ts`). Every run is recorded, and a failed check (and a runtime error)
+comes with the facts of the second before it. The panel shows them under the check (*what happened before*, the first
+one open), the runner under the failure:
+- **sensed:** what the program read, per sensor and the block that read it ("line tracker sees black: no 49×, yes
+  11×");
+- **ran:** the decisions it took, with how often their condition held ("[if …] yes 11×, no 49×"; a `wait until`:
+  "not yet 300×"; a `repeat while`: "repeated 12×"), and the blocks in effect for the motors, the LEDs and the sound,
+  with the values they ran with, from when on, and the `if` part they are in ("[curve …] curves forward, left 40 %,
+  right 10 % when [if …] says no");
+- **remembered:** the program's global variables, at the start and at the end of that second ("claps = 2 → 3");
+- **did:** how far the robot drove and turned, its wheel speeds, its LEDs, its sound, what it bumped into, the areas
+  it touched.
+
+The blocks are chips with the block's text (from the Program tab); a click opens the Program tab with the block
+selected. The facts are English, like the other messages.
+
+**How the record is made** (without changing the simulator's code, and without its debugger, which would highlight
+blocks in the Program tab):
+- **Decisions:** the compiled program's conditional jumps are found before the interpreter turns their labels into
+  indexes: case k of an `if` jumps to `i_{k+1}_n` when its condition is false, a `wait until` to `w_{k+1}_n`, a
+  `repeat while` to `r_e_n`; the compound's start comment carries its block's id. At run time, the value on the stack
+  before such a jump is the decision; the readings since the condition began are its inputs. Counting loops aren't
+  decisions here, and neither are the conditions of `?:` (later).
+- **Blocks running:** as the debugger knows them: an operation's `+` begins blocks, the next operation ends those in the
+  previous one's `-`. The innermost statement block running when an action operation runs is the block in effect for
+  that actuator; the action's values are on the stack.
+- **Readings:** the robot behaviour's `getSample` is wrapped: the value it pushed, and the block that read it.
+- **Per frame** (1/60 s): the readings and decisions (counted), the statement blocks that began, the pose, the wheel
+  speeds, the LEDs, the sound, bumps and touched areas; changes only of the global variables, the simulator's sensor
+  values and the blocks in effect.
+- **The report** keeps the facts of each failure and the record in steps of 100 ms (`trace`).
 - **Stale runs:** a world edited after a run marks its tests' runs with "The world changed since this run."
 
 **Data** (`nepoTest.sim.ts`, the world block's `data`, JSON):

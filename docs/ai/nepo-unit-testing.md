@@ -656,7 +656,20 @@ test's `path` check (the check block's data):
 - `bumps`: the frames in which the robot pushed against something.
 
 Failures: one per failed check, `expect: "simulation"`, a message in words ("the robot left its recorded path (by
-more than 2 cm) after 0.6 s"; a rule's starts with "rule:") and `check_block_id`. `covered_blocks` are the blocks whose
+more than 2 cm) after 0.6 s"; a rule's starts with "rule:"), `check_block_id` and `facts`.
+
+**The facts of a failure** (`nepoTest.simProgram.ts`; also in `checks[].facts`, and for a runtime error): the second
+before the failure (`from`, `to`, ms), from the run's record:
+- `sensed`: `[{sensor, port, mode, block, count, values: [[value, how often], …], last}]`, what the program read;
+- `ran`: `{decisions: [{block, kind: if | wait | while, k, yes, no, inputs}], actions: [{block, actuator, op, args, t,
+  times, when: {block, part}}]}`, the decisions and how often their condition held, and the blocks in effect for the
+  actuators with their values (`when`: the `if` and the part it is in, "yes", "no");
+- `remembered`: `[{name, from, to}]`, the global variables;
+- `did`: `{distance_cm, moved_cm, turned_deg, speeds, leds, sound_ms, bumps, touched}`.
+
+The report's `trace` is the record in steps of 100 ms: `[{t, x, y, h, l, r, leds, tone, bumps, running, reads,
+decisions}]` (wheel speeds in cm/s; `running`: the innermost statement block; `decisions`: `{"block:k": [yes, no]}`).
+The page sends NepoTest only `name`, `block_id`, `outcome` and `covered_blocks` of a simulation report. `covered_blocks` are the blocks whose
 operations ran (the stack machine's operations carry their block ids), so simulation tests count for coverage. A
 runtime error is `{"kind": "runtime_error", "message", "block_id", "block_type"}`, with the block whose operation ran
 last.

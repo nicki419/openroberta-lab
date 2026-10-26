@@ -712,7 +712,17 @@ body.blocklyMinimalBody * {
 .nepoSimStatus {
     margin-top: 6px;
     min-height: 1.4em;
+    max-height: 13em;
+    overflow-y: auto;
+    flex: 0 0 auto;
     color: #555;
+}
+
+.nepoSimFactsBox summary {
+    margin-left: 1.2em;
+    color: #777;
+    font-size: 90%;
+    cursor: pointer;
 }
 
 .nepoSimStatus.passed {
@@ -757,6 +767,7 @@ body.blocklyMinimalBody * {
 }
 
 .nepoSimTests {
+    flex: 0 0 auto;
     list-style: none;
     padding-left: 0;
     margin: 2px 0 0 0;
@@ -841,6 +852,46 @@ body.blocklyMinimalBody * {
     fill: #1e5aa8;
     stroke: #fff;
     opacity: 0.9;
+}
+
+/* the facts of a failure of a simulation test (nepoTest.simProgram factsElement), with the program's blocks as chips */
+.nepoFacts {
+    list-style: none;
+    margin: 2px 0 4px 1.2em;
+    padding: 2px 6px;
+    border-left: 2px solid #e0b4b4;
+    color: #444;
+    font-size: 90%;
+}
+
+.nepoFacts li {
+    padding: 1px 0;
+    color: #444;
+}
+
+.nepoFacts .nepoFactsHead {
+    color: #777;
+}
+
+.nepoChip {
+    display: inline-block;
+    margin: 0 1px;
+    padding: 0 5px;
+    border-radius: 3px;
+    background: #e8eef7;
+    border: 1px solid #b7c7de;
+    color: #1e5aa8;
+    font-size: 95%;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.nepoChip:hover {
+    background: #dbe9f9;
+}
+
+.nepoTestDetails li.nepoTestFactsItem {
+    padding-left: 0;
 }
 
 .nepoSimBadgeSvg text {

@@ -10,6 +10,8 @@
  * - "Simulation" shows the selected simulation world and its tests (nepoTest.simEditor): the world is drawn there, its tests are run and
  *   replayed, and their paths recorded. The world is the world block's data (JSON), a recorded path the data of the test's path check, so both
  *   are saved with the suite, and undo of a deleted block brings them back.
+ * - A failed check of a simulation test comes with the facts of the second before it (nepoTest.simProgram): what the robot sensed, what ran,
+ *   what it remembered, what it did. The program's blocks in them are chips: a click shows the block in the Program tab.
  * Suites saved before 2026-10-26 had simulation tests of their own ("nepoTest_simtest", one world each): they are dropped when they are loaded.
  * Only for the Edison robots (NepoTest supports them).
  */
@@ -24,6 +26,7 @@ import * as SUITE from 'nepoTest.suite';
 import * as RUNNER from 'nepoTest.runner';
 import * as SIM from 'nepoTest.sim';
 import * as SIMRUN from 'nepoTest.simRun';
+import * as SIMPROGRAM from 'nepoTest.simProgram';
 import { SimEditor, SimScene, SimTest } from 'nepoTest.simEditor';
 
 const SUPPORTED_GROUPS = ['edison'];
@@ -78,6 +81,10 @@ export function init(): void {
         setTolerance: setTolerance,
         forgetPath: forgetPath,
         simulatorScene: simulatorScene,
+        blockLabel: blockLabel,
+        showBlock: function (blockId: string) {
+            selectBlock(blockId, 'program');
+        },
     });
     simEditor.setLanguage(blocksLanguage);
     SUITE.setWorkspace(serializeSuite, loadSuite);
@@ -299,6 +306,41 @@ function programWorkspace(): any {
 
 function programXml(): string {
     return Blockly.Xml.domToText(Blockly.Xml.workspaceToDom(programWorkspace()));
+}
+
+/** a short name of a block of the program: the text of its fields and values, up to its first statement input */
+function blockLabel(blockId: string): string {
+    const ws = programWorkspace();
+    const block = ws && ws.getBlockById(blockId);
+    if (!block) {
+        return '?';
+    }
+    const parts: string[] = [];
+    for (const input of block.inputList) {
+        if (input.type === Blockly.NEXT_STATEMENT) {
+            break;
+        }
+        input.fieldRow.forEach(function (f) {
+            const t = f.getText && String(f.getText()).trim();
+            t && parts.push(t);
+        });
+        const target = input.connection && input.connection.targetBlock();
+        target && parts.push(target.toString(24));
+    }
+    const text = parts.join(' ').replace(/\s+/g, ' ') || block.type;
+    return text.length > 48 ? text.substring(0, 47) + '…' : text;
+}
+
+/** the facts of a failure of a simulation test, as a list item; its blocks are chips that show them in the Program tab */
+function factsItem(facts: SIMPROGRAM.Facts, worldBlockId: string): any {
+    const worldBlock = worldBlockId && workspace.getBlockById(worldBlockId);
+    const world = worldBlock ? SIM.parseData(worldBlock.data).world : null;
+    const name = function (id: string) {
+        const item = world && world.items.filter((i) => i.id === id)[0];
+        return item ? '"' + SIM.itemName(world, item, BLOCKS.kindWord) + '"' : id;
+    };
+    const list = SIMPROGRAM.factsElement(facts, 'nepoFacts', name, (block) => $('<span class="nepoChip linked"></span>').text(blockLabel(block)).attr('data-block', block).attr('data-workspace', 'program')[0]);
+    return $('<li class="nepoTestFactsItem"></li>').append(list);
 }
 
 /** the functions and global variables of the program in the Program tab, for the dropdowns of the test blocks */
@@ -959,8 +1001,10 @@ function showReport(index: number, report: any): void {
                 $f.attr('data-block', f.block_id).attr('data-workspace', 'program').addClass('linked'); // the block that caused the state
             }
             $details.append($f);
+            f.facts && $details.append(factsItem(f.facts, report.world_block_id));
         }
     });
+    const errorFacts = (report.failures || []).filter((f) => f.expect === 'error' && f.facts)[0];
     if (report.error) {
         const where = report.error.block_id ? report.error.block_type + (report.error.function ? ' (' + report.error.function + ')' : '') : '';
         const $e = $('<li class="nepoTestError"></li>').text(report.error.block_id ? text('runtimeError', where, report.error.message) : report.error.message);
@@ -968,6 +1012,7 @@ function showReport(index: number, report: any): void {
             $e.attr('data-block', report.error.block_id).attr('data-workspace', 'program');
         }
         $details.append($e);
+        errorFacts && $details.append(factsItem(errorFacts.facts, report.world_block_id));
     }
     if (report.simulation) {
         simEditor.showRun(report.block_id, report, false); // the run can be replayed in the Simulation tab

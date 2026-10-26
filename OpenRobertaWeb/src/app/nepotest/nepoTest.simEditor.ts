@@ -15,11 +15,13 @@
  * - The mouse wheel and the buttons zoom; dragging the empty floor moves the view. The view is kept with the world (data.view).
  * - The background is chosen from the simulator's; "from the simulator" takes over the simulator's current scene.
  * - The tolerance widens the recorded path to the corridor the robot must stay in (the TOL of the test's path check).
- * - A run is replayed (play, or drag the time slider), with what each check found.
+ * - A run is replayed (play, or drag the time slider), with what each check found; under a failed check, the facts of the second before
+ *   (nepoTest.simProgram): what the robot sensed, what ran, what it remembered, what it did, with the program's blocks as chips.
  * The editor knows nothing about Blockly or the test runner: the tests controller passes the data in and gets it back (EditorHost).
  */
 import * as SIM from 'nepoTest.sim';
 import * as SIMRUN from 'nepoTest.simRun';
+import * as PROGRAM from 'nepoTest.simProgram';
 
 /** a test of the world shown, as its block says */
 export interface SimTest {
@@ -57,6 +59,10 @@ export interface EditorHost {
     forgetPath(testId: string): void;
     /** the scene of the Lab's simulator, or a message why there is none */
     simulatorScene(): SimScene | string;
+    /** a short name of a block of the program (in the Program tab) */
+    blockLabel(blockId: string): string;
+    /** shows a block of the program (the Program tab, the block selected) */
+    showBlock(blockId: string): void;
 }
 
 interface Run {
@@ -71,6 +77,7 @@ interface Run {
     checks: any[]; // the report's checks: {text, rule, passed, message}
     recorded: boolean; // its path was recorded
     failure: string; // the first failure's message (English, as NepoTest's), if it failed
+    errorFacts: PROGRAM.Facts; // the facts of a runtime error
     passed: boolean;
     skipped: boolean;
     expectedFailure: boolean; // it should fail, and it did: passed
@@ -162,6 +169,8 @@ const TEXT: { [lang: string]: { [key: string]: string } } = {
         front: 'front',
         right: 'right',
         imported: 'The scene of the simulator was taken over.',
+        showBlock: 'Show this block in the program',
+        facts: 'what happened before',
         kind_goal: 'Goal',
         kind_fail: 'Fail area',
         kind_color: 'Area',
@@ -244,6 +253,8 @@ const TEXT: { [lang: string]: { [key: string]: string } } = {
         front: 'vorne',
         right: 'rechts',
         imported: 'Die Szene der Simulation wurde übernommen.',
+        showBlock: 'Diesen Block im Programm zeigen',
+        facts: 'was davor geschah',
         kind_goal: 'Ziel',
         kind_fail: 'Fehlerbereich',
         kind_color: 'Fläche',
@@ -730,6 +741,7 @@ export class SimEditor {
             expectedFailure: !!report.expected_failure,
             unexpectedPass: !!failure && failure.expect === 'should',
             failure: failure ? failure.message : report.error ? report.error.message : null,
+            errorFacts: ((report.failures || []).filter((f) => f.expect === 'error' && f.facts)[0] || {}).facts || null,
             stale: false,
         };
         this.runs[testId] = run;
@@ -1181,12 +1193,47 @@ export class SimEditor {
             (run.recorded
                 ? this.text('recorded', this.describe(run))
                 : this.text(run.expectedFailure ? 'expectedFailure' : run.passed ? 'passed' : 'failed', this.describe(run))) + (run.stale ? ' ' + this.text('stale') : '');
+        let first = true; // the first facts are open, the others can be opened
+        if (run.errorFacts) {
+            this.status.appendChild(this.factsElement(run.errorFacts, first));
+            first = false;
+        }
         const list = html('ul', 'nepoSimChecks', this.status);
         for (const check of run.checks) {
             const li = html('li', check.passed === true ? 'passed' : check.passed === false ? 'failed' : 'open', list);
-            li.textContent = (check.passed === true ? '✓ ' : check.passed === false ? '✗ ' : '– ') + (check.message || check.text);
+            li.appendChild(document.createTextNode((check.passed === true ? '✓ ' : check.passed === false ? '✗ ' : '– ') + (check.message || check.text)));
             li.title = check.text + (check.rule ? ' (rule)' : '');
+            if (check.facts) {
+                li.appendChild(this.factsElement(check.facts, first));
+                first = false;
+            }
         }
+    }
+
+    /** the facts of a failure (to open): what the robot sensed, what ran, what it remembered, what it did; the blocks as chips */
+    private factsElement(facts: PROGRAM.Facts, open: boolean): HTMLElement {
+        const details = html('details', 'nepoSimFactsBox') as HTMLDetailsElement;
+        details.open = open;
+        html('summary', '', details).textContent = this.text('facts');
+        details.appendChild(this.factsList(facts));
+        return details;
+    }
+
+    private factsList(facts: PROGRAM.Facts): HTMLElement {
+        const name = (id: string) => {
+            const item = this.item(id);
+            return item ? '"' + SIM.itemName(this.data.world, item, (k) => this.kindWord(k)) + '"' : id;
+        };
+        return PROGRAM.factsElement(facts, 'nepoFacts', name, (block) => {
+            const chip = html('span', 'nepoChip');
+            chip.textContent = this.host.blockLabel(block);
+            chip.title = this.text('showBlock');
+            chip.addEventListener('click', (e: Event) => {
+                e.stopPropagation();
+                this.host.showBlock(block);
+            });
+            return chip;
+        });
     }
 
     /** the tests of the world: select one to see its start, its path and its run */

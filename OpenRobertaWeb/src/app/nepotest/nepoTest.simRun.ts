@@ -26,12 +26,15 @@
  * passed: true, false, or null (not decided: a path not recorded yet, or the program failed before). result: why the run ended: finished |
  * until | time_limit | error. item and point: what the picture marks (the first area touched or obstacle bumped into by a failed check, where
  * the robot left its path). Positions in cm, headings in degrees (not wrapped).
+ * The run is recorded (nepoTest.simProgram): a failed check, and a runtime error, get the facts of the second before (`facts`: what the
+ * robot sensed, what ran, what it remembered, what it did), and the report has the record in steps of 100 ms (`trace`).
  */
 import * as COMM from 'comm';
 import * as GUISTATE_C from 'guiState.controller';
 // @ts-ignore (Blockly has no type declarations)
 import * as Blockly from 'blockly';
 import * as SIM from 'nepoTest.sim';
+import * as PROGRAM from 'nepoTest.simProgram';
 import { Interpreter } from 'interpreter.interpreter';
 import { RobotSimBehaviour } from 'interpreter.robotSimBehaviour';
 import { SelectionListener } from 'robot.base';
@@ -555,11 +558,14 @@ class Run {
     private path: number[][] = [];
     private leds: any[][] = [];
     private bumps = 0;
+    private bump: string = undefined; // what the robot bumped into in this frame (null: the wall)
+    private touching: string[] = []; // the areas it touches
     private checked: string = null;
+    private recorder: PROGRAM.Recorder;
     outcome: { result: string; t: number } = null;
     error: any = null;
 
-    constructor(private test: any, compiled: any, private uCtx: CanvasRenderingContext2D, private options: RunOptions) {
+    constructor(private test: any, compiled: any, private uCtx: CanvasRenderingContext2D, private options: RunOptions, model: PROGRAM.ProgramModel) {
         const sim = test.simulation;
         const world: SIM.SimWorld = sim.world;
         this.world = world;
@@ -574,7 +580,9 @@ class Run {
         ud.height = uCtx.canvas.height;
         this.udCtx = ud.getContext('2d', { willReadFrequently: true } as any) as CanvasRenderingContext2D;
 
-        this.interpreter = new Interpreter(JSON.parse(compiled.javaScriptProgram), new RobotSimBehaviour(), () => (this.terminated = true), [], 'test', false);
+        const program = JSON.parse(compiled.javaScriptProgram);
+        PROGRAM.scanDecisions(program.ops || [], model); // before the interpreter's State turns the jumps' labels into indexes
+        this.interpreter = new Interpreter(program, new RobotSimBehaviour(), () => (this.terminated = true), [], 'test', false);
         const state = (this.interpreter as any).state;
         const getOp = state.getOp.bind(state);
         const covered = this.covered;
@@ -589,6 +597,7 @@ class Run {
             }
             return op;
         };
+        this.recorder = new PROGRAM.Recorder(model, state, this.interpreter.getRobotBehaviour(), () => this.now);
         this.robot = createRobot(nextRobotId++, compiled.configuration, this.interpreter, this.listener);
         this.start = SIM.startOf(world, sim.start);
         const theta = (-this.start.heading * Math.PI) / 180;
@@ -675,7 +684,8 @@ class Run {
             try {
                 this.renderUntil = this.now + runFrame(this.interpreter);
             } catch (e) {
-                this.error = { kind: 'runtime_error', message: String((e && e.message) || e), block_id: this.lastBlock };
+                // the innermost block running (an expression too), as the record knows it; else the last block that began
+                this.error = { kind: 'runtime_error', message: String((e && e.message) || e), block_id: this.recorder.innermostOpen() || this.lastBlock };
                 this.end('error');
                 return;
             }
@@ -684,6 +694,7 @@ class Run {
         const chassis = robot.chassis;
         this.given();
         robot.updateActions(robot, FRAME_MS / 1000, running);
+        this.bump = undefined;
         if (
             ((chassis.frontLeft.bumped || chassis.wheelFrontLeft.bumped) && chassis.left.speed > 0) ||
             (chassis.backLeft.bumped && chassis.left.speed < 0) ||
@@ -707,12 +718,8 @@ class Run {
         }
     }
 
-    /** the robot bumped: the "never bumps into" checks of the obstacle it bumped into (the nearest one; none: the wall) fail */
+    /** the robot bumped: into the nearest obstacle (none: the wall); the "never bumps into" checks of that obstacle fail */
     private bumped(): void {
-        const open = this.checks.filter((c) => c.spec.check === 'never_bumps' && c.passed === null);
-        if (!open.length) {
-            return;
-        }
         const poly = this.outline();
         let into: string = null;
         let best = BUMP_MARGIN;
@@ -724,7 +731,8 @@ class Run {
                 into = item.id;
             }
         }
-        open.filter((c) => !c.spec.item || c.spec.item === into).forEach((c) => this.settle(c, false, into));
+        this.bump = into;
+        this.checks.filter((c) => c.spec.check === 'never_bumps' && c.passed === null && (!c.spec.item || c.spec.item === into)).forEach((c) => this.settle(c, false, into));
     }
 
     private pose(): number[] {
@@ -755,6 +763,7 @@ class Run {
         this.sample();
         const poly = this.outline();
         const box = bbox(poly);
+        this.touching = this.world.items.filter((i) => SIM.isArea(i) && this.shapes[i.id] && touches(this.shapes[i.id], poly, box)).map((i) => i.id);
         for (const check of this.checks) {
             if (check.passed !== null || check.skipped) {
                 continue;
@@ -775,6 +784,23 @@ class Run {
             }
             this.touchingUntil = touching;
         }
+    }
+
+    /** the frame for the record: what the robot does now */
+    private record(): void {
+        const chassis = this.robot.chassis;
+        this.recorder.endFrame(
+            {
+                t: this.now,
+                pose: this.pose(),
+                speeds: [chassis.left.speed / SIM.UNITS_PER_CM, chassis.right.speed / SIM.UNITS_PER_CM],
+                leds: [this.robot.leds.colorL != null, this.robot.leds.colorR != null],
+                tone: this.toneUntil !== null,
+                bump: this.bump,
+                touching: this.touching,
+            },
+            this.interpreter
+        );
     }
 
     private end(result: string): void {
@@ -807,6 +833,7 @@ class Run {
                     break;
                 }
                 this.check();
+                this.record();
                 if (!this.outcome && this.terminated) {
                     this.end('finished');
                 } else if (!this.outcome && this.now >= maxTime) {
@@ -870,9 +897,11 @@ class Run {
         const outcome = this.outcome;
         this.decideRest();
         const failures: any[] = [];
+        const factsAt: { [t: string]: PROGRAM.Facts } = {};
+        const factsOf = (t: number) => factsAt[t] || (factsAt[t] = PROGRAM.facts(this.recorder, t === null || t === undefined ? outcome.t : t));
         if (outcome.result === 'error') {
             this.error.block_type = blockType(source, this.error.block_id);
-            failures.push({ expect: 'error', expected: null, actual: this.error, message: 'the program failed: ' + this.error.message });
+            failures.push({ expect: 'error', expected: null, actual: this.error, message: 'the program failed: ' + this.error.message, facts: factsOf(outcome.t) });
         }
         for (const check of this.checks) {
             if (check.passed === false) {
@@ -883,6 +912,7 @@ class Run {
                     message: (check.spec.rule ? 'rule: ' : '') + check.message,
                     described: true,
                     check_block_id: check.spec.block_id,
+                    facts: factsOf(check.t),
                 });
             }
         }
@@ -927,7 +957,9 @@ class Run {
                 item: c.item,
                 point: c.point,
                 message: c.message,
+                facts: c.passed === false ? factsOf(c.t) : undefined,
             })),
+            trace: PROGRAM.trace(this.recorder),
             simulation: {
                 result: outcome.result,
                 t: outcome.t,
@@ -942,6 +974,9 @@ class Run {
         };
         if (expectedFailure) {
             report.expected_failure = true;
+        }
+        if (this.recorder.failure) {
+            report.record_failure = this.recorder.failure; // the record is incomplete (the run itself isn't affected)
         }
         return report;
     }
@@ -1040,7 +1075,8 @@ export function runTest(test: any, programXml: string, options: RunOptions = {})
         if (result.rc !== 'ok') {
             return errorReport(test, compileProblem(result));
         }
-        const run = new Run(test, result, floor.getContext('2d', { willReadFrequently: true } as any) as CanvasRenderingContext2D, options);
+        const model = new PROGRAM.ProgramModel(source);
+        const run = new Run(test, result, floor.getContext('2d', { willReadFrequently: true } as any) as CanvasRenderingContext2D, options, model);
         return run.run().then(() => run.report(source));
     });
 }
