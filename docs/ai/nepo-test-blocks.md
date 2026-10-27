@@ -150,6 +150,29 @@ with `ora.sh start-from-git`:**
   selected.
 - **Cost:** a run of 7.4 s took 93 ms with the record; its report was 17 KB.
 
+**Checks of behaviour (2026-10-27), verified in headless Chrome against a Lab built from this repository:**
+- **The line follower's world** got starts C (on the line) and D (beside it), the tests "on the line, it turns left"
+  (0.3 s, *from 0 ms on, the robot always turns left*) and "beside the line, it turns right" (0.4 s), and test A the
+  checks *whenever it sees the line, the robot turns left, after 0 ms* and *whenever it doesn't see the line, the robot
+  turns right, after 0 ms*. *Run all*: 4 passed ("whenever it saw the line (122 times, 2.85 s checked), the robot turned
+  left").
+- **With the bug** (on black, left 40 % / right 10 %): A failed "it saw the line, but the robot did not turn left: it
+  drove forward, turning right (8.62 cm/s, 86°/s), 17 times, 3.85 s in total; the first from 1 to 1.18 s"; "on the line"
+  failed "the robot did not turn left: it drove forward, turning right (8.63 cm/s, 86°/s), from 0 to 0.3 s", with the
+  facts: the curve block with left 40 %, right 10 % in effect "when [if] says yes". "Beside the line" still passed. The
+  runner showed the same, 2 passed and 3 failed.
+- **The clap counter** in a world: "the 3rd clap starts it" (set up: *variable claps is 2*, a clap at 0.3 s) passed
+  *within 300 ms after each clap, the robot has its left LED on* (0.03 s), *within 1500 ms … drives forward* (1.37 s:
+  it blinks first) and *at the end, variable claps = 3*. "Two claps count as 2" (claps at 0.3 and 1.3 s) failed: "claps
+  was 3 at the end (expected claps = 2; it became 3 at 0.33 s)", the facts showing "sound: yes 3×", "repeated 3×",
+  "claps = 0 → 3": the simulator's sound sensor is a state (`nepo-unit-testing.md` §4.11). With *this test should
+  fail*, it passed. "It waits for claps" passed (stands still, both LEDs off).
+- **The conditions** read the simulator's values: the light sensors (below / above 50 %), key ▶ (a key press set up at
+  0.2 s), an obstacle ahead (a start in front of the obstacle). A condition that never held, an event that never
+  happened: "not checked", the test passes on its other checks.
+- **Blocks:** the Checks category and the labels in German; a *whenever* switched to a light sensor showed its %;
+  saving and loading the suite gave the same XML.
+
 ---
 
 ## 1. The blocks
@@ -164,12 +187,16 @@ sync:** the field and input names below are the contract between them.
 | `nepoTest_run` | *run test* [name ▾] | `NAME` (dropdown of the workspace's tests, worlds and their tests, shown as "world ▸ test"; `''` shown as `?` = none chosen) | selects a test; a world: all its tests |
 | `nepoTest_test` | *test* [name] *given / when / then*, *this test should* [pass ▾ / fail] | `NAME`, `SHOULD` (`pass`, `fail`); statements `GIVEN`, `WHEN`, `THEN` | one test (`name`, `block_id`, `origin: "blocks"`; `should: "fail"`) |
 | `nepoTest_world` | *simulation world* [name], a picture of its world, *rules for every test*, *tests* | `NAME`; statements `RULES` (check blocks), `TESTS` (`nepoTest_simcase`); **the world is the block's `data`** (JSON, §5); the picture is a `FieldImage` without a value, drawn asynchronously (a PNG of the floor, the objects and the robot at its starts) | nothing itself: its tests (`simulation.world_block_id`, `world_name`, `world`); its rules are copied into each test's `checks` with `"rule": true` |
-| `nepoTest_simcase` | ☑ *test* [name] / *set up: the robot starts at* [A ▾] / (set-up blocks) / *run: the program* [for ▾ / until the robot touches] [area ▾] *, at most* [5] *s* / *check:* (checks) / *this test should* [pass ▾ / fail] | `ACTIVE` (checkbox, `TRUE`/`FALSE`), `NAME`, `START` (a start's id), `MODE` (`for`, `until`), `UNTIL` (an area's id; shown only for `until`), `SECONDS`, `SHOULD`; statements `SETUP` (clap, key, variable only: the simulator has no IR remote and no IR messages), `CHECKS` | a test of the world (`simulation` with `start`, `until`, `checks`; `max_time_ms`, `globals`, `world` events; `skip: true` when unticked) |
+| `nepoTest_simcase` | ☑ *test* [name] / *set up: the robot starts at* [A ▾] / (set-up blocks) / *run: the program* [for ▾ / until the robot touches] [area ▾] *, at most* [5] *s* / *check:* (checks) / *this test should* [pass ▾ / fail] | `ACTIVE` (checkbox, `TRUE`/`FALSE`), `NAME`, `START` (a start's id), `MODE` (`for`, `until`), `UNTIL` (an area's id; shown only for `until`), `SECONDS` (one decimal, at least 0.1), `SHOULD`; statements `SETUP` (clap, key, variable only: the simulator has no IR remote and no IR messages), `CHECKS` | a test of the world (`simulation` with `start`, `until`, `checks`; `max_time_ms`, `globals`, `world` events; `skip: true` when unticked) |
 | `nepoTest_check_reaches` | *the robot reaches* [area ▾] | `AREA` (an area's id, or `ANY`: any goal area) | `{"check": "reaches", "item"}` |
 | `nepoTest_check_never_touches` | *the robot never touches* [area ▾] | `AREA` (or `ANY`: any fail area) | `{"check": "never_touches", "item"}` |
 | `nepoTest_check_ends_in` | *at the end, the robot is completely in* [area ▾] | `AREA` | `{"check": "ends_in", "item"}` |
 | `nepoTest_check_never_bumps` | *the robot never bumps into* [obstacle ▾] | `OBSTACLE` (an obstacle's id, or `ANY`: anything, the wall too) | `{"check": "never_bumps", "item"}` |
 | `nepoTest_check_path` | *the robot stays on its recorded path ±* [2] *cm* (recorded: 7.4 s) | `TOL` (cm, decimals allowed); **the recorded path is the block's `data`** (`{"path": [[x, y, heading], …], "time_ms"}`), set by *Record path* | `{"check": "path", "path", "time_ms", "tolerance_cm"}` (no path: a warning, the check checks nothing) |
+| `nepoTest_check_does` | *from* [100] *ms on, the robot always* [turns left ▾] | `AFTER` (ms), `DOES`: `drives_forward`, `drives_backward`, `turns_left`, `turns_right`, `stands_still`, `left_led_on`, `left_led_off`, `right_led_on`, `right_led_off`, `leds_on`, `leds_off` (both), `plays_sound`, `silent` | `{"check": "does", "does", "after_ms"}` |
+| `nepoTest_check_whenever` | *whenever* [it sees the line ▾] *,* / *the robot* [turns left ▾] *, after* [0] *ms* | `WHEN`: `line`, `no_line`, `obstacle_ahead`, `obstacle_left`, `obstacle_right`, `no_obstacle`, `left_light_below`, `left_light_above`, `right_light_below`, `right_light_above` (with `PERCENT`, shown only for them), `sound`, `play_key`, `rec_key`; `DOES`, `AFTER` (ms) | `{"check": "whenever", "when", "percent", "does", "after_ms"}` |
+| `nepoTest_check_after` | *within* [500] *ms after* [each clap ▾] *,* / *the robot* [drives forward ▾] | `WITHIN` (ms, at least 1), `EVENT`: `clap`, `key` (of the set-up), `line_start`, `line_end`, `obstacle` (appears); `DOES` | `{"check": "after", "event", "within_ms", "does"}` (a clap or key without one in the set-up: a warning) |
+| `nepoTest_check_variable` | *at the end, variable* [claps ▾] [= ▾] (value) | `VAR`, `OP` (`EQ` … `GTE`); input `VALUE` (a number, true/false, a list of numbers) | `{"check": "variable", "variable", "op", "value"}` |
 | `nepoTest_given_clap` | *at* [1000] *ms: a clap* | `AT` | world `clap` |
 | `nepoTest_given_key` | *at … ms: key* [▶ PLAY ▾] *is pressed* | `AT`, `PORT` (PLAY/REC) | world `key` |
 | `nepoTest_given_obstacle` | *from … ms for … ms: an obstacle* [FRONT ▾] | `FROM`, `DURATION` (0 = until the end), `PORT` | world `obstacle` |
@@ -321,6 +348,7 @@ OpenRobertaWeb/src/app/nepotest/nepoTest.runner.ts     client of the Web Worker 
 OpenRobertaWeb/src/app/nepotest/nepoTest.sim.ts        a simulation world: data format, starts and names, the simulator's geometry and look (for drawing and replay)
 OpenRobertaWeb/src/app/nepotest/nepoTest.simRun.ts     the tests of worlds on the Lab's simulator: the program for a test, compiling, the run and its checks, the floor picture
 OpenRobertaWeb/src/app/nepotest/nepoTest.simProgram.ts the record of a run (decisions, readings, blocks in effect, variables, motion) and the facts of a failure
+OpenRobertaWeb/src/app/nepotest/nepoTest.simBehaviour.ts the checks of behaviour (does, whenever, after) and of a variable at the end, from the record
 OpenRobertaWeb/src/app/nepotest/nepoTest.simEditor.ts  the Simulation panel: drawing, starts, the world's tests, zoom, undo, record/run, replay (no Blockly inside)
 OpenRobertaWeb/src/app/nepotest/nepotest.worker.js     module Web Worker: Pyodide + nepotest.browser
 OpenRobertaWeb/src/app/roberta/controller/tests.controller.ts   the tab: workspace, dropdowns, panels, running
@@ -332,7 +360,7 @@ NepoTest/nepotest/simulation.py                        simulation worlds and the
 ```
 
 The wiring into the Lab consists of:
-- `main.js`: a path per module (also `nepoTest.sim`, `nepoTest.simRun`, `nepoTest.simProgram`, `nepoTest.simEditor`), a `blockly` shim for the
+- `main.js`: a path per module (also `nepoTest.sim`, `nepoTest.simRun`, `nepoTest.simProgram`, `nepoTest.simBehaviour`, `nepoTest.simEditor`), a `blockly` shim for the
   blocks module, the require list, and `testsController.init()` right after `configurationController.init()`;
 - `tsconfig.json`: `paths` (also `robot.edison`, which `nepoTest.simRun` imports);
 - `guiState.controller.js`: a `tabTests` branch in `setView`, which keeps the program menu, and `addLanguageListener`;
@@ -563,6 +591,32 @@ suite is loaded.
 - **Run tests in the runner:** runs simulation tests like any other test. Their runs are kept, and the result line has
   *show the run*.
 
+**Checks of behaviour** (`nepoTest.simBehaviour.ts`): what the robot does, decided from the run's record when the run
+has ended. A test can check only its behaviour (no area at all); a world's rules can be such checks too.
+- **What it does** is measured in every frame (1/60 s) from how the robot really moved in the simulator, its position
+  and heading: *drives forward / backward* (at least 1 cm/s along its heading; 10 % power is 3.5 cm/s), *turns left /
+  right* (at least 10°/s: a curve whose wheels differ by 4 % turns faster), *stands still* (neither). Curving left is
+  driving forward and turning left. And its LEDs (on, off; left, right, both) and its sound (a tone or a sound file).
+  A robot that drives against an obstacle jitters from frame to frame (the simulator turns the bumped wheel back): near a
+  bump, the motion is measured over 100 ms, so pressing against a wall is standing still.
+- **What it senses** (the conditions of *whenever*, the events of *after*) is the simulator's sensor values, whether
+  or not the program reads them: the line tracker sees black, an obstacle ahead / left / right, a light sensor's %, the
+  sound (loud, above 25 %), the keys.
+- **When:** the program reads its sensors before the robot moves in a frame, so a frame's motion is compared with what
+  the robot sensed at the end of the frame before. A program that reacts at once (a loop without a wait) passes
+  *whenever …, after 0 ms*; a line follower that switches every frame needs 0 ms (with 20 ms, few of its moments
+  count).
+- ***from* t *ms on, the robot always* …:** every frame from t to the end. ***whenever* … *, the robot* … *, after* t
+  *ms*:** every frame in which the condition has held for t ms, for as long as it holds. ***within* t *ms after* …:**
+  after each event, some frame within t in which the robot does it (an event too close to the end of the run to tell
+  is left out). ***at the end, variable* …:** the program's global variable when the run ends.
+- **Not checked:** a condition that never held, an event that never happened: the check shows "–" with why, and the
+  test is decided by its other checks.
+- **A failure says what the robot did instead and when:** "it saw the line, but the robot did not turn left: it drove
+  forward, turning right (8.62 cm/s, 86°/s), 17 times, 3.85 s in total; the first from 1 to 1.18 s". The replay marks
+  where it first went wrong (a red ✗), and its facts are those of the moments around then (they end at most half a
+  second after it went wrong); of a variable: around its last change ("it became 3 at 0.33 s").
+
 **Why it failed: the facts** (`nepoTest.simProgram.ts`). Every run is recorded, and a failed check (and a runtime error)
 comes with the facts of the second before it. The panel shows them under the check (*what happened before*, the first
 one open), the runner under the failure:
@@ -591,9 +645,11 @@ blocks in the Program tab):
   that actuator; the action's values are on the stack.
 - **Readings:** the robot behaviour's `getSample` is wrapped: the value it pushed, and the block that read it.
 - **Per frame** (1/60 s): the readings and decisions (counted), the statement blocks that began, the pose, the wheel
-  speeds, the LEDs, the sound, bumps and touched areas; changes only of the global variables, the simulator's sensor
-  values and the blocks in effect.
-- **The report** keeps the facts of each failure and the record in steps of 100 ms (`trace`).
+  speeds, the LEDs, the sound, bumps and touched areas, the simulator's sensor values (shared while unchanged); changes
+  only of the global variables, the simulator's sensor values and the blocks in effect. And the frame before the
+  program starts (`initial`): where the robot starts, what its sensors see.
+- **The report** keeps the facts of each failure and the record in steps of 100 ms (`trace`, with the motion of each
+  step: `does`).
 - **Stale runs:** a world edited after a run marks its tests' runs with "The world changed since this run."
 
 **Data** (`nepoTest.sim.ts`, the world block's `data`, JSON):
@@ -632,8 +688,10 @@ outline (for its checks of the data, and its unused copy).
   and fail the other.
 - **Simulation tests:**
   - They run only in the Lab (the command line skips them).
-  - Their checks are about areas, bumps and the recorded path. Checks of behaviour ("on the line, it turns left"),
-    the facts of a failure and a verdict naming the block are the next steps (the plan's phases 2 to 4).
+  - Their checks are about areas, bumps, the recorded path, the robot's behaviour and its variables, and a failure
+    comes with its facts. A verdict naming the block and what is wrong with it is the next step (the plan's phase 4).
+  - The behaviour checks know the Edison's sensors and actuators only; they don't check powers (a curve's speeds) or
+    tones' frequencies, and *after* has no "for how long".
   - Recording a path isn't undone by Blockly's undo (*Forget path* removes it).
   - Runs are kept until the page is reloaded; they aren't saved.
   - The simulator's uploaded backgrounds, markers and movable obstacles aren't supported.

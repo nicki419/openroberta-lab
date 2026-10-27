@@ -476,6 +476,66 @@ class SimulationWorldTest(unittest.TestCase):
         self.assertEqual([t['name'] for t in json.loads(browser.simulation_test(xml, 't1'))['tests']], ['one'])
         self.assertEqual(json.loads(browser.simulation_test(xml, 'nope'))['tests'], [])
 
+    def test_behaviour_checks(self):
+        def block(kind, block_id, **fields):
+            value = fields.pop('value', None)
+            inner = ''.join('<field name="%s">%s</field>' % (k, v) for k, v in fields.items())
+            if value is not None:
+                inner += '<value name="VALUE"><block type="math_number" id="%sn"><field name="NUM">%d</field></block></value>' % (block_id, value)
+            return '<block type="nepoTest_check_%s" id="%s">%s</block>' % (kind, block_id, inner)
+
+        rules = block('whenever', 'c0', WHEN='obstacle_ahead', DOES='stands_still', AFTER='200')
+        checks = (block('does', 'c1', AFTER='100', DOES='turns_left')
+                  + block('whenever', 'c2', WHEN='left_light_below', PERCENT='30', DOES='left_led_on', AFTER='0')
+                  + block('after', 'c3', WITHIN='500', EVENT='clap', DOES='drives_forward')
+                  + block('variable', 'c4', VAR='claps', OP='GTE', value=2))
+        setup = '<block type="nepoTest_given_clap" id="cl"><field name="AT">300</field></block>'
+        spec, problems = translate(suite_of(world_xml(course(GOAL), rules, case_xml('t1', 'reacts', setup=setup, checks=checks))))
+        self.assertEqual(problems, [])
+        self.assertEqual(spec['tests'][0]['simulation']['checks'], [
+            {'check': 'whenever', 'block_id': 'c0', 'rule': True, 'does': 'stands_still', 'after_ms': 200, 'when': 'obstacle_ahead'},
+            {'check': 'does', 'block_id': 'c1', 'does': 'turns_left', 'after_ms': 100},
+            {'check': 'whenever', 'block_id': 'c2', 'does': 'left_led_on', 'after_ms': 0, 'when': 'left_light_below', 'percent': 30},
+            {'check': 'after', 'block_id': 'c3', 'does': 'drives_forward', 'event': 'clap', 'within_ms': 500},
+            {'check': 'variable', 'block_id': 'c4', 'variable': 'claps', 'op': 'GTE', 'value': 2}])
+        self.assertEqual(validate_spec(spec), [])
+        try:
+            import jsonschema
+        except ImportError:
+            jsonschema = None
+        if jsonschema:
+            with open(os.path.join(os.path.dirname(HERE), 'schema', 'nepo-tests.schema.json'), encoding='utf-8') as f:
+                jsonschema.validate(dict(spec, version=1, program='p.xml'), json.load(f))
+
+        no_clap = case_xml('t2', 'no clap', checks=block('after', 'c5', WITHIN='500', EVENT='clap', DOES='drives_forward'))
+        bad = case_xml('t3', 'bad', checks=block('does', 'c6', AFTER='100', DOES='flies') + block('whenever', 'c7', WHEN='left_light_above', PERCENT='120', DOES='silent', AFTER='0')
+                       + block('variable', 'c8', VAR='claps', OP='LT') + block('after', 'c9', WITHIN='0', EVENT='line_start', DOES='silent'))
+        _, problems = translate(suite_of(world_xml(course(GOAL), tests=no_clap + bad)))
+        self.assertEqual([(p['block_id'], p['severity']) for p in problems],
+                         [('c5', 'warning'), ('c6', 'error'), ('c7', 'error'), ('c8', 'error'), ('c9', 'error')])
+        self.assertIn('has no clap in its set-up', problems[0]['message'])
+
+        def sim_problems(*checks):
+            return validate_spec({'format': 'nepotest', 'tests': [{'name': 'x', 'max_time_ms': 1000, 'simulation': {
+                'world': SIM.default_world(), 'start': 'A', 'checks': list(checks)}}]})
+        self.assertEqual(sim_problems({'check': 'does', 'does': 'stands_still'}, {'check': 'variable', 'variable': 'n', 'value': [1, 2]}), [])
+        found = sim_problems({'check': 'whenever', 'when': 'line', 'does': 'drives_forward', 'after_ms': -1},
+                             {'check': 'whenever', 'when': 'right_light_below', 'does': 'silent'},
+                             {'check': 'after', 'event': 'clap', 'does': 'silent'},
+                             {'check': 'variable', 'variable': 'n', 'op': 'GT', 'value': True})
+        self.assertEqual(len(found), 4, found)
+        self.assertTrue(all(any(word in p for p in found) for word in ('after_ms', 'percent', 'within_ms', 'only numbers')), found)
+
+    def test_a_run_of_tenths_of_a_second(self):
+        def length(seconds):
+            case = case_xml('t1', 'short', checks=check_xml('reaches', 'c1', 'ANY')).replace('<field name="SECONDS">5</field>', '<field name="SECONDS">%s</field>' % seconds)
+            spec, problems = translate(suite_of(world_xml(course(GOAL), tests=case)))
+            return spec['tests'][0]['max_time_ms'], messages(problems, 'error')
+        self.assertEqual(length('0.3'), (300, []))
+        self.assertEqual(length('2,5'), (2500, []))
+        self.assertEqual(length('0'), (0, ['a test runs for at least 0.1 s']))
+        self.assertEqual(length('soon')[1], ["the time must be a number of seconds, not 'soon'"])
+
     def test_skip_and_rules(self):
         skipped = {'name': 'x', 'skip': True, 'expect': {'status': 'finished'}}
         report, coverage = run_test(None, skipped)

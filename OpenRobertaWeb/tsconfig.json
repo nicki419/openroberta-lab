@@ -326,6 +326,9 @@
       "nepoTest.simProgram": [
         "app/nepotest/nepoTest.simProgram"
       ],
+      "nepoTest.simBehaviour": [
+        "app/nepotest/nepoTest.simBehaviour"
+      ],
       "tests.controller": [
         "app/roberta/controller/tests.controller"
       ],

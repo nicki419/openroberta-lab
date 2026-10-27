@@ -15,7 +15,9 @@
  *
  * A test (NepoTest JSON, made by nepotest/blocks.py from a test of a world) starts the robot at one of the world's starts, runs the whole program
  * (until it ends, until the robot touches the test's "until" area, or for max_time_ms) and checks what the robot does: its checks and the
- * world's rules (simulation.checks, rule: true). A run never stops at a failed check: every check is decided. The test passes only if every
+ * world's rules (simulation.checks, rule: true). The checks of where the robot goes (reaches, never touches, ends in, never bumps into, stays
+ * on its recorded path) are decided during the run; the checks of its behaviour (does, whenever, after: nepoTest.simBehaviour) and of a
+ * variable at the end, from the run's record when it has ended. A run never stops at a failed check: every check is decided. The test passes only if every
  * check holds and the program didn't fail. A test that should fail (`should: "fail"`) is turned round as in spec.py apply_should, but only by
  * its own checks: a failed rule of the world fails it anyway. A skipped test (`skip: true`) doesn't run.
  *
@@ -23,11 +25,13 @@
  *   {name, block_id (the test), world_block_id, kind: 'simulation', outcome, expected_failure, failures, error, time_ms, variables,
  *    covered_blocks, status, checks: [{block_id, check, text, rule, passed, t, item, point, message}],
  *    simulation: {result, t, item, point, path: [[t_ms, x, y, heading], ...], leds: [[t_ms, left, right], ...], start, recorded, bumps}}
- * passed: true, false, or null (not decided: a path not recorded yet, or the program failed before). result: why the run ended: finished |
+ * passed: true, false, or null (not decided: a path not recorded yet, the program failed before, nothing to check: the condition of a
+ * "whenever" never held, no event of an "after" happened). result: why the run ended: finished |
  * until | time_limit | error. item and point: what the picture marks (the first area touched or obstacle bumped into by a failed check, where
- * the robot left its path). Positions in cm, headings in degrees (not wrapped).
+ * the robot left its path, where its behaviour first went wrong). Positions in cm, headings in degrees (not wrapped).
  * The run is recorded (nepoTest.simProgram): a failed check, and a runtime error, get the facts of the second before (`facts`: what the
- * robot sensed, what ran, what it remembered, what it did), and the report has the record in steps of 100 ms (`trace`).
+ * robot sensed, what ran, what it remembered, what it did; of a behaviour check: from half a second after it first went wrong), and the
+ * report has the record in steps of 100 ms (`trace`, with what the robot did in each step: `does`).
  */
 import * as COMM from 'comm';
 import * as GUISTATE_C from 'guiState.controller';
@@ -35,6 +39,7 @@ import * as GUISTATE_C from 'guiState.controller';
 import * as Blockly from 'blockly';
 import * as SIM from 'nepoTest.sim';
 import * as PROGRAM from 'nepoTest.simProgram';
+import * as BEHAVIOUR from 'nepoTest.simBehaviour';
 import { Interpreter } from 'interpreter.interpreter';
 import { RobotSimBehaviour } from 'interpreter.robotSimBehaviour';
 import { SelectionListener } from 'robot.base';
@@ -517,7 +522,7 @@ export function describeCheck(check: any, world: SIM.SimWorld): string {
         case 'path':
             return 'the robot stays on its recorded path ± ' + (typeof check.tolerance_cm === 'number' ? check.tolerance_cm : SIM.DEFAULT_TOLERANCE_CM) + ' cm';
         default:
-            return check.check;
+            return BEHAVIOUR.describe(check);
     }
 }
 
@@ -532,6 +537,7 @@ interface CheckState {
     message: string;
     corridor?: Corridor;
     skipped?: boolean; // a path check without a path, or while it is recorded: it checks nothing
+    factsAt?: number; // the end of its facts (a behaviour check: soon after it went wrong); else t
 }
 
 class Run {
@@ -821,6 +827,7 @@ class Run {
             const poly = this.outline();
             this.touchingUntil = touches(this.until, poly, bbox(poly));
         }
+        this.recorder.begin({ t: 0, pose: this.pose(), speeds: [0, 0], leds: [false, false], tone: false, bump: undefined, touching: [] });
         const piece = (resolve: () => void, reject: (e: Error) => void) => {
             if (this.options.cancelled && this.options.cancelled()) {
                 reject(new Error('cancelled'));
@@ -856,9 +863,19 @@ class Run {
                 : outcome.result === 'time_limit'
                 ? ' within ' + seconds(this.test.max_time_ms || DEFAULT_MAX_TIME_MS) + ' s'
                 : ': the program ended after ' + at + ' s';
+        const variables = this.variables();
         for (const check of this.checks) {
             const kind = check.spec.check;
             if (check.skipped) {
+                continue;
+            }
+            if (BEHAVIOUR.KINDS.indexOf(kind) >= 0) {
+                const verdict = BEHAVIOUR.judge(check.spec, this.recorder, this.test.world || [], variables, outcome.t);
+                if (this.error && verdict.passed !== false) {
+                    check.message = 'not decided: the program failed after ' + at + ' s'; // a failure before the error counts
+                } else {
+                    [check.passed, check.t, check.point, check.message, check.factsAt] = [verdict.passed, verdict.t, verdict.point, verdict.message, verdict.factsAt];
+                }
                 continue;
             }
             if (check.passed === null && this.error) {
@@ -892,6 +909,14 @@ class Run {
         }
     }
 
+    /** the program's variables now (their values, not the interpreter's bindings) */
+    private variables(): { [name: string]: any } {
+        const variables = {};
+        const bindings = this.interpreter.getVariables() || {};
+        Object.keys(bindings).forEach((name) => (variables[name] = bindings[name][0]));
+        return variables;
+    }
+
     report(source: string): any {
         const test = this.test;
         const outcome = this.outcome;
@@ -912,7 +937,7 @@ class Run {
                     message: (check.spec.rule ? 'rule: ' : '') + check.message,
                     described: true,
                     check_block_id: check.spec.block_id,
-                    facts: factsOf(check.t),
+                    facts: factsOf(check.factsAt !== undefined ? check.factsAt : check.t),
                 });
             }
         }
@@ -932,9 +957,8 @@ class Run {
         }
         const failedArea = this.checks.filter((c) => c.passed === false && c.item)[0];
         const deviation = this.checks.filter((c) => c.passed === false && c.point)[0];
-        const variables = {};
-        const bindings = this.interpreter.getVariables() || {};
-        Object.keys(bindings).forEach((name) => (variables[name] = bindings[name][0]));
+        const trace = PROGRAM.trace(this.recorder);
+        BEHAVIOUR.addMotion(trace, BEHAVIOUR.moments(this.recorder));
         const report: any = {
             name: test.name,
             block_id: test.block_id,
@@ -944,7 +968,7 @@ class Run {
             failures: failures,
             error: this.error,
             time_ms: Math.round(outcome.t),
-            variables: variables,
+            variables: this.variables(),
             covered_blocks: Object.keys(this.covered).filter((id) => id.indexOf('nepoTest') !== 0),
             status: outcome.result === 'error' ? 'error' : outcome.result === 'until' ? 'simulation' : outcome.result,
             checks: this.checks.map((c) => ({
@@ -957,9 +981,9 @@ class Run {
                 item: c.item,
                 point: c.point,
                 message: c.message,
-                facts: c.passed === false ? factsOf(c.t) : undefined,
+                facts: c.passed === false ? factsOf(c.factsAt !== undefined ? c.factsAt : c.t) : undefined,
             })),
-            trace: PROGRAM.trace(this.recorder),
+            trace: trace,
             simulation: {
                 result: outcome.result,
                 t: outcome.t,

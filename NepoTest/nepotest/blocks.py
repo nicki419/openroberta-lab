@@ -12,7 +12,7 @@ The blocks (all types start with `nepoTest_`; the frontend defines them in nepoT
     nepoTest_simcase      ACTIVE NAME START MODE UNTIL SECONDS SHOULD   a test of a world: ACTIVE TRUE | FALSE (unticked:
                                         skipped); set up: START (a start's id) and statement input SETUP (claps, keys,
                                         variables: the past); run: the whole program, MODE for | until (UNTIL: an area's
-                                        id; the run ends when the robot touches it), at most SECONDS s; statement input
+                                        id; the run ends when the robot touches it), at most SECONDS s (one decimal); statement input
                                         CHECKS (nepoTest_check_* blocks)
   CHECK (in CHECKS and RULES; AREA, OBSTACLE: an item's id, or ANY)
     nepoTest_check_reaches        AREA        the robot touches the area (ANY: any goal area) at some time
@@ -21,6 +21,16 @@ The blocks (all types start with `nepoTest_`; the frontend defines them in nepoT
     nepoTest_check_never_bumps    OBSTACLE    the robot never bumps into it (ANY: anything, the wall too)
     nepoTest_check_path           TOL         the robot stays within TOL cm of its recorded path (the block's data:
                                               {"path": [[x, y, heading], ...], "time_ms"}; none: not recorded yet)
+    nepoTest_check_does           AFTER DOES  from AFTER ms on, the robot always does DOES (drives_forward, drives_backward,
+                                              turns_left, turns_right, stands_still, left_led_on, left_led_off, right_led_on,
+                                              right_led_off, leds_on, leds_off, plays_sound, silent)
+    nepoTest_check_whenever       WHEN PERCENT DOES AFTER   whenever WHEN holds (line, no_line, obstacle_ahead, obstacle_left,
+                                              obstacle_right, no_obstacle, left_light_below, left_light_above,
+                                              right_light_below, right_light_above: PERCENT %, sound, play_key, rec_key) for
+                                              AFTER ms, the robot does DOES
+    nepoTest_check_after          WITHIN EVENT DOES   within WITHIN ms after each EVENT (clap, key: of the set-up;
+                                              line_start, line_end, obstacle), the robot does DOES at some moment
+    nepoTest_check_variable       VAR OP, input VALUE   the global variable VAR at the end
   GIVEN (in a simulation world's test, SETUP: only clap, key and variable)
     nepoTest_given_clap       AT                      a clap at AT ms
     nepoTest_given_key        AT PORT                 key PLAY/REC pressed at AT ms
@@ -92,7 +102,9 @@ SIM_TEST = 'nepoTest_simcase'
 OLD_SIM_TEST = 'nepoTest_simtest'
 TEST_TYPES = ('nepoTest_test', WORLD, SIM_TEST)  # their names are one namespace
 CHECK_TYPES = {'nepoTest_check_reaches': 'reaches', 'nepoTest_check_never_touches': 'never_touches',
-               'nepoTest_check_ends_in': 'ends_in', 'nepoTest_check_never_bumps': 'never_bumps', 'nepoTest_check_path': 'path'}
+               'nepoTest_check_ends_in': 'ends_in', 'nepoTest_check_never_bumps': 'never_bumps', 'nepoTest_check_path': 'path',
+               'nepoTest_check_does': 'does', 'nepoTest_check_whenever': 'whenever', 'nepoTest_check_after': 'after',
+               'nepoTest_check_variable': 'variable'}
 OPS = {'EQ', 'NEQ', 'LT', 'LTE', 'GT', 'GTE'}
 ERROR_KINDS = {'any', 'division_by_zero', 'overflow', 'index_out_of_range', 'recursion', 'step_limit', 'negative_value',
                'shift_out_of_range'}
@@ -144,6 +156,19 @@ def _int_field(block, name, problems, default=0, minimum=0):
     if value < minimum:
         problems.add(block, '%s must be at least %d' % (name.lower(), minimum))
     return value
+
+
+def _seconds_field(block, name, problems, default):
+    """a length in seconds, with up to one decimal, as ms (at least 0.1 s)"""
+    text = (block.fields.get(name) or '').replace(',', '.')
+    try:
+        value = float(text)
+    except ValueError:
+        problems.add(block, 'the time must be a number of seconds, not %r' % block.fields.get(name))
+        return default * 1000
+    if value < 0.1:
+        problems.add(block, 'a test runs for at least 0.1 s')
+    return int(round(value * 10)) * 100
 
 
 def _literal(block, name, problems, required=True):
@@ -588,7 +613,47 @@ def _world_name(world_block):
     return (world_block.fields.get('NAME') or '').strip()
 
 
-def _check(b, world, problems, rule=False):
+def _behaviour(b, kind, check, problems):
+    """the fields of a behaviour check (does, whenever, after)"""
+    check['does'] = b.fields.get('DOES') or ''
+    if check['does'] not in SIM.DOES:
+        problems.add(b, 'choose what the robot does')
+    if kind == 'after':
+        check['event'] = b.fields.get('EVENT') or ''
+        if check['event'] not in SIM.EVENTS:
+            problems.add(b, 'choose the event the robot reacts to')
+        check['within_ms'] = _int_field(b, 'WITHIN', problems, default=500, minimum=1)
+        return check
+    check['after_ms'] = _int_field(b, 'AFTER', problems, default=SIM.DEFAULT_REACTION_MS[kind])
+    if kind == 'whenever':
+        check['when'] = b.fields.get('WHEN') or ''
+        if check['when'] not in SIM.CONDITIONS:
+            problems.add(b, 'choose the condition')
+        elif check['when'] in SIM.LIGHT_CONDITIONS:
+            check['percent'] = _int_field(b, 'PERCENT', problems, default=50)
+            if check['percent'] > 100:
+                problems.add(b, 'a light sensor reads 0 to 100 %')
+    return check
+
+
+def _variable_check(b, check, program, problems):
+    """the fields of a check of a variable at the end"""
+    var = b.fields.get('VAR') or ''
+    if not var:
+        problems.add(b, 'choose the variable')
+    elif program is not None and var not in [v.name for v in program.variables]:
+        problems.add(b, 'the program has no variable "%s"' % var)
+    op = b.fields.get('OP') or 'EQ'
+    value = _literal(b, 'VALUE', problems)
+    if op not in OPS:
+        problems.add(b, 'unknown comparison %r' % op)
+    elif op not in ('EQ', 'NEQ') and value is not None and (isinstance(value, bool) or not isinstance(value, int)):
+        problems.add(b, 'only numbers can be compared with <, <=, >, >=')
+    check.update({'variable': var, 'op': op, 'value': value})
+    return check
+
+
+def _check(b, world, problems, rule=False, program=None):
     """a check block (of a test, or a rule of the world) as a check of simulation.py, or None"""
     kind = CHECK_TYPES.get(b.type)
     if kind is None:
@@ -598,6 +663,10 @@ def _check(b, world, problems, rule=False):
     if rule:
         check['rule'] = True
     items = dict((i.get('id'), i) for i in world.get('items') or [])
+    if kind in SIM.BEHAVIOUR_CHECKS:
+        return _behaviour(b, kind, check, problems)
+    if kind == 'variable':
+        return _variable_check(b, check, program, problems)
     if kind == 'path':
         if rule:
             problems.add(b, 'a recorded path belongs to one test: put this check into a test, not under "rules"')
@@ -675,18 +744,23 @@ def _translate_simcase(test_block, world_block, program, problems):
             problems.add(test_block, 'test "%s": the area that ends the run is not in the world (any more): choose another one' % name)
         else:
             sim['until'] = until
-    checks = [_check(b, world, problems, rule=True) for b in _chain(world_block, 'RULES')]
-    checks += [_check(b, world, problems) for b in _chain(test_block, 'CHECKS')]
+    checks = [_check(b, world, problems, rule=True, program=program) for b in _chain(world_block, 'RULES')]
+    checks += [_check(b, world, problems, program=program) for b in _chain(test_block, 'CHECKS')]
     sim['checks'] = [c for c in checks if c is not None]
     test['simulation'] = sim
     events, globals_ = _given(test_block, program, problems, simulation=True)
+    for c in sim['checks']:
+        if c['check'] == 'after' and c.get('event') in ('clap', 'key') and not c.get('rule') and not any(
+                e['event'] == c['event'] for e in events):
+            problems.add(_Ref(c['block_id']), 'test "%s" has no %s in its set-up, so this check checks nothing'
+                         % (name, 'clap' if c['event'] == 'clap' else 'key press'), 'warning')
     if events:
         test['world'] = events
     if globals_:
         test['globals'] = globals_
         for var in _overwritten(program, globals_):
             problems.add(test_block, 'test "%s": the program sets "%s" when it starts, so the value of "set up" is lost' % (name, var), 'warning')
-    test['max_time_ms'] = _int_field(test_block, 'SECONDS', problems, default=5, minimum=1) * 1000
+    test['max_time_ms'] = _seconds_field(test_block, 'SECONDS', problems, default=5)
     if not sim['checks']:
         problems.add(test_block, 'test "%s" checks nothing: put checks into it (or rules into its world)' % name, 'warning')
     for c in sim['checks']:

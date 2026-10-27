@@ -11,7 +11,8 @@
  *   start comment begins its block (the block's id is in the comment's "+").
  * - Recorder: during the run, per frame of 1/60 s: the sensors the program read (and the block that read them), the decisions it took and
  *   the readings they were based on, the statement blocks that began, the block in effect for each actuator and its values, the program's
- *   global variables, the simulator's sensor values, and what the robot did (pose, wheel speeds, LEDs, sound, bumps, areas touched). The
+ *   global variables, the simulator's sensor values (what the robot could sense: nepoTest.simBehaviour's conditions), and what the robot did
+ *   (pose, wheel speeds, LEDs, sound, bumps, areas touched); and where it started (`initial`). The
  *   blocks that run are found as the debugger finds them (State.evalHighlightings): an operation's "+" begins blocks, the next operation
  *   ends those in the previous one's "-".
  * - facts: for a failed check, the second before it: what the robot sensed, what ran (decisions and actions), what it remembered, what it
@@ -200,6 +201,7 @@ export interface Frame {
     decisions: { [key: string]: DecisionCount };
     began: string[]; // the statement blocks that began in this frame
     running: string; // the innermost statement block running at the end of the frame
+    sensors: { [key: string]: any }; // the simulator's sensor values at the end of the frame (infrared/line, sound/volume, ...; shared while unchanged)
 }
 
 /** the block in effect for an actuator, from when on */
@@ -259,6 +261,8 @@ export class Recorder {
     readonly effects: Effect[] = []; // only changes
     readonly globals: Change[] = []; // only changes of the program's global variables (the first: their values at the start)
     readonly sensors: Change[] = []; // only changes of the simulator's sensor values (hardwareState.sensors)
+    /** the frame before the program starts: where the robot is, what its sensors see (begin) */
+    initial: Frame = null;
     /** what went wrong in a wrapper (nothing is thrown into the interpreter) */
     failure: string = null;
     private open: string[] = []; // the blocks running, as the debugger keeps them
@@ -269,6 +273,7 @@ export class Recorder {
     private inEffect: { [actuator: string]: Effect } = {};
     private globalValues: { [name: string]: string } = {};
     private sensorValues: { [key: string]: any } = {};
+    private changed = false; // sensorValues was copied in this frame (the frames before keep theirs)
 
     constructor(readonly model: ProgramModel, private state: any, private behaviour: any, private now: () => number) {
         this.frame = this.newFrame();
@@ -297,7 +302,7 @@ export class Recorder {
     }
 
     private newFrame(): Frame {
-        return { t: 0, x: 0, y: 0, h: 0, l: 0, r: 0, leds: [false, false], tone: false, bump: undefined, touching: [], reads: {}, decisions: {}, began: [], running: null };
+        return { t: 0, x: 0, y: 0, h: 0, l: 0, r: 0, leds: [false, false], tone: false, bump: undefined, touching: [], reads: {}, decisions: {}, began: [], running: null, sensors: {} };
     }
 
     /** the top of the interpreter's stack, or undefined (the State's own get0 throws on an empty stack) */
@@ -402,9 +407,21 @@ export class Recorder {
         return this.model.innermost(this.open);
     }
 
-    /** the end of a frame: what the robot did in it; the variables and sensor values that changed */
-    endFrame(state: FrameState, interpreter: any): void {
-        const f = this.frame;
+    /** before the program starts (time 0): where the robot is, what its sensors see */
+    begin(state: FrameState): void {
+        const f = this.newFrame();
+        this.state0(f, state);
+        try {
+            this.flatten((this.behaviour.hardwareState && this.behaviour.hardwareState.sensors) || {}, '', 0, 0);
+        } catch (e) {
+            this.failure = this.failure || String((e && e.message) || e);
+        }
+        f.sensors = this.sensorValues;
+        this.changed = false;
+        this.initial = f;
+    }
+
+    private state0(f: Frame, state: FrameState): void {
         f.t = Math.round(state.t * 10) / 10;
         [f.x, f.y, f.h] = state.pose;
         [f.l, f.r] = state.speeds;
@@ -412,6 +429,12 @@ export class Recorder {
         f.tone = state.tone;
         f.bump = state.bump;
         f.touching = state.touching;
+    }
+
+    /** the end of a frame: what the robot did in it; the variables and sensor values that changed */
+    endFrame(state: FrameState, interpreter: any): void {
+        const f = this.frame;
+        this.state0(f, state);
         f.running = this.model.innermost(this.open, true);
         this.frames.push(f);
         this.frame = this.newFrame();
@@ -430,6 +453,8 @@ export class Recorder {
         } catch (e) {
             this.failure = this.failure || String((e && e.message) || e);
         }
+        f.sensors = this.sensorValues;
+        this.changed = false;
     }
 
     private flatten(o: any, prefix: string, t: number, depth: number): void {
@@ -442,6 +467,10 @@ export class Recorder {
             if (v !== null && typeof v === 'object' && !Array.isArray(v) && depth < 3) {
                 this.flatten(v, key, t, depth + 1);
             } else if (typeof v !== 'function' && !same(this.sensorValues[key], v)) {
+                if (!this.changed) {
+                    this.sensorValues = Object.assign({}, this.sensorValues); // the frames before keep the values they had
+                    this.changed = true;
+                }
                 this.sensorValues[key] = copy(v);
                 this.sensors.push({ t: t, name: key, value: copy(v) });
             }
@@ -523,6 +552,7 @@ export function facts(rec: Recorder, to: number, ms = FACTS_MS): Facts {
         return values;
     };
     const start = atStart(rec.globals);
+    rec.globals.forEach((c) => !(c.name in start) && (start[c.name] = c.value)); // first recorded after `from` (the first frame ends after 0): its first value
     const end: { [name: string]: any } = {};
     rec.globals.filter((c) => c.t <= to + 0.05).forEach((c) => (end[c.name] = c.value));
     const inEffect: { [actuator: string]: Effect } = {};

@@ -81,8 +81,11 @@ programs, which implements the project goal. It covers:
   for the simulator (`sourceSimulation`), run by the simulator's interpreter, Edison and objects, offscreen and in
   virtual time, in the Tests tab (`OpenRobertaWeb/src/app/nepotest/nepoTest.simRun.ts`). A **simulation world** (lines
   to follow, obstacles, goal and fail areas, named starts) holds many tests: each is set up (a start, the past: claps,
-  keys, variables), runs the whole program (for N s, or until it touches an area) and checks (reaches, never touches,
-  ends in, never bumps into, stays on its recorded path ± cm). A test passes only if every check, and every rule of its
+  keys, variables), runs the whole program (for N s, or until it touches an area) and checks where the robot goes
+  (reaches, never touches, ends in, never bumps into, stays on its recorded path ± cm), what it does
+  (`nepoTest.simBehaviour.ts`: from a time on it always turns left; whenever it sees the line, it turns left; within
+  500 ms after each clap, its LED is on; measured in every frame from its real motion, LEDs and sound) and a variable
+  at the end. A test passes only if every check, and every rule of its
   world, holds; a run never stops at the first failure. Every run is recorded (`nepoTest.simProgram.ts`): a failed
   check comes with the facts of the second before it (what the robot sensed, which decisions and blocks ran, its
   variables, what it did), with the program's blocks as clickable chips. They have the simulator's semantics, not the
@@ -124,7 +127,7 @@ latched sensors from EdPy's library. The document also lists which behaviour is 
 | Test runner for golden files | `OpenRobertaServer/src/test/java/.../integrationTest/ReuseIntegrationAsUnitTest.java` (configured by `crossCompilerTests/testSpec.yml`) |
 | Frontend (TypeScript sources) | `OpenRobertaWeb/src/**` (compiles into `OpenRobertaServer/staticResources`) |
 | **NEPO unit-test framework** (Python) | `NepoTest/` (`nepotest/`, `nepotest/engine/`, `examples/`, `tests/`, `schema/`) |
-| **Tests tab** (test blocks, runner) | `OpenRobertaWeb/src/app/nepotest/*` (blocks, suite storage, runner, Web Worker, simulation world `nepoTest.sim.ts`, panel `nepoTest.simEditor.ts`, runs on the Lab's simulator `nepoTest.simRun.ts`, the record and the facts of a failure `nepoTest.simProgram.ts`), `OpenRobertaWeb/src/app/roberta/controller/tests.controller.ts`; markup in `staticResources/index.html` (`#tabTests`, `#tests`); translation `NepoTest/nepotest/blocks.py` |
+| **Tests tab** (test blocks, runner) | `OpenRobertaWeb/src/app/nepotest/*` (blocks, suite storage, runner, Web Worker, simulation world `nepoTest.sim.ts`, panel `nepoTest.simEditor.ts`, runs on the Lab's simulator `nepoTest.simRun.ts`, the record and the facts of a failure `nepoTest.simProgram.ts`, the checks of behaviour `nepoTest.simBehaviour.ts`), `OpenRobertaWeb/src/app/roberta/controller/tests.controller.ts`; markup in `staticResources/index.html` (`#tabTests`, `#tests`); translation `NepoTest/nepotest/blocks.py` |
 | Source map for tests (block id → EdPy ranges) | `OpenRobertaRobot/…/bean/SourceMapBean`, filled by `EdisonPythonVisitor.preVisitCheck/postVisitCheck`, served by `ProjectWorkflowRestController` `/projectWorkflow/sourceForTest`; test `OpenRobertaServer/src/test/java/…/javaServer/EdisonSourceMapTest` |
 
 `…` = `src/main/java/de/fhg/iais/roberta`. Paths are repo-relative.
@@ -180,7 +183,7 @@ python -m nepotest run examples/patrol.tests.json      # state tests (patrol_wit
 python -m nepotest run examples/line_follower.tests.json   # its simulation tests are skipped: they run in the Tests tab
 ```
 
-These passed on 2026-10-26: 140 + 8 tests, including the live-Lab tests and the schema check; the reference-compiler
+These passed on 2026-10-27: 142 + 8 tests, including the live-Lab tests and the schema check; the reference-compiler
 check last ran on 2026-10-18. Each suite has one deliberate expected failure, which shows generator quirk #14. The clap
 counter and patrol example test files each report one deliberate failure: quirk #14 (clap counter), and a square
 driven while the obstacle is still there (patrol). The line follower's file runs its BDD test and skips its two

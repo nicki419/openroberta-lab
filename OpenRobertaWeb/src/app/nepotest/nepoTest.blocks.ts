@@ -57,7 +57,8 @@ const MESSAGES: { [lang: string]: { [key: string]: string } } = {
         NEPOTEST_IR: 'IR message',
         NEPOTEST_VARIABLE: 'variable',
         NEPOTEST_IS: 'is',
-        NEPOTEST_VARIABLE_TOOLTIP: 'Sets a global variable of the program before the function is called.',
+        NEPOTEST_VARIABLE_TOOLTIP:
+            'Sets a global variable of the program: before the function is called, or (in a test of a simulation world) from the start, instead of the value it is declared with.',
         NEPOTEST_RUN_PROGRAM: 'run the program for at most',
         NEPOTEST_SECONDS: 's',
         NEPOTEST_RUN_PROGRAM_TOOLTIP: 'Runs the whole program. It stops when it ends, or after this time (virtual time: a test takes much less).',
@@ -90,6 +91,48 @@ const MESSAGES: { [lang: string]: { [key: string]: string } } = {
         NEPOTEST_CHECK_PATH: 'the robot stays on its recorded path ±',
         NEPOTEST_CHECK_PATH_TOOLTIP:
             'The robot must stay within this many cm of the path it took when the path was recorded. To record it: select the test, then "Record path" in the Simulation tab.',
+        NEPOTEST_CHECK_DOES_FROM: 'from',
+        NEPOTEST_CHECK_DOES_ALWAYS: 'ms on, the robot always',
+        NEPOTEST_CHECK_DOES_TOOLTIP:
+            'Holds if the robot does this all the time, from this time on until the run ends (the time gives it a moment to get going). What it does is measured in every frame, from how it really moves in the simulator (a bump counts too), its LEDs and its sound.',
+        NEPOTEST_CHECK_WHENEVER: 'whenever',
+        NEPOTEST_CHECK_ROW_END: ',',
+        NEPOTEST_CHECK_WHENEVER_ROBOT: 'the robot',
+        NEPOTEST_CHECK_WHENEVER_AFTER: ', after',
+        NEPOTEST_CHECK_WHENEVER_TOOLTIP:
+            'Holds if the robot does this whenever the condition holds: once it has held for this many ms (the time to react: 0 if the program reacts at once, more if it waits in between), for as long as it holds. The condition is what the sensors of the robot see in the simulator, whether or not the program reads them. Never held: nothing is checked.',
+        NEPOTEST_CHECK_AFTER_WITHIN: 'within',
+        NEPOTEST_CHECK_AFTER_MS: 'ms after',
+        NEPOTEST_CHECK_AFTER_ROBOT: 'the robot',
+        NEPOTEST_CHECK_AFTER_TOOLTIP:
+            'Holds if, after each such event, the robot does this at some moment within this time. Claps and key presses come from the set-up of the test. No such event: nothing is checked.',
+        NEPOTEST_CHECK_VARIABLE: 'at the end, variable',
+        NEPOTEST_CHECK_VARIABLE_TOOLTIP: 'Holds if this global variable of the program has this value when the run ends.',
+        NEPOTEST_DOES_LLED_ON: 'has its left LED on',
+        NEPOTEST_DOES_LLED_OFF: 'has its left LED off',
+        NEPOTEST_DOES_RLED_ON: 'has its right LED on',
+        NEPOTEST_DOES_RLED_OFF: 'has its right LED off',
+        NEPOTEST_DOES_LEDS_ON: 'has both LEDs on',
+        NEPOTEST_DOES_LEDS_OFF: 'has both LEDs off',
+        NEPOTEST_WHEN_LINE: 'it sees the line',
+        NEPOTEST_WHEN_NO_LINE: "it doesn't see the line",
+        NEPOTEST_WHEN_OBSTACLE_AHEAD: 'an obstacle is ahead',
+        NEPOTEST_WHEN_OBSTACLE_LEFT: 'an obstacle is to the left',
+        NEPOTEST_WHEN_OBSTACLE_RIGHT: 'an obstacle is to the right',
+        NEPOTEST_WHEN_NO_OBSTACLE: 'no obstacle is near',
+        NEPOTEST_WHEN_LLIGHT_BELOW: 'the left light sensor reads below',
+        NEPOTEST_WHEN_LLIGHT_ABOVE: 'the left light sensor reads above',
+        NEPOTEST_WHEN_RLIGHT_BELOW: 'the right light sensor reads below',
+        NEPOTEST_WHEN_RLIGHT_ABOVE: 'the right light sensor reads above',
+        NEPOTEST_WHEN_PERCENT_END: '%',
+        NEPOTEST_WHEN_SOUND: 'it hears a sound',
+        NEPOTEST_WHEN_PLAY_KEY: 'key ▶ is pressed',
+        NEPOTEST_WHEN_REC_KEY: 'key ● is pressed',
+        NEPOTEST_EVENT_CLAP: 'each clap',
+        NEPOTEST_EVENT_KEY: 'each key press',
+        NEPOTEST_EVENT_LINE_START: 'it starts seeing the line',
+        NEPOTEST_EVENT_LINE_END: 'it stops seeing the line',
+        NEPOTEST_EVENT_OBSTACLE: 'an obstacle appears',
         NEPOTEST_NOT_RECORDED: '(not recorded yet)',
         NEPOTEST_RECORDED: '(recorded: {0} s)',
         NEPOTEST_ANY_GOAL: 'any goal area',
@@ -268,7 +311,8 @@ const MESSAGES: { [lang: string]: { [key: string]: string } } = {
         NEPOTEST_IR: 'IR-Nachricht',
         NEPOTEST_VARIABLE: 'Variable',
         NEPOTEST_IS: 'ist',
-        NEPOTEST_VARIABLE_TOOLTIP: 'Setzt eine globale Variable des Programms, bevor die Funktion aufgerufen wird.',
+        NEPOTEST_VARIABLE_TOOLTIP:
+            'Setzt eine globale Variable des Programms: bevor die Funktion aufgerufen wird, oder (in einem Test einer Simulationswelt) ab dem Start, statt des Werts, mit dem sie deklariert ist.',
         NEPOTEST_RUN_PROGRAM: 'das Programm läuft höchstens',
         NEPOTEST_RUN_PROGRAM_TOOLTIP: 'Führt das ganze Programm aus. Es stoppt, wenn es endet, oder nach dieser Zeit (virtuelle Zeit: ein Test dauert viel kürzer).',
         NEPOTEST_CALL: 'rufe Funktion',
@@ -300,6 +344,48 @@ const MESSAGES: { [lang: string]: { [key: string]: string } } = {
         NEPOTEST_CHECK_PATH: 'der Roboter bleibt auf seinem aufgenommenen Weg ±',
         NEPOTEST_CHECK_PATH_TOOLTIP:
             'Der Roboter muss weniger als so viele cm von dem Weg abweichen, den er beim Aufnehmen gefahren ist. Zum Aufnehmen: wähle den Test aus, dann „Weg aufnehmen“ im Simulations-Tab.',
+        NEPOTEST_CHECK_DOES_FROM: 'ab',
+        NEPOTEST_CHECK_DOES_ALWAYS: 'ms immer: der Roboter',
+        NEPOTEST_CHECK_DOES_TOOLTIP:
+            'Stimmt, wenn der Roboter das die ganze Zeit tut, ab dieser Zeit bis zum Ende der Fahrt (die Zeit gibt ihm einen Moment zum Losfahren). Was er tut, wird in jedem Bild gemessen: wie er sich in der Simulation wirklich bewegt (auch ein Anstoßen zählt), seine LEDs und sein Klang.',
+        NEPOTEST_CHECK_WHENEVER: 'immer wenn',
+        NEPOTEST_CHECK_ROW_END: ':',
+        NEPOTEST_CHECK_WHENEVER_ROBOT: 'der Roboter',
+        NEPOTEST_CHECK_WHENEVER_AFTER: ', nach',
+        NEPOTEST_CHECK_WHENEVER_TOOLTIP:
+            'Stimmt, wenn der Roboter das tut, wann immer die Bedingung gilt: sobald sie so viele ms gegolten hat (die Zeit zum Reagieren: 0, wenn das Programm sofort reagiert, mehr, wenn es dazwischen wartet), und so lange sie gilt. Die Bedingung ist, was die Sensoren des Roboters in der Simulation sehen, ob das Programm sie liest oder nicht. Gilt sie nie, wird nichts geprüft.',
+        NEPOTEST_CHECK_AFTER_WITHIN: 'innerhalb von',
+        NEPOTEST_CHECK_AFTER_MS: 'ms nach',
+        NEPOTEST_CHECK_AFTER_ROBOT: 'der Roboter',
+        NEPOTEST_CHECK_AFTER_TOOLTIP:
+            'Stimmt, wenn der Roboter nach jedem solchen Ereignis irgendwann innerhalb dieser Zeit das tut. Klatschen und Tastendrücke kommen aus der Vorbereitung des Tests. Kein solches Ereignis: es wird nichts geprüft.',
+        NEPOTEST_CHECK_VARIABLE: 'am Ende: Variable',
+        NEPOTEST_CHECK_VARIABLE_TOOLTIP: 'Stimmt, wenn diese globale Variable des Programms am Ende der Fahrt diesen Wert hat.',
+        NEPOTEST_DOES_LLED_ON: 'hat die linke LED an',
+        NEPOTEST_DOES_LLED_OFF: 'hat die linke LED aus',
+        NEPOTEST_DOES_RLED_ON: 'hat die rechte LED an',
+        NEPOTEST_DOES_RLED_OFF: 'hat die rechte LED aus',
+        NEPOTEST_DOES_LEDS_ON: 'hat beide LEDs an',
+        NEPOTEST_DOES_LEDS_OFF: 'hat beide LEDs aus',
+        NEPOTEST_WHEN_LINE: 'er die Linie sieht',
+        NEPOTEST_WHEN_NO_LINE: 'er die Linie nicht sieht',
+        NEPOTEST_WHEN_OBSTACLE_AHEAD: 'vorne ein Hindernis ist',
+        NEPOTEST_WHEN_OBSTACLE_LEFT: 'links ein Hindernis ist',
+        NEPOTEST_WHEN_OBSTACLE_RIGHT: 'rechts ein Hindernis ist',
+        NEPOTEST_WHEN_NO_OBSTACLE: 'kein Hindernis in der Nähe ist',
+        NEPOTEST_WHEN_LLIGHT_BELOW: 'der linke Lichtsensor weniger als',
+        NEPOTEST_WHEN_LLIGHT_ABOVE: 'der linke Lichtsensor mehr als',
+        NEPOTEST_WHEN_RLIGHT_BELOW: 'der rechte Lichtsensor weniger als',
+        NEPOTEST_WHEN_RLIGHT_ABOVE: 'der rechte Lichtsensor mehr als',
+        NEPOTEST_WHEN_PERCENT_END: '% misst',
+        NEPOTEST_WHEN_SOUND: 'er ein Geräusch hört',
+        NEPOTEST_WHEN_PLAY_KEY: 'Taste ▶ gedrückt ist',
+        NEPOTEST_WHEN_REC_KEY: 'Taste ● gedrückt ist',
+        NEPOTEST_EVENT_CLAP: 'jedem Klatschen',
+        NEPOTEST_EVENT_KEY: 'jedem Tastendruck',
+        NEPOTEST_EVENT_LINE_START: 'dem Erkennen der Linie',
+        NEPOTEST_EVENT_LINE_END: 'dem Verlieren der Linie',
+        NEPOTEST_EVENT_OBSTACLE: 'dem Auftauchen eines Hindernisses',
         NEPOTEST_NOT_RECORDED: '(noch nicht aufgenommen)',
         NEPOTEST_RECORDED: '(aufgenommen: {0} s)',
         NEPOTEST_ANY_GOAL: 'irgendeinen Zielbereich',
@@ -480,7 +566,17 @@ export const WORLD = 'nepoTest_world';
 export const SIM_TEST = 'nepoTest_simcase';
 export const PATH_CHECK = 'nepoTest_check_path';
 const TEST_TYPES = ['nepoTest_test', WORLD, SIM_TEST]; // their names are one namespace: "run test" runs any of them by its name
-const CHECK_TYPES = ['nepoTest_check_reaches', 'nepoTest_check_never_touches', 'nepoTest_check_ends_in', 'nepoTest_check_never_bumps', PATH_CHECK];
+const CHECK_TYPES = [
+    'nepoTest_check_reaches',
+    'nepoTest_check_never_touches',
+    'nepoTest_check_ends_in',
+    'nepoTest_check_never_bumps',
+    PATH_CHECK,
+    'nepoTest_check_does',
+    'nepoTest_check_whenever',
+    'nepoTest_check_after',
+    'nepoTest_check_variable',
+];
 const WORLD_FIELDS = ['START', 'UNTIL', 'AREA', 'OBSTACLE']; // the fields that hold the id of a start or an item of the world
 export const ANY_ITEM = 'ANY'; // "any goal area", "any fail area", "anything"
 const THUMB_W = 132;
@@ -491,7 +587,7 @@ function number(value: string | number): any {
     return new Blockly.FieldTextInput(String(value), Blockly.FieldTextInput.nonnegativeIntegerValidator);
 }
 
-/** a number field for cm, with one decimal (a tolerance) */
+/** a number field with one decimal (a tolerance in cm, a run's length in s) */
 function decimal(value: string | number): any {
     return new Blockly.FieldTextInput(String(value), function (text: string) {
         const n = parseFloat(String(text).replace(',', '.'));
@@ -736,6 +832,45 @@ function checkBlock(block: any, tooltip: string): void {
     block.setNextStatement(true, SIM_CHECK);
 }
 
+// what the robot does, for the behaviour checks (nepoTest.simBehaviour DOES, CONDITIONS, EVENTS)
+const DOES_OPTIONS = [
+    ['NEPOTEST_DRIVES_FORWARD', 'drives_forward'],
+    ['NEPOTEST_DRIVES_BACKWARD', 'drives_backward'],
+    ['NEPOTEST_TURNS_LEFT', 'turns_left'],
+    ['NEPOTEST_TURNS_RIGHT', 'turns_right'],
+    ['NEPOTEST_STANDS_STILL', 'stands_still'],
+    ['NEPOTEST_DOES_LLED_ON', 'left_led_on'],
+    ['NEPOTEST_DOES_LLED_OFF', 'left_led_off'],
+    ['NEPOTEST_DOES_RLED_ON', 'right_led_on'],
+    ['NEPOTEST_DOES_RLED_OFF', 'right_led_off'],
+    ['NEPOTEST_DOES_LEDS_ON', 'leds_on'],
+    ['NEPOTEST_DOES_LEDS_OFF', 'leds_off'],
+    ['NEPOTEST_PLAYS_SOUND', 'plays_sound'],
+    ['NEPOTEST_IS_SILENT', 'silent'],
+];
+const WHEN_OPTIONS = [
+    ['NEPOTEST_WHEN_LINE', 'line'],
+    ['NEPOTEST_WHEN_NO_LINE', 'no_line'],
+    ['NEPOTEST_WHEN_OBSTACLE_AHEAD', 'obstacle_ahead'],
+    ['NEPOTEST_WHEN_OBSTACLE_LEFT', 'obstacle_left'],
+    ['NEPOTEST_WHEN_OBSTACLE_RIGHT', 'obstacle_right'],
+    ['NEPOTEST_WHEN_NO_OBSTACLE', 'no_obstacle'],
+    ['NEPOTEST_WHEN_LLIGHT_BELOW', 'left_light_below'],
+    ['NEPOTEST_WHEN_LLIGHT_ABOVE', 'left_light_above'],
+    ['NEPOTEST_WHEN_RLIGHT_BELOW', 'right_light_below'],
+    ['NEPOTEST_WHEN_RLIGHT_ABOVE', 'right_light_above'],
+    ['NEPOTEST_WHEN_SOUND', 'sound'],
+    ['NEPOTEST_WHEN_PLAY_KEY', 'play_key'],
+    ['NEPOTEST_WHEN_REC_KEY', 'rec_key'],
+];
+const EVENT_OPTIONS = [
+    ['NEPOTEST_EVENT_CLAP', 'clap'],
+    ['NEPOTEST_EVENT_KEY', 'key'],
+    ['NEPOTEST_EVENT_LINE_START', 'line_start'],
+    ['NEPOTEST_EVENT_LINE_END', 'line_end'],
+    ['NEPOTEST_EVENT_OBSTACLE', 'obstacle'],
+];
+
 function functionNames(this: any): string[][] {
     const names = programInfo().functions.map((f) => f.name);
     return nameOptions(this, names);
@@ -942,7 +1077,7 @@ const DEFINITIONS: { [type: string]: any } = {
                 )
                 .appendField(new Blockly.FieldDropdown(areaMenu('goal')), 'UNTIL')
                 .appendField(msg('NEPOTEST_AT_MOST_COMMA'), 'AT_MOST')
-                .appendField(number(5), 'SECONDS')
+                .appendField(decimal(5), 'SECONDS')
                 .appendField(msg('NEPOTEST_SECONDS'));
             this.appendStatementInput('CHECKS').setCheck(SIM_CHECK).appendField(msg('NEPOTEST_CHECK'));
             shouldRow(this);
@@ -1014,6 +1149,91 @@ const DEFINITIONS: { [type: string]: any } = {
                 .appendField(decimal(SIM.DEFAULT_TOLERANCE_CM), 'TOL')
                 .appendField(msg('NEPOTEST_CM'))
                 .appendField(msg('NEPOTEST_NOT_RECORDED'), 'PATH_INFO');
+        },
+        onchange: function (event: any) {
+            followWorld(this, event);
+        },
+    },
+    nepoTest_check_does: {
+        init: function () {
+            checkBlock(this, 'NEPOTEST_CHECK_DOES_TOOLTIP');
+            this.appendDummyInput()
+                .appendField(msg('NEPOTEST_CHECK_DOES_FROM'))
+                .appendField(number(100), 'AFTER')
+                .appendField(msg('NEPOTEST_CHECK_DOES_ALWAYS'))
+                .appendField(dropdown(DOES_OPTIONS), 'DOES');
+        },
+        onchange: function (event: any) {
+            followWorld(this, event);
+        },
+    },
+    nepoTest_check_whenever: {
+        init: function () {
+            const block = this;
+            checkBlock(this, 'NEPOTEST_CHECK_WHENEVER_TOOLTIP');
+            this.appendDummyInput()
+                .appendField(msg('NEPOTEST_CHECK_WHENEVER'))
+                .appendField(
+                    new Blockly.FieldDropdown(
+                        WHEN_OPTIONS.map((o) => [msg(o[0]), o[1]]),
+                        function (when: string) {
+                            block.showPercent_(when);
+                            return when;
+                        }
+                    ),
+                    'WHEN'
+                )
+                .appendField(number(50), 'PERCENT')
+                .appendField(msg('NEPOTEST_WHEN_PERCENT_END'), 'PERCENT_END')
+                .appendField(msg('NEPOTEST_CHECK_ROW_END'));
+            this.appendDummyInput()
+                .appendField(msg('NEPOTEST_CHECK_WHENEVER_ROBOT'))
+                .appendField(dropdown(DOES_OPTIONS), 'DOES')
+                .appendField(msg('NEPOTEST_CHECK_WHENEVER_AFTER'))
+                .appendField(number(0), 'AFTER')
+                .appendField(msg('NEPOTEST_MS'));
+            this.showPercent_();
+        },
+        /** the percent only for the light sensors */
+        showPercent_: function (when?: string) {
+            const light = /_light_/.test(when || this.getFieldValue('WHEN'));
+            let changed = false;
+            for (const name of ['PERCENT', 'PERCENT_END']) {
+                const field = this.getField(name);
+                if (field && field.isVisible() !== light) {
+                    field.setVisible(light);
+                    changed = true;
+                }
+            }
+            if (changed && this.rendered) {
+                this.render();
+            }
+        },
+        onchange: function (event: any) {
+            this.showPercent_();
+            followWorld(this, event);
+        },
+    },
+    nepoTest_check_after: {
+        init: function () {
+            checkBlock(this, 'NEPOTEST_CHECK_AFTER_TOOLTIP');
+            this.appendDummyInput()
+                .appendField(msg('NEPOTEST_CHECK_AFTER_WITHIN'))
+                .appendField(number(500), 'WITHIN')
+                .appendField(msg('NEPOTEST_CHECK_AFTER_MS'))
+                .appendField(dropdown(EVENT_OPTIONS), 'EVENT')
+                .appendField(msg('NEPOTEST_CHECK_ROW_END'));
+            this.appendDummyInput().appendField(msg('NEPOTEST_CHECK_AFTER_ROBOT')).appendField(dropdown(DOES_OPTIONS), 'DOES');
+        },
+        onchange: function (event: any) {
+            followWorld(this, event);
+        },
+    },
+    nepoTest_check_variable: {
+        init: function () {
+            checkBlock(this, 'NEPOTEST_CHECK_VARIABLE_TOOLTIP');
+            this.appendValueInput('VALUE').appendField(msg('NEPOTEST_CHECK_VARIABLE')).appendField(new Blockly.FieldDropdown(variableNames), 'VAR').appendField(comparison(), 'OP');
+            this.setInputsInline(true);
         },
         onchange: function (event: any) {
             followWorld(this, event);
@@ -1825,7 +2045,11 @@ export function toolbox(): string {
                 b('nepoTest_check_never_touches', f('AREA', ANY_ITEM)) +
                 b('nepoTest_check_ends_in') +
                 b('nepoTest_check_never_bumps', f('OBSTACLE', ANY_ITEM)) +
-                b(PATH_CHECK)
+                b(PATH_CHECK) +
+                b('nepoTest_check_does', f('DOES', 'turns_left')) +
+                b('nepoTest_check_whenever', f('WHEN', 'line') + f('DOES', 'turns_left')) +
+                b('nepoTest_check_after', f('EVENT', 'clap') + f('DOES', 'drives_forward')) +
+                b('nepoTest_check_variable', v('VALUE', num(0)))
         ) +
         cat(
             'NEPOTEST_GIVEN',

@@ -560,6 +560,28 @@ no `expect`. (Until 2026-10-26, a simulation test had a world of its own, and it
 | `ends_in` | the whole outline is in the area when the run ends | an area |
 | `never_bumps` | it never bumps into the obstacle (its wheels are turned back, as in the simulator) | an obstacle; none: anything, the wall too |
 | `path` | a corner or the middle of an edge of the robot's outline never gets farther than `tolerance_cm` (default 2) from the robot's outline at some pose of `path`, the recorded run | – (`path`, `time_ms`, `tolerance_cm`; no `path`: not recorded yet, the check checks nothing) |
+| `does` | from `after_ms` (default 100) on, in every frame, the robot does `does` | – |
+| `whenever` | in every frame in which the condition `when` (with `percent`: the light conditions) has held for `after_ms` (default 0), the robot does `does` | – |
+| `after` | after each `event`, in some frame within `within_ms`, the robot does `does` | – |
+| `variable` | the global `variable` compares (`op`, default `EQ`) with `value` when the run ends | – |
+
+The checks of behaviour (`nepoTest.simBehaviour.ts`; Tests tab: `nepo-test-blocks.md` §5) are decided when the run has
+ended, from its record:
+- `does`: `drives_forward`, `drives_backward` (at least 1 cm/s along the heading), `turns_left`, `turns_right` (at
+  least 10°/s), `stands_still` (neither), `left_led_on`, `left_led_off`, `right_led_on`, `right_led_off`, `leds_on`,
+  `leds_off` (both), `plays_sound`, `silent`. The motion of a frame is the change of the robot's pose in it (near a
+  bump: over 100 ms, the bump's jitter cancels out).
+- `when`: `line`, `no_line` (the line tracker sees black), `obstacle_ahead`, `obstacle_left`, `obstacle_right`,
+  `no_obstacle`, `left_light_below`, `left_light_above`, `right_light_below`, `right_light_above`, `sound` (above
+  25 %), `play_key`, `rec_key`: the simulator's sensor values (`hardwareState.sensors`), whether or not the program reads
+  them. A frame's motion is compared with the condition at the end of the frame before (the program reads its sensors
+  before the robot moves).
+- `event`: `clap`, `key` (the test's set-up), `line_start`, `line_end`, `obstacle` (one of the three infrared sensors
+  begins to see something). An event too close to the end of the run to tell is left out.
+- `passed: null` ("not checked"): the condition never held, no event happened (or all too late), a `does` run shorter
+  than `after_ms`. After a runtime error, a behaviour check that hadn't failed yet isn't decided.
+- Their `t` and `point`: when and where the robot first went wrong; their facts end at most 500 ms after it (a
+  `variable`'s: after its last change).
 
 **A run never stops at a failed check:** every check is decided, after every simulator frame in which the robot moved.
 `reaches` that hasn't held at the end fails; the `never_…` checks and `path` that haven't failed hold. After a runtime
@@ -647,10 +669,10 @@ test's `path` check (the check block's data):
 **The report** of a simulation test has the shape of the others (§4.8), with `kind: "simulation"`, `world_block_id`,
 `checks` and `simulation`:
 - `checks`: `[{block_id, check, text, rule, passed, t, item, point, message}]`, every check with what it found
-  (`passed`: true, false, or null: not decided);
+  (`passed`: true, false, or null: not decided or nothing to check);
 - `simulation.result`, `t`: why and when the run ended (ms): `finished`, `until`, `time_limit`, `error`;
 - `item`, `point`: what the replay marks: the area touched or obstacle bumped into by the first failed check, where
-  the robot left its path;
+  the robot left its path or its behaviour first went wrong;
 - `path`: `[[t, x, y, heading], …]`, for the replay; `start`: `[x, y, heading]`;
 - `leds`: `[[t, left, right], …]`;
 - `bumps`: the frames in which the robot pushed against something.
@@ -668,7 +690,8 @@ before the failure (`from`, `to`, ms), from the run's record:
 - `did`: `{distance_cm, moved_cm, turned_deg, speeds, leds, sound_ms, bumps, touched}`.
 
 The report's `trace` is the record in steps of 100 ms: `[{t, x, y, h, l, r, leds, tone, bumps, running, reads,
-decisions}]` (wheel speeds in cm/s; `running`: the innermost statement block; `decisions`: `{"block:k": [yes, no]}`).
+decisions, does}]` (wheel speeds in cm/s; `running`: the innermost statement block; `decisions`: `{"block:k": [yes,
+no]}`; `does`: the motion of the step, e.g. `["drives_forward", "turns_left"]`).
 The page sends NepoTest only `name`, `block_id`, `outcome` and `covered_blocks` of a simulation report. `covered_blocks` are the blocks whose
 operations ran (the stack machine's operations carry their block ids), so simulation tests count for coverage. A
 runtime error is `{"kind": "runtime_error", "message", "block_id", "block_type"}`, with the block whose operation ran
@@ -688,8 +711,8 @@ What the sensors see, on the other hand, *is* a picture: the simulator's sensors
   objects, roles), the start, the `until` area, the checks and what they refer to, and the allowed events.
 - The Tests tab (`blocks.py`) also reports, at the block: a start or an item that isn't in the world (any more), a
   test outside a world, a robot that starts off the floor or on an obstacle (errors); a robot that starts on an area
-  the test checks, a test that checks nothing, a path not recorded yet, a set-up variable the program sets at once
-  (warnings).
+  the test checks, a test that checks nothing, a path not recorded yet, a set-up variable the program sets at once,
+  a check *after each clap* (or key press) in a test without one in its set-up (warnings).
 
 **The example:**
 - **The program:** `examples/line_follower.xml` follows the left edge of a line with the single line tracker. On black

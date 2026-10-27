@@ -48,7 +48,14 @@ set-up's variables), "world" (claps and keys only), "skip", "should"}. A check: 
 "ends_in" | "never_bumps" | "path", "item": an id (reaches, never_touches: an area, none: any goal / fail area; ends_in:
 an area; never_bumps: an obstacle, none: anything), "path": [[x, y, heading], ...] and "tolerance_cm" (path; no path:
 not recorded yet), "rule": true (a rule of the world: it holds for every test, and "should": "fail" doesn't turn it
-round), "block_id"}.
+round), "block_id"}. The checks of the robot's behaviour (nepoTest.simBehaviour.ts decides them):
+- {"check": "does", "does": DOES, "after_ms" (default 100)}: from after_ms on, the robot always does it;
+- {"check": "whenever", "when": CONDITIONS, "percent" (the light conditions), "does", "after_ms" (default 0: the program
+  reacts in the frame after it sensed something)}: whenever the condition (what the robot's sensors see) has held for
+  after_ms, the robot does it, for as long as it holds;
+- {"check": "after", "event": EVENTS, "within_ms", "does"}: after each event (claps and key presses: of the set-up),
+  the robot does it at some moment within within_ms;
+- {"check": "variable", "variable", "op": EQ | NEQ | LT | LTE | GT | GTE, "value"}: a global variable at the end.
 
 The world of the first kind of simulation tests (until 2026-10-26: one test per world) had one "start" instead of
 "starts", and the test had its "reference" path and "tolerance_cm"; run_simulation_test still takes that.
@@ -115,8 +122,17 @@ DEFAULT_TOLERANCE_CM = 2
 CURVE_PIECES = 16
 GIVEN_EVENTS = ('clap', 'key')  # what "given" may add (the simulator has no IR remote and messages); the drawn world does the rest
 DEFAULT_START = 'A'  # the id and name of a new world's start
-CHECKS = ('reaches', 'never_touches', 'ends_in', 'never_bumps', 'path')
+CHECKS = ('reaches', 'never_touches', 'ends_in', 'never_bumps', 'path', 'does', 'whenever', 'after', 'variable')
 AREA_ROLES = ('goal', 'fail', 'color')
+BEHAVIOUR_CHECKS = ('does', 'whenever', 'after')
+DOES = ('drives_forward', 'drives_backward', 'turns_left', 'turns_right', 'stands_still', 'left_led_on', 'left_led_off',
+        'right_led_on', 'right_led_off', 'leds_on', 'leds_off', 'plays_sound', 'silent')
+LIGHT_CONDITIONS = ('left_light_below', 'left_light_above', 'right_light_below', 'right_light_above')
+CONDITIONS = ('line', 'no_line', 'obstacle_ahead', 'obstacle_left', 'obstacle_right', 'no_obstacle') + LIGHT_CONDITIONS + (
+    'sound', 'play_key', 'rec_key')
+EVENTS = ('clap', 'key', 'line_start', 'line_end', 'obstacle')
+COMPARISONS = ('EQ', 'NEQ', 'LT', 'LTE', 'GT', 'GTE')
+DEFAULT_REACTION_MS = {'does': 100, 'whenever': 0}  # after_ms when a check has none
 
 
 def js_round(v):
@@ -957,8 +973,42 @@ def validate(sim, where):
                 problems.append('%s.tolerance_cm must be a number >= 0' % w)
             if check.get('rule'):
                 problems.append('%s: a recorded path belongs to one test: it can\'t be a rule' % w)
+        problems += _behaviour_problems(check, w)
         if check.get('rule') not in (None, True, False):
             problems.append('%s.rule must be true or false' % w)
+    return problems
+
+
+def _behaviour_problems(check, w):
+    """[problem] of a behaviour check (does, whenever, after) or a variable check"""
+    kind = check['check']
+    problems = []
+    if kind in BEHAVIOUR_CHECKS and check.get('does') not in DOES:
+        problems.append('%s.does must be one of %s' % (w, ', '.join(DOES)))
+    if kind in ('does', 'whenever'):
+        after = check.get('after_ms', DEFAULT_REACTION_MS[kind])
+        if not _number(after) or after < 0:
+            problems.append('%s.after_ms must be a number >= 0' % w)
+    if kind == 'whenever':
+        if check.get('when') not in CONDITIONS:
+            problems.append('%s.when must be one of %s' % (w, ', '.join(CONDITIONS)))
+        elif check['when'] in LIGHT_CONDITIONS and not (_number(check.get('percent')) and 0 <= check['percent'] <= 100):
+            problems.append('%s.percent must be a number from 0 to 100' % w)
+    if kind == 'after':
+        if check.get('event') not in EVENTS:
+            problems.append('%s.event must be one of %s' % (w, ', '.join(EVENTS)))
+        if not _number(check.get('within_ms')) or check['within_ms'] <= 0:
+            problems.append('%s.within_ms must be a number > 0' % w)
+    if kind == 'variable':
+        value = check.get('value')
+        if not isinstance(check.get('variable'), str) or not check['variable']:
+            problems.append('%s.variable must be the name of a global variable' % w)
+        if check.get('op', 'EQ') not in COMPARISONS:
+            problems.append('%s.op must be one of %s' % (w, ', '.join(COMPARISONS)))
+        if not (isinstance(value, (bool, int, float)) or isinstance(value, list) and all(_number(v) for v in value)):
+            problems.append('%s.value must be a number, true or false, or a list of numbers' % w)
+        elif check.get('op', 'EQ') not in ('EQ', 'NEQ') and not _number(value):
+            problems.append('%s: only numbers can be compared with <, <=, >, >=' % w)
     return problems
 
 
