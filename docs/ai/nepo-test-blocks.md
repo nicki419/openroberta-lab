@@ -4,6 +4,13 @@ Learners build unit tests for their Edison V2 program **from blocks** in a third
 Robot configuration. They run the tests in the browser and see the results per test and per block. This is part 1 of
 the project goal in `CLAUDE.md`, on top of the NepoTest framework (`nepo-unit-testing.md`).
 
+> **The given / when / then tests are switched off** (`BDD_TESTS = false` in `nepoTest.blocks.ts`, 2026-10-27): the
+> toolbox offers only the blocks of simulation worlds (§5): *Tests* (world, test of a world, run test), *Checks*,
+> *Given* (clap, key press, variable) and *Values*. The categories *When*, *Expect*, *Actions* and *States*, the
+> *test* block and the other *given* blocks (obstacle, light, line, remote, IR) are no longer offered. Their code is
+> unchanged: suites that have such tests still load, run and save (verified: the line follower's "stops at the wall"
+> passed), and `BDD_TESTS = true` offers them again. The sections below still describe them.
+
 ```
 Tests tab
 +-------------------------------------------------------+---------------------------------------------+

@@ -6,7 +6,8 @@
  * one simulation world "nepoTest_world" (all its tests) or one test of a world. A world (its data: the drawn world, see nepoTest.sim) holds
  * tests "nepoTest_simcase" (set up: a start and the past; run: the whole program; check: "nepoTest_check_*" blocks) and rules (checks for all
  * of its tests). The tests and checks refer to the world's starts and items by their ids (fields START, UNTIL, AREA, OBSTACLE) and show their
- * names: refreshWorldLabels keeps the names up to date.
+ * names: refreshWorldLabels keeps the names up to date. The tests of given / when / then are switched off (BDD_TESTS): the toolbox offers only
+ * the blocks of simulation worlds, but suites that have such tests still load and run.
  */
 // @ts-ignore (Blockly has no type declarations)
 import * as Blockly from 'blockly';
@@ -1993,6 +1994,13 @@ function paramsOf(functionName: string): { name: string; type: string }[] {
     return f ? f.params : [];
 }
 
+/**
+ * the tests of given / when / then ("nepoTest_test", run on NepoTest's virtual robot) and the blocks only they use are switched off: the
+ * toolbox doesn't offer them (the When, Expect, Actions and States categories, the test block, the given blocks that a simulation world
+ * doesn't take). Their blocks stay defined, so suites that have such tests still load, run and save. true offers them again.
+ */
+export const BDD_TESTS = false;
+
 const CATEGORIES: { [name: string]: [string, string] } = {
     NEPOTEST_TESTS: ['CAT_PROCEDURE_RGB', 'flag-outline'],
     NEPOTEST_CHECKS: ['CAT_LOGIC_RGB', 'input-checked'],
@@ -2020,8 +2028,9 @@ function num(value: number): string {
     return '<block type="math_number"><field name="NUM">' + value + '</field></block>';
 }
 
-/** the toolbox of the Tests tab */
+/** the toolbox of the Tests tab (without the blocks of given / when / then tests: BDD_TESTS) */
 export function toolbox(): string {
+    const bdd = (xml: string) => (BDD_TESTS ? xml : '');
     const cat = (name: string, blocks: string) => '<category name="TOOLBOX_' + name + '" svg="true">' + blocks + '</category>';
     const b = (type: string, inner = '') => '<block type="' + type + '">' + inner + '</block>';
     const f = (name: string, value: string) => '<field name="' + name + '">' + value + '</field>';
@@ -2030,38 +2039,8 @@ export function toolbox(): string {
     const still = b('nepoTest_state_robot', f('MOVE', 'still'));
     const ledOn = b('nepoTest_state_led', f('PORT', 'left') + f('IS', 'on'));
     const simTest = b(SIM_TEST, f('START', SIM.DEFAULT_START) + f('MODE', 'for') + f('SECONDS', '5'));
-    return (
-        '<toolbox_set id="nepoTestToolbox" style="display: none">' +
-        cat(
-            'NEPOTEST_TESTS',
-            b('nepoTest_test', '<statement name="WHEN">' + b('nepoTest_when_run') + '</statement><statement name="THEN">' + b('nepoTest_expect_status') + '</statement>') +
-                b(WORLD, '<statement name="TESTS">' + simTest + '</statement>') +
-                simTest +
-                b('nepoTest_run')
-        ) +
-        cat(
-            'NEPOTEST_CHECKS',
-            b('nepoTest_check_reaches', f('AREA', ANY_ITEM)) +
-                b('nepoTest_check_never_touches', f('AREA', ANY_ITEM)) +
-                b('nepoTest_check_ends_in') +
-                b('nepoTest_check_never_bumps', f('OBSTACLE', ANY_ITEM)) +
-                b(PATH_CHECK) +
-                b('nepoTest_check_does', f('DOES', 'turns_left')) +
-                b('nepoTest_check_whenever', f('WHEN', 'line') + f('DOES', 'turns_left')) +
-                b('nepoTest_check_after', f('EVENT', 'clap') + f('DOES', 'drives_forward')) +
-                b('nepoTest_check_variable', v('VALUE', num(0)))
-        ) +
-        cat(
-            'NEPOTEST_GIVEN',
-            b('nepoTest_given_clap') +
-                b('nepoTest_given_key') +
-                b('nepoTest_given_obstacle') +
-                b('nepoTest_given_light') +
-                b('nepoTest_given_line') +
-                b('nepoTest_given_remote') +
-                b('nepoTest_given_ir') +
-                b('nepoTest_given_variable', '<value name="VALUE">' + num(0) + '</value>')
-        ) +
+    // the categories of given / when / then tests only (BDD_TESTS)
+    const givenWhenThen =
         cat('NEPOTEST_WHEN', b('nepoTest_when_run') + b('nepoTest_when_call')) +
         cat(
             'NEPOTEST_THEN',
@@ -2110,7 +2089,36 @@ export function toolbox(): string {
                 b('nepoTest_cond_obstacle', f('PORT', 'FRONT')) +
                 b('nepoTest_cond_line') +
                 b('nepoTest_cond_light', f('OP', 'GT'))
+        );
+    return (
+        '<toolbox_set id="nepoTestToolbox" style="display: none">' +
+        cat(
+            'NEPOTEST_TESTS',
+            bdd(b('nepoTest_test', '<statement name="WHEN">' + b('nepoTest_when_run') + '</statement><statement name="THEN">' + b('nepoTest_expect_status') + '</statement>')) +
+                b(WORLD, '<statement name="TESTS">' + simTest + '</statement>') +
+                simTest +
+                b('nepoTest_run')
         ) +
+        cat(
+            'NEPOTEST_CHECKS',
+            b('nepoTest_check_reaches', f('AREA', ANY_ITEM)) +
+                b('nepoTest_check_never_touches', f('AREA', ANY_ITEM)) +
+                b('nepoTest_check_ends_in') +
+                b('nepoTest_check_never_bumps', f('OBSTACLE', ANY_ITEM)) +
+                b(PATH_CHECK) +
+                b('nepoTest_check_does', f('DOES', 'turns_left')) +
+                b('nepoTest_check_whenever', f('WHEN', 'line') + f('DOES', 'turns_left')) +
+                b('nepoTest_check_after', f('EVENT', 'clap') + f('DOES', 'drives_forward')) +
+                b('nepoTest_check_variable', v('VALUE', num(0)))
+        ) +
+        cat(
+            'NEPOTEST_GIVEN',
+            b('nepoTest_given_clap') +
+                b('nepoTest_given_key') +
+                bdd(b('nepoTest_given_obstacle') + b('nepoTest_given_light') + b('nepoTest_given_line') + b('nepoTest_given_remote') + b('nepoTest_given_ir')) +
+                b('nepoTest_given_variable', '<value name="VALUE">' + num(0) + '</value>')
+        ) +
+        bdd(givenWhenThen) +
         cat('NEPOTEST_VALUES', num(0) + b('logic_boolean') + b('robLists_create_with', '<mutation items="3"></mutation>')) +
         '</toolbox_set>'
     );

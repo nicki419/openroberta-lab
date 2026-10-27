@@ -105,6 +105,8 @@ tests on the Lab's simulator). For a simulation world, the **Simulation** panel 
 draws the world and its starts, lists its tests, runs them, records a test's path and replays runs. It covers
 the block vocabulary (the contract between `nepoTest.blocks.ts` and `NepoTest/nepotest/blocks.py`), how suites are
 saved inside the program XML, and how results link back to blocks. Read it before changing the Tests tab or adding a test block.
+The given / when / then tests are switched off in the toolbox (`BDD_TESTS = false` in `nepoTest.blocks.ts`): it offers only
+the blocks of simulation worlds. Their code is kept, and suites that have such tests still load and run.
 
 **`docs/ai/edpy-test-engine.md`** documents the framework's engine (`NepoTest/nepotest/engine`). The engine runs
 generated EdPy under CPython with EdPy semantics: 16-bit ints, floor division, constant folding, a virtual clock, and
