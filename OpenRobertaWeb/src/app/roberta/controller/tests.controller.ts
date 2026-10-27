@@ -10,8 +10,9 @@
  * - "Simulation" shows the selected simulation world and its tests (nepoTest.simEditor): the world is drawn there, its tests are run and
  *   replayed, and their paths recorded. The world is the world block's data (JSON), a recorded path the data of the test's path check, so both
  *   are saved with the suite, and undo of a deleted block brings them back.
- * - A failed check of a simulation test comes with the facts of the second before it (nepoTest.simProgram): what the robot sensed, what ran,
- *   what it remembered, what it did. The program's blocks in them are chips: a click shows the block in the Program tab.
+ * - A failed check of a simulation test comes with why (nepoTest.simVerdict: the block to blame) and the facts of the second before it
+ *   (nepoTest.simProgram): what the robot sensed, what ran, what it remembered, what it did. The program's blocks in them are chips: a click
+ *   shows the block in the Program tab. While a run is replayed, the block running at the replay's time is marked in the Program tab.
  * Suites saved before 2026-10-26 had simulation tests of their own ("nepoTest_simtest", one world each): they are dropped when they are loaded.
  * Only for the Edison robots (NepoTest supports them).
  */
@@ -27,6 +28,7 @@ import * as RUNNER from 'nepoTest.runner';
 import * as SIM from 'nepoTest.sim';
 import * as SIMRUN from 'nepoTest.simRun';
 import * as SIMPROGRAM from 'nepoTest.simProgram';
+import * as VERDICT from 'nepoTest.simVerdict';
 import { SimEditor, SimScene, SimTest } from 'nepoTest.simEditor';
 
 const SUPPORTED_GROUPS = ['edison'];
@@ -85,6 +87,7 @@ export function init(): void {
         showBlock: function (blockId: string) {
             selectBlock(blockId, 'program');
         },
+        replayed: markReplayed,
     });
     simEditor.setLanguage(blocksLanguage);
     SUITE.setWorkspace(serializeSuite, loadSuite);
@@ -120,6 +123,13 @@ function initEvents(): void {
     );
     $('#tabTests').onWrap('hidden.bs.tab', function () {
         workspace.setVisible(false);
+    });
+    $('#tabProgram').onWrap('shown.bs.tab', function () {
+        setTimeout(function () {
+            const id = replayedBlock; // the Program tab draws its blocks anew: the mark of the replayed block again
+            replayedBlock = null;
+            markReplayed(id);
+        }, 0);
     });
     $(window).on('resize', function () {
         if ($('#tests').hasClass('active')) {
@@ -331,6 +341,11 @@ function blockLabel(blockId: string): string {
     return text.length > 48 ? text.substring(0, 47) + '…' : text;
 }
 
+/** a block of the program as a chip: a click shows it in the Program tab */
+function programChip(block: string): HTMLElement {
+    return $('<span class="nepoChip linked"></span>').text(blockLabel(block)).attr('data-block', block).attr('data-workspace', 'program')[0];
+}
+
 /** the facts of a failure of a simulation test, as a list item; its blocks are chips that show them in the Program tab */
 function factsItem(facts: SIMPROGRAM.Facts, worldBlockId: string): any {
     const worldBlock = worldBlockId && workspace.getBlockById(worldBlockId);
@@ -339,8 +354,31 @@ function factsItem(facts: SIMPROGRAM.Facts, worldBlockId: string): any {
         const item = world && world.items.filter((i) => i.id === id)[0];
         return item ? '"' + SIM.itemName(world, item, BLOCKS.kindWord) + '"' : id;
     };
-    const list = SIMPROGRAM.factsElement(facts, 'nepoFacts', name, (block) => $('<span class="nepoChip linked"></span>').text(blockLabel(block)).attr('data-block', block).attr('data-workspace', 'program')[0]);
-    return $('<li class="nepoTestFactsItem"></li>').append(list);
+    return $('<li class="nepoTestFactsItem"></li>').append(SIMPROGRAM.factsElement(facts, 'nepoFacts', name, programChip));
+}
+
+/** why a check of a simulation test failed (the block to blame), as a list item */
+function whyItem(why: VERDICT.Explanation): any {
+    return $('<li class="nepoTestWhyItem"></li>').append(VERDICT.explanationElement(why, 'nepoWhy', programChip));
+}
+
+let replayedBlock: string = null;
+
+/** marks the block of the program that runs at the time of the replay in the Simulation tab (null: none) */
+function markReplayed(blockId: string): void {
+    if (blockId === replayedBlock) {
+        return;
+    }
+    const ws = programWorkspace();
+    const path = (id: string) => {
+        const block = id && ws && ws.getBlockById(id);
+        return block ? block.svgPath_ : null; // Blockly sets the classes of the block's group anew: the style goes on its path, as the debugger's does
+    };
+    const old = path(replayedBlock);
+    old && old.classList.remove('nepoReplayed');
+    replayedBlock = blockId;
+    const now = path(blockId);
+    now && now.classList.add('nepoReplayed');
 }
 
 /** the functions and global variables of the program in the Program tab, for the dropdowns of the test blocks */
@@ -1001,6 +1039,7 @@ function showReport(index: number, report: any): void {
                 $f.attr('data-block', f.block_id).attr('data-workspace', 'program').addClass('linked'); // the block that caused the state
             }
             $details.append($f);
+            f.why && $details.append(whyItem(f.why));
             f.facts && $details.append(factsItem(f.facts, report.world_block_id));
         }
     });

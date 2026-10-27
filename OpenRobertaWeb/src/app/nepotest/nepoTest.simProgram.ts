@@ -17,7 +17,9 @@
  *   ends those in the previous one's "-".
  * - facts: for a failed check, the second before it: what the robot sensed, what ran (decisions and actions), what it remembered, what it
  *   did. factLines puts them into words, with the blocks as chips.
- * - trace: the record in steps of 100 ms, for the report.
+ * - trace: the record in steps of 100 ms, for the report (and the replay: what ran, what the program read, what the robot could sense).
+ * - What an action block does: the block in effect for an actuator at a time (inEffectAt), the wheel speeds a motor action sets, as the
+ *   simulator sets them (wheelsAfter), and how the robot moves at those speeds (motionOf). nepoTest.simVerdict blames blocks with them.
  */
 import * as C from 'interpreter.constants';
 
@@ -40,6 +42,8 @@ export class ProgramModel {
     readonly blocks: { [id: string]: BlockInfo } = {};
     /** the program's global variables (its declarations in the start block) */
     readonly globals: string[] = [];
+    /** the blocks in a block's inputs, in their order */
+    readonly children: { [id: string]: BlockInfo[] } = {};
 
     constructor(xml: string) {
         const doc = new DOMParser().parseFromString(xml, 'text/xml');
@@ -62,14 +66,15 @@ export class ProgramModel {
                 depth: parent ? parent.depth + 1 : 0,
             };
             this.blocks[info.id] = info;
-            this.children(el, info);
+            parent && (this.children[parent.id] = this.children[parent.id] || []).push(info);
+            this.visitInputs(el, info);
             if (info.type === 'robGlobalVariables_declare' && info.fields.VAR) {
                 this.globals.push(info.fields.VAR);
             }
         }
     }
 
-    private children(block: Element, info: BlockInfo): void {
+    private visitInputs(block: Element, info: BlockInfo): void {
         for (let el = block.firstElementChild; el; el = el.nextElementSibling) {
             if (el.localName === 'field') {
                 info.fields[el.getAttribute('name')] = el.textContent;
@@ -78,9 +83,24 @@ export class ProgramModel {
             } else if (el.localName === 'statement') {
                 this.visit(el, info, true, el.getAttribute('name'));
             } else if (el.localName === 'repetitions') {
-                this.children(el, info); // robControls_ifElse and others wrap their inputs
+                this.visitInputs(el, info); // robControls_ifElse and others wrap their inputs
             }
         }
+    }
+
+    /** the input of `ancestor` that a block is in (DO0, ELSE, ...), or null if it isn't in it */
+    inputWithin(id: string, ancestor: string): string {
+        for (let b = this.blocks[id]; b && b.parent; b = this.blocks[b.parent]) {
+            if (b.parent === ancestor) {
+                return b.input;
+            }
+        }
+        return null;
+    }
+
+    /** the block in an input of a block (the first one, of a statement input) */
+    child(id: string, input: string): BlockInfo {
+        return (this.children[id] || []).filter((c) => c.input === input)[0] || null;
     }
 
     /** the innermost if a block is in, and in which part: "yes" (its first condition held), "yes, condition 2", "no"; or null */
@@ -217,6 +237,8 @@ export interface Change {
     t: number;
     name: string;
     value: any;
+    block?: string; // a global variable: the block that assigned it last (none: changed in place, or its declaration)
+    times?: number; // how often it was assigned in the frame (a loop that doesn't wait: several times)
 }
 
 /** what the robot does in a frame, from the run (nepoTest.simRun) */
@@ -272,6 +294,7 @@ export class Recorder {
     private frame: Frame;
     private inEffect: { [actuator: string]: Effect } = {};
     private globalValues: { [name: string]: string } = {};
+    private assigned: { [name: string]: { block: string; times: number } } = {}; // the block that assigned a global variable last in this frame, how often it was assigned
     private sensorValues: { [key: string]: any } = {};
     private changed = false; // sensorValues was copied in this frame (the frames before keep theirs)
 
@@ -338,7 +361,11 @@ export class Recorder {
         }
         const actuator = ACTUATORS[op[C.OPCODE]];
         if (actuator) {
-            this.effect(op, actuator === 'led' ? 'led ' + op[C.PORT] : actuator);
+            this.effect(op, actuator === 'led' ? 'led ' + String(op[C.PORT]).toLowerCase() : actuator);
+        }
+        if ((op[C.OPCODE] === C.ASSIGN_STMT || op[C.OPCODE] === C.MATH_CHANGE) && this.model.globals.indexOf(op[C.NAME]) >= 0) {
+            const assigned = this.assigned[op[C.NAME]];
+            this.assigned[op[C.NAME]] = { block: this.model.innermost(this.open, true), times: assigned ? assigned.times + 1 : 1 };
         }
     }
 
@@ -444,10 +471,12 @@ export class Recorder {
                 const value = bindings[name] && bindings[name].length ? bindings[name][0] : undefined;
                 const text = JSON.stringify(value);
                 if (value !== undefined && this.globalValues[name] !== text) {
+                    const assigned = this.assigned[name];
                     this.globalValues[name] = text;
-                    this.globals.push({ t: f.t, name: name, value: copy(value) });
+                    this.globals.push({ t: f.t, name: name, value: copy(value), block: assigned ? assigned.block : undefined, times: assigned ? assigned.times : undefined });
                 }
             }
+            this.assigned = {};
             const sensors = this.behaviour.hardwareState && this.behaviour.hardwareState.sensors;
             this.flatten(sensors || {}, '', f.t, 0);
         } catch (e) {
@@ -506,18 +535,14 @@ export interface Action extends Effect {
 
 export const FACTS_MS = 1000;
 
-/** what happened in the second before `to` (ms): sensed, ran, remembered, did */
-export function facts(rec: Recorder, to: number, ms = FACTS_MS): Facts {
-    const from = Math.max(0, to - ms);
-    const frames = rec.frames.filter((f) => f.t > from && f.t <= to + 0.05);
-    const before = rec.frames.filter((f) => f.t <= from).pop() || frames[0];
+/** the frames of a time (ms): those that end after `from` and by `to` */
+export function framesBetween(rec: Recorder, from: number, to: number): Frame[] {
+    return rec.frames.filter((f) => f.t > from && f.t <= to + 0.05);
+}
+
+/** what the program read in these frames, per sensor (key: sensor/port/mode) */
+export function readsIn(frames: Frame[]): { [key: string]: Read } {
     const sensed: { [key: string]: Read } = {};
-    const decisions: { [key: string]: DecisionCount } = {};
-    const bumps: { [into: string]: number } = {};
-    const touched: string[] = [];
-    let distance = 0;
-    let sound = 0;
-    let previous = before;
     for (const f of frames) {
         for (const key of Object.keys(f.reads)) {
             const r = f.reads[key];
@@ -529,6 +554,14 @@ export function facts(rec: Recorder, to: number, ms = FACTS_MS): Facts {
                 known ? (known[1] += n) : s.values.length < MAX_VALUES && s.values.push([value, n]);
             }
         }
+    }
+    return sensed;
+}
+
+/** the decisions taken in these frames (key: block:k), with the readings of the last time */
+export function decisionsIn(frames: Frame[]): { [key: string]: DecisionCount } {
+    const decisions: { [key: string]: DecisionCount } = {};
+    for (const f of frames) {
         for (const key of Object.keys(f.decisions)) {
             const d = f.decisions[key];
             const s = decisions[key] || (decisions[key] = { block: d.block, kind: d.kind, k: d.k, yes: 0, no: 0, inputs: {} });
@@ -536,6 +569,23 @@ export function facts(rec: Recorder, to: number, ms = FACTS_MS): Facts {
             s.no += d.no;
             s.inputs = d.inputs;
         }
+    }
+    return decisions;
+}
+
+/** what happened in the second before `to` (ms): sensed, ran, remembered, did */
+export function facts(rec: Recorder, to: number, ms = FACTS_MS): Facts {
+    const from = Math.max(0, to - ms);
+    const frames = framesBetween(rec, from, to);
+    const before = rec.frames.filter((f) => f.t <= from).pop() || frames[0];
+    const sensed = readsIn(frames);
+    const decisions = decisionsIn(frames);
+    const bumps: { [into: string]: number } = {};
+    const touched: string[] = [];
+    let distance = 0;
+    let sound = 0;
+    let previous = before;
+    for (const f of frames) {
         if (f.bump !== undefined) {
             const key = String(f.bump);
             bumps[key] = (bumps[key] || 0) + 1;
@@ -588,9 +638,146 @@ function round1(v: number): number {
     return Math.round(v * 10) / 10;
 }
 
+// ------------------------------------------------------------------------------------------------ what the action blocks do
+
+// the Edison in the simulator (robot.edison: track width 7 cm, wheel diameter 3.7 cm; ChassisDiffDrive.MAXPOWER: 3 turns a second at 100 %)
+export const CM_S_PER_PERCENT = (3 * 3.7 * Math.PI) / 100;
+export const TRACK_CM = 7;
+const FRAME_MS = 1000 / 60;
+const AMOUNTS = ['distance', 'degrees', 'rotations', 'time']; // an action with an amount ends by itself (the simulator stops the motors)
+
+function num(v: any): number {
+    return typeof v === 'number' ? v : Number(v) || 0;
+}
+
+function clamp(p: number): number {
+    return Math.max(-100, Math.min(100, p));
+}
+
+/**
+ * the wheel speeds (%, forward positive) after an action of the motors, as interpreter.robotSimBehaviour sets them (backward, or a negative
+ * amount, turns the speeds round; an amount of 0 stops); `before`: the speeds until then (a single motor changes one)
+ */
+export function wheelsAfter(e: Effect, before: number[] = [0, 0]): number[] {
+    const a = e.args;
+    const forward = a.direction === C.FOREWARD || a.direction === C.FORWARD;
+    const sign = (amount: any) => (amount === 0 ? 0 : (!forward && (num(amount) > 0 || !amount)) || (forward && num(amount) < 0) ? -1 : 1);
+    const left = String(a.port || '').toLowerCase().indexOf('l') === 0; // LMOTOR
+    switch (e.op) {
+        case C.DRIVE_ACTION:
+            return [clamp(sign(a.distance) * num(a.power)), clamp(sign(a.distance) * num(a.power))];
+        case C.CURVE_ACTION:
+            return [clamp(sign(a.distance) * num(a.left)), clamp(sign(a.distance) * num(a.right))];
+        case C.TURN_ACTION: {
+            const p = a.degrees === 0 ? 0 : num(a.degrees) < 0 ? -num(a.power) : num(a.power);
+            return String(a.direction).toLowerCase() === C.LEFT ? [clamp(-p), clamp(p)] : [clamp(p), clamp(-p)];
+        }
+        case C.MOTOR_ON_ACTION:
+            return left ? [clamp(num(a.power)), before[1]] : [before[0], clamp(num(a.power))];
+        case C.MOTOR_STOP:
+            return left ? [0, before[1]] : [before[0], 0];
+        case C.BOTH_MOTORS_ON_ACTION:
+            return [clamp(num(a.left)), clamp(num(a.right))];
+        case C.STOP_DRIVE:
+            return [0, 0];
+        default:
+            return before;
+    }
+}
+
+/** how the robot moves at these wheel speeds (%): v cm/s along its heading, w degrees/s counterclockwise (left) */
+export function motionOf(wheels: number[]): { v: number; w: number } {
+    const [l, r] = wheels.map((p) => clamp(p) * CM_S_PER_PERCENT);
+    return { v: (l + r) / 2, w: (((r - l) / TRACK_CM) * 180) / Math.PI };
+}
+
+/** the frame the robot moves in at a time (ms): the first that ends then or later */
+export function frameAt(rec: Recorder, t: number): Frame {
+    return rec.frames.filter((f) => f.t >= t - 0.05)[0] || rec.frames[rec.frames.length - 1] || rec.initial;
+}
+
+export interface InEffect {
+    effect: Effect; // null: no block has set this actuator yet
+    wheels: number[]; // the motors: the wheel speeds (%) then
+    finished: boolean; // the motors: the action's amount is done (the simulator stopped them), no other block set them since
+}
+
+/**
+ * the block in effect for an actuator (motors, led lled, led rled, sound) in the frame that ends at `t` (ms): the last of the actions that
+ * ran before (an action runs at the beginning of a frame, before the robot moves)
+ */
+export function inEffectAt(rec: Recorder, actuator: string, t: number): InEffect {
+    let effect: Effect = null;
+    let wheels = [0, 0];
+    for (const e of rec.effects) {
+        if (e.t > t - FRAME_MS / 2) {
+            break; // the effects are in the order they happened
+        }
+        if (e.actuator === actuator) {
+            effect = e;
+            wheels = actuator === 'motors' ? wheelsAfter(e, wheels) : wheels;
+        }
+    }
+    const frame = frameAt(rec, t);
+    const stopped = !!frame && frame.l === 0 && frame.r === 0 && (wheels[0] !== 0 || wheels[1] !== 0);
+    const finished = !!effect && actuator === 'motors' && stopped && AMOUNTS.some((k) => effect.args[k] !== undefined);
+    return { effect: effect, wheels: finished ? [0, 0] : wheels, finished: finished };
+}
+
+/**
+ * what an Edison action block of the program would do, from its fields and the numbers in its inputs (for a block that didn't run: its
+ * effect as the record would have it, t -1); null if it isn't an action, or a value isn't a number written into it
+ */
+export function blockEffect(model: ProgramModel, id: string): Effect {
+    const b = model.blocks[id];
+    if (!b) {
+        return null;
+    }
+    const value = (input: string) => {
+        const c = model.child(id, input);
+        return c && (c.type === 'math_number' || c.type === 'math_integer') ? Number(c.fields.NUM) : undefined;
+    };
+    const amount = (input: string) => (/_for$/.test(b.type) ? value(input) : null);
+    const direction = b.fields.DIRECTION || 'FOREWARD';
+    const effect = (actuator: string, op: string, args: { [name: string]: any }) =>
+        Object.keys(args).some((k) => args[k] === undefined) ? null : { t: -1, actuator: actuator, block: id, op: op, args: clean(args) };
+    switch (b.type) {
+        case 'robActions_motorDiff_on':
+        case 'robActions_motorDiff_on_for':
+            return effect('motors', C.DRIVE_ACTION, { direction: direction, power: value('POWER'), distance: amount('DISTANCE') });
+        case 'robActions_motorDiff_curve':
+        case 'robActions_motorDiff_curve_for':
+            return effect('motors', C.CURVE_ACTION, { direction: direction, left: value('POWER_LEFT'), right: value('POWER_RIGHT'), distance: amount('DISTANCE') });
+        case 'robActions_motorDiff_turn':
+        case 'robActions_motorDiff_turn_for':
+            return effect('motors', C.TURN_ACTION, { direction: (b.fields.DIRECTION || 'RIGHT').toLowerCase(), power: value('POWER'), degrees: amount('DEGREE') });
+        case 'robActions_motorDiff_stop':
+            return effect('motors', C.STOP_DRIVE, {});
+        case 'robActions_motor_on':
+        case 'robActions_motor_on_for':
+            return effect('motors', C.MOTOR_ON_ACTION, { port: String(b.fields.MOTORPORT || '').toLowerCase(), power: value('POWER') });
+        case 'robActions_motor_stop':
+            return effect('motors', C.MOTOR_STOP, { port: String(b.fields.MOTORPORT || '').toLowerCase() });
+        case 'actions_led_edison':
+            return effect('led ' + String(b.fields.ACTORPORT || '').toLowerCase(), C.LED_ACTION, { on: b.fields.MODE === 'ON' });
+        default:
+            return null;
+    }
+}
+
+/** the arguments of an action without those it doesn't have (null) */
+function clean(args: { [name: string]: any }): { [name: string]: any } {
+    const out: { [name: string]: any } = {};
+    Object.keys(args).forEach((k) => args[k] !== null && (out[k] = args[k]));
+    return out;
+}
+
 // ------------------------------------------------------------------------------------------------ the trace (the report's record)
 
-/** the record in steps of `step` ms: where the robot was, its wheel speeds, LEDs and sound, what ran, the decisions and readings */
+/**
+ * the record in steps of `step` ms: where the robot was, its wheel speeds, LEDs and sound, what ran, the decisions and readings, and what the
+ * robot could sense at the step's end (the simulator's values of the Edison's sensors, as the program would read them: SENSOR_NAMES)
+ */
 export function trace(rec: Recorder, step = 100): any[] {
     const out: any[] = [];
     let w: any = null;
@@ -598,8 +785,9 @@ export function trace(rec: Recorder, step = 100): any[] {
         const end = Math.ceil(f.t / step - 1e-9) * step;
         if (!w || w.t !== end) {
             w && out.push(w);
-            w = { t: end, x: 0, y: 0, h: 0, l: 0, r: 0, frames: 0, leds: f.leds, tone: false, bumps: 0, running: null, reads: {}, decisions: {} };
+            w = { t: end, x: 0, y: 0, h: 0, l: 0, r: 0, frames: 0, leds: f.leds, tone: false, bumps: 0, running: null, reads: {}, decisions: {}, sensors: {} };
         }
+        w.sensors = f.sensors;
         w.frames++;
         [w.x, w.y, w.h] = [Math.round(f.x * 100) / 100, Math.round(f.y * 100) / 100, round1(f.h)];
         w.l += f.l;
@@ -621,6 +809,9 @@ export function trace(rec: Recorder, step = 100): any[] {
         x.l = round1(x.l / x.frames);
         x.r = round1(x.r / x.frames);
         delete x.frames;
+        const sensors: { [key: string]: any } = {};
+        Object.keys(SENSOR_NAMES).forEach((k) => k in x.sensors && (sensors[k] = x.sensors[k]));
+        x.sensors = sensors;
     });
     return out;
 }
@@ -645,11 +836,16 @@ const SENSOR_NAMES: { [key: string]: string } = {
 };
 
 function sensorName(r: Read): string {
-    const key = readKey(r.sensor, r.port, r.mode);
+    return keyName(readKey(r.sensor, r.port, r.mode));
+}
+
+/** what a reading (sensor/port/mode) is called: "line tracker sees black" */
+export function keyName(key: string): string {
     return SENSOR_NAMES[key] || key.toLowerCase().replace(/\//g, ' ');
 }
 
-function show(v: any): string {
+/** a value as the facts show it: yes / no, numbers with two decimals */
+export function show(v: any): string {
     if (typeof v === 'boolean') {
         return v ? 'yes' : 'no';
     }
@@ -693,7 +889,7 @@ function actionWords(e: Effect): string {
     }
 }
 
-function decisionWords(d: DecisionCount): string {
+export function decisionWords(d: DecisionCount): string {
     const times = (n: number) => n + '×';
     if (d.kind === 'wait') {
         return (d.yes ? 'waited until it held (' + times(d.yes) + ')' : 'still waiting') + (d.no ? ', not yet ' + times(d.no) : '');
@@ -762,10 +958,15 @@ export function factsElement(f: Facts, className: string, name: (item: string) =
         const label = document.createElement('b');
         label.textContent = line.label + ': ';
         li.appendChild(label);
-        for (const part of line.parts) {
-            li.appendChild(typeof part === 'string' ? document.createTextNode(part) : chip(part.block));
-        }
+        partsInto(li, line.parts, chip);
         ul.appendChild(li);
     }
     return ul;
+}
+
+/** puts words and chips into an element */
+export function partsInto(parent: HTMLElement, parts: Part[], chip: (block: string) => HTMLElement): void {
+    for (const part of parts) {
+        parent.appendChild(typeof part === 'string' ? document.createTextNode(part) : chip(part.block));
+    }
 }

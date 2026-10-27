@@ -23,7 +23,7 @@
  *
  * The report has the shape of NepoTest's reports (NepoTest/nepotest/spec.py), so the Tests tab shows all tests alike:
  *   {name, block_id (the test), world_block_id, kind: 'simulation', outcome, expected_failure, failures, error, time_ms, variables,
- *    covered_blocks, status, checks: [{block_id, check, text, rule, passed, t, item, point, message}],
+ *    covered_blocks, status, checks: [{block_id, check, text, rule, passed, t, item, point, message, facts, why}],
  *    simulation: {result, t, item, point, path: [[t_ms, x, y, heading], ...], leds: [[t_ms, left, right], ...], start, recorded, bumps}}
  * passed: true, false, or null (not decided: a path not recorded yet, the program failed before, nothing to check: the condition of a
  * "whenever" never held, no event of an "after" happened). result: why the run ended: finished |
@@ -31,7 +31,9 @@
  * the robot left its path, where its behaviour first went wrong). Positions in cm, headings in degrees (not wrapped).
  * The run is recorded (nepoTest.simProgram): a failed check, and a runtime error, get the facts of the second before (`facts`: what the
  * robot sensed, what ran, what it remembered, what it did; of a behaviour check: from half a second after it first went wrong), and the
- * report has the record in steps of 100 ms (`trace`, with what the robot did in each step: `does`).
+ * report has the record in steps of 100 ms (`trace`, with what the robot did in each step: `does`). A failed check of what the robot does,
+ * or of a variable, also gets why (`why`, nepoTest.simVerdict: the block to blame); a failed check of where it goes points to the test's
+ * first failed check of what it does.
  */
 import * as COMM from 'comm';
 import * as GUISTATE_C from 'guiState.controller';
@@ -40,6 +42,7 @@ import * as Blockly from 'blockly';
 import * as SIM from 'nepoTest.sim';
 import * as PROGRAM from 'nepoTest.simProgram';
 import * as BEHAVIOUR from 'nepoTest.simBehaviour';
+import * as VERDICT from 'nepoTest.simVerdict';
 import { Interpreter } from 'interpreter.interpreter';
 import { RobotSimBehaviour } from 'interpreter.robotSimBehaviour';
 import { SelectionListener } from 'robot.base';
@@ -538,6 +541,8 @@ interface CheckState {
     corridor?: Corridor;
     skipped?: boolean; // a path check without a path, or while it is recorded: it checks nothing
     factsAt?: number; // the end of its facts (a behaviour check: soon after it went wrong); else t
+    verdict?: BEHAVIOUR.Verdict; // a behaviour or variable check: what judge found
+    why?: VERDICT.Explanation; // a failed check: why (nepoTest.simVerdict)
 }
 
 class Run {
@@ -875,6 +880,7 @@ class Run {
                     check.message = 'not decided: the program failed after ' + at + ' s'; // a failure before the error counts
                 } else {
                     [check.passed, check.t, check.point, check.message, check.factsAt] = [verdict.passed, verdict.t, verdict.point, verdict.message, verdict.factsAt];
+                    check.verdict = verdict;
                 }
                 continue;
             }
@@ -909,6 +915,28 @@ class Run {
         }
     }
 
+    /** why each failed check failed (nepoTest.simVerdict); a failed check of where the robot goes points to the first failed check of what it does */
+    private explain(): void {
+        const name = (id: string) => nameOf(this.world, id);
+        for (const check of this.checks) {
+            if (check.passed === false && check.verdict) {
+                try {
+                    check.why = VERDICT.explain(check.spec, check.verdict, this.recorder, this.test.world || [], name) || undefined;
+                } catch (e) {
+                    this.recorder.failure = this.recorder.failure || 'why: ' + String((e && e.message) || e); // the facts are there anyway
+                }
+            }
+        }
+        // a check of what it does that went wrong by then; not one that failed because of the world (it bumped: "right, but not enough")
+        const behaviour = (t: number) => this.checks.filter((c) => c.passed === false && c.verdict && c.verdict.evidence && c.verdict.evidence.from <= t && c.spec.check !== 'variable' && !(c.why && c.why.kind === 'not_enough'))[0];
+        this.checks
+            .filter((c) => c.passed === false && !c.verdict)
+            .forEach((c) => {
+                const other = behaviour(c.t === null ? Infinity : c.t);
+                other && (c.why = VERDICT.seeAlso(other.text));
+            });
+    }
+
     /** the program's variables now (their values, not the interpreter's bindings) */
     private variables(): { [name: string]: any } {
         const variables = {};
@@ -921,6 +949,7 @@ class Run {
         const test = this.test;
         const outcome = this.outcome;
         this.decideRest();
+        this.explain();
         const failures: any[] = [];
         const factsAt: { [t: string]: PROGRAM.Facts } = {};
         const factsOf = (t: number) => factsAt[t] || (factsAt[t] = PROGRAM.facts(this.recorder, t === null || t === undefined ? outcome.t : t));
@@ -938,6 +967,7 @@ class Run {
                     described: true,
                     check_block_id: check.spec.block_id,
                     facts: factsOf(check.factsAt !== undefined ? check.factsAt : check.t),
+                    why: check.why,
                 });
             }
         }
@@ -982,6 +1012,7 @@ class Run {
                 point: c.point,
                 message: c.message,
                 facts: c.passed === false ? factsOf(c.factsAt !== undefined ? c.factsAt : c.t) : undefined,
+                why: c.why,
             })),
             trace: trace,
             simulation: {

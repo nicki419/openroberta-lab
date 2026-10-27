@@ -15,13 +15,16 @@
  * - The mouse wheel and the buttons zoom; dragging the empty floor moves the view. The view is kept with the world (data.view).
  * - The background is chosen from the simulator's; "from the simulator" takes over the simulator's current scene.
  * - The tolerance widens the recorded path to the corridor the robot must stay in (the TOL of the test's path check).
- * - A run is replayed (play, or drag the time slider), with what each check found; under a failed check, the facts of the second before
- *   (nepoTest.simProgram): what the robot sensed, what ran, what it remembered, what it did, with the program's blocks as chips.
+ * - A run is replayed (play, or drag the time slider), with what each check found; under a failed check, why (nepoTest.simVerdict: the
+ *   block to blame) and the facts of the second before (nepoTest.simProgram): what the robot sensed, what ran, what it remembered, what it
+ *   did, with the program's blocks as chips. Below the slider: what ran at the replay's time, what the program read and decided, what the
+ *   robot heard; the block that runs is marked in the Program tab (EditorHost.replayed).
  * The editor knows nothing about Blockly or the test runner: the tests controller passes the data in and gets it back (EditorHost).
  */
 import * as SIM from 'nepoTest.sim';
 import * as SIMRUN from 'nepoTest.simRun';
 import * as PROGRAM from 'nepoTest.simProgram';
+import * as VERDICT from 'nepoTest.simVerdict';
 
 /** a test of the world shown, as its block says */
 export interface SimTest {
@@ -63,6 +66,8 @@ export interface EditorHost {
     blockLabel(blockId: string): string;
     /** shows a block of the program (the Program tab, the block selected) */
     showBlock(blockId: string): void;
+    /** the block of the program that runs at the replay's time (null: no run is replayed) */
+    replayed(blockId: string): void;
 }
 
 interface Run {
@@ -78,6 +83,7 @@ interface Run {
     recorded: boolean; // its path was recorded
     failure: string; // the first failure's message (English, as NepoTest's), if it failed
     errorFacts: PROGRAM.Facts; // the facts of a runtime error
+    trace: any[]; // the record in steps of 100 ms (nepoTest.simProgram trace): what ran, read, decided
     passed: boolean;
     skipped: boolean;
     expectedFailure: boolean; // it should fail, and it did: passed
@@ -171,6 +177,12 @@ const TEXT: { [lang: string]: { [key: string]: string } } = {
         imported: 'The scene of the simulator was taken over.',
         showBlock: 'Show this block in the program',
         facts: 'what happened before',
+        replayTitle: 'What ran at this time of the replay (the block is marked in the Program tab), what the program read and decided',
+        replayRunning: 'running',
+        replayNothing: 'no block running',
+        replayRead: 'read',
+        replayHeard: 'it hears a sound',
+        replayKey: 'key {0} is pressed',
         kind_goal: 'Goal',
         kind_fail: 'Fail area',
         kind_color: 'Area',
@@ -255,6 +267,12 @@ const TEXT: { [lang: string]: { [key: string]: string } } = {
         imported: 'Die Szene der Simulation wurde übernommen.',
         showBlock: 'Diesen Block im Programm zeigen',
         facts: 'was davor geschah',
+        replayTitle: 'Was zu dieser Zeit der Wiedergabe lief (der Block ist im Programm markiert), was das Programm las und entschied',
+        replayRunning: 'läuft',
+        replayNothing: 'kein Block läuft',
+        replayRead: 'gelesen',
+        replayHeard: 'er hört ein Geräusch',
+        replayKey: 'Taste {0} ist gedrückt',
         kind_goal: 'Ziel',
         kind_fail: 'Fehlerbereich',
         kind_color: 'Fläche',
@@ -344,6 +362,8 @@ export class SimEditor {
     private scaleBar: HTMLElement;
     private testsTitle: HTMLElement;
     private testList: HTMLElement;
+    private replayInfo: HTMLElement;
+    private replayStep: any = null; // the step of the run's trace shown in replayInfo
 
     private data: SIM.SimData = null;
     private blockId: string = null; // the world's block
@@ -463,6 +483,7 @@ export class SimEditor {
             run && this.showTime((Number(this.timeSlider.value) / 1000) * this.runEnd(run));
         });
         this.timeLabel = html('span', 'nepoSimTimeLabel', runRow);
+        this.replayInfo = html('div', 'nepoSimReplay', this.body);
         this.status = html('div', 'nepoSimStatus', this.body);
         this.testsTitle = html('div', 'nepoSimTestsTitle', this.body);
         this.testList = html('ul', 'nepoSimTests', this.body);
@@ -509,6 +530,9 @@ export class SimEditor {
         this.buttons.runAll.textContent = this.text('runAll');
         this.buttons.runAll.title = this.text('runAllTitle');
         this.testsTitle.textContent = this.text('tests');
+        this.replayInfo.title = this.text('replayTitle');
+        this.replayStep = null;
+        this.renderReplay();
         this.buttons.play.textContent = '▶ ' + this.text('play');
         this.none.textContent = this.text('none');
         this.backgroundSelect.title = this.text('background');
@@ -548,6 +572,7 @@ export class SimEditor {
         this.none.style.display = data ? 'none' : '';
         this.body.style.display = data ? '' : 'none';
         if (!data) {
+            this.renderReplay();
             return;
         }
         this.setTitle(name);
@@ -742,6 +767,7 @@ export class SimEditor {
             unexpectedPass: !!failure && failure.expect === 'should',
             failure: failure ? failure.message : report.error ? report.error.message : null,
             errorFacts: ((report.failures || []).filter((f) => f.expect === 'error' && f.facts)[0] || {}).facts || null,
+            trace: report.trace || [],
             stale: false,
         };
         this.runs[testId] = run;
@@ -837,6 +863,54 @@ export class SimEditor {
         this.timeSlider.value = String(Math.round((1000 * t) / end));
         this.timeLabel.textContent = seconds(t) + ' / ' + seconds(end) + ' s';
         this.renderSensorsOfRobots();
+        this.renderReplay();
+    }
+
+    /** what ran at the replay's time (its step of 100 ms in the run's trace): the block (marked in the Program tab), what the program read and decided */
+    private renderReplay(): void {
+        const run = this.currentRun();
+        const trace = run && !run.skipped ? run.trace : [];
+        const step = trace.length ? trace.filter((x) => x.t >= this.replayT - 1e-6)[0] || trace[trace.length - 1] : null;
+        if (step && step === this.replayStep) {
+            return;
+        }
+        this.replayStep = step;
+        this.replayInfo.innerHTML = '';
+        this.host.replayed(step ? step.running : null);
+        if (!step) {
+            return;
+        }
+        const text = (t: string) => this.replayInfo.appendChild(document.createTextNode(t));
+        html('b', '', this.replayInfo).textContent = seconds(Math.max(0, step.t - 100)) + '–' + seconds(step.t) + ' s: ';
+        if (step.running) {
+            text(this.text('replayRunning') + ' ');
+            this.replayInfo.appendChild(this.chip(step.running));
+        } else {
+            text(this.text('replayNothing'));
+        }
+        const reads = Object.keys(step.reads || {}).map((k) => PROGRAM.keyName(k) + ': ' + PROGRAM.show(step.reads[k]));
+        reads.length && text(' · ' + this.text('replayRead') + ': ' + reads.join(', '));
+        Object.keys(step.decisions || {}).forEach((k) => {
+            const [yes, no] = step.decisions[k];
+            text(' · ');
+            this.replayInfo.appendChild(this.chip(k.split(':')[0]));
+            text(' ' + [yes ? 'yes ' + yes + '×' : '', no ? 'no ' + no + '×' : ''].filter((x) => x).join(', '));
+        });
+        const sensors = step.sensors || {};
+        sensors['sound/volume'] === true && text(' · ' + this.text('replayHeard'));
+        ['play', 'rec'].forEach((key) => sensors['buttons/' + key] === true && text(' · ' + this.text('replayKey', key === 'play' ? '▶' : '●')));
+    }
+
+    /** a block of the program as a chip: a click shows it in the Program tab */
+    private chip(block: string): HTMLElement {
+        const chip = html('span', 'nepoChip');
+        chip.textContent = this.host.blockLabel(block);
+        chip.title = this.text('showBlock');
+        chip.addEventListener('click', (e: Event) => {
+            e.stopPropagation();
+            this.host.showBlock(block);
+        });
+        return chip;
     }
 
     private ledsAt(run: Run, t: number): boolean[] {
@@ -1184,6 +1258,7 @@ export class SimEditor {
             (this.buttons.play as HTMLButtonElement).disabled = true;
             this.timeSlider.disabled = true;
             this.timeLabel.textContent = '';
+            this.renderReplay();
             return;
         }
         (this.buttons.play as HTMLButtonElement).disabled = false;
@@ -1203,6 +1278,9 @@ export class SimEditor {
             const li = html('li', check.passed === true ? 'passed' : check.passed === false ? 'failed' : 'open', list);
             li.appendChild(document.createTextNode((check.passed === true ? '✓ ' : check.passed === false ? '✗ ' : '– ') + (check.message || check.text)));
             li.title = check.text + (check.rule ? ' (rule)' : '');
+            if (check.why) {
+                li.appendChild(VERDICT.explanationElement(check.why, 'nepoWhy', (block) => this.chip(block)));
+            }
             if (check.facts) {
                 li.appendChild(this.factsElement(check.facts, first));
                 first = false;
@@ -1224,16 +1302,7 @@ export class SimEditor {
             const item = this.item(id);
             return item ? '"' + SIM.itemName(this.data.world, item, (k) => this.kindWord(k)) + '"' : id;
         };
-        return PROGRAM.factsElement(facts, 'nepoFacts', name, (block) => {
-            const chip = html('span', 'nepoChip');
-            chip.textContent = this.host.blockLabel(block);
-            chip.title = this.text('showBlock');
-            chip.addEventListener('click', (e: Event) => {
-                e.stopPropagation();
-                this.host.showBlock(block);
-            });
-            return chip;
-        });
+        return PROGRAM.factsElement(facts, 'nepoFacts', name, (block) => this.chip(block));
     }
 
     /** the tests of the world: select one to see its start, its path and its run */

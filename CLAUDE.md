@@ -88,7 +88,9 @@ programs, which implements the project goal. It covers:
   at the end. A test passes only if every check, and every rule of its
   world, holds; a run never stops at the first failure. Every run is recorded (`nepoTest.simProgram.ts`): a failed
   check comes with the facts of the second before it (what the robot sensed, which decisions and blocks ran, its
-  variables, what it did), with the program's blocks as clickable chips. They have the simulator's semantics, not the
+  variables, what it did) and why (`nepoTest.simVerdict.ts`: the block to blame, e.g. wrong action, wrong decision,
+  decision missing, missed the moment, wrong value), with the program's blocks as clickable chips. The replay shows the
+  block running at its time and outlines it in the Program tab. They have the simulator's semantics, not the
   robot's (sensors are states). The command line skips them; `NepoTest/nepotest/simulation.py` checks their data (its copy of the
   simulator is no longer used);
 - **results per block:** failures, runtime errors attributed to blocks, and block coverage;
@@ -127,7 +129,7 @@ latched sensors from EdPy's library. The document also lists which behaviour is 
 | Test runner for golden files | `OpenRobertaServer/src/test/java/.../integrationTest/ReuseIntegrationAsUnitTest.java` (configured by `crossCompilerTests/testSpec.yml`) |
 | Frontend (TypeScript sources) | `OpenRobertaWeb/src/**` (compiles into `OpenRobertaServer/staticResources`) |
 | **NEPO unit-test framework** (Python) | `NepoTest/` (`nepotest/`, `nepotest/engine/`, `examples/`, `tests/`, `schema/`) |
-| **Tests tab** (test blocks, runner) | `OpenRobertaWeb/src/app/nepotest/*` (blocks, suite storage, runner, Web Worker, simulation world `nepoTest.sim.ts`, panel `nepoTest.simEditor.ts`, runs on the Lab's simulator `nepoTest.simRun.ts`, the record and the facts of a failure `nepoTest.simProgram.ts`, the checks of behaviour `nepoTest.simBehaviour.ts`), `OpenRobertaWeb/src/app/roberta/controller/tests.controller.ts`; markup in `staticResources/index.html` (`#tabTests`, `#tests`); translation `NepoTest/nepotest/blocks.py` |
+| **Tests tab** (test blocks, runner) | `OpenRobertaWeb/src/app/nepotest/*` (blocks, suite storage, runner, Web Worker, simulation world `nepoTest.sim.ts`, panel `nepoTest.simEditor.ts`, runs on the Lab's simulator `nepoTest.simRun.ts`, the record and the facts of a failure `nepoTest.simProgram.ts`, the checks of behaviour `nepoTest.simBehaviour.ts`, why a check failed `nepoTest.simVerdict.ts`), `OpenRobertaWeb/src/app/roberta/controller/tests.controller.ts`; markup in `staticResources/index.html` (`#tabTests`, `#tests`); translation `NepoTest/nepotest/blocks.py` |
 | Source map for tests (block id → EdPy ranges) | `OpenRobertaRobot/…/bean/SourceMapBean`, filled by `EdisonPythonVisitor.preVisitCheck/postVisitCheck`, served by `ProjectWorkflowRestController` `/projectWorkflow/sourceForTest`; test `OpenRobertaServer/src/test/java/…/javaServer/EdisonSourceMapTest` |
 
 `…` = `src/main/java/de/fhg/iais/roberta`. Paths are repo-relative.

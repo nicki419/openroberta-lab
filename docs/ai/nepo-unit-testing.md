@@ -668,8 +668,8 @@ test's `path` check (the check block's data):
 
 **The report** of a simulation test has the shape of the others (§4.8), with `kind: "simulation"`, `world_block_id`,
 `checks` and `simulation`:
-- `checks`: `[{block_id, check, text, rule, passed, t, item, point, message}]`, every check with what it found
-  (`passed`: true, false, or null: not decided or nothing to check);
+- `checks`: `[{block_id, check, text, rule, passed, t, item, point, message, facts, why}]`, every check with what it
+  found (`passed`: true, false, or null: not decided or nothing to check);
 - `simulation.result`, `t`: why and when the run ended (ms): `finished`, `until`, `time_limit`, `error`;
 - `item`, `point`: what the replay marks: the area touched or obstacle bumped into by the first failed check, where
   the robot left its path or its behaviour first went wrong;
@@ -678,7 +678,14 @@ test's `path` check (the check block's data):
 - `bumps`: the frames in which the robot pushed against something.
 
 Failures: one per failed check, `expect: "simulation"`, a message in words ("the robot left its recorded path (by
-more than 2 cm) after 0.6 s"; a rule's starts with "rule:"), `check_block_id` and `facts`.
+more than 2 cm) after 0.6 s"; a rule's starts with "rule:"), `check_block_id`, `facts` and `why`.
+
+**Why a check failed** (`why`, `nepoTest.simVerdict.ts`; rules in `nepo-test-blocks.md` §5): `{kind, parts}`, `kind`
+one of `decision_missing`, `missed_moment`, `decision_wrong`, `not_enough`, `action_wrong`, `memory_wrong` (a check of
+behaviour or of a variable) or `see_also` (a check of where the robot goes, pointing to the first check of its
+behaviour that went wrong by then); `parts` words (strings) and blocks (`{block: id}`), e.g. `[{block: "lf13"}, " makes
+the robot drive forward, turning right (left wheel 40 %, right wheel 10 %), but whenever it sees the line, it should
+turn left"]`. Not every failed check has one.
 
 **The facts of a failure** (`nepoTest.simProgram.ts`; also in `checks[].facts`, and for a runtime error): the second
 before the failure (`from`, `to`, ms), from the run's record:
@@ -690,8 +697,9 @@ before the failure (`from`, `to`, ms), from the run's record:
 - `did`: `{distance_cm, moved_cm, turned_deg, speeds, leds, sound_ms, bumps, touched}`.
 
 The report's `trace` is the record in steps of 100 ms: `[{t, x, y, h, l, r, leds, tone, bumps, running, reads,
-decisions, does}]` (wheel speeds in cm/s; `running`: the innermost statement block; `decisions`: `{"block:k": [yes,
-no]}`; `does`: the motion of the step, e.g. `["drives_forward", "turns_left"]`).
+decisions, does, sensors}]` (wheel speeds in cm/s; `running`: the innermost statement block; `decisions`: `{"block:k":
+[yes, no]}`; `does`: the motion of the step, e.g. `["drives_forward", "turns_left"]`; `sensors`: the simulator's sensor
+values at the step's end, `{"infrared/line": true, "sound/volume": false, …}`). The replay shows it.
 The page sends NepoTest only `name`, `block_id`, `outcome` and `covered_blocks` of a simulation report. `covered_blocks` are the blocks whose
 operations ran (the stack machine's operations carry their block ids), so simulation tests count for coverage. A
 runtime error is `{"kind": "runtime_error", "message", "block_id", "block_type"}`, with the block whose operation ran

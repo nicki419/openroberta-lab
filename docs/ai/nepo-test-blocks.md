@@ -173,6 +173,33 @@ with `ora.sh start-from-git`:**
 - **Blocks:** the Checks category and the labels in German; a *whenever* switched to a light sensor showed its %;
   saving and loading the suite gave the same XML.
 
+**Why it failed, and the replay with code (2026-10-27), verified in headless Chrome against a Lab built from this
+repository:**
+- **Swapped powers in the `if`'s "yes" part** (left 40 %, right 10 %): "why (wrong action): [steer forwards … left 40 …
+  right 10] makes the robot drive forward, turning right (left wheel 40 %, right wheel 10 %), but whenever it sees the
+  line, it should turn left (it ran because [if get line …] said "yes")". Test A's failed area and path checks pointed to
+  it ("probably because "whenever it sees the line …" failed").
+- **An inverted condition** (`if not line`): "why (wrong decision): when it saw the line (at 0.67 s), [if not get line …]
+  said "no" (it read line tracker sees black: yes 2×), so [steer … 40 … 10] makes the robot drive forward, turning
+  right …; its "yes" part has [steer … 10 … 40], which makes the robot drive forward, turning left …". The same for
+  "on the line" and "beside the line" (whose other part never ran: its blocks' numbers were read).
+- **An LED check for a clap the program never reads** (it only drives): "why (decision missing): no block of the
+  program reads the sound sensor: it cannot notice each clap".
+- **A clap during `wait 1000 ms`** (`repeat: if sound: left LED on; wait 1000 ms`, a clap at 0.3 s): "why (missed the
+  moment): the clap at 0.3 s (heard until 0.62 s) came while [wait ms 1000] ran (from 0 to 1.02 s): the program read
+  the sound sensor again only at 1.03 s, when it was over".
+- **The clap counter's "two claps count as 2"**: "why (wrong value): claps was 3 at the end: [change claps by 1] made it
+  3 at 0.33 s. It ran 3 times at 0.33 s (in one frame of the simulator), each time after [wait until get sound …],
+  while the sound sensor kept reading yes: it counted one clap 3 times (the simulator hears a clap for about 0.3 s; the
+  Edison itself reports a clap once)".
+- **Driving into an obstacle** (a *from 100 ms on, … drives forward* check): "why (right, but not enough): [drive …]
+  makes the robot drive forward (left wheel 30 %, right wheel 30 %), as it should, but the robot bumped into "Box 1" and
+  could not". Its *never bumps* check got no pointer (the bump caused that failure, not the other way round).
+- **The correct line follower:** 4 passed, no why. **The runner** showed the same why lines under the failures; a chip
+  in one opened the Program tab with that block selected.
+- **The replay:** at 1.1 s the line read "1–1.1 s: running [steer … 40 … 10] · read: line tracker sees black: yes ·
+  [if …] yes 6×", and the Program tab outlined that block (in German: "läuft [Warte ms 1000] · er hört ein Geräusch").
+
 ---
 
 ## 1. The blocks
@@ -347,8 +374,9 @@ OpenRobertaWeb/src/app/nepotest/nepoTest.suite.ts      split/merge of test insta
 OpenRobertaWeb/src/app/nepotest/nepoTest.runner.ts     client of the Web Worker (promises, cancel; prepare, runOne, finish, simulationTest)
 OpenRobertaWeb/src/app/nepotest/nepoTest.sim.ts        a simulation world: data format, starts and names, the simulator's geometry and look (for drawing and replay)
 OpenRobertaWeb/src/app/nepotest/nepoTest.simRun.ts     the tests of worlds on the Lab's simulator: the program for a test, compiling, the run and its checks, the floor picture
-OpenRobertaWeb/src/app/nepotest/nepoTest.simProgram.ts the record of a run (decisions, readings, blocks in effect, variables, motion) and the facts of a failure
+OpenRobertaWeb/src/app/nepotest/nepoTest.simProgram.ts the record of a run (decisions, readings, blocks in effect, variables, motion), the facts of a failure, what action blocks do
 OpenRobertaWeb/src/app/nepotest/nepoTest.simBehaviour.ts the checks of behaviour (does, whenever, after) and of a variable at the end, from the record
+OpenRobertaWeb/src/app/nepotest/nepoTest.simVerdict.ts why a check failed: the block to blame (decision missing / wrong, action wrong, missed the moment, ...)
 OpenRobertaWeb/src/app/nepotest/nepoTest.simEditor.ts  the Simulation panel: drawing, starts, the world's tests, zoom, undo, record/run, replay (no Blockly inside)
 OpenRobertaWeb/src/app/nepotest/nepotest.worker.js     module Web Worker: Pyodide + nepotest.browser
 OpenRobertaWeb/src/app/roberta/controller/tests.controller.ts   the tab: workspace, dropdowns, panels, running
@@ -360,7 +388,7 @@ NepoTest/nepotest/simulation.py                        simulation worlds and the
 ```
 
 The wiring into the Lab consists of:
-- `main.js`: a path per module (also `nepoTest.sim`, `nepoTest.simRun`, `nepoTest.simProgram`, `nepoTest.simBehaviour`, `nepoTest.simEditor`), a `blockly` shim for the
+- `main.js`: a path per module (also `nepoTest.sim`, `nepoTest.simRun`, `nepoTest.simProgram`, `nepoTest.simBehaviour`, `nepoTest.simVerdict`, `nepoTest.simEditor`), a `blockly` shim for the
   blocks module, the require list, and `testsController.init()` right after `configurationController.init()`;
 - `tsconfig.json`: `paths` (also `robot.edison`, which `nepoTest.simRun` imports);
 - `guiState.controller.js`: a `tabTests` branch in `setView`, which keeps the program menu, and `addLanguageListener`;
@@ -587,7 +615,10 @@ suite is loaded.
   - the path is orange;
   - a failure is marked: the area outlined in red, or a red ✗ where the robot left the corridor;
   - under it, what each check found;
-  - *Replay* plays it again, faster for long runs (at most about 8 s); the slider scrubs.
+  - *Replay* plays it again, faster for long runs (at most about 8 s); the slider scrubs;
+  - below the slider, the replay's tenth of a second: the block running (a chip), what the program read, its
+    decisions, whether the robot hears a sound or a key is pressed ("1–1.1 s: running [steer …] · read: line tracker
+    sees black: yes · [if …] yes 6×"). The Program tab outlines that block (blue), while the run is shown.
 - **Run tests in the runner:** runs simulation tests like any other test. Their runs are kept, and the result line has
   *show the run*.
 
@@ -633,6 +664,34 @@ one open), the runner under the failure:
 The blocks are chips with the block's text (from the Program tab); a click opens the Program tab with the block
 selected. The facts are English, like the other messages.
 
+**Why it failed: the block to blame** (`nepoTest.simVerdict.ts`). A failed check of what the robot does, or of a
+variable, gets a *why* line above its facts (in the panel and in the runner): its kind and what happened, with the
+blocks as chips. The rules look at the record where the check went wrong (the failing stretch, the time after the
+event), in this order:
+- **decision missing:** no block read the sensor the check is about, then or at all ("no block of the program reads the
+  sound sensor: it cannot notice each clap");
+- **missed the moment:** the program reads it, but not while the event lasted, because a blocking block ran (a wait, a
+  drive or turn for an amount, a tone): "the clap at 0.3 s (heard until 0.62 s) came while [wait ms 1000] ran …";
+- **wrong decision:** a decision read another port of the sensor (the obstacle sensor to the left, not ahead); or it
+  took the same part whether or not the condition held (over the whole run: a wrong threshold); or it took the part
+  whose action the check doesn't want while another of its parts has one it wants (an inverted condition, swapped
+  parts; for a *from … on* check, the `if` the block in effect is in). The other part's actions count as they ran, or,
+  if they never ran, as their numbers are written;
+- **right, but not enough:** the action the check wants came too late (nothing ran before it, or a blocking block held
+  the program up); or the block in effect does what the check wants, but the robot didn't (it bumped into something);
+- **wrong action:** the block in effect makes the robot do something else ("[steer … 40 … 10] makes the robot drive
+  forward, turning right (left wheel 40 %, right wheel 10 %), but whenever it sees the line, it should turn left (it
+  ran because [if …] said "yes")"), or no block made it do that, or its amount was done;
+- **wrong value** (a variable check): the value at the end, the block that changed it last and when; and whether one
+  sound or key press was counted several times (the same block, each time after a decision whose sensor kept its value:
+  in the simulator a clap is heard for about 0.3 s, the Edison reports it once).
+
+What a block does is computed from its real values, as the simulator sets the wheels (`simProgram.wheelsAfter`: backward
+and negative amounts turn the speeds round; the Edison's 7 cm track and 3.7 cm wheels give cm/s and °/s), and judged
+with the same thresholds as the checks. A failed check of where the robot goes (an area, a bump, the recorded path)
+points to the test's first check of what it does that went wrong by then ("probably because "…" failed"), unless that
+one failed because of the world (right, but not enough); otherwise it has only its facts. The words are English.
+
 **How the record is made** (without changing the simulator's code, and without its debugger, which would highlight
 blocks in the Program tab):
 - **Decisions:** the compiled program's conditional jumps are found before the interpreter turns their labels into
@@ -646,10 +705,11 @@ blocks in the Program tab):
 - **Readings:** the robot behaviour's `getSample` is wrapped: the value it pushed, and the block that read it.
 - **Per frame** (1/60 s): the readings and decisions (counted), the statement blocks that began, the pose, the wheel
   speeds, the LEDs, the sound, bumps and touched areas, the simulator's sensor values (shared while unchanged); changes
-  only of the global variables, the simulator's sensor values and the blocks in effect. And the frame before the
-  program starts (`initial`): where the robot starts, what its sensors see.
-- **The report** keeps the facts of each failure and the record in steps of 100 ms (`trace`, with the motion of each
-  step: `does`).
+  only of the global variables (with the block that assigned them, `set` or `change by`, and how often in the frame),
+  the simulator's sensor values and the blocks in effect. And the frame before the program starts (`initial`): where
+  the robot starts, what its sensors see.
+- **The report** keeps the facts and the why of each failure (`facts`, `why`: `{kind, parts}`) and the record in steps
+  of 100 ms (`trace`, with the motion of each step, `does`, and the simulator's sensor values at its end, `sensors`).
 - **Stale runs:** a world edited after a run marks its tests' runs with "The world changed since this run."
 
 **Data** (`nepoTest.sim.ts`, the world block's `data`, JSON):
@@ -689,7 +749,11 @@ outline (for its checks of the data, and its unused copy).
 - **Simulation tests:**
   - They run only in the Lab (the command line skips them).
   - Their checks are about areas, bumps, the recorded path, the robot's behaviour and its variables, and a failure
-    comes with its facts. A verdict naming the block and what is wrong with it is the next step (the plan's phase 4).
+    comes with its facts and, for behaviour and variables, why (the block to blame). The rules are heuristics: they
+    name what the record shows, not what the learner meant; a decision's parts are analysed only for `if` blocks (not
+    `?:`), and a block whose powers are variables can't be judged if it never ran.
+  - The Program tab's outline of the replayed block stays until the replay shows another block or none; it isn't
+    removed when the program is edited.
   - The behaviour checks know the Edison's sensors and actuators only; they don't check powers (a curve's speeds) or
     tones' frequencies, and *after* has no "for how long".
   - Recording a path isn't undone by Blockly's undo (*Forget path* removes it).

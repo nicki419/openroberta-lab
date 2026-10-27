@@ -894,6 +894,35 @@ body.blocklyMinimalBody * {
     padding-left: 0;
 }
 
+/* why a check of a simulation test failed (nepoTest.simVerdict): the block to blame */
+.nepoWhy {
+    margin: 2px 0 2px 1.2em;
+    padding: 2px 6px;
+    border-left: 2px solid #E2001A;
+    background: #fdf3f3;
+    color: #333;
+    font-size: 90%;
+}
+
+.nepoTestDetails li.nepoTestWhyItem {
+    padding-left: 0;
+}
+
+/* the replay of a run: what ran at its time; the block that runs, marked in the Program tab */
+.nepoSimReplay {
+    flex: 0 0 auto;
+    min-height: 1.4em;
+    margin-top: 4px;
+    line-height: 1.6;
+    color: #444;
+    font-size: 90%;
+}
+
+path.blocklyPath.nepoReplayed {
+    stroke: #1e5aa8 !important;
+    stroke-width: 5px !important;
+}
+
 .nepoSimBadgeSvg text {
     fill: #fff;
     font-weight: bold;

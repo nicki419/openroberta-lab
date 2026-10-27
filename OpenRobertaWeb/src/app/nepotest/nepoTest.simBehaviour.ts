@@ -185,7 +185,7 @@ export const EVENTS: { [name: string]: EventKind } = {
 const OPS: { [op: string]: string } = { EQ: '=', NEQ: '≠', LT: '<', LTE: '≤', GT: '>', GTE: '≥' };
 
 /** seconds, with up to two decimals */
-function s(ms: number): string {
+export function s(ms: number): string {
     return (Math.round(ms / 10) / 100).toString();
 }
 
@@ -197,11 +197,11 @@ function show(v: any): string {
     return Array.isArray(v) ? '[' + v.map(show).join(', ') + ']' : String(v);
 }
 
-function reactionOf(check: any): number {
+export function reactionOf(check: any): number {
     return typeof check.after_ms === 'number' ? check.after_ms : DEFAULT_REACTION_MS[check.check] || 0;
 }
 
-function conditionWords(check: any, past = false): string {
+export function conditionWords(check: any, past = false): string {
     const c = CONDITIONS[check.when];
     return c ? fill(past ? c.past : c.now, check.percent) : String(check.when);
 }
@@ -233,6 +233,17 @@ export interface Verdict {
     point: number[];
     message: string;
     factsAt: number;
+    evidence?: Evidence; // a failure: when it went wrong (nepoTest.simVerdict looks for the reason there)
+}
+
+/** the time of a failure (ms): from `from` (what the robot sensed then) to `to`; `at`: the frame to blame; `until`: the end of the first
+ * failing stretch ("does", "whenever"); `event`: the event the robot didn't react to ("after") */
+export interface Evidence {
+    from: number;
+    to: number;
+    at: number;
+    until?: number;
+    event?: number;
 }
 
 interface Stretch {
@@ -281,7 +292,8 @@ function insteadWords(does: Does, ms: Moment[]): string {
     return ms.some((m) => m.tone) ? 'it played a sound' : 'it was silent';
 }
 
-function motionWords(m: Moment): string {
+/** how the robot moved: "it drove forward, turning right (8.62 cm/s, 86°/s)" */
+export function motionWords(m: { v: number; w: number }): string {
     const [v, w] = [m.v, m.w];
     const turn = w >= TURNING_DEG_S ? 'left' : w <= -TURNING_DEG_S ? 'right' : null;
     if (Math.abs(v) < MOVING_CM_S) {
@@ -368,7 +380,15 @@ function holdsWhile(check: any, ms: Moment[], condition: (m: Moment) => boolean)
         instead +
         ', ' +
         stretchWords(failures);
-    return { passed: false, t: at.t, point: [round2(at.x), round2(at.y)], message: message, factsAt: Math.min(first.to, first.from + FACTS_AFTER_MS) };
+    const to = Math.min(first.to, first.from + FACTS_AFTER_MS);
+    return {
+        passed: false,
+        t: at.t,
+        point: [round2(at.x), round2(at.y)],
+        message: message,
+        factsAt: to,
+        evidence: { from: first.from, to: to, at: at.t, until: first.to },
+    };
 }
 
 /** when the events of an "after" check happened (ms): the set-up's claps and key presses, or the changes of the robot's sensors */
@@ -444,7 +464,14 @@ function reactsAfter(check: any, ms: Moment[], setup: any[]): Verdict {
         ' s after ' +
         fill(kind.one, s(t)) +
         (times.length > 1 ? ' (it missed ' + missed.length + ' of ' + times.length + ')' : '');
-    return { passed: false, t: Math.round(until * 10) / 10, point: [round2(at.x), round2(at.y)], message: message, factsAt: until };
+    return {
+        passed: false,
+        t: Math.round(until * 10) / 10,
+        point: [round2(at.x), round2(at.y)],
+        message: message,
+        factsAt: until,
+        evidence: { from: t, to: until, at: at.t, event: t },
+    };
 }
 
 function compare(actual: any, op: string, value: any): boolean {
@@ -481,6 +508,7 @@ function variableAtEnd(check: any, rec: PROGRAM.Recorder, variables: { [name: st
         point: null,
         message: name + ' was ' + show(actual) + ' at the end (expected ' + name + ' ' + (OPS[check.op] || check.op) + ' ' + show(check.value) + became + ')',
         factsAt: changes.length > 1 ? Math.min(end, last.t + FACTS_AFTER_MS) : end,
+        evidence: { from: 0, to: end, at: end },
     };
 }
 
