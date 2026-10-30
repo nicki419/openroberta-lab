@@ -6,7 +6,7 @@
  * - "Code" shows the suite as NepoTest JSON and the program's generated EdPy
  * - "Test runner" converts the program with the Lab (REST /projectWorkflow/sourceForTest: EdPy + source map) and runs the suite in the browser
  *   with NepoTest in Pyodide (nepoTest.runner); the tests of simulation worlds run on the Lab's simulator (nepoTest.simRun). Results come back
- *   per test, errors and coverage per block
+ *   per test, errors per block (the block coverage only if SHOW_COVERAGE)
  * - "Simulation" shows the selected simulation world and its tests (nepoTest.simEditor): the world is drawn there, its tests are run and
  *   replayed, and their paths recorded. The world is the world block's data (JSON), a recorded path the data of the test's path check, so both
  *   are saved with the suite, and undo of a deleted block brings them back.
@@ -44,6 +44,11 @@ let simEditor: SimEditor = null;
 let simTimer: any = null;
 let unloadable: string = null; // a suite that could not be loaded: it is saved as it was, not as the empty suite shown instead
 const OLD_SIM_TEST = 'nepoTest_simtest'; // a simulation test of its own (until 2026-10-26)
+/**
+ * the block coverage of a run (how many blocks of the program the tests executed, and which never ran) is computed, but not shown: learners
+ * found it confusing. true shows it again under the results.
+ */
+const SHOW_COVERAGE = false;
 
 // ------------------------------------------------------------------------------------------------ setup
 
@@ -1085,7 +1090,7 @@ function showList(title: string, items: { message: string; block?: string; where
 }
 
 function showCoverage(coverage: any): void {
-    if (!coverage) {
+    if (!coverage || !SHOW_COVERAGE) {
         return;
     }
     const $c = $('#testsCoverage').empty();

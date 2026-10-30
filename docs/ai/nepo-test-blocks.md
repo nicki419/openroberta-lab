@@ -416,7 +416,9 @@ The wiring into the Lab consists of:
 6. The panel renders each report.
    - Links use `data-block` and `data-workspace` (`tests` or `program`).
    - An unexpected runtime error is shown once, as "The program failed in block … (function): …".
-   - Coverage is a bar plus the list of never-executed program blocks.
+   - Coverage is a bar plus the list of never-executed program blocks. It is **not shown** (`SHOW_COVERAGE = false`
+     in `tests.controller.ts`, 2026-10-30: learners found it confusing); it is still computed, and `true` shows it
+     again.
 
 **The worker** (`nepotest.worker.js`) is a **module worker** (`new Worker(url, {type: 'module'})`):
 - **Loading Pyodide:** it loads Pyodide 314.0.7 (CPython 3.14; NepoTest needs 3.11+) with
