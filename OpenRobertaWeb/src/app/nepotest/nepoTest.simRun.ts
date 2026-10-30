@@ -62,7 +62,7 @@ const SAMPLE_CM = 0.5; // the path gets a new pose after this much movement (as 
 const SAMPLE_DEG = 3;
 const CHUNK_MS = 30; // the browser gets a chance to draw after this much computing
 const BUMP_MARGIN = 3; // units: the robot bumped into the obstacle that is at most this far from its outline (else into the wall)
-const KIND_WORDS: { [kind: string]: string } = { goal: 'Goal', fail: 'Fail area', color: 'Area', obstacle: 'Obstacle', line: 'Line' }; // reports are in English
+const KIND_WORDS: { [kind: string]: string } = { goal: 'Goal', fail: 'Fail area', color: 'Area', obstacle: 'Obstacle', line: 'Line', wall: 'Wall' }; // reports are in English
 
 function u(v: number): number {
     return SIM.BORDER + v * SIM.UNITS_PER_CM;
@@ -84,7 +84,7 @@ let nextObjectId = 7000000; // the simulator's own objects count from 0: their m
 /** a rect, circle or triangle of the world as the simulator's object; without the mouse handlers it puts on the simulator's canvas */
 function simObject(item: SIM.SimItem, type: SimObjectType, listener: SelectionListener): any {
     const id = nextObjectId++;
-    const color = item.color || undefined;
+    const color = (item.role === 'color' && item.color) || undefined; // obstacles: the simulator's colour
     let object: any;
     if (item.kind === 'rect') {
         object = new RectangleSimulationObject(id, NO_SCENE, listener, type, { x: u(item.x), y: u(item.y) }, null, color, item.w * SIM.UNITS_PER_CM, item.h * SIM.UNITS_PER_CM);
@@ -100,6 +100,21 @@ function simObject(item: SIM.SimItem, type: SimObjectType, listener: SelectionLi
 
 function isShape(item: SIM.SimItem): boolean {
     return item.kind === 'rect' || item.kind === 'circle' || (item.kind === 'triangle' && (item.points || []).length === 3);
+}
+
+/** the simulator's obstacles of an item: one for a rect, circle or triangle; for a wall, two triangles per piece and a circle at each point */
+function obstaclesOf(item: SIM.SimItem, listener: SelectionListener): any[] {
+    if (!SIM.isWall(item)) {
+        return isShape(item) ? [simObject(item, SimObjectType.Obstacle, listener)] : [];
+    }
+    if ((item.points || []).length < 2) {
+        return [];
+    }
+    const pieces = SIM.wallPieces(item);
+    const parts: SIM.SimItem[] = [];
+    pieces.polygons.forEach((q) => parts.push({ id: item.id, kind: 'triangle', role: 'obstacle', points: [q[0], q[1], q[2]] }, { id: item.id, kind: 'triangle', role: 'obstacle', points: [q[0], q[2], q[3]] }));
+    pieces.circles.forEach((c) => parts.push({ id: item.id, kind: 'circle', role: 'obstacle', x: c[0], y: c[1], r: c[2] }));
+    return parts.map((part) => simObject(part, SimObjectType.Obstacle, listener));
 }
 
 /**
@@ -296,6 +311,7 @@ interface Shape {
     y?: number;
     r?: number;
     box: number[];
+    parts?: Shape[]; // a wall: its pieces and round corners
 }
 
 function bbox(points: number[][], margin = 0): number[] {
@@ -305,6 +321,14 @@ function bbox(points: number[][], margin = 0): number[] {
 }
 
 function shapeOf(item: SIM.SimItem): Shape {
+    if (SIM.isWall(item)) {
+        const pieces = SIM.wallPieces(item);
+        const parts = pieces.polygons
+            .map((q) => shapeOf({ id: item.id, kind: 'triangle', points: q }))
+            .concat(pieces.circles.map((c) => shapeOf({ id: item.id, kind: 'circle', x: c[0], y: c[1], r: c[2] })));
+        const corners = [].concat(...parts.map((part) => [part.box.slice(0, 2), part.box.slice(2)]));
+        return { id: item.id, kind: 'wall', polygon: [], box: bbox(corners), parts: parts };
+    }
     if (item.kind === 'rect') {
         const [x0, y0, w, h] = [u(item.x), u(item.y), item.w * SIM.UNITS_PER_CM, item.h * SIM.UNITS_PER_CM];
         const polygon = [
@@ -383,6 +407,9 @@ function touches(shape: Shape, poly: number[][], box: number[]): boolean {
     const s = shape.box;
     if (!(box[0] <= s[2] && s[0] <= box[2] && box[1] <= s[3] && s[1] <= box[3])) {
         return false;
+    }
+    if (shape.parts) {
+        return shape.parts.some((part) => touches(part, poly, box));
     }
     if (shape.kind === 'circle') {
         return polygonDistance(shape.x, shape.y, poly) <= shape.r;
@@ -522,8 +549,8 @@ class Run {
         this.world = world;
         const [bw, bh] = SIM.backgroundSize(world);
         this.ground = new Ground(10, 10, bw, bh);
-        this.obstacles = world.items.filter((i) => i.role === 'obstacle' && isShape(i)).map((i) => simObject(i, SimObjectType.Obstacle, this.listener));
-        world.items.filter((i) => i.kind !== 'line' && isShape(i)).forEach((i) => (this.shapes[i.id] = shapeOf(i)));
+        this.obstacles = [].concat(...world.items.filter((i) => i.role === 'obstacle').map((i) => obstaclesOf(i, this.listener)));
+        world.items.filter((i) => (i.kind !== 'line' && isShape(i)) || (SIM.isWall(i) && (i.points || []).length >= 2)).forEach((i) => (this.shapes[i.id] = shapeOf(i)));
         this.checks = (sim.checks || []).map((c: any) => this.checkState(c));
         this.until = sim.until ? this.shapes[sim.until] || null : null;
         const ud = document.createElement('canvas'); // the simulator's trail canvas: no trail is drawn
@@ -823,7 +850,7 @@ class Run {
                 check.passed === null && this.settle(check, true);
                 check.message = check.passed
                     ? 'the robot never bumped into ' + (check.spec.item ? nameOf(this.world, check.spec.item) : 'anything')
-                    : 'the robot bumped into ' + (check.item ? nameOf(this.world, check.item) : 'the wall') + ' after ' + seconds(check.t) + ' s';
+                    : 'the robot bumped into ' + (check.item ? nameOf(this.world, check.item) : 'the edge of the floor') + ' after ' + seconds(check.t) + ' s';
             } else if (kind === 'ends_in') {
                 const shape = this.shapes[check.spec.item];
                 this.settle(check, !!shape && inside(shape, poly), check.spec.item);
@@ -939,6 +966,9 @@ class Run {
 
 /** how far a shape is from the robot's outline (units; 0: they touch) */
 function shapeDistance(shape: Shape, poly: number[][]): number {
+    if (shape.parts) {
+        return Math.min(...shape.parts.map((part) => shapeDistance(part, poly)));
+    }
     if (touches(shape, poly, bbox(poly))) {
         return 0;
     }

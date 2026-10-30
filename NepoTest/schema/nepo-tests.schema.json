@@ -93,10 +93,10 @@
    }
   },
   "simItem": {
-   "description": "a line to follow (drawn like the background's track: a black core on a white band), or one of the simulator's objects: a rect (top left x, y; w, h), a circle (centre x, y; r) or a triangle (points), as an obstacle, a coloured area the sensors see (color), a goal area or a fail area",
+   "description": "a line to follow (drawn like the background's track: a black core on a white band; with the role obstacle: a wall, an obstacle of the line's shape, width cm thick), or one of the simulator's objects: a rect (top left x, y; w, h), a circle (centre x, y; r) or a triangle (points), as an obstacle, a coloured area the sensors see (color), a goal area or a fail area",
    "type": "object",
    "required": ["kind"],
-   "oneOf": [{"properties": {"kind": {"const": "line"}}, "required": ["points"]},
+   "oneOf": [{"properties": {"kind": {"const": "line"}, "role": {"const": "obstacle"}}, "required": ["points"]},
              {"properties": {"kind": {"const": "rect"}}, "required": ["role", "x", "y", "w", "h"]},
              {"properties": {"kind": {"const": "circle"}}, "required": ["role", "x", "y", "r"]},
              {"properties": {"kind": {"const": "triangle"}}, "required": ["role", "points"]}],
@@ -107,7 +107,7 @@
     "points": {"type": "array", "minItems": 2, "items": {"type": "array", "items": {"type": "number"}, "minItems": 2, "maxItems": 2}},
     "smooth": {"type": "boolean", "description": "a curve through the points instead of straight segments"},
     "closed": {"type": "boolean"},
-    "width": {"type": "number", "exclusiveMinimum": 0, "description": "the black core in cm (default 1.48, as the background's track)"},
+    "width": {"type": "number", "exclusiveMinimum": 0, "description": "the black core in cm (default 1.48, as the background's track); a wall's thickness (default 1.5)"},
     "role": {"enum": ["obstacle", "color", "goal", "fail"]},
     "color": {"type": "string", "pattern": "^#[0-9a-fA-F]{6}$"},
     "x": {"type": "number"}, "y": {"type": "number"}, "w": {"type": "number", "minimum": 0}, "h": {"type": "number", "minimum": 0},

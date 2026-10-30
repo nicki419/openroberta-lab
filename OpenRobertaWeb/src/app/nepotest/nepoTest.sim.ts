@@ -12,9 +12,10 @@
  * The simulator works in units of 1/3 cm, with the background at (10, 10): u = 10 + 3 * cm.
  * starts: where the robot can start (a test of the world chooses one by its id; the name is what the blocks show, A, B, ...).
  * items: {id, name, kind: 'line', points: [[x, y], ...], smooth, closed, width} (the test's addition, drawn like the background's track),
- * {id, name, kind: 'rect', role, x, y, w, h} (top left corner), {id, name, kind: 'circle', role, x, y, r}, {id, name, kind: 'triangle', role,
- * points}; role obstacle | color (a coloured area, with color) | goal | fail; color: a hex colour. The tests' blocks refer to starts and items
- * by their ids, and show their names.
+ * the same with role 'obstacle' (a wall: an obstacle of that shape, width cm thick), {id, name, kind: 'rect', role, x, y, w, h} (top left
+ * corner), {id, name, kind: 'circle', role, x, y, r}, {id, name, kind: 'triangle', role, points}; role obstacle | color (a coloured area, with
+ * color: a hex colour; drawn before 2026-10-30, the editor no longer makes them) | goal | fail. Obstacles are always the simulator's cyan
+ * (an older colour is ignored). The tests' blocks refer to starts and items by their ids, and show their names.
  * Version 2 (one simulation test per world, until 2026-10-26) had one start and the test's recorded path: the start becomes start A.
  */
 
@@ -99,11 +100,10 @@ export const IR_RAYS = [-Math.PI / 8, -Math.PI / 16, 0, Math.PI / 16, Math.PI / 
 export const LED_POINT = [16.5, 4.5]; // EdisonLeds; the left one at -y
 export const OBSTACLE_COLOR = '#33B8CA';
 export const COLOR_AREA_COLOR = '#FBED00';
-export const PALETTE = ['#000000', '#0056a6', '#00642f', '#532115', '#585858', '#b30006', '#f7e307', '#FBED00', '#ffffff']; // RobotBase.colorRange, the default area colour, white
 // the test's own things
 export const LINE_WIDTH_CM = 4.44 / UNITS_PER_CM; // the black core of simpleBackgroundEdison's track
 export const LINE_BAND = 16; // units: its white band
-export const ROLES = ['obstacle', 'color', 'goal', 'fail'];
+export const WALL_WIDTH_CM = 1.5; // a new wall's thickness
 
 export const COLORS = {
     outside: '#f4f4f4',
@@ -149,9 +149,19 @@ export function nextStartName(world: SimWorld): string {
     }
 }
 
-/** the kind of thing an item is, for its name: a line, or its role */
+/** a wall: a line drawn as an obstacle (the editor's wall tools); any other line is one to follow */
+export function isWall(item: SimItem): boolean {
+    return item.kind === 'line' && item.role === 'obstacle';
+}
+
+/** a line to follow: drawn on the floor, the sensors see it */
+export function isPath(item: SimItem): boolean {
+    return item.kind === 'line' && !isWall(item);
+}
+
+/** the kind of thing an item is, for its name: a line, a wall, or its role */
 export function itemKind(item: SimItem): string {
-    return item.kind === 'line' ? 'line' : item.role;
+    return isWall(item) ? 'wall' : item.kind === 'line' ? 'line' : item.role;
 }
 
 /** an item's name; an item without one (from the simulator's scene, or older data) is called by its kind and number, "Goal 2" */
@@ -341,6 +351,31 @@ export function linePolyline(item: SimItem): number[][] {
     return out;
 }
 
+/**
+ * a wall as the simulator's objects (cm): a quadrilateral around each straight piece of its line (polygons: four corners; each is two of the
+ * simulator's triangles), and a circle at each of its points ([x, y, r]: the round corners and ends). As simulation.py wall_pieces.
+ */
+export function wallPieces(item: SimItem): { polygons: number[][][]; circles: number[][] } {
+    const half = (item.width || WALL_WIDTH_CM) / 2;
+    const poly = linePolyline(item);
+    const polygons: number[][][] = [];
+    for (let i = 1; i < poly.length; i++) {
+        const [a, b] = [poly[i - 1], poly[i]];
+        const length = Math.hypot(b[0] - a[0], b[1] - a[1]);
+        if (length > 0) {
+            const nx = (-(b[1] - a[1]) / length) * half;
+            const ny = ((b[0] - a[0]) / length) * half;
+            polygons.push([
+                [a[0] + nx, a[1] + ny],
+                [b[0] + nx, b[1] + ny],
+                [b[0] - nx, b[1] - ny],
+                [a[0] - nx, a[1] - ny],
+            ]);
+        }
+    }
+    return { polygons: polygons, circles: (item.points || []).map((p) => [p[0], p[1], half]) };
+}
+
 function inTriangle(p: number[], a: number[], b: number[], c: number[]): boolean {
     const d1 = (p[0] - b[0]) * (a[1] - b[1]) - (a[0] - b[0]) * (p[1] - b[1]);
     const d2 = (p[0] - c[0]) * (b[1] - c[1]) - (b[0] - c[0]) * (p[1] - c[1]);
@@ -354,7 +389,7 @@ function inTriangle(p: number[], a: number[], b: number[], c: number[]): boolean
 export function hits(item: SimItem, x: number, y: number, slack: number): boolean {
     if (item.kind === 'line') {
         const poly = linePolyline(item);
-        const half = LINE_BAND / UNITS_PER_CM / 2 + slack;
+        const half = (isWall(item) ? item.width || WALL_WIDTH_CM : LINE_BAND / UNITS_PER_CM) / 2 + slack;
         for (let i = 1; i < poly.length; i++) {
             if (distanceToSegment(x, y, poly[i - 1], poly[i]) <= half) {
                 return true;
@@ -411,7 +446,7 @@ export function backgroundUrl(name: string): string {
 
 /** what the floor picture (nepoTest.simRun floorCanvas) is made from: the background, the coloured areas and the lines */
 export function floorKey(world: SimWorld): string {
-    const parts = world.items.filter((i) => i.kind === 'line' || i.role === 'color');
+    const parts = world.items.filter((i) => isPath(i) || i.role === 'color');
     return '2|' + world.background + '|' + JSON.stringify(parts.map((i) => [i.kind, i.color, i.points, i.smooth, i.closed, i.width, i.x, i.y, i.w, i.h, i.r]));
 }
 
@@ -421,7 +456,7 @@ function u(v: number): number {
 
 /** draws the test's lines on the simulator's floor picture (units): like the background's track, a black core on a white band */
 export function drawLines(ctx: CanvasRenderingContext2D, world: SimWorld): void {
-    const lines = world.items.filter((i) => i.kind === 'line' && (i.points || []).length >= 2);
+    const lines = world.items.filter((i) => isPath(i) && (i.points || []).length >= 2);
     const stroke = (item: SimItem) => {
         const segments = bezierSegments(item.points, !!item.smooth, !!item.closed);
         ctx.beginPath();
@@ -534,6 +569,10 @@ export function infrared(world: SimWorld, x: number, y: number, heading: number)
             lines.push([x0, y0, x0, y0 + h], [x0, y0, x0 + w, y0], [x0 + w, y0 + h, x0, y0 + h], [x0 + w, y0 + h, x0 + w, y0]);
         } else if (item.kind === 'circle') {
             circles.push([u(item.x), u(item.y), item.r * UNITS_PER_CM]);
+        } else if (isWall(item)) {
+            const pieces = wallPieces(item);
+            pieces.polygons.forEach((poly) => poly.forEach((q, i) => lines.push([u(q[0]), u(q[1]), u(poly[(i + 1) % 4][0]), u(poly[(i + 1) % 4][1])])));
+            pieces.circles.forEach((c) => circles.push([u(c[0]), u(c[1]), c[2] * UNITS_PER_CM]));
         } else {
             const p = item.points.map((q) => [u(q[0]), u(q[1])]);
             lines.push([p[0][0], p[0][1], p[1][0], p[1][1]], [p[1][0], p[1][1], p[2][0], p[2][1]], [p[0][0], p[0][1], p[2][0], p[2][1]]);
@@ -695,7 +734,7 @@ export function groundSvg(world: SimWorld, prefix: string): string {
     );
 }
 
-/** what lies on the floor, in the simulator's order: coloured areas, the lines (bands, then cores), obstacles; then goal and fail areas */
+/** what lies on the floor, in the simulator's order: coloured areas, the lines (bands, then cores), obstacles and walls; then goal and fail areas */
 export function worldSvg(world: SimWorld, prefix: string): string {
     const items = world.items;
     const id = (item: SimItem) => ' data-item="' + escapeXml(item.id) + '"';
@@ -705,7 +744,7 @@ export function worldSvg(world: SimWorld, prefix: string): string {
             svg += shapeSvg(item, 'fill="' + escapeXml(item.color || COLOR_AREA_COLOR) + '"' + id(item));
         }
     }
-    const lines = items.filter((i) => i.kind === 'line' && (i.points || []).length >= 2);
+    const lines = items.filter((i) => isPath(i) && (i.points || []).length >= 2);
     for (const item of lines) {
         svg += '<path d="' + linePathD(item) + '" fill="none" stroke="#ffffff" stroke-width="' + n(LINE_BAND / UNITS_PER_CM) + '" stroke-linejoin="round"' + id(item) + '/>';
     }
@@ -714,7 +753,20 @@ export function worldSvg(world: SimWorld, prefix: string): string {
     }
     for (const item of items) {
         if (item.kind !== 'line' && item.role === 'obstacle') {
-            svg += shapeSvg(item, 'fill="' + escapeXml(item.color || OBSTACLE_COLOR) + '" filter="url(#' + prefix + 'obstacleShadow)"' + id(item));
+            svg += shapeSvg(item, 'fill="' + OBSTACLE_COLOR + '" filter="url(#' + prefix + 'obstacleShadow)"' + id(item));
+        } else if (isWall(item) && (item.points || []).length >= 2) {
+            svg +=
+                '<path d="' +
+                linePathD(item) +
+                '" fill="none" stroke="' +
+                OBSTACLE_COLOR +
+                '" stroke-width="' +
+                n(item.width || WALL_WIDTH_CM) +
+                '" stroke-linecap="round" stroke-linejoin="round" filter="url(#' +
+                prefix +
+                'obstacleShadow)"' +
+                id(item) +
+                '/>';
         }
     }
     for (const item of items) {
@@ -842,12 +894,24 @@ export function thumbnail(data: SimData, width: number, height: number, floor: H
             }
         };
         for (const item of world.items) {
+            if (isWall(item) && (item.points || []).length >= 2) {
+                const poly = linePolyline(item);
+                ctx.beginPath();
+                ctx.moveTo(u(poly[0][0]), u(poly[0][1]));
+                poly.slice(1).forEach((p) => ctx.lineTo(u(p[0]), u(p[1])));
+                ctx.strokeStyle = OBSTACLE_COLOR;
+                ctx.lineWidth = (item.width || WALL_WIDTH_CM) * UNITS_PER_CM;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                ctx.stroke();
+                continue;
+            }
             if (item.kind === 'line' || item.role === 'color') {
                 continue;
             }
             shape(item);
             if (item.role === 'obstacle') {
-                ctx.fillStyle = item.color || OBSTACLE_COLOR;
+                ctx.fillStyle = OBSTACLE_COLOR;
                 ctx.fill();
             } else {
                 ctx.fillStyle = item.role === 'goal' ? 'rgba(31, 143, 58, 0.35)' : 'rgba(208, 49, 45, 0.35)';

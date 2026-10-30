@@ -936,7 +936,7 @@ export function factLines(f: Facts, name: (item: string) => string): { label: st
     const leds = (l: boolean[]) => (l[0] && l[1] ? 'both LEDs on' : l[0] ? 'left LED on' : l[1] ? 'right LED on' : 'LEDs off');
     did.push(same(d.leds[0], d.leds[1]) ? leds(d.leds[1]) : leds(d.leds[0]) + ' → ' + leds(d.leds[1]));
     d.sound_ms && did.push('sound for ' + d.sound_ms + ' ms');
-    d.bumps.forEach((b) => did.push('bumped into ' + (b.into ? name(b.into) : 'the wall') + ' (' + b.count + ' frames)'));
+    d.bumps.forEach((b) => did.push('bumped into ' + (b.into ? name(b.into) : 'the edge of the floor') + ' (' + b.count + ' frames)'));
     d.touched.length && did.push('touched ' + d.touched.map(name).join(', '));
     lines.push({ label: 'did', parts: [did.join('; ')] });
     return lines;

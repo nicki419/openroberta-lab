@@ -30,7 +30,7 @@ import * as SIM from 'nepoTest.sim';
 import * as SIMRUN from 'nepoTest.simRun';
 import * as SIMPROGRAM from 'nepoTest.simProgram';
 import * as VERDICT from 'nepoTest.simVerdict';
-import { SimEditor, SimScene, SimTest } from 'nepoTest.simEditor';
+import { SimEditor, SimTest } from 'nepoTest.simEditor';
 
 const SUPPORTED_GROUPS = ['edison'];
 
@@ -82,7 +82,6 @@ export function init(): void {
             block && block.select();
         },
         run: simulate,
-        simulatorScene: simulatorScene,
         blockLabel: blockLabel,
         showBlock: function (blockId: string) {
             selectBlock(blockId, 'program');
@@ -766,57 +765,6 @@ function simChanged(data: SIM.SimData, quiet: boolean): void {
             codeTimer = setTimeout(refreshCode, 600);
         }
     }
-}
-
-/** the scene of the Lab's simulator (its background, obstacles, coloured areas and robot), or a message why there is none */
-function simulatorScene(): SimScene | string {
-    const notOpened = GUISTATE_C.getLanguage() === 'de' ? 'Öffne zuerst die Simulation (im Programm-Tab).' : 'Open the simulation first (in the Program tab).';
-    let scene: any = null;
-    try {
-        // @ts-ignore (the simulation is loaded with the Lab; it is used here only if it was opened)
-        const simulation = require('simulation.roberta');
-        const instance = simulation && (simulation.SimulationRoberta ? simulation.SimulationRoberta.Instance : simulation.default);
-        scene = instance && instance.scene;
-    } catch (e) {
-        scene = null;
-    }
-    if (!scene || !scene.robots || !scene.robots.length || !scene.backgroundImg) {
-        return notOpened;
-    }
-    const src: string = scene.backgroundImg.src || '';
-    const background = src.substring(src.lastIndexOf('/') + 1).replace(/\.(svg|png)$/, '');
-    if (!SIM.BACKGROUNDS[background]) {
-        return GUISTATE_C.getLanguage() === 'de'
-            ? 'Dieser Hintergrund der Simulation geht in Tests nicht (nur die vier des Edison).'
-            : 'Tests cannot use this background of the simulation (only the Edison\'s four).';
-    }
-    const cm = (v: number) => SIM.round2((v - SIM.BORDER) / SIM.UNITS_PER_CM);
-    const items: SIM.SimItem[] = [];
-    const take = (object: any, role: string, i: number) => {
-        const item: SIM.SimItem = { id: 'sim' + role + i, kind: 'rect', role: role, color: object.color };
-        if (object.r !== undefined) {
-            Object.assign(item, { kind: 'circle', x: cm(object.x), y: cm(object.y), r: SIM.round2(object.r / SIM.UNITS_PER_CM) });
-        } else if (object.ax !== undefined) {
-            Object.assign(item, {
-                kind: 'triangle',
-                points: [
-                    [cm(object.ax), cm(object.ay)],
-                    [cm(object.bx), cm(object.by)],
-                    [cm(object.cx), cm(object.cy)],
-                ],
-            });
-        } else if (object.w !== undefined) {
-            Object.assign(item, { x: cm(object.x), y: cm(object.y), w: SIM.round2(object.w / SIM.UNITS_PER_CM), h: SIM.round2(object.h / SIM.UNITS_PER_CM) });
-        } else {
-            return;
-        }
-        items.push(item);
-    };
-    (scene.colorAreaList || []).forEach((o, i) => take(o, 'color', i));
-    (scene.obstacleList || []).forEach((o, i) => take(o, 'obstacle', i));
-    const pose = scene.robots[0].initialPose || scene.robots[0].pose;
-    const heading = SIM.round2((-pose.theta * 180) / Math.PI);
-    return { background: background, start: { x: cm(pose.x), y: cm(pose.y), heading: ((heading % 360) + 540) % 360 - 180 }, items: items };
 }
 
 /** runs tests of the world shown in the Simulation tab on the Lab's simulator, one after the other. A test with problems doesn't run: the problems are shown. */

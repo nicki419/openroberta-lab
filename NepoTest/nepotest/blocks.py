@@ -20,7 +20,8 @@ The blocks (all types start with `nepoTest_`; the frontend defines them in nepoT
     nepoTest_check_reaches        AREA        the robot touches the area (ANY: any goal area) at some time
     nepoTest_check_never_touches  AREA        ... never (ANY: any fail area)
     nepoTest_check_ends_in        AREA        the whole robot is in the area at the end
-    nepoTest_check_never_bumps    OBSTACLE    the robot never bumps into it (ANY: anything, the wall too)
+    nepoTest_check_never_bumps    OBSTACLE    the robot never bumps into it (an obstacle or a wall; ANY: anything, the edge of
+                                              the floor too)
     nepoTest_check_path           TOL         (until 2026-10-30) the robot stays on its recorded path: paths are no longer
                                               recorded, the check is left out with a warning
     nepoTest_check_does           AFTER DOES  from AFTER ms on, the robot always does DOES (drives_forward, drives_backward,
@@ -685,7 +686,7 @@ def _check(b, world, problems, rule=False, program=None):
     if item == ANY:
         return check
     found = items.get(item)
-    if found is None or found.get('kind') == 'line' or found.get('role') not in roles:
+    if found is None or (found.get('kind') == 'line' and not SIM.is_wall(found)) or found.get('role') not in roles:
         problems.add(b, 'this %s is not in the world (any more): choose another one' % ('obstacle' if kind == 'never_bumps' else 'area'))
         return check
     check['item'] = item

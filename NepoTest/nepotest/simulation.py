@@ -25,14 +25,16 @@ The program is the generated EdPy on NepoTest's engine. So what the EdPy does di
 program stays different: powers in the robot's 10 % steps, turns and drives measured in wheel ticks, sensors read and
 cleared like on the robot.
 
-Added by the world: **lines** to follow (drawn like the background's track: a black core on a white band), **goal
-areas** and **fail areas** (the tests check whether the robot reaches or touches them), and **starts**: where the robot
-can start (each test chooses one). Touching an obstacle is no failure of its own, as in the simulator: the robot bumps
+Added by the world: **lines** to follow (drawn like the background's track: a black core on a white band), **walls**
+(a line with the role "obstacle": an obstacle of that shape, "width" cm thick, default 1.5), **goal areas** and **fail
+areas** (the tests check whether the robot reaches or touches them), and **starts**: where the robot can start (each
+test chooses one). Touching an obstacle is no failure of its own, as in the simulator: the robot bumps
 (a test can check that it never does).
 
     {"background": "peach",
      "starts": [{"id": "A", "name": "A", "x": 150, "y": 100, "heading": 0}, {"id": "st2", "name": "on the line", ...}],
      "items": [{"id": "l1", "name": "Line 1", "kind": "line", "points": [[20, 17], [60, 17], [70, 40]], "smooth": true},
+               {"id": "w1", "name": "Wall 1", "kind": "line", "role": "obstacle", "points": [[90, 10], [90, 40]], "width": 1.5},
                {"id": "o1", "name": "Obstacle 1", "kind": "rect", "role": "obstacle", "x": 64, "y": 50.7, "w": 9.6, "h": 9.6},
                {"id": "c1", "kind": "circle", "role": "color", "color": "#000000", "x": 40, "y": 60, "r": 4},
                {"id": "g1", "name": "Finish", "kind": "triangle", "role": "goal", "points": [[70, 5], [80, 5], [75, 12]]}]}
@@ -113,6 +115,7 @@ COLOR_AREA_COLOR = '#FBED00'
 # the test's own things
 LINE_WIDTH_CM = 4.44 / UNITS_PER_CM  # the black core of simpleBackgroundEdison's track
 LINE_BAND_CM = 16 / UNITS_PER_CM  # its white band
+WALL_WIDTH_CM = 1.5  # a wall's thickness, if it has no width (nepoTest.sim.ts WALL_WIDTH_CM)
 ROLES = ('obstacle', 'color', 'goal', 'fail')
 KINDS = ('line', 'rect', 'circle', 'triangle')
 CHECK_DEG = 0.3
@@ -365,6 +368,30 @@ def bezier_segments(points, smooth, closed):
     return segments
 
 
+def is_wall(item):
+    """a wall: a line drawn as an obstacle (the editor's wall tools); any other line is one to follow"""
+    return item.get('kind') == 'line' and item.get('role') == 'obstacle'
+
+
+def wall_pieces(item):
+    """a wall as the simulator's objects (nepoTest.sim.ts wallPieces), as items in cm with the wall's id: two triangles
+    around each straight piece of its line, and a circle at each of its points (the round corners and ends)"""
+    half = float(item.get('width') or WALL_WIDTH_CM) / 2.0
+    points = polyline(bezier_segments(item['points'], bool(item.get('smooth')), bool(item.get('closed'))))
+    pieces = []
+    for (ax, ay), (bx, by) in zip(points, points[1:]):
+        length = math.hypot(bx - ax, by - ay)
+        if length == 0:
+            continue
+        nx, ny = -(by - ay) / length * half, (bx - ax) / length * half
+        corners = [[ax + nx, ay + ny], [bx + nx, by + ny], [bx - nx, by - ny], [ax - nx, ay - ny]]
+        for a, b, c in ((0, 1, 2), (0, 2, 3)):
+            pieces.append({'id': item.get('id'), 'kind': 'triangle', 'role': 'obstacle', 'points': [corners[a], corners[b], corners[c]]})
+    for x, y in item['points']:
+        pieces.append({'id': item.get('id'), 'kind': 'circle', 'role': 'obstacle', 'x': x, 'y': y, 'r': half})
+    return pieces
+
+
 def polyline(segments):
     """the points of Bezier segments, curves in CURVE_PIECES pieces"""
     out = []
@@ -507,9 +534,11 @@ def item_name(world_data, item):
     """an item's name: its own, or its kind and number ("Goal 2"), as the blocks show it"""
     if item.get('name'):
         return item['name']
-    kind = 'line' if item.get('kind') == 'line' else item.get('role')
-    same = [i for i in world_data.get('items') or [] if ('line' if i.get('kind') == 'line' else i.get('role')) == kind]
-    word = {'goal': 'Goal', 'fail': 'Fail area', 'color': 'Area', 'obstacle': 'Obstacle', 'line': 'Line'}.get(kind, kind)
+    def kind_of(i):
+        return 'wall' if is_wall(i) else 'line' if i.get('kind') == 'line' else i.get('role')
+    kind = kind_of(item)
+    same = [i for i in world_data.get('items') or [] if kind_of(i) == kind]
+    word = {'goal': 'Goal', 'fail': 'Fail area', 'color': 'Area', 'obstacle': 'Obstacle', 'line': 'Line', 'wall': 'Wall'}.get(kind, kind)
     return '%s %d' % (word, same.index(item) + 1 if item in same else 1)
 
 
@@ -549,7 +578,10 @@ class SimWorld(object):
         self.lines, self.obstacles, self.colors, self.goals, self.fails = [], [], [], [], []
         for item in data.get('items') or []:
             kind = item.get('kind')
-            if kind == 'line':
+            if is_wall(item):
+                if len(item.get('points') or []) >= 2:
+                    self.obstacles += [Shape(piece) for piece in wall_pieces(item)]
+            elif kind == 'line':
                 if len(item.get('points') or []) >= 2:
                     self.lines.append(_Line(item))
             elif kind in ('rect', 'circle', 'triangle'):
@@ -916,6 +948,10 @@ def validate_world(world, where):
                 problems.append('%s: a %s needs numbers %s' % (w, kind, ', '.join(keys)))
         if kind != 'line' and item.get('role') not in ROLES:
             problems.append('%s: "role" must be one of %s' % (w, ', '.join(ROLES)))
+        if kind == 'line' and item.get('role') not in (None, 'obstacle'):
+            problems.append('%s: a line\'s "role" can only be "obstacle" (a wall)' % w)
+        if kind == 'line' and item.get('width') is not None and (not _number(item['width']) or item['width'] <= 0):
+            problems.append('%s: "width" must be a number > 0' % w)
         if item.get('name') is not None and not isinstance(item.get('name'), str):
             problems.append('%s: "name" must be a string' % w)
     return problems
@@ -935,7 +971,7 @@ def validate(sim, where):
         item = items.get(item_id)
         if item is None:
             return '%s: there is no item %r in the world' % (key, item_id)
-        if item.get('kind') == 'line' or item.get('role') not in roles:
+        if (item.get('kind') == 'line' and not is_wall(item)) or item.get('role') not in roles:
             return '%s: %r is not %s' % (key, item_id, what)
         return None
 

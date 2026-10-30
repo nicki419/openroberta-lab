@@ -87,7 +87,7 @@ const MESSAGES: { [lang: string]: { [key: string]: string } } = {
         NEPOTEST_CHECK_ENDS_IN: 'at the end, the robot is completely in',
         NEPOTEST_CHECK_ENDS_IN_TOOLTIP: 'Holds if the whole robot is inside this area when the run ends.',
         NEPOTEST_CHECK_NEVER_BUMPS: 'the robot never bumps into',
-        NEPOTEST_CHECK_NEVER_BUMPS_TOOLTIP: 'Fails when the robot drives against this obstacle (or against anything, the wall too).',
+        NEPOTEST_CHECK_NEVER_BUMPS_TOOLTIP: 'Fails when the robot drives against this obstacle (or against anything, the edge of the floor too).',
         NEPOTEST_CHECK_DOES_FROM: 'from',
         NEPOTEST_CHECK_DOES_ALWAYS: 'ms on, the robot always',
         NEPOTEST_CHECK_DOES_TOOLTIP:
@@ -132,12 +132,13 @@ const MESSAGES: { [lang: string]: { [key: string]: string } } = {
         NEPOTEST_EVENT_OBSTACLE: 'an obstacle appears',
         NEPOTEST_ANY_GOAL: 'any goal area',
         NEPOTEST_ANY_FAIL: 'any fail area',
-        NEPOTEST_ANYTHING: 'anything (the wall too)',
+        NEPOTEST_ANYTHING: 'anything (the edge of the floor too)',
         NEPOTEST_KIND_GOAL: 'Goal',
         NEPOTEST_KIND_FAIL: 'Fail area',
         NEPOTEST_KIND_COLOR: 'Area',
         NEPOTEST_KIND_OBSTACLE: 'Obstacle',
         NEPOTEST_KIND_LINE: 'Line',
+        NEPOTEST_KIND_WALL: 'Wall',
         NEPOTEST_UNKNOWN_START: 'This start is not in the world of this test: choose one of its starts.',
         NEPOTEST_UNKNOWN_ITEM: 'This is not in the world of this test (any more): choose something else.',
         NEPOTEST_OUTSIDE_WORLD: 'Put this into a simulation world.',
@@ -334,7 +335,7 @@ const MESSAGES: { [lang: string]: { [key: string]: string } } = {
         NEPOTEST_CHECK_ENDS_IN: 'am Ende ist der Roboter ganz in',
         NEPOTEST_CHECK_ENDS_IN_TOOLTIP: 'Stimmt, wenn der ganze Roboter am Ende der Fahrt in dieser Fläche ist.',
         NEPOTEST_CHECK_NEVER_BUMPS: 'der Roboter stößt nie an',
-        NEPOTEST_CHECK_NEVER_BUMPS_TOOLTIP: 'Scheitert, wenn der Roboter gegen dieses Hindernis fährt (oder gegen irgendetwas, auch die Wand).',
+        NEPOTEST_CHECK_NEVER_BUMPS_TOOLTIP: 'Scheitert, wenn der Roboter gegen dieses Hindernis fährt (oder gegen irgendetwas, auch den Rand des Bodens).',
         NEPOTEST_CHECK_DOES_FROM: 'ab',
         NEPOTEST_CHECK_DOES_ALWAYS: 'ms immer: der Roboter',
         NEPOTEST_CHECK_DOES_TOOLTIP:
@@ -379,12 +380,13 @@ const MESSAGES: { [lang: string]: { [key: string]: string } } = {
         NEPOTEST_EVENT_OBSTACLE: 'dem Auftauchen eines Hindernisses',
         NEPOTEST_ANY_GOAL: 'irgendeinen Zielbereich',
         NEPOTEST_ANY_FAIL: 'irgendeinen Fehlerbereich',
-        NEPOTEST_ANYTHING: 'irgendetwas (auch die Wand)',
+        NEPOTEST_ANYTHING: 'irgendetwas (auch den Rand des Bodens)',
         NEPOTEST_KIND_GOAL: 'Ziel',
         NEPOTEST_KIND_FAIL: 'Fehlerbereich',
         NEPOTEST_KIND_COLOR: 'Fläche',
         NEPOTEST_KIND_OBSTACLE: 'Hindernis',
         NEPOTEST_KIND_LINE: 'Linie',
+        NEPOTEST_KIND_WALL: 'Wand',
         NEPOTEST_UNKNOWN_START: 'Dieser Start ist nicht in der Welt dieses Tests: wähle einen ihrer Starts.',
         NEPOTEST_UNKNOWN_ITEM: 'Das ist nicht (mehr) in der Welt dieses Tests: wähle etwas anderes.',
         NEPOTEST_OUTSIDE_WORLD: 'Lege das in eine Simulationswelt.',
@@ -728,7 +730,7 @@ export function worldOf(block: any): any {
     return b || null;
 }
 
-/** the word for a kind of item (goal, fail, color, obstacle, line), for the names of items without one */
+/** the word for a kind of item (goal, fail, color, obstacle, line, wall), for the names of items without one */
 export function kindWord(kind: string): string {
     return msg('NEPOTEST_KIND_' + String(kind).toUpperCase());
 }
@@ -769,7 +771,7 @@ function areaMenu(role: string, anyKey?: string): (this: any) => string[][] {
 
 function obstacleMenu(this: any): string[][] {
     return worldOptions(this, (world) =>
-        [[msg('NEPOTEST_ANYTHING'), ANY_ITEM]].concat(world.items.filter((i) => i.kind !== 'line' && i.role === 'obstacle').map((i) => [SIM.itemName(world, i, kindWord), i.id]))
+        [[msg('NEPOTEST_ANYTHING'), ANY_ITEM]].concat(world.items.filter((i) => i.role === 'obstacle').map((i) => [SIM.itemName(world, i, kindWord), i.id]))
     );
 }
 

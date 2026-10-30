@@ -40,8 +40,7 @@ Tests tab
 **Simulation worlds** hold the second kind of test (§5). A *simulation world* block has a small picture of its world,
 and its **tests**. Clicking it opens the **Simulation** panel,
 which looks and behaves like the Lab's simulator. There the learner:
-- draws the world once: the simulator's backgrounds, obstacles and coloured areas, lines to follow, goal and fail
-  areas (or takes over the simulator's scene);
+- draws the world once: lines to follow, obstacles (rectangles, circles, triangles and walls), goal and fail areas;
 - places the robot's **starts** (A, B, …);
 - runs the world's tests and watches a run again.
 
@@ -234,7 +233,7 @@ sync:** the field and input names below are the contract between them.
 | `nepoTest_check_reaches` | *the robot reaches* [area ▾] | `AREA` (an area's id, or `ANY`: any goal area) | `{"check": "reaches", "item"}` |
 | `nepoTest_check_never_touches` | *the robot never touches* [area ▾] | `AREA` (or `ANY`: any fail area) | `{"check": "never_touches", "item"}` |
 | `nepoTest_check_ends_in` | *at the end, the robot is completely in* [area ▾] | `AREA` | `{"check": "ends_in", "item"}` |
-| `nepoTest_check_never_bumps` | *the robot never bumps into* [obstacle ▾] | `OBSTACLE` (an obstacle's id, or `ANY`: anything, the wall too) | `{"check": "never_bumps", "item"}` |
+| `nepoTest_check_never_bumps` | *the robot never bumps into* [obstacle ▾] | `OBSTACLE` (the id of an obstacle or a wall drawn in the world, or `ANY`: anything, the floor's border too) | `{"check": "never_bumps", "item"}` |
 | `nepoTest_check_does` | *from* [100] *ms on, the robot always* [turns left ▾] | `AFTER` (ms), `DOES`: `drives_forward`, `drives_backward`, `turns_left`, `turns_right`, `stands_still`, `left_led_on`, `left_led_off`, `right_led_on`, `right_led_off`, `leds_on`, `leds_off` (both), `plays_sound`, `silent` | `{"check": "does", "does", "after_ms"}` |
 | `nepoTest_check_whenever` | *whenever* [it sees the line ▾] *,* / *the robot* [turns left ▾] *, after* [0] *ms* | `WHEN`: `line`, `no_line`, `obstacle_ahead`, `obstacle_left`, `obstacle_right`, `no_obstacle`, `left_light_below`, `left_light_above`, `right_light_below`, `right_light_above` (with `PERCENT`, shown only for them), `sound`, `play_key`, `rec_key`; `DOES`, `AFTER` (ms) | `{"check": "whenever", "when", "percent", "does", "after_ms"}` |
 | `nepoTest_check_after` | *within* [500] *ms after* [each clap ▾] *,* / *the robot* [drives forward ▾] | `WITHIN` (ms, at least 1), `EVENT`: `clap`, `key` (of the set-up), `line_start`, `line_end`, `obstacle` (appears); `DOES` | `{"check": "after", "event", "within_ms", "does"}` (a clap or key without one in the set-up: a warning) |
@@ -512,7 +511,7 @@ opened.
 
 **It looks like the Lab's simulator:**
 - its backgrounds, with the striped wall around them (and the tests' own plain peach floor, without a wall);
-- its obstacles (teal, with their shadow) and coloured areas, as rectangles, circles and triangles, in its colours;
+- its obstacles (teal, with their shadow), as rectangles, circles and triangles, and the tests' walls;
 - its robot image (`css/img/simulator/edison.png`, with its shadow);
 - the line tracker and the light sensors, filled with the brightness they see;
 - the infrared rays, and the LEDs' red glow.
@@ -522,12 +521,12 @@ it. The view shows the area around the robot; the block's picture shows what is 
 
 ```
 Simulation world: Edison track
-[↖ A ╱ ∿ ▭ ◯ △] [▩ ■ ✓ ✗] [− + ⤢] [↶ ↷ 🗑] [⇩ ↔]    tools | what it is | zoom | undo, redo, delete | from the simulator, wider
-[Edison track ▾]  ■■■■■■■■■■                      background | colours (obstacles and coloured areas)
-name [halfway]                                    the selected start's or item's name
+     Test markers  World: paths  World: obstacles
+[↖] [A ✓ ✗]       [╱ ∿]         [▭ ◯ △ ╱ ∿]       [− + ⤢] [↶ ↷ 🗑] [↔]   select | the tools, in labelled groups | zoom | undo, redo, delete | wider
+name [halfway]                                    the selected start's, goal area's or obstacle's name
 +----------------------------------------------+
 |  the simulator's background and wall         |      the drawn world, the starts (A, B: the selected test's
-|   (A)===>   [goal]   [fail]   ■ obstacle  (B) |      solid), its last run (orange)
+|   (A)===>  [Finish]  [fail]  ■ obstacle  (B) |      solid; a goal area with its name), its last run (orange)
 +----------------------------------------------+      and the robot replaying it
 line tracker white (87 %) · LLIGHT 87 % · RLIGHT 76 % · obstacle: none
 [▶ Run test] [▶▶ Run all] [▶ Replay] [————————o—] 7.4 / 7.4 s
@@ -539,12 +538,17 @@ Tests in this world
 ✓ (B) from halfway, it reaches the finish too
 ```
 
-**Drawing** (`nepoTest.simEditor.ts`):
+**Drawing** (`nepoTest.simEditor.ts`). The tools are in groups (`TOOL_GROUPS`), and the groups that make something
+have a label: *Test markers* (start, goal area, fail area), *World: paths* (line, curve) and *World: obstacles*
+(rectangle, circle, triangle, wall, curved wall). Each tool makes one kind of thing, and nothing turns into another
+kind: to make a goal area a fail area, or a line a wall, delete it and draw the other (2026-10-30; before, buttons
+chose what an object is and changed a selected one).
 - **Starts:** each start is a robot with its name on it. Drag it; turn the selected one (or the selected test's) with
   its round handle, in steps of 15°; Shift turns it freely. The *start* tool (the second) adds a start where you
   click, named with the next free letter. A world keeps at least one start.
-- **Names:** a selected start or item gets a name field; the tests' blocks show the names. New items are named by their
-  kind ("Goal 1", "Obstacle 2").
+- **Names:** a selected start, goal area or obstacle gets a name field; the tests' blocks show the names. New ones are
+  named by their kind ("Goal 1", "Obstacle 2", "Wall 1"). The picture shows the goal areas' names. Fail areas have no
+  name field (the blocks call them "Fail area 1", …, or by a name from an older world).
 - **Deleting what a test uses:** the start or item goes; the tests that used it show a warning on their block, and the
   panel names them. Undo brings it back.
 - **Lines:** *Line* (straight segments) and *Curve* (smooth through the points) draw a line to follow, like the
@@ -557,20 +561,20 @@ Tests in this world
   - A selected line shows its points: drag them. A double-click on a point removes it; a double-click on the line adds
     one.
   - Settings of a selected line: *curved*, *closed*, *width* (the core, 0.5–5 cm; the background's is 1.48 cm).
-- **The simulator's objects:** *Rectangle*, *Circle* and *Triangle*. Drag to draw; a click alone makes the
-  simulator's default size (a ninth of the background's width).
-  - The buttons say what an object is: obstacle, coloured area, goal, fail. For a selected object they change it.
-  - Obstacles and coloured areas take a colour from the simulator's palette.
-  - Handles resize rectangles (corners) and circles (the radius), and move the corners of triangles. Like the
-    simulator's, objects don't turn.
-- **Background:** the plain peach floor, or the simulator's four for the Edison. On the peach floor, a click makes an
-  object of the size it has on the simulator's Edison track (9.6 cm).
-- **From the simulator:** takes over the scene of the Lab's simulator, if it was opened (Program tab → SIM):
-  - background, obstacles and coloured areas;
-  - where the robot starts.
-
-  The robot's pose becomes the active start's (its id and name stay); the other starts, the lines, goal and fail
-  areas stay. Undo brings the old world back.
+- **Goal and fail areas** are rectangles; **obstacles** are rectangles, circles and triangles, always in the
+  simulator's teal (2026-10-30: no colours to choose; an older obstacle's colour is ignored). Drag to draw; a click
+  alone makes the simulator's default size (a ninth of the background's width; on the peach floor, the size on the
+  simulator's Edison track: 9.6 cm). Handles resize rectangles (corners) and circles (the radius: a circle stays
+  round), and move the corners of triangles. Like the simulator's, objects don't turn.
+- **Walls** (*World: obstacles*, straight or curved): drawn like a line, a teal line 1.5 cm thick (*width*: 0.5–5 cm)
+  that is an obstacle: the robot bumps into it, its infrared sensors see it, and *never bumps into* can name it. On the
+  simulator, a wall is two triangles around each straight piece of its line (curves: 16 pieces per segment) and a
+  circle at each point (`SIM.wallPieces`, `simulation.py wall_pieces`).
+- **Coloured areas** (the sensors see them) can no longer be drawn; those of older worlds stay, and can be moved and
+  deleted.
+- **Background:** the choice is hidden (`BACKGROUND_CHOICE = false`; its code stays): a new world has the plain peach
+  floor, an older world keeps the simulator's background it has.
+- **From the simulator** (taking over the simulator's scene) is gone (2026-10-30).
 - **Sensors:** under the canvas, what the robot's sensors see where it is drawn, as in the simulator's sensor view.
 - **Selecting and moving:** *Select* moves things; arrow keys move the selection by 0.5 cm (Shift: 5 cm). Delete
   removes it.
@@ -764,6 +768,5 @@ outline (for its checks of the data, and its unused copy).
     tones' frequencies, and *after* has no "for how long".
   - Runs are kept until the page is reloaded; they aren't saved.
   - The simulator's uploaded backgrounds, markers and movable obstacles aren't supported.
-  - *From the simulator* works only after the simulator was opened. There's no way back (from a test to the
-    simulator).
+  - A world can't be taken from the simulator or given to it (*From the simulator* is gone).
   - There is no snapping of lines to each other.

@@ -557,7 +557,7 @@ no `expect`. (Until 2026-10-26, a simulation test had a world of its own, and it
 | `reaches` | the robot's outline touches the area at some time | an area; none: any goal area |
 | `never_touches` | it never touches the area | an area; none: any fail area |
 | `ends_in` | the whole outline is in the area when the run ends | an area |
-| `never_bumps` | it never bumps into the obstacle (its wheels are turned back, as in the simulator) | an obstacle; none: anything, the wall too |
+| `never_bumps` | it never bumps into the obstacle (its wheels are turned back, as in the simulator) | an obstacle or a wall; none: anything, the edge of the floor too |
 | `does` | from `after_ms` (default 100) on, in every frame, the robot does `does` | – |
 | `whenever` | in every frame in which the condition `when` (with `percent`: the light conditions) has held for `after_ms` (default 0), the robot does `does` | – |
 | `after` | after each `event`, in some frame within `within_ms`, the robot does `does` | – |
@@ -582,9 +582,10 @@ ended, from its record:
   `variable`'s: after its last change).
 
 **A run never stops at a failed check:** every check is decided, after every simulator frame in which the robot moved.
-`reaches` that hasn't held at the end fails; the `never_…` checks and `path` that haven't failed hold. After a runtime
+`reaches` that hasn't held at the end fails; the `never_…` checks that haven't failed hold. After a runtime
 error, the checks still open aren't decided (`passed: null`), and the test fails. The bumped obstacle is the one at most
-1 cm from the robot's outline (none: the wall).
+1 cm from the robot's outline (a wall's pieces count as that wall; none: the edge of the floor, the simulator's
+striped wall).
 
 - **Coordinates:** cm from the background's top left corner; x points right and y down, as on the screen. Angles are
   degrees, counterclockwise as seen from above, 0 pointing right. `start` is the robot's pose: the centre of its wheel
@@ -611,6 +612,10 @@ error, the checks still open aren't decided (`passed: null`), and the test fails
     black core): drawn like the track of `simpleBackgroundEdison`, a black core of 4.44 units on a white band of 16
     units.
   - Drawing order on the floor: the background, the wall, the coloured areas, every line's band, every line's core.
+  - A **wall** (`kind: "line"`, `role: "obstacle"`, `width` cm thick, default 1.5): an obstacle of the line's shape,
+    not drawn on the floor. On the simulator it is two `TriangleSimulationObject`s around each straight piece of the
+    line and a `CircleSimulationObject` at each point (`nepoTest.sim.ts wallPieces`, `simulation.py wall_pieces`).
+  - Obstacles are always the simulator's teal; the Tests tab no longer draws coloured areas (older ones still work).
 - **The set-up:** a simulation test's `world` events may only be `clap` and `key` (the past, or events during the
   run). The drawn world gives the obstacles, the line and the light. The simulator has no IR remote control and no IR
   messages: the Tests tab rejects those blocks in simulation worlds. `globals` need no `call`.

@@ -566,7 +566,7 @@ class Case {
         const frames = PROGRAM.framesBetween(this.rec, ev.from, ev.to);
         const bump = frames.filter((f) => f.bump !== undefined)[0];
         if (bump) {
-            const into = bump.bump ? this.name(bump.bump) : 'the wall';
+            const into = bump.bump ? this.name(bump.bump) : 'the edge of the floor';
             return {
                 kind: 'not_enough',
                 parts: words(chip(target.effect.block), ' ' + clause(target) + ', as it should, but the robot bumped into ' + into + ' and could not'),

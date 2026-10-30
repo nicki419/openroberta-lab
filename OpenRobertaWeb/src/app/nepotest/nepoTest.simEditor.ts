@@ -1,19 +1,22 @@
 /**
  * The simulation window of the Tests tab: an editor for a simulation world (nepoTest.sim), its tests, and the replay of their runs. The world
- * and the robot look and behave as in the Lab's simulator: its backgrounds and wall, its obstacles and coloured areas (rectangles, circles,
- * triangles, in its colours), its robot image with the line tracker, the light sensors, the infrared rays and the LEDs.
+ * and the robot look and behave as in the Lab's simulator: its backgrounds and wall, its obstacles (rectangles, circles, triangles and walls,
+ * in its cyan), its robot image with the line tracker, the light sensors, the infrared rays and the LEDs.
  *
- * - The world has starts (A, B, ...): a robot each, dragged to where it is and turned with its handle (in steps of 15 degrees; Shift: freely).
- *   The start tool adds one. The selected test's start is drawn solid, the others faded.
+ * - The tools are in groups (TOOL_GROUPS); each tool makes one kind of thing, and a thing never turns into another kind (delete it and
+ *   draw the other one). "Test markers": the starts (A, B, ...: a robot each, dragged to where it is and turned with its handle, in steps
+ *   of 15 degrees; Shift: freely; the selected test's start is drawn solid, the others faded), goal areas and fail areas (rectangles).
+ *   "World: paths": a line or a curve to follow, like the background's track. "World: obstacles": a rectangle, a circle (it stays round)
+ *   and a triangle, and a wall, straight or curved: a line that is an obstacle. Lines and walls: click the points; a click on the last point
+ *   again ends it, as does a double-click of any speed, a right click or Enter; a click on the first point closes it. The other shapes:
+ *   drag, or click for the simulator's default size.
  * - Below the picture: the world's tests. One is selected (here, or by clicking its block): "Run test" runs it, and its run is replayed.
  *   "Run all" runs every test of the world.
- * - Line and Curve draw a line to follow, like the background's track (click the points; a click on the last point again ends it, as
- *   does a double-click of any speed, a right click or Enter; a click on the first point closes it). Rectangle, Circle and Triangle draw an object (a click: the simulator's default size); what it is (obstacle,
- *   coloured area, goal, fail) and its colour are chosen with the buttons.
  * - Select moves things; handles resize them and move the points of lines and triangles. Delete removes, Ctrl+Z / Ctrl+Y undo and redo.
- *   A selected start or item can be named: the tests' blocks show the names.
+ *   A selected start, goal area or obstacle can be named: the tests' blocks show the names, and the picture shows those of the goal areas.
+ *   Fail areas have no names.
  * - The mouse wheel and the buttons zoom; dragging the empty floor moves the view. The view is kept with the world (data.view).
- * - The background is chosen from the simulator's; "from the simulator" takes over the simulator's current scene.
+ * - The background can't be chosen (BACKGROUND_CHOICE): a new world has the plain peach floor, an older one keeps the simulator's.
  * - A run is replayed (play, or drag the time slider), with what each check found; under a failed check, why (nepoTest.simVerdict: the
  *   block to blame) and the facts of the second before (nepoTest.simProgram): what the robot sensed, what ran, what it remembered, what it
  *   did, with the program's blocks as chips. Below the slider: what ran at the replay's time, what the program read and decided, what the
@@ -35,13 +38,6 @@ export interface SimTest {
     refs: string[]; // the starts and items it refers to
 }
 
-/** the scene of the Lab's simulator */
-export interface SimScene {
-    background: string;
-    start: { x: number; y: number; heading: number };
-    items: SIM.SimItem[];
-}
-
 export interface EditorHost {
     /** the data changed: an edit (save it, the program is unsaved), or only the view (quiet: save it quietly) */
     changed(data: SIM.SimData, quiet: boolean): void;
@@ -51,8 +47,6 @@ export interface EditorHost {
     select(testId: string): void;
     /** runs these tests of the world shown */
     run(testIds: string[]): void;
-    /** the scene of the Lab's simulator, or a message why there is none */
-    simulatorScene(): SimScene | string;
     /** a short name of a block of the program (in the Program tab) */
     blockLabel(blockId: string): string;
     /** shows a block of the program (the Program tab, the block selected) */
@@ -83,7 +77,25 @@ const SVGNS = 'http://www.w3.org/2000/svg';
 const MIN_SCALE = 0.4;
 const MAX_SCALE = 40;
 const HANDLE_PX = 6;
-const TOOLS = ['select', 'start', 'line', 'curve', 'rect', 'circle', 'triangle'];
+/** the tools, in groups; a group's label (a TEXT key) says what its tools make, a group without one is clear by itself */
+const TOOL_GROUPS: { label: string; tools: string[] }[] = [
+    { label: null, tools: ['select'] },
+    { label: 'groupMarkers', tools: ['start', 'goal', 'fail'] },
+    { label: 'groupPaths', tools: ['line', 'curve'] },
+    { label: 'groupObstacles', tools: ['rect', 'circle', 'triangle', 'wall', 'wallCurve'] },
+];
+const TOOLS: string[] = [].concat(...TOOL_GROUPS.map((g) => g.tools));
+const WALL_TOOLS = ['wall', 'wallCurve'];
+const LINE_TOOLS = ['line', 'curve'].concat(WALL_TOOLS); // they draw a line: to follow, or a wall
+const SHAPE_TOOLS: { [tool: string]: [string, string] } = {
+    goal: ['rect', 'goal'],
+    fail: ['rect', 'fail'],
+    rect: ['rect', 'obstacle'],
+    circle: ['circle', 'obstacle'],
+    triangle: ['triangle', 'obstacle'],
+}; // what they draw: [kind, role]
+/** the simulator's backgrounds can't be chosen (for now): a new world has the plain peach floor, an older one keeps its background. true shows the choice */
+const BACKGROUND_CHOICE = false;
 const START = 'start:'; // the prefix of a selected start (selected: an item's id, or START + a start's id)
 
 const TEXT: { [lang: string]: { [key: string]: string } } = {
@@ -92,15 +104,18 @@ const TEXT: { [lang: string]: { [key: string]: string } } = {
         none: 'Select a simulation world or one of its tests, or take a world from "Tests" in the toolbox.',
         select: 'Select and move',
         start: 'Start: click where the robot can start (a test chooses one of the starts)',
-        line: 'Line',
-        curve: 'Curve',
-        rect: 'Rectangle',
-        circle: 'Circle',
-        triangle: 'Triangle',
-        obstacle: 'Obstacle',
-        color: 'Coloured area (the sensors see it)',
-        goal: 'Goal area (a test can check that the robot reaches it)',
-        fail: 'Fail area (a test can check that the robot never touches it)',
+        line: 'Line to follow',
+        curve: 'Curved line to follow',
+        rect: 'Obstacle: rectangle',
+        circle: 'Obstacle: circle',
+        triangle: 'Obstacle: triangle',
+        wall: 'Wall (an obstacle): click its points',
+        wallCurve: 'Curved wall (an obstacle): click its points',
+        goal: 'Goal area: a rectangle (a test can check that the robot reaches it)',
+        fail: 'Fail area: a rectangle (a test can check that the robot never touches it)',
+        groupMarkers: 'Test markers',
+        groupPaths: 'World: paths',
+        groupObstacles: 'World: obstacles',
         zoomIn: 'Zoom in',
         zoomOut: 'Zoom out',
         fit: 'Show everything',
@@ -108,7 +123,6 @@ const TEXT: { [lang: string]: { [key: string]: string } } = {
         redo: 'Redo (Ctrl+Y)',
         remove: 'Delete (Del)',
         wide: 'Wider window',
-        fromSim: 'Take the scene of the simulator (background, obstacles, coloured areas, robot)',
         background: 'Background',
         peach: 'Peach (plain, 3 × 2 m)',
         simpleBackgroundEdison: 'Edison track',
@@ -118,7 +132,9 @@ const TEXT: { [lang: string]: { [key: string]: string } } = {
         hintSelect: 'Drag a robot (a start) to move it; turn it with its round handle (Shift: freely). Drag the floor to move the view, the wheel zooms.',
         hintStart: 'Click where the robot can start: a new start (A, B, ...). The tests choose their start in their block.',
         hintLine: 'Click the points of the line. To end it, click its last point again (or double-click, right-click, Enter); click the first point to close it. Esc cancels.',
-        hintShape: 'Drag to draw, or click for the simulator\'s size. Choose what it is with the buttons.',
+        hintWall: 'Click the points of the wall. To end it, click its last point again (or double-click, right-click, Enter); click the first point to close it. Esc cancels.',
+        hintArea: 'Drag to draw the area (a rectangle), or click for one of the simulator\'s size.',
+        hintShape: 'Drag to draw the obstacle, or click for one of the simulator\'s size.',
         curved: 'curved',
         closed: 'closed',
         width: 'width',
@@ -152,7 +168,6 @@ const TEXT: { [lang: string]: { [key: string]: string } } = {
         left: 'left',
         front: 'front',
         right: 'right',
-        imported: 'The scene of the simulator was taken over.',
         showBlock: 'Show this block in the program',
         facts: 'what happened before',
         replayTitle: 'What ran at this time of the replay (the block is marked in the Program tab), what the program read and decided',
@@ -166,21 +181,25 @@ const TEXT: { [lang: string]: { [key: string]: string } } = {
         kind_color: 'Area',
         kind_obstacle: 'Obstacle',
         kind_line: 'Line',
+        kind_wall: 'Wall',
     },
     de: {
         title: 'Simulationswelt',
         none: 'Wähle eine Simulationswelt oder einen ihrer Tests aus, oder nimm eine Welt aus "Tests" im Werkzeugkasten.',
         select: 'Auswählen und verschieben',
         start: 'Start: klicke dorthin, wo der Roboter starten kann (ein Test wählt einen der Starts)',
-        line: 'Linie',
-        curve: 'Kurve',
-        rect: 'Rechteck',
-        circle: 'Kreis',
-        triangle: 'Dreieck',
-        obstacle: 'Hindernis',
-        color: 'Farbfläche (die Sensoren sehen sie)',
-        goal: 'Zielbereich (ein Test kann prüfen, ob der Roboter ihn erreicht)',
-        fail: 'Fehlerbereich (ein Test kann prüfen, dass der Roboter ihn nie berührt)',
+        line: 'Linie zum Folgen',
+        curve: 'Gebogene Linie zum Folgen',
+        rect: 'Hindernis: Rechteck',
+        circle: 'Hindernis: Kreis',
+        triangle: 'Hindernis: Dreieck',
+        wall: 'Wand (ein Hindernis): klicke ihre Punkte',
+        wallCurve: 'Gebogene Wand (ein Hindernis): klicke ihre Punkte',
+        goal: 'Zielbereich: ein Rechteck (ein Test kann prüfen, ob der Roboter ihn erreicht)',
+        fail: 'Fehlerbereich: ein Rechteck (ein Test kann prüfen, dass der Roboter ihn nie berührt)',
+        groupMarkers: 'Test-Markierungen',
+        groupPaths: 'Welt: Linien',
+        groupObstacles: 'Welt: Hindernisse',
         zoomIn: 'Vergrößern',
         zoomOut: 'Verkleinern',
         fit: 'Alles zeigen',
@@ -188,7 +207,6 @@ const TEXT: { [lang: string]: { [key: string]: string } } = {
         redo: 'Wiederholen (Strg+Y)',
         remove: 'Löschen (Entf)',
         wide: 'Breiteres Fenster',
-        fromSim: 'Die Szene der Simulation übernehmen (Hintergrund, Hindernisse, Farbflächen, Roboter)',
         background: 'Hintergrund',
         peach: 'Pfirsich (einfarbig, 3 × 2 m)',
         simpleBackgroundEdison: 'Edison-Strecke',
@@ -198,7 +216,9 @@ const TEXT: { [lang: string]: { [key: string]: string } } = {
         hintSelect: 'Zieh einen Roboter (einen Start), um ihn zu verschieben; dreh ihn am runden Griff (Umschalt: stufenlos). Zieh den Boden, um die Ansicht zu verschieben; das Mausrad zoomt.',
         hintStart: 'Klicke dorthin, wo der Roboter starten kann: ein neuer Start (A, B, ...). Die Tests wählen ihren Start in ihrem Block.',
         hintLine: 'Klicke die Punkte der Linie. Ein zweiter Klick auf ihren letzten Punkt beendet sie (auch Doppelklick, Rechtsklick, Enter); ein Klick auf den ersten Punkt schließt sie. Esc bricht ab.',
-        hintShape: 'Zum Zeichnen ziehen, oder klicken für die Größe der Simulation. Mit den Knöpfen wählst du, was es ist.',
+        hintWall: 'Klicke die Punkte der Wand. Ein zweiter Klick auf ihren letzten Punkt beendet sie (auch Doppelklick, Rechtsklick, Enter); ein Klick auf den ersten Punkt schließt sie. Esc bricht ab.',
+        hintArea: 'Zieh den Bereich auf (ein Rechteck), oder klicke für einen in der Größe der Simulation.',
+        hintShape: 'Zieh das Hindernis auf, oder klicke für eines in der Größe der Simulation.',
         curved: 'gebogen',
         closed: 'geschlossen',
         width: 'Breite',
@@ -232,7 +252,6 @@ const TEXT: { [lang: string]: { [key: string]: string } } = {
         left: 'links',
         front: 'vorne',
         right: 'rechts',
-        imported: 'Die Szene der Simulation wurde übernommen.',
         showBlock: 'Diesen Block im Programm zeigen',
         facts: 'was davor geschah',
         replayTitle: 'Was zu dieser Zeit der Wiedergabe lief (der Block ist im Programm markiert), was das Programm las und entschied',
@@ -246,6 +265,7 @@ const TEXT: { [lang: string]: { [key: string]: string } } = {
         kind_color: 'Fläche',
         kind_obstacle: 'Hindernis',
         kind_line: 'Linie',
+        kind_wall: 'Wand',
     },
 };
 
@@ -255,9 +275,18 @@ const ICONS: { [name: string]: string } = {
     start: '<rect x="4" y="6" width="12" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16 9 L21 12 L16 15 Z" fill="currentColor"/><text x="10" y="15.5" font-size="8" font-weight="bold" text-anchor="middle" fill="currentColor">A</text>',
     line: '<polyline points="3,19 10,8 15,15 21,5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/>',
     curve: '<path d="M3 18 C7 2, 13 24, 21 6" fill="none" stroke="currentColor" stroke-width="2.4"/>',
-    rect: '<rect x="4" y="6" width="16" height="12" fill="none" stroke="currentColor" stroke-width="2.2"/>',
-    circle: '<circle cx="12" cy="12" r="7.5" fill="none" stroke="currentColor" stroke-width="2.2"/>',
-    triangle: '<polygon points="12,4 21,19 3,19" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/>',
+    rect: '<rect x="4" y="6" width="16" height="12" fill="' + SIM.OBSTACLE_COLOR + '" stroke="#1d7f8c" stroke-width="1"/>',
+    circle: '<circle cx="12" cy="12" r="7.5" fill="' + SIM.OBSTACLE_COLOR + '" stroke="#1d7f8c" stroke-width="1"/>',
+    triangle: '<polygon points="12,4 21,19 3,19" fill="' + SIM.OBSTACLE_COLOR + '" stroke="#1d7f8c" stroke-width="1" stroke-linejoin="round"/>',
+    wall: '<polyline points="3,19 10,8 15,15 21,5" fill="none" stroke="' + SIM.OBSTACLE_COLOR + '" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>',
+    wallCurve: '<path d="M3 18 C7 2, 13 24, 21 6" fill="none" stroke="' + SIM.OBSTACLE_COLOR + '" stroke-width="4" stroke-linecap="round"/>',
+    goal:
+        '<rect x="4" y="4" width="16" height="16" fill="#cfe9d5" stroke="' +
+        SIM.COLORS.goal +
+        '" stroke-width="2" stroke-dasharray="3 2"/><path d="M8 12 L11 15 L16 9" fill="none" stroke="' +
+        SIM.COLORS.goal +
+        '" stroke-width="2"/>',
+    fail: '<rect x="4" y="4" width="16" height="16" fill="#f6d2d1" stroke="' + SIM.COLORS.fail + '" stroke-width="2" stroke-dasharray="3 2"/><path d="M9 9 L15 15 M15 9 L9 15" stroke="' + SIM.COLORS.fail + '" stroke-width="2"/>',
     zoomIn: '<circle cx="10" cy="10" r="6" fill="none" stroke="currentColor" stroke-width="2"/><path d="M14.5 14.5 L20 20 M7 10 H13 M10 7 V13" stroke="currentColor" stroke-width="2"/>',
     zoomOut: '<circle cx="10" cy="10" r="6" fill="none" stroke="currentColor" stroke-width="2"/><path d="M14.5 14.5 L20 20 M7 10 H13" stroke="currentColor" stroke-width="2"/>',
     fit: '<path d="M4 9 V4 H9 M15 4 H20 V9 M20 15 V20 H15 M9 20 H4 V15" fill="none" stroke="currentColor" stroke-width="2"/>',
@@ -265,14 +294,6 @@ const ICONS: { [name: string]: string } = {
     redo: '<path d="M15 5 L20 10 L15 15 M20 10 H10 A5 5 0 0 0 10 20 H14" fill="none" stroke="currentColor" stroke-width="2"/>',
     remove: '<path d="M5 7 H19 M10 7 V4 H14 V7 M7 7 L8 20 H16 L17 7" fill="none" stroke="currentColor" stroke-width="2"/>',
     wide: '<path d="M3 12 H21 M7 8 L3 12 L7 16 M17 8 L21 12 L17 16" fill="none" stroke="currentColor" stroke-width="2"/>',
-    fromSim: '<rect x="3" y="4" width="18" height="13" rx="1.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 9 V22 M8 18 L12 22 L16 18" fill="none" stroke="currentColor" stroke-width="2"/>',
-};
-
-const ROLE_SWATCH: { [role: string]: string } = {
-    obstacle: '<rect x="4" y="4" width="16" height="16" fill="' + SIM.OBSTACLE_COLOR + '"/><rect x="6" y="6" width="16" height="16" fill="none"/>',
-    color: '<rect x="4" y="4" width="16" height="16" fill="' + SIM.COLOR_AREA_COLOR + '" stroke="#999" stroke-width="0.8"/>',
-    goal: '<rect x="4" y="4" width="16" height="16" fill="#cfe9d5" stroke="' + SIM.COLORS.goal + '" stroke-width="2" stroke-dasharray="3 2"/><path d="M8 12 L11 15 L16 9" fill="none" stroke="' + SIM.COLORS.goal + '" stroke-width="2"/>',
-    fail: '<rect x="4" y="4" width="16" height="16" fill="#f6d2d1" stroke="' + SIM.COLORS.fail + '" stroke-width="2" stroke-dasharray="3 2"/><path d="M9 9 L15 15 M15 9 L9 15" stroke="' + SIM.COLORS.fail + '" stroke-width="2"/>',
 };
 
 function el(tag: string, attrs?: { [name: string]: any }, parent?: Element): any {
@@ -313,7 +334,6 @@ export class SimEditor {
     private none: HTMLElement;
     private hint: HTMLElement;
     private props: HTMLElement;
-    private palette: HTMLElement;
     private status: HTMLElement;
     private sensorInfo: HTMLElement;
     private canvas: HTMLElement;
@@ -335,8 +355,6 @@ export class SimEditor {
     private testsOfWorld: SimTest[] = [];
     private selectedTest: string = null; // the id of a test's block
     private tool = 'select';
-    private role = 'obstacle';
-    private color: string = null; // the colour new objects get (null: the simulator's default for their role)
     private selected: string = null; // an item id, or START + a start's id
     private drag: any = null;
     private drawing: SIM.SimItem = null;
@@ -379,11 +397,20 @@ export class SimEditor {
         const head = html('div', 'nepoSimHead', this.body);
         this.title = html('span', 'nepoSimTitle', head);
         const toolbar = html('div', 'nepoSimToolbar', this.body);
-        const group = () => html('div', 'nepoSimGroup', toolbar);
-        let g = group();
-        TOOLS.forEach((tool) => this.iconButton(g, tool, ICONS[tool], () => this.setTool(tool)));
-        g = group();
-        SIM.ROLES.forEach((role) => this.iconButton(g, role, ROLE_SWATCH[role], () => this.setRole(role)));
+        /** a group of buttons; with a label (a TEXT key, shown above them) */
+        const group = (label?: string) => {
+            const outer = html('div', 'nepoSimGroup' + (label ? ' nepoSimLabelled' : ''), toolbar);
+            if (!label) {
+                return outer;
+            }
+            html('div', 'nepoSimGroupLabel', outer).setAttribute('data-label', label);
+            return html('div', 'nepoSimGroupButtons', outer);
+        };
+        let g: HTMLElement;
+        for (const tools of TOOL_GROUPS) {
+            g = group(tools.label);
+            tools.tools.forEach((tool) => this.iconButton(g, tool, ICONS[tool], () => this.setTool(tool)));
+        }
         g = group();
         this.iconButton(g, 'zoomOut', ICONS.zoomOut, () => this.zoomBy(1 / 1.4));
         this.iconButton(g, 'zoomIn', ICONS.zoomIn, () => this.zoomBy(1.4));
@@ -393,15 +420,14 @@ export class SimEditor {
         this.iconButton(g, 'redo', ICONS.redo, () => this.redo());
         this.iconButton(g, 'remove', ICONS.remove, () => this.removeSelected());
         g = group();
-        this.iconButton(g, 'fromSim', ICONS.fromSim, () => this.takeSimulatorScene());
         this.iconButton(g, 'wide', ICONS.wide, () => {
             document.getElementById('tests') && document.getElementById('tests').classList.toggle('nepoSimWide');
             window.dispatchEvent(new Event('resize'));
         });
         g = group();
+        g.style.display = BACKGROUND_CHOICE ? '' : 'none';
         this.backgroundSelect = html('select', 'nepoSimBackground', g);
         this.backgroundSelect.addEventListener('change', () => this.setBackground(this.backgroundSelect.value));
-        this.palette = html('div', 'nepoSimPalette', this.body);
         this.props = html('div', 'nepoSimProps', this.body);
         this.hint = html('div', 'nepoSimHint', this.body);
         this.canvas = html('div', 'nepoSimCanvas', this.body);
@@ -480,9 +506,9 @@ export class SimEditor {
             o.textContent = this.text(name);
         });
         this.data && (this.backgroundSelect.value = this.data.world.background);
+        Array.prototype.forEach.call(this.root.querySelectorAll('.nepoSimGroupLabel'), (label: HTMLElement) => (label.textContent = this.text(label.getAttribute('data-label'))));
         this.setTitle(this.name);
         this.updateHint();
-        this.renderPalette();
         this.renderProps();
         this.renderStatus();
         this.renderSensors();
@@ -968,31 +994,6 @@ export class SimEditor {
         TOOLS.forEach((t) => this.buttons[t].classList.toggle('active', t === tool));
         this.canvas.setAttribute('data-tool', tool);
         this.updateHint();
-        this.renderRoles();
-    }
-
-    private setRole(role: string): void {
-        this.role = role;
-        this.color = null;
-        const item = this.selectedItem();
-        if (item && item.kind !== 'line' && item.role !== role) {
-            const before = this.snapshot();
-            item.role = role;
-            delete item.color; // the simulator's colour for the new role
-            this.commit(before);
-        }
-        this.renderRoles();
-    }
-
-    private setColor(color: string): void {
-        this.color = color;
-        const item = this.selectedItem();
-        if (item && (item.role === 'obstacle' || item.role === 'color')) {
-            const before = this.snapshot();
-            item.color = color;
-            this.commit(before);
-        }
-        this.renderPalette();
     }
 
     private setBackground(name: string): void {
@@ -1005,83 +1006,20 @@ export class SimEditor {
         this.fit();
     }
 
-    /** takes over the scene of the Lab's simulator (as a single edit: undo brings the old world back) */
-    private takeSimulatorScene(): void {
-        if (!this.data) {
-            return;
-        }
-        const scene = this.host.simulatorScene();
-        if (typeof scene === 'string') {
-            this.showMessage(scene, true);
-            return;
-        }
-        const before = this.snapshot();
-        const world = this.data.world;
-        const keep = world.items.filter((i) => i.kind === 'line' || i.role === 'goal' || i.role === 'fail');
-        const active = this.activeStart(); // the simulator's robot: it keeps its id and its name
-        Object.assign(active, { x: scene.start.x, y: scene.start.y, heading: scene.start.heading });
-        this.data.world = { background: scene.background, starts: world.starts, items: [] };
-        for (const item of scene.items) {
-            item.id = newId('s');
-            this.data.world.items.push(item);
-            item.name = SIM.newItemName(this.data.world, item, (k) => this.kindWord(k));
-        }
-        this.data.world.items = this.data.world.items.concat(keep);
-        this.backgroundSelect.value = scene.background;
-        this.commit(before);
-        this.fit();
-        this.showMessage(this.text('imported'), false);
-    }
-
-    private renderRoles(): void {
-        const item = this.selectedItem();
-        const role = item && item.kind !== 'line' ? item.role : this.role;
-        SIM.ROLES.forEach((r) => this.buttons[r].classList.toggle('active', r === role));
-        this.renderPalette();
-    }
-
-    /** the simulator's colours, for obstacles and coloured areas */
-    private renderPalette(): void {
-        const p = this.palette;
-        if (!p) {
-            return;
-        }
-        p.innerHTML = '';
-        const item = this.selectedItem();
-        const role = item ? item.role : this.role;
-        if (role !== 'obstacle' && role !== 'color') {
-            p.style.display = 'none'; // also for lines: they are drawn like the background's track
-            return;
-        }
-        p.style.display = '';
-        const current = (item && item.kind !== 'line' ? item.color : this.color) || (role === 'obstacle' ? SIM.OBSTACLE_COLOR : SIM.COLOR_AREA_COLOR);
-        const colors = (role === 'obstacle' ? [SIM.OBSTACLE_COLOR] : []).concat(SIM.PALETTE);
-        colors.forEach((c) => {
-            const b = html('button', 'nepoSimColor' + (c.toLowerCase() === current.toLowerCase() ? ' active' : ''), p);
-            b.type = 'button';
-            b.style.background = c;
-            b.title = c;
-            b.addEventListener('click', (e: Event) => {
-                e.preventDefault();
-                this.setColor(c);
-            });
-        });
-    }
-
     private updateHint(): void {
-        const key = { select: 'hintSelect', start: 'hintStart', line: 'hintLine', curve: 'hintLine' }[this.tool] || 'hintShape';
+        const key = { select: 'hintSelect', start: 'hintStart', line: 'hintLine', curve: 'hintLine', wall: 'hintWall', wallCurve: 'hintWall', goal: 'hintArea', fail: 'hintArea' }[this.tool] || 'hintShape';
         this.hint.textContent = this.text(key);
     }
 
     // -------------------------------------------------------------------------------------------- properties
 
-    /** the name of the selected start or item (the tests' blocks show it), and the look of a selected line */
+    /** the name of the selected start or item (the tests' blocks show it; fail areas have none), and the look of a selected line or wall */
     private renderProps(): void {
         const props = this.props;
         props.innerHTML = '';
         const item = this.selectedItem();
         const start = this.selected && this.selected.indexOf(START) === 0 ? this.startById(this.selected.substring(START.length)) : null;
-        if (!item && !start) {
+        if (!start && (!item || item.role === 'fail')) {
             props.style.display = 'none';
             return;
         }
@@ -1129,10 +1067,11 @@ export class SimEditor {
         w.min = '0.5';
         w.max = '5';
         w.step = '0.1';
-        w.value = String(round(item.width || SIM.LINE_WIDTH_CM));
+        const width = SIM.isWall(item) ? SIM.WALL_WIDTH_CM : SIM.LINE_WIDTH_CM;
+        w.value = String(round(item.width || width));
         l.appendChild(document.createTextNode(' ' + this.text('cm')));
         w.addEventListener('change', () => {
-            const v = Math.max(0.5, Math.min(5, Number(w.value) || SIM.LINE_WIDTH_CM));
+            const v = Math.max(0.5, Math.min(5, Number(w.value) || width));
             const before = this.snapshot();
             item.width = v;
             this.commit(before);
@@ -1286,7 +1225,6 @@ export class SimEditor {
         this.layers.world.innerHTML = SIM.worldSvg(this.data.world, 'e');
         this.renderOverlay();
         this.renderProps();
-        this.renderRoles();
         this.renderStatus();
         this.renderZoomed();
         this.renderSensorsOfRobots();
@@ -1346,10 +1284,12 @@ export class SimEditor {
         this.renderStatus();
     }
 
-    /** an outline of a shape (selection, the area a run ended in) */
+    /** an outline of a shape (selection, the area a run ended in, the obstacle or wall it bumped into) */
     private outline(g: any, item: SIM.SimItem, color: string, width: number): any {
         let e: any;
-        if (item.kind === 'rect') {
+        if (item.kind === 'line') {
+            e = el('path', { d: SIM.linePathD(item) }, g);
+        } else if (item.kind === 'rect') {
             e = el('rect', { x: item.x, y: item.y, width: item.w, height: item.h }, g);
         } else if (item.kind === 'circle') {
             e = el('circle', { cx: item.x, cy: item.y, r: item.r }, g);
@@ -1368,6 +1308,12 @@ export class SimEditor {
         g.innerHTML = '';
         if (!this.data) {
             return;
+        }
+        // the names of the goal areas (the tests' blocks show them)
+        for (const goal of this.data.world.items.filter((i) => i.role === 'goal' && i.kind !== 'line')) {
+            const c = this.centre(goal);
+            const label = el('text', { class: 'nepoSimLabel', x: c[0], y: c[1] + this.px(4), 'font-size': this.px(12), 'stroke-width': this.px(3), 'text-anchor': 'middle' }, g);
+            label.textContent = SIM.itemName(this.data.world, goal, (k) => this.kindWord(k));
         }
         const r = this.px(HANDLE_PX);
         const handle = (x: number, y: number, kind: string, round?: boolean) =>
@@ -1410,9 +1356,22 @@ export class SimEditor {
         }
         const d = this.drawing;
         if (d) {
-            el('path', { d: SIM.linePathD(d), fill: 'none', stroke: '#000000', 'stroke-width': d.width || SIM.LINE_WIDTH_CM, opacity: 0.6 }, g);
+            const wall = SIM.isWall(d);
+            el('path', { d: SIM.linePathD(d), fill: 'none', stroke: wall ? SIM.OBSTACLE_COLOR : '#000000', 'stroke-width': d.width || SIM.LINE_WIDTH_CM, 'stroke-linecap': wall ? 'round' : 'butt', opacity: 0.6 }, g);
             d.points.slice(0, -1).forEach((p, i) => handle(p[0], p[1], i === 0 ? 'first' : 'drawn', true));
         }
+    }
+
+    /** the middle of a rect, circle or triangle (for its name) */
+    private centre(item: SIM.SimItem): number[] {
+        if (item.kind === 'rect') {
+            return [item.x + item.w / 2, item.y + item.h / 2];
+        }
+        if (item.kind === 'circle') {
+            return [item.x, item.y];
+        }
+        const points = item.points || [];
+        return [0, 1].map((k) => points.reduce((sum, p) => sum + p[k], 0) / Math.max(1, points.length));
     }
 
     /** what depends on the zoom: shadows (canvas shadows are in screen pixels), the scale bar, the run's path */
@@ -1535,12 +1494,10 @@ export class SimEditor {
         return SIM.objectSize(this.data.world);
     }
 
-    private newShape(kind: string, p: number[]): SIM.SimItem {
-        const item: SIM.SimItem = { id: newId('s'), kind: kind, role: this.role };
-        item.name = SIM.newItemName(this.data.world, item, (k) => this.kindWord(k));
-        if (this.color && (this.role === 'obstacle' || this.role === 'color')) {
-            item.color = this.color;
-        }
+    /** a new rect, circle or triangle with a role (fail areas get no name) */
+    private newShape(kind: string, role: string, p: number[]): SIM.SimItem {
+        const item: SIM.SimItem = { id: newId('s'), kind: kind, role: role };
+        role !== 'fail' && (item.name = SIM.newItemName(this.data.world, item, (k) => this.kindWord(k)));
         const size = this.defaultSize();
         if (kind === 'rect') {
             Object.assign(item, { x: round(p[0]), y: round(p[1]), w: 0, h: 0 });
@@ -1575,7 +1532,7 @@ export class SimEditor {
         const now = performance.now();
         const double = this.lastDown && now - this.lastDown.t < 400 && Math.hypot(e.clientX - this.lastDown.x, e.clientY - this.lastDown.y) < 6;
         this.lastDown = { t: now, x: e.clientX, y: e.clientY };
-        if (this.tool === 'line' || this.tool === 'curve') {
+        if (LINE_TOOLS.indexOf(this.tool) >= 0) {
             if (double && this.drawing) {
                 this.finishDrawing(true);
                 this.lastDown = null;
@@ -1594,8 +1551,9 @@ export class SimEditor {
             this.commit(before);
             return;
         }
-        if (this.tool === 'rect' || this.tool === 'circle' || this.tool === 'triangle') {
-            const item = this.newShape(this.tool, p);
+        const shape = SHAPE_TOOLS[this.tool];
+        if (shape) {
+            const item = this.newShape(shape[0], shape[1], p);
             this.beginDrag(e, { kind: 'create', item: item, anchor: p, before: this.snapshot(), moved: false });
             this.data.world.items.push(item);
             return;
@@ -1628,7 +1586,6 @@ export class SimEditor {
         }
         this.renderOverlay();
         this.renderProps();
-        this.renderRoles();
     }
 
     private beginDrag(e: PointerEvent, drag: any): void {
@@ -1747,7 +1704,6 @@ export class SimEditor {
                 this.selected = null;
                 this.renderOverlay();
                 this.renderProps();
-                this.renderRoles();
             }
             return;
         }
@@ -1820,7 +1776,8 @@ export class SimEditor {
     private addLinePoint(p: number[]): void {
         const q = [round(p[0]), round(p[1])];
         if (!this.drawing) {
-            this.drawing = { id: newId('l'), kind: 'line', points: [q, q.slice()], smooth: this.tool === 'curve', closed: false };
+            this.drawing = { id: newId('l'), kind: 'line', points: [q, q.slice()], smooth: this.tool === 'curve' || this.tool === 'wallCurve', closed: false };
+            WALL_TOOLS.indexOf(this.tool) >= 0 && Object.assign(this.drawing, { role: 'obstacle', width: SIM.WALL_WIDTH_CM }); // a wall: an obstacle
             this.renderOverlay();
             return;
         }
@@ -1899,7 +1856,6 @@ export class SimEditor {
                 this.selected = null;
                 this.renderOverlay();
                 this.renderProps();
-                this.renderRoles();
             }
         } else if (e.key === 'Enter') {
             this.finishDrawing(true);

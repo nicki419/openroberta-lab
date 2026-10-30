@@ -80,7 +80,7 @@ programs, which implements the project goal. It covers:
 - **simulation tests:** the robot drives through a **drawn world on the Lab's own simulator**: the program compiled
   for the simulator (`sourceSimulation`), run by the simulator's interpreter, Edison and objects, offscreen and in
   virtual time, in the Tests tab (`OpenRobertaWeb/src/app/nepotest/nepoTest.simRun.ts`). A **simulation world** (lines
-  to follow, obstacles, goal and fail areas, named starts) holds many tests: each is set up (a start, the past: claps,
+  to follow, obstacles and walls, goal and fail areas, named starts) holds many tests: each is set up (a start, the past: claps,
   keys, variables), runs the whole program (for N s, or until it touches an area) and checks where the robot goes
   (reaches, never touches, ends in, never bumps into), what it does
   (`nepoTest.simBehaviour.ts`: from a time on it always turns left; whenever it sees the line, it turns left; within
@@ -186,7 +186,7 @@ python -m nepotest run examples/patrol.tests.json      # state tests (patrol_wit
 python -m nepotest run examples/line_follower.tests.json   # its simulation tests are skipped: they run in the Tests tab
 ```
 
-These passed on 2026-10-27: 142 + 8 tests, including the live-Lab tests and the schema check; the reference-compiler
+These passed on 2026-10-30: 143 + 8 tests, including the live-Lab tests and the schema check; the reference-compiler
 check last ran on 2026-10-18. Each suite has one deliberate expected failure, which shows generator quirk #14. The clap
 counter and patrol example test files each report one deliberate failure: quirk #14 (clap counter), and a square
 driven while the obstacle is still there (patrol). The line follower's file runs its BDD test and skips its two
@@ -215,8 +215,8 @@ compile service and the EdComm audio cable.
   of the program workspace or code generation. They are saved as extra instances of the program XML. A simulation
   test's world is its block's `<data>` (JSON). It runs on the Lab's simulator code (`simulation/simulationLogic`,
   `nepostackmachine`), through `nepoTest.simRun.ts`, which must not change the simulator's behaviour. The editor's
-  geometry (curves, robot outline, sensor positions, infrared rays) copies the simulator in `nepoTest.sim.ts`; the
-  curves and the outline exist again in `simulation.py` (data checks): change them together.
+  geometry (curves, robot outline, sensor positions, infrared rays, walls) copies the simulator in `nepoTest.sim.ts`;
+  the curves, the walls and the outline exist again in `simulation.py` (data checks): change them together.
 - AST classes must be `final` and annotated (`@NepoPhrase` / `@NepoExpr` / `@NepoBasic` …) with their `blocklyNames`.
   `AstFactory.loadBlocks()` must run before any XML → AST transformation. Tests call it in `@BeforeClass`.
 - Workers are instantiated **once per RobotFactory** and reused across requests, so keep them stateless.

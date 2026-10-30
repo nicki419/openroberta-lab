@@ -524,6 +524,24 @@ class SimulationWorldTest(unittest.TestCase):
         self.assertEqual(len(found), 4, found)
         self.assertTrue(all(any(word in p for p in found) for word in ('after_ms', 'percent', 'within_ms', 'only numbers')), found)
 
+    def test_walls(self):
+        """a wall: a line with the role obstacle, an obstacle of its shape (the editor's wall tools)"""
+        wall = {'id': 'w1', 'kind': 'line', 'role': 'obstacle', 'points': [[170, 80], [170, 120]], 'width': 2}
+        self.assertEqual([(p['kind'], p.get('r')) for p in SIM.wall_pieces(wall)], [('triangle', None)] * 2 + [('circle', 1.0)] * 2)
+        self.assertEqual(SIM.item_name({'items': [WALL, wall]}, wall), 'Wall 1')
+        tests = case_xml('t1', 'into the wall', checks=check_xml('never_bumps', 'c1', 'w1'))
+        spec, problems = translate(suite_of(world_xml(course(wall), tests=tests)))
+        self.assertEqual((problems, spec['tests'][0]['simulation']['checks']), ([], [{'check': 'never_bumps', 'block_id': 'c1', 'item': 'w1'}]))
+        self.assertEqual(validate_spec(spec), [])
+        on_wall = dict(wall, points=[[150, 80], [150, 120]])  # through start A in the middle
+        _, problems = translate(suite_of(world_xml(course(on_wall), tests=tests)))
+        self.assertIn('test "into the wall": the robot starts on an obstacle: move the start or the obstacle', messages(problems, 'error'))
+        _, problems = translate(suite_of(world_xml(course(wall), tests=case_xml('t1', 'reaches a wall', checks=check_xml('reaches', 'c1', 'w1')))))
+        self.assertEqual([p['block_id'] for p in problems if p['severity'] == 'error'], ['c1'])  # a wall is no area
+        world = SIM.default_world()
+        world['items'] = [dict(wall, role='goal'), dict(wall, id='w2', width=0)]
+        self.assertEqual(len(SIM.validate_world(world, 'w')), 2)
+
     def test_a_run_of_tenths_of_a_second(self):
         def length(seconds):
             case = case_xml('t1', 'short', checks=check_xml('reaches', 'c1', 'ANY')).replace('<field name="SECONDS">5</field>', '<field name="SECONDS">%s</field>' % seconds)
