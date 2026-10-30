@@ -18,11 +18,10 @@
  * world's rules (simulation.checks, rule: true). The checks of where the robot goes (reaches, never touches, ends in, never bumps into, stays
  * on its recorded path) are decided during the run; the checks of its behaviour (does, whenever, after: nepoTest.simBehaviour) and of a
  * variable at the end, from the run's record when it has ended. A run never stops at a failed check: every check is decided. The test passes only if every
- * check holds and the program didn't fail. A test that should fail (`should: "fail"`) is turned round as in spec.py apply_should, but only by
- * its own checks: a failed rule of the world fails it anyway. A skipped test (`skip: true`) doesn't run.
+ * check holds and the program didn't fail: every test should pass (a `should` is ignored). A skipped test (`skip: true`) doesn't run.
  *
  * The report has the shape of NepoTest's reports (NepoTest/nepotest/spec.py), so the Tests tab shows all tests alike:
- *   {name, block_id (the test), world_block_id, kind: 'simulation', outcome, expected_failure, failures, error, time_ms, variables,
+ *   {name, block_id (the test), world_block_id, kind: 'simulation', outcome, failures, error, time_ms, variables,
  *    covered_blocks, status, checks: [{block_id, check, text, rule, passed, t, item, point, message, facts, why}],
  *    simulation: {result, t, item, point, path: [[t_ms, x, y, heading], ...], leds: [[t_ms, left, right], ...], start, recorded, bumps}}
  * passed: true, false, or null (not decided: a path not recorded yet, the program failed before, nothing to check: the condition of a
@@ -971,20 +970,7 @@ class Run {
                 });
             }
         }
-        const failedRule = this.checks.some((c) => c.spec.rule && c.passed === false);
-        const failedOwn = !!this.error || this.checks.some((c) => !c.spec.rule && c.passed === false);
-        let result = failedRule || failedOwn ? 'failed' : 'passed';
-        let expectedFailure = false;
-        if (test.should === 'fail' && !failedRule) {
-            // it should fail by its own checks; a rule of the world must hold anyway
-            if (failedOwn) {
-                result = 'passed';
-                expectedFailure = true;
-            } else {
-                result = 'failed';
-                failures.push({ expect: 'should', expected: 'fail', actual: 'passed', message: SHOULD_FAIL_MESSAGE, described: true });
-            }
-        }
+        const result = this.error || this.checks.some((c) => c.passed === false) ? 'failed' : 'passed';
         const failedArea = this.checks.filter((c) => c.passed === false && c.item)[0];
         const deviation = this.checks.filter((c) => c.passed === false && c.point)[0];
         const trace = PROGRAM.trace(this.recorder);
@@ -1027,9 +1013,6 @@ class Run {
                 bumps: this.bumps,
             },
         };
-        if (expectedFailure) {
-            report.expected_failure = true;
-        }
         if (this.recorder.failure) {
             report.record_failure = this.recorder.failure; // the record is incomplete (the run itself isn't affected)
         }
@@ -1071,8 +1054,6 @@ function blockType(source: string, id: string): string {
     }
     return null;
 }
-
-export const SHOULD_FAIL_MESSAGE = 'the test should fail, but it passed';
 
 function errorReport(test: any, message: string): any {
     return {

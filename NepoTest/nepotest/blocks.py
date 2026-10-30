@@ -9,11 +9,12 @@ The blocks (all types start with `nepoTest_`; the frontend defines them in nepoT
     nepoTest_world        NAME          a simulation world (block data: JSON, see below); statement inputs RULES (checks
                                         for every test of the world) and TESTS (nepoTest_simcase blocks). Its tests run on
                                         the Lab's simulator (the Tests tab).
-    nepoTest_simcase      ACTIVE NAME START MODE UNTIL SECONDS SHOULD   a test of a world: ACTIVE TRUE | FALSE (unticked:
+    nepoTest_simcase      ACTIVE NAME START MODE UNTIL SECONDS   a test of a world: ACTIVE TRUE | FALSE (unticked:
                                         skipped); set up: START (a start's id) and statement input SETUP (claps, keys,
                                         variables: the past); run: the whole program, MODE for | until (UNTIL: an area's
                                         id; the run ends when the robot touches it), at most SECONDS s (one decimal); statement input
-                                        CHECKS (nepoTest_check_* blocks)
+                                        CHECKS (nepoTest_check_* blocks). Every test of a world should pass: a SHOULD (saved
+                                        until 2026-10-30) is ignored.
   CHECK (in CHECKS and RULES; AREA, OBSTACLE: an item's id, or ANY)
     nepoTest_check_reaches        AREA        the robot touches the area (ANY: any goal area) at some time
     nepoTest_check_never_touches  AREA        ... never (ANY: any fail area)
@@ -719,8 +720,7 @@ def _overwritten(program, globals_):
 def _translate_simcase(test_block, world_block, program, problems):
     """a test of a simulation world (a nepoTest_simcase in the world's TESTS)"""
     name = (test_block.fields.get('NAME') or '').strip()
-    test = {'name': name, 'origin': 'blocks', 'block_id': test_block.id}
-    _should(test_block, test, problems)
+    test = {'name': name, 'origin': 'blocks', 'block_id': test_block.id}  # it should pass (no "should")
     if test_block.fields.get('ACTIVE', 'TRUE') == 'FALSE':
         test['skip'] = True
     data = simulation_data(world_block)

@@ -382,7 +382,7 @@ so tests and AI generators can copy them from the program. All these decoders we
 - `outcome` is `passed`, `failed` (an expectation didn't hold, including an unexpected runtime error), or `error`: the
   *test* is broken, e.g. it passes a string as a NEPO value. That separates bad tests from bad programs, which
   matters when tests are generated. (`skipped`: a simulation test outside the Lab, §4.11.)
-- **A test that should fail** (`"should": "fail"`, `spec.apply_should`; for simulation tests `nepoTest.simRun applyShould`):
+- **A test that should fail** (`"should": "fail"`, `spec.apply_should`; not for simulation tests, see §4.11):
   - if it failed, its `outcome` is `passed`, with `"expected_failure": true`, and its `failures` stay, so the report
     still says what failed;
   - if it passed, its `outcome` is `failed`, with the failure `{"expect": "should", "message": "the test should fail,
@@ -617,8 +617,8 @@ error, the checks still open aren't decided (`passed: null`), and the test fails
   run). The drawn world gives the obstacles, the line and the light. The simulator has no IR remote control and no IR
   messages: the Tests tab rejects those blocks in simulation worlds. `globals` need no `call`.
 - **No `call`, no `args`:** a test of a world always runs the whole program.
-- **`skip`: true:** the test doesn't run (`skipped`). **`should`: "fail"** turns only the test's own checks round
-  (and a runtime error): a failed rule fails the test anyway.
+- **`skip`: true:** the test doesn't run (`skipped`). **No `should`:** every test of a world should pass (since
+  2026-10-30); the Tests tab ignores a `should`.
 
 When the program ends, the robot moves for the rest of that frame and then stops, as in the simulator.
 

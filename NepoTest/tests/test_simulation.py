@@ -391,8 +391,8 @@ class SimulationWorldTest(unittest.TestCase):
                            'checks': [rule, {'check': 'reaches', 'block_id': 'c2', 'item': 'g'},
                                       {'check': 'path', 'block_id': 'c3', 'tolerance_cm': 1.5, 'path': PATH['path'], 'time_ms': 900}]}})
         second = spec['tests'][1]
-        self.assertEqual((second['should'], second['world'], second['simulation']['start'], 'until' in second['simulation']),
-                         ('fail', [{'event': 'clap', 'at': 500}], 'st2', False))
+        self.assertEqual((second.get('should'), second['world'], second['simulation']['start'], 'until' in second['simulation']),
+                         (None, [{'event': 'clap', 'at': 500}], 'st2', False))  # every test of a world should pass: SHOULD is ignored
         self.assertEqual(second['simulation']['checks'][1:], [{'check': 'never_bumps', 'block_id': 'c4', 'item': 'o'},
                                                               {'check': 'ends_in', 'block_id': 'c5', 'item': 'g'}])
         self.assertEqual((spec['tests'][2]['skip'], spec['tests'][2]['simulation']['checks'][1]), (True, {'check': 'never_bumps', 'block_id': 'c6'}))

@@ -118,7 +118,6 @@
                             <field name="MODE">until</field>
                             <field name="UNTIL">finish</field>
                             <field name="SECONDS">20</field>
-                            <field name="SHOULD">pass</field>
                             <statement name="CHECKS">
                                 <block type="nepoTest_check_reaches" id="lft21" intask="true">
                                     <field name="AREA">finish</field>
@@ -136,7 +135,6 @@
                             <field name="MODE">until</field>
                             <field name="UNTIL">finish</field>
                             <field name="SECONDS">10</field>
-                            <field name="SHOULD">pass</field>
                             <statement name="CHECKS">
                                 <block type="nepoTest_check_reaches" id="lft26" intask="true">
                                     <field name="AREA">finish</field>

@@ -72,7 +72,7 @@ const MESSAGES: { [lang: string]: { [key: string]: string } } = {
         NEPOTEST_TESTS_IN_WORLD: 'tests',
         NEPOTEST_SIMCASE: 'test',
         NEPOTEST_SIMCASE_TOOLTIP:
-            'A test in this world. Set up: where the robot starts, and what happened before (claps, keys, variables). Run: the whole program. Check: it passes only if every check holds (and every rule of the world). Untick the box to skip the test. At the bottom: whether the test should pass or fail.',
+            'A test in this world. Set up: where the robot starts, and what happened before (claps, keys, variables). Run: the whole program. Check: it passes only if every check holds (and every rule of the world). Untick the box to skip the test.',
         NEPOTEST_SET_UP: 'set up:',
         NEPOTEST_START_AT: 'the robot starts at',
         NEPOTEST_RUN_LABEL: 'run:',
@@ -325,7 +325,7 @@ const MESSAGES: { [lang: string]: { [key: string]: string } } = {
         NEPOTEST_TESTS_IN_WORLD: 'Tests',
         NEPOTEST_SIMCASE: 'Test',
         NEPOTEST_SIMCASE_TOOLTIP:
-            'Ein Test in dieser Welt. Vorbereiten: wo der Roboter startet, und was vorher passiert ist (Klatschen, Tasten, Variablen). Ausführen: das ganze Programm. Prüfen: er besteht nur, wenn jede Prüfung stimmt (und jede Regel der Welt). Nimm das Häkchen weg, um den Test auszulassen. Unten: ob der Test bestehen oder scheitern soll.',
+            'Ein Test in dieser Welt. Vorbereiten: wo der Roboter startet, und was vorher passiert ist (Klatschen, Tasten, Variablen). Ausführen: das ganze Programm. Prüfen: er besteht nur, wenn jede Prüfung stimmt (und jede Regel der Welt). Nimm das Häkchen weg, um den Test auszulassen.',
         NEPOTEST_SET_UP: 'vorbereiten:',
         NEPOTEST_START_AT: 'der Roboter startet bei',
         NEPOTEST_RUN_LABEL: 'ausführen:',
@@ -1101,8 +1101,7 @@ const DEFINITIONS: { [type: string]: any } = {
                 .appendField(msg('NEPOTEST_AT_MOST_COMMA'), 'AT_MOST')
                 .appendField(decimal(5), 'SECONDS')
                 .appendField(msg('NEPOTEST_SECONDS'));
-            this.appendStatementInput('CHECKS').setCheck(SIM_CHECK).appendField(msg('NEPOTEST_CHECK'));
-            shouldRow(this);
+            this.appendStatementInput('CHECKS').setCheck(SIM_CHECK).appendField(msg('NEPOTEST_CHECK')); // every test should pass: no "this test should"
             this.showMode_();
         },
         /** "until the robot touches [area], at most": only in the mode "until" (the area stays, so switching back and forth keeps it) */
