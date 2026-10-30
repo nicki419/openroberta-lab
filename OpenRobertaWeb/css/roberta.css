@@ -679,25 +679,6 @@ body.blocklyMinimalBody * {
     margin-top: 6px;
 }
 
-.nepoSimTolerance {
-    font-weight: normal;
-    margin: 0;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    white-space: nowrap;
-}
-
-.nepoSimTolerance input {
-    width: 110px;
-}
-
-.nepoSimPathInfo {
-    font-size: 85%;
-    color: #555;
-    margin-top: 2px;
-}
-
 .nepoSimTime {
     flex: 1 1 80px;
     min-width: 80px;

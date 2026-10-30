@@ -82,7 +82,7 @@ programs, which implements the project goal. It covers:
   virtual time, in the Tests tab (`OpenRobertaWeb/src/app/nepotest/nepoTest.simRun.ts`). A **simulation world** (lines
   to follow, obstacles, goal and fail areas, named starts) holds many tests: each is set up (a start, the past: claps,
   keys, variables), runs the whole program (for N s, or until it touches an area) and checks where the robot goes
-  (reaches, never touches, ends in, never bumps into, stays on its recorded path ± cm), what it does
+  (reaches, never touches, ends in, never bumps into), what it does
   (`nepoTest.simBehaviour.ts`: from a time on it always turns left; whenever it sees the line, it turns left; within
   500 ms after each clap, its LED is on; measured in every frame from its real motion, LEDs and sound) and a variable
   at the end. A test passes only if every check holds; a run never stops at the first failure. Every run is recorded (`nepoTest.simProgram.ts`): a failed
@@ -101,7 +101,7 @@ Read it before working on testing.
 (red start block, test blocks with given / when / then, simulation worlds with their tests and checks, run-test
 blocks), see the converted code, and run the tests in the browser (NepoTest in Pyodide, in a Web Worker; simulation
 tests on the Lab's simulator). For a simulation world, the **Simulation** panel (it looks like the Lab's simulator)
-draws the world and its starts, lists its tests, runs them, records a test's path and replays runs. It covers
+draws the world and its starts, lists its tests, runs them and replays runs. It covers
 the block vocabulary (the contract between `nepoTest.blocks.ts` and `NepoTest/nepotest/blocks.py`), how suites are
 saved inside the program XML, and how results link back to blocks. Read it before changing the Tests tab or adding a test block.
 The given / when / then tests are switched off in the toolbox (`BDD_TESTS = false` in `nepoTest.blocks.ts`): it offers only

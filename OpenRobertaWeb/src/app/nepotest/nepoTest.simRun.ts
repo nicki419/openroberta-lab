@@ -14,20 +14,20 @@
  * - the world adds lines to follow (drawn on the floor picture the sensors see), goal and fail areas, and the robot's starts.
  *
  * A test (NepoTest JSON, made by nepotest/blocks.py from a test of a world) starts the robot at one of the world's starts, runs the whole program
- * (until it ends, until the robot touches the test's "until" area, or for max_time_ms) and checks what the robot does: its checks and the
- * world's rules (simulation.checks, rule: true). The checks of where the robot goes (reaches, never touches, ends in, never bumps into, stays
- * on its recorded path) are decided during the run; the checks of its behaviour (does, whenever, after: nepoTest.simBehaviour) and of a
+ * (until it ends, until the robot touches the test's "until" area, or for max_time_ms) and checks what the robot does: its checks
+ * (simulation.checks; rule: true for a world's rule of an older suite). The checks of where the robot goes (reaches, never touches, ends in,
+ * never bumps into) are decided during the run; the checks of its behaviour (does, whenever, after: nepoTest.simBehaviour) and of a
  * variable at the end, from the run's record when it has ended. A run never stops at a failed check: every check is decided. The test passes only if every
  * check holds and the program didn't fail: every test should pass (a `should` is ignored). A skipped test (`skip: true`) doesn't run.
  *
  * The report has the shape of NepoTest's reports (NepoTest/nepotest/spec.py), so the Tests tab shows all tests alike:
  *   {name, block_id (the test), world_block_id, kind: 'simulation', outcome, failures, error, time_ms, variables,
  *    covered_blocks, status, checks: [{block_id, check, text, rule, passed, t, item, point, message, facts, why}],
- *    simulation: {result, t, item, point, path: [[t_ms, x, y, heading], ...], leds: [[t_ms, left, right], ...], start, recorded, bumps}}
- * passed: true, false, or null (not decided: a path not recorded yet, the program failed before, nothing to check: the condition of a
+ *    simulation: {result, t, item, point, path: [[t_ms, x, y, heading], ...], leds: [[t_ms, left, right], ...], start, bumps}}
+ * passed: true, false, or null (not decided: the program failed before, nothing to check: the condition of a
  * "whenever" never held, no event of an "after" happened). result: why the run ended: finished |
  * until | time_limit | error. item and point: what the picture marks (the first area touched or obstacle bumped into by a failed check, where
- * the robot left its path, where its behaviour first went wrong). Positions in cm, headings in degrees (not wrapped).
+ * its behaviour first went wrong). Positions in cm, headings in degrees (not wrapped).
  * The run is recorded (nepoTest.simProgram): a failed check, and a runtime error, get the facts of the second before (`facts`: what the
  * robot sensed, what ran, what it remembered, what it did; of a behaviour check: from half a second after it first went wrong), and the
  * report has the record in steps of 100 ms (`trace`, with what the robot did in each step: `does`). A failed check of what the robot does,
@@ -398,64 +398,9 @@ function touches(shape: Shape, poly: number[][], box: number[]): boolean {
     return pointInPolygon(poly[0][0], poly[0][1], sp) || pointInPolygon(sp[0][0], sp[0][1], poly);
 }
 
-/** the robot's outline at a pose of the world (cm, degrees), in units */
-function outlineAt(x: number, y: number, heading: number): number[][] {
-    return SIM.footprint(x, y, heading).map((p) => [u(p[0]), u(p[1])]);
-}
-
-/** where the robot may be: within the tolerance of its outline at any pose of the recorded path */
-class Corridor {
-    private static readonly CELL = 15; // units
-    private outlines: number[][][];
-    private cells: { [key: string]: number[] } = {};
-    private last = 0; // the robot moves along the path: look near the last match first
-
-    constructor(path: number[][], private tolerance: number) {
-        this.outlines = path.map((p) => outlineAt(p[0], p[1], p[2]));
-        this.outlines.forEach((poly, k) => {
-            const box = bbox(poly, tolerance);
-            for (let i = Math.floor(box[0] / Corridor.CELL); i <= Math.floor(box[2] / Corridor.CELL); i++) {
-                for (let j = Math.floor(box[1] / Corridor.CELL); j <= Math.floor(box[3] / Corridor.CELL); j++) {
-                    (this.cells[i + ',' + j] = this.cells[i + ',' + j] || []).push(k);
-                }
-            }
-        });
-    }
-
-    private near(k: number, x: number, y: number): boolean {
-        return polygonDistance(x, y, this.outlines[k]) <= this.tolerance + 1e-9;
-    }
-
-    contains(x: number, y: number): boolean {
-        const n = this.outlines.length;
-        for (let k = Math.max(0, this.last - 4); k < Math.min(n, this.last + 16); k++) {
-            if (this.near(k, x, y)) {
-                this.last = k;
-                return true;
-            }
-        }
-        for (const k of this.cells[Math.floor(x / Corridor.CELL) + ',' + Math.floor(y / Corridor.CELL)] || []) {
-            if (this.near(k, x, y)) {
-                this.last = k;
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /** the first of the outline's corners and edge middles that is outside, or null */
-    outside(poly: number[][]): number[] {
-        const n = poly.length;
-        const points = poly.concat(poly.map((p, i) => [(p[0] + poly[(i + 1) % n][0]) / 2, (p[1] + poly[(i + 1) % n][1]) / 2]));
-        return points.filter((p) => !this.contains(p[0], p[1]))[0] || null;
-    }
-}
-
 // ------------------------------------------------------------------------------------------------ running
 
 export interface RunOptions {
-    /** a recording: the test's recorded path isn't checked, so the run can become the new one */
-    record?: boolean;
     /** asked between pieces of the run: true stops it (the promise is rejected with "cancelled") */
     cancelled?: () => boolean;
 }
@@ -521,8 +466,6 @@ export function describeCheck(check: any, world: SIM.SimWorld): string {
             return 'at the end, the robot is completely in ' + item;
         case 'never_bumps':
             return 'the robot never bumps into ' + (item || 'anything');
-        case 'path':
-            return 'the robot stays on its recorded path ± ' + (typeof check.tolerance_cm === 'number' ? check.tolerance_cm : SIM.DEFAULT_TOLERANCE_CM) + ' cm';
         default:
             return BEHAVIOUR.describe(check);
     }
@@ -537,8 +480,6 @@ interface CheckState {
     item: string;
     point: number[];
     message: string;
-    corridor?: Corridor;
-    skipped?: boolean; // a path check without a path, or while it is recorded: it checks nothing
     factsAt?: number; // the end of its facts (a behaviour check: soon after it went wrong); else t
     verdict?: BEHAVIOUR.Verdict; // a behaviour or variable check: what judge found
     why?: VERDICT.Explanation; // a failed check: why (nepoTest.simVerdict)
@@ -635,20 +576,7 @@ class Run {
     }
 
     private checkState(spec: any): CheckState {
-        const state: CheckState = { spec: spec, text: describeCheck(spec, this.world), passed: null, t: null, item: null, point: null, message: null };
-        if (spec.check === 'path') {
-            if (this.options.record) {
-                state.skipped = true;
-                state.message = 'not checked: the path is recorded in this run';
-            } else if (!spec.path || !spec.path.length) {
-                state.skipped = true;
-                state.message = 'not checked: no path recorded yet (select the test in the Simulation tab and press "Record path")';
-            } else {
-                const tolerance = typeof spec.tolerance_cm === 'number' ? spec.tolerance_cm : SIM.DEFAULT_TOLERANCE_CM;
-                state.corridor = new Corridor(spec.path, tolerance * SIM.UNITS_PER_CM);
-            }
-        }
-        return state;
+        return { spec: spec, text: describeCheck(spec, this.world), passed: null, t: null, item: null, point: null, message: null };
     }
 
     /** the shapes a check is about: its item, or all goal areas ("reaches any goal area") or fail areas ("never touches any fail area") */
@@ -762,7 +690,7 @@ class Run {
         }
     }
 
-    /** after a frame in which the robot moved: the checks of areas and of the recorded path, and the area the run ends at */
+    /** after a frame in which the robot moved: the checks of areas, and the area the run ends at */
     private check(): void {
         const c = this.robot.chassis;
         const key = [c.frontLeft.rx, c.frontLeft.ry, c.backRight.rx, c.backRight.ry].join();
@@ -775,16 +703,13 @@ class Run {
         const box = bbox(poly);
         this.touching = this.world.items.filter((i) => SIM.isArea(i) && this.shapes[i.id] && touches(this.shapes[i.id], poly, box)).map((i) => i.id);
         for (const check of this.checks) {
-            if (check.passed !== null || check.skipped) {
+            if (check.passed !== null) {
                 continue;
             }
             const kind = check.spec.check;
             if (kind === 'reaches' || kind === 'never_touches') {
                 const hit = this.targets(check).filter((s) => touches(s, poly, box))[0];
                 hit && this.settle(check, kind === 'reaches', hit.id);
-            } else if (kind === 'path') {
-                const point = check.corridor.outside(poly);
-                point && this.settle(check, false, null, [SIM.round2(cm(point[0])), SIM.round2(cm(point[1]))]);
             }
         }
         if (this.until) {
@@ -870,9 +795,6 @@ class Run {
         const variables = this.variables();
         for (const check of this.checks) {
             const kind = check.spec.check;
-            if (check.skipped) {
-                continue;
-            }
             if (BEHAVIOUR.KINDS.indexOf(kind) >= 0) {
                 const verdict = BEHAVIOUR.judge(check.spec, this.recorder, this.test.world || [], variables, outcome.t);
                 if (this.error && verdict.passed !== false) {
@@ -902,10 +824,6 @@ class Run {
                 check.message = check.passed
                     ? 'the robot never bumped into ' + (check.spec.item ? nameOf(this.world, check.spec.item) : 'anything')
                     : 'the robot bumped into ' + (check.item ? nameOf(this.world, check.item) : 'the wall') + ' after ' + seconds(check.t) + ' s';
-            } else if (kind === 'path') {
-                check.passed === null && this.settle(check, true);
-                const tolerance = typeof check.spec.tolerance_cm === 'number' ? check.spec.tolerance_cm : SIM.DEFAULT_TOLERANCE_CM;
-                check.message = check.passed ? 'the robot stayed on its recorded path' : 'the robot left its recorded path (by more than ' + tolerance + ' cm) after ' + seconds(check.t) + ' s';
             } else if (kind === 'ends_in') {
                 const shape = this.shapes[check.spec.item];
                 this.settle(check, !!shape && inside(shape, poly), check.spec.item);
@@ -1009,7 +927,6 @@ class Run {
                 path: this.path,
                 leds: this.leds,
                 start: [this.start.x, this.start.y, this.start.heading],
-                recorded: !!this.options.record,
                 bumps: this.bumps,
             },
         };

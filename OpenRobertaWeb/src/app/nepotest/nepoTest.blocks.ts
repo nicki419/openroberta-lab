@@ -88,9 +88,6 @@ const MESSAGES: { [lang: string]: { [key: string]: string } } = {
         NEPOTEST_CHECK_ENDS_IN_TOOLTIP: 'Holds if the whole robot is inside this area when the run ends.',
         NEPOTEST_CHECK_NEVER_BUMPS: 'the robot never bumps into',
         NEPOTEST_CHECK_NEVER_BUMPS_TOOLTIP: 'Fails when the robot drives against this obstacle (or against anything, the wall too).',
-        NEPOTEST_CHECK_PATH: 'the robot stays on its recorded path ±',
-        NEPOTEST_CHECK_PATH_TOOLTIP:
-            'The robot must stay within this many cm of the path it took when the path was recorded. To record it: select the test, then "Record path" in the Simulation tab.',
         NEPOTEST_CHECK_DOES_FROM: 'from',
         NEPOTEST_CHECK_DOES_ALWAYS: 'ms on, the robot always',
         NEPOTEST_CHECK_DOES_TOOLTIP:
@@ -133,8 +130,6 @@ const MESSAGES: { [lang: string]: { [key: string]: string } } = {
         NEPOTEST_EVENT_LINE_START: 'it starts seeing the line',
         NEPOTEST_EVENT_LINE_END: 'it stops seeing the line',
         NEPOTEST_EVENT_OBSTACLE: 'an obstacle appears',
-        NEPOTEST_NOT_RECORDED: '(not recorded yet)',
-        NEPOTEST_RECORDED: '(recorded: {0} s)',
         NEPOTEST_ANY_GOAL: 'any goal area',
         NEPOTEST_ANY_FAIL: 'any fail area',
         NEPOTEST_ANYTHING: 'anything (the wall too)',
@@ -340,9 +335,6 @@ const MESSAGES: { [lang: string]: { [key: string]: string } } = {
         NEPOTEST_CHECK_ENDS_IN_TOOLTIP: 'Stimmt, wenn der ganze Roboter am Ende der Fahrt in dieser Fläche ist.',
         NEPOTEST_CHECK_NEVER_BUMPS: 'der Roboter stößt nie an',
         NEPOTEST_CHECK_NEVER_BUMPS_TOOLTIP: 'Scheitert, wenn der Roboter gegen dieses Hindernis fährt (oder gegen irgendetwas, auch die Wand).',
-        NEPOTEST_CHECK_PATH: 'der Roboter bleibt auf seinem aufgenommenen Weg ±',
-        NEPOTEST_CHECK_PATH_TOOLTIP:
-            'Der Roboter muss weniger als so viele cm von dem Weg abweichen, den er beim Aufnehmen gefahren ist. Zum Aufnehmen: wähle den Test aus, dann „Weg aufnehmen“ im Simulations-Tab.',
         NEPOTEST_CHECK_DOES_FROM: 'ab',
         NEPOTEST_CHECK_DOES_ALWAYS: 'ms immer: der Roboter',
         NEPOTEST_CHECK_DOES_TOOLTIP:
@@ -385,8 +377,6 @@ const MESSAGES: { [lang: string]: { [key: string]: string } } = {
         NEPOTEST_EVENT_LINE_START: 'dem Erkennen der Linie',
         NEPOTEST_EVENT_LINE_END: 'dem Verlieren der Linie',
         NEPOTEST_EVENT_OBSTACLE: 'dem Auftauchen eines Hindernisses',
-        NEPOTEST_NOT_RECORDED: '(noch nicht aufgenommen)',
-        NEPOTEST_RECORDED: '(aufgenommen: {0} s)',
         NEPOTEST_ANY_GOAL: 'irgendeinen Zielbereich',
         NEPOTEST_ANY_FAIL: 'irgendeinen Fehlerbereich',
         NEPOTEST_ANYTHING: 'irgendetwas (auch die Wand)',
@@ -563,14 +553,12 @@ const SIM_CASE = 'nepoTestSimCase';
 const SIM_CHECK = 'nepoTestSimCheck';
 export const WORLD = 'nepoTest_world';
 export const SIM_TEST = 'nepoTest_simcase';
-export const PATH_CHECK = 'nepoTest_check_path';
 const TEST_TYPES = ['nepoTest_test', WORLD, SIM_TEST]; // their names are one namespace: "run test" runs any of them by its name
 const CHECK_TYPES = [
     'nepoTest_check_reaches',
     'nepoTest_check_never_touches',
     'nepoTest_check_ends_in',
     'nepoTest_check_never_bumps',
-    PATH_CHECK,
     'nepoTest_check_does',
     'nepoTest_check_whenever',
     'nepoTest_check_after',
@@ -586,7 +574,7 @@ function number(value: string | number): any {
     return new Blockly.FieldTextInput(String(value), Blockly.FieldTextInput.nonnegativeIntegerValidator);
 }
 
-/** a number field with one decimal (a tolerance in cm, a run's length in s) */
+/** a number field with one decimal (a run's length in s) */
 function decimal(value: string | number): any {
     return new Blockly.FieldTextInput(String(value), function (text: string) {
         const n = parseFloat(String(text).replace(',', '.'));
@@ -791,8 +779,7 @@ function isWorldPart(block: any): boolean {
 
 /**
  * keeps the blocks in a world (all blocks under `root`) in step with the world: the names of its starts and items in their dropdowns (Blockly
- * only sets a dropdown's text when its value changes), the warnings of blocks whose start or item isn't in their world, the recorded path of
- * path checks. A dropdown without a value gets the first item that fits (in the undo step `group`, if given). Called when a world changed,
+ * only sets a dropdown's text when its value changes), and the warnings of blocks whose start or item isn't in their world. A dropdown without a value gets the first item that fits (in the undo step `group`, if given). Called when a world changed,
  * after a suite was loaded, and when such a block is moved or created.
  */
 export function refreshWorldLabels(root: any, group?: string): void {
@@ -824,11 +811,6 @@ export function refreshWorldLabels(root: any, group?: string): void {
                     warning = msg(name === 'START' ? 'NEPOTEST_UNKNOWN_START' : 'NEPOTEST_UNKNOWN_ITEM');
                 }
             }
-        }
-        if (block.type === PATH_CHECK) {
-            const path = SIM.parsePath(block.data);
-            const info = block.getField('PATH_INFO');
-            info && info.setText(path ? msg('NEPOTEST_RECORDED').replace('{0}', String(Math.round((path.time_ms || 0) / 100) / 10)) : msg('NEPOTEST_NOT_RECORDED'));
         }
         if (block.worldWarning_ !== warning && block.setWarningText) {
             block.worldWarning_ = warning;
@@ -1168,20 +1150,6 @@ const DEFINITIONS: { [type: string]: any } = {
         init: function () {
             checkBlock(this, 'NEPOTEST_CHECK_NEVER_BUMPS_TOOLTIP');
             this.appendDummyInput().appendField(msg('NEPOTEST_CHECK_NEVER_BUMPS')).appendField(new Blockly.FieldDropdown(obstacleMenu), 'OBSTACLE');
-        },
-        onchange: function (event: any) {
-            followWorld(this, event);
-        },
-    },
-    nepoTest_check_path: {
-        /** its data: the recorded path (nepoTest.sim SimPath), set by the Simulation tab's "Record path" */
-        init: function () {
-            checkBlock(this, 'NEPOTEST_CHECK_PATH_TOOLTIP');
-            this.appendDummyInput()
-                .appendField(msg('NEPOTEST_CHECK_PATH'))
-                .appendField(decimal(SIM.DEFAULT_TOLERANCE_CM), 'TOL')
-                .appendField(msg('NEPOTEST_CM'))
-                .appendField(msg('NEPOTEST_NOT_RECORDED'), 'PATH_INFO');
         },
         onchange: function (event: any) {
             followWorld(this, event);
@@ -2126,7 +2094,6 @@ export function toolbox(): string {
                 b('nepoTest_check_never_touches', f('AREA', ANY_ITEM)) +
                 b('nepoTest_check_ends_in') +
                 b('nepoTest_check_never_bumps', f('OBSTACLE', ANY_ITEM)) +
-                b(PATH_CHECK) +
                 b('nepoTest_check_does', f('DOES', 'turns_left')) +
                 b('nepoTest_check_whenever', f('WHEN', 'line') + f('DOES', 'turns_left')) +
                 b('nepoTest_check_after', f('EVENT', 'clap') + f('DOES', 'drives_forward')) +

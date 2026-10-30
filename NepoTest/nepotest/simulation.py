@@ -44,11 +44,11 @@ in units of 1/3 cm with the background at (10, 10): this module does too, intern
 
 A test of a world (JSON, see spec.py): {"name", "simulation": {"world_block_id", "world_name", "world", "start": a start's
 id, "until": an area's id (the run ends when the robot touches it), "checks": [...]}, "max_time_ms", "globals" (the
-set-up's variables), "world" (claps and keys only), "skip", "should"}. A check: {"check": "reaches" | "never_touches" |
-"ends_in" | "never_bumps" | "path", "item": an id (reaches, never_touches: an area, none: any goal / fail area; ends_in:
-an area; never_bumps: an obstacle, none: anything), "path": [[x, y, heading], ...] and "tolerance_cm" (path; no path:
-not recorded yet), "rule": true (a rule of the world: it holds for every test, and "should": "fail" doesn't turn it
-round), "block_id"}. The checks of the robot's behaviour (nepoTest.simBehaviour.ts decides them):
+set-up's variables), "world" (claps and keys only), "skip"}. A check: {"check": "reaches" | "never_touches" |
+"ends_in" | "never_bumps", "item": an id (reaches, never_touches: an area, none: any goal / fail area; ends_in: an area;
+never_bumps: an obstacle, none: anything), "rule": true (from a world's rules, until 2026-10-30: a check like the
+others), "block_id"}. (Until 2026-10-30 there was "path": the robot stays on its recorded path; paths are no longer
+recorded.) The checks of the robot's behaviour (nepoTest.simBehaviour.ts decides them):
 - {"check": "does", "does": DOES, "after_ms" (default 100)}: from after_ms on, the robot always does it;
 - {"check": "whenever", "when": CONDITIONS, "percent" (the light conditions), "does", "after_ms" (default 0: the program
   reacts in the frame after it sensed something)}: whenever the condition (what the robot's sensors see) has held for
@@ -122,7 +122,7 @@ DEFAULT_TOLERANCE_CM = 2
 CURVE_PIECES = 16
 GIVEN_EVENTS = ('clap', 'key')  # what "given" may add (the simulator has no IR remote and messages); the drawn world does the rest
 DEFAULT_START = 'A'  # the id and name of a new world's start
-CHECKS = ('reaches', 'never_touches', 'ends_in', 'never_bumps', 'path', 'does', 'whenever', 'after', 'variable')
+CHECKS = ('reaches', 'never_touches', 'ends_in', 'never_bumps', 'does', 'whenever', 'after', 'variable')
 AREA_ROLES = ('goal', 'fail', 'color')
 BEHAVIOUR_CHECKS = ('does', 'whenever', 'after')
 DOES = ('drives_forward', 'drives_backward', 'turns_left', 'turns_right', 'stands_still', 'left_led_on', 'left_led_off',
@@ -921,10 +921,6 @@ def validate_world(world, where):
     return problems
 
 
-def _poses(path):
-    return isinstance(path, list) and all(isinstance(p, list) and len(p) >= 3 and all(_number(c) for c in p[:3]) for p in path)
-
-
 def validate(sim, where):
     """[problem] of a test's "simulation" object: its world, its start, its "until" area and its checks"""
     if not isinstance(sim, dict) or not isinstance(sim.get('world'), dict):
@@ -961,18 +957,10 @@ def validate(sim, where):
         item = check.get('item')
         if kind == 'ends_in' and item is None:
             problems.append('%s: "ends_in" needs the "item" the robot ends in' % w)
-        elif item is not None and kind != 'path':
+        elif item is not None:
             problem = item_problem(w + '.item', item, ('obstacle',) if kind == 'never_bumps' else AREA_ROLES,
                                    'an obstacle' if kind == 'never_bumps' else 'an area')
             problem and problems.append(problem)
-        if kind == 'path':
-            if check.get('path') is not None and not _poses(check['path']):
-                problems.append('%s.path must be a list of poses [x, y, heading]' % w)
-            tolerance = check.get('tolerance_cm', DEFAULT_TOLERANCE_CM)
-            if not _number(tolerance) or tolerance < 0:
-                problems.append('%s.tolerance_cm must be a number >= 0' % w)
-            if check.get('rule'):
-                problems.append('%s: a recorded path belongs to one test: it can\'t be a rule' % w)
         problems += _behaviour_problems(check, w)
         if check.get('rule') not in (None, True, False):
             problems.append('%s.rule must be true or false' % w)

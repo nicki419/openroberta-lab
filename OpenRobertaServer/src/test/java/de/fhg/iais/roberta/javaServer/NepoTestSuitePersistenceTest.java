@@ -17,7 +17,7 @@ import de.fhg.iais.roberta.util.jaxb.JaxbHelper;
 /**
  * The Lab saves a program's test suite (NEPO test blocks of the Tests tab, type prefix nepoTest_) as extra instances of the program's block_set. The
  * server must keep them untouched when a program is imported and when it is loaded (both validate against blockly.xsd and re-marshal the XML). A
- * simulation world keeps its drawn world as JSON in the block's &lt;data&gt;, a test's path check its recorded path.
+ * simulation world keeps its drawn world as JSON in the block's &lt;data&gt;.
  */
 public class NepoTestSuitePersistenceTest {
     private static RobotFactory factory;
@@ -57,9 +57,6 @@ public class NepoTestSuitePersistenceTest {
         String world = dataOf(program, "nepoTest_world", "lft10");
         Assert.assertEquals(dataOf(export, "nepoTest_world", "lft10"), world);
         Assert.assertTrue(world.contains("\"starts\":[{\"id\":\"A\""));
-        String path = dataOf(program, "nepoTest_check_path", "lft22");
-        Assert.assertEquals(dataOf(export, "nepoTest_check_path", "lft22"), path);
-        Assert.assertTrue(path.contains("\"path\":[["));
         Assert.assertTrue(program.contains("<field name=\"SECONDS\">20</field>"));
         Assert.assertTrue(program.contains("<field name=\"START\">B</field>"));
         Assert.assertTrue(program.contains("<field name=\"ACTIVE\">TRUE</field>"));

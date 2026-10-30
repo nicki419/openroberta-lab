@@ -8,13 +8,13 @@
  *   with NepoTest in Pyodide (nepoTest.runner); the tests of simulation worlds run on the Lab's simulator (nepoTest.simRun). Results come back
  *   per test, errors per block (the block coverage only if SHOW_COVERAGE)
  * - "Simulation" shows the selected simulation world and its tests (nepoTest.simEditor): the world is drawn there, its tests are run and
- *   replayed, and their paths recorded. The world is the world block's data (JSON), a recorded path the data of the test's path check, so both
- *   are saved with the suite, and undo of a deleted block brings them back.
+ *   replayed. The world is the world block's data (JSON), so it is saved with the suite, and undo of a deleted block brings it back.
  * - A failed check of a simulation test comes with why (nepoTest.simVerdict: the block to blame) and the facts of the second before it
  *   (nepoTest.simProgram): what the robot sensed, what ran, what it remembered, what it did. The program's blocks in them are chips: a click
  *   shows the block in the Program tab. While a run is replayed, the block running at the replay's time is marked in the Program tab.
  * Suites saved before 2026-10-26 had simulation tests of their own ("nepoTest_simtest", one world each): they are dropped when they are loaded.
- * Until 2026-10-30, a world had "rules for every test" (checks): they become checks of each of its tests when a suite is loaded.
+ * Until 2026-10-30, a world had "rules for every test" (checks): they become checks of each of its tests when a suite is loaded. A test
+ * could check that the robot stays on a path recorded before ("nepoTest_check_path"): such checks are dropped when they are loaded.
  * Only for the Edison robots (NepoTest supports them).
  */
 import * as GUISTATE_C from 'guiState.controller';
@@ -45,6 +45,7 @@ let simEditor: SimEditor = null;
 let simTimer: any = null;
 let unloadable: string = null; // a suite that could not be loaded: it is saved as it was, not as the empty suite shown instead
 const OLD_SIM_TEST = 'nepoTest_simtest'; // a simulation test of its own (until 2026-10-26)
+const OLD_PATH_CHECK = 'nepoTest_check_path'; // "the robot stays on its recorded path" (until 2026-10-30)
 /**
  * the block coverage of a run (how many blocks of the program the tests executed, and which never ran) is computed, but not shown: learners
  * found it confusing. true shows it again under the results.
@@ -80,14 +81,7 @@ export function init(): void {
             const block = workspace.getBlockById(testId);
             block && block.select();
         },
-        run: function (testIds: string[]) {
-            simulate(testIds, false);
-        },
-        record: function (testId: string) {
-            simulate([testId], true);
-        },
-        setTolerance: setTolerance,
-        forgetPath: forgetPath,
+        run: simulate,
         simulatorScene: simulatorScene,
         blockLabel: blockLabel,
         showBlock: function (blockId: string) {
@@ -259,6 +253,7 @@ const TEXT: { [lang: string]: { [key: string]: string } } = {
         doneSkipped: '{0} passed, {1} failed, {2} test errors, {3} skipped',
         oldSimTests: 'This program had {0} simulation test(s) of an older kind: they were removed. Build them again as tests of a "simulation world" (in "Tests").',
         rulesMoved: 'The "rules for every test" of {0} simulation world(s) are now checks of each of its tests.',
+        pathChecks: 'Paths are no longer recorded: {0} check(s) "the robot stays on its recorded path" were removed.',
         unloadable: 'The test suite of this program could not be loaded ({0}). It stays as it was when the program is saved; changes made here are not saved.',
         coverage: 'Blocks of the program executed by these tests: {0} of {1}',
         uncovered: 'never executed:',
@@ -285,6 +280,7 @@ const TEXT: { [lang: string]: { [key: string]: string } } = {
         doneSkipped: '{0} bestanden, {1} fehlgeschlagen, {2} Testfehler, {3} ausgelassen',
         oldSimTests: 'Dieses Programm hatte {0} Simulationstest(s) einer älteren Art: sie wurden entfernt. Baue sie als Tests einer „Simulationswelt“ (in „Tests“) neu.',
         rulesMoved: 'Die „Regeln für jeden Test“ von {0} Simulationswelt(en) sind jetzt Prüfungen in jedem ihrer Tests.',
+        pathChecks: 'Wege werden nicht mehr aufgenommen: {0} Prüfung(en) „der Roboter bleibt auf seinem aufgenommenen Weg“ wurden entfernt.',
         unloadable: 'Die Testsammlung dieses Programms konnte nicht geladen werden ({0}). Sie bleibt beim Speichern des Programms, wie sie war; Änderungen hier werden nicht gespeichert.',
         coverage: 'Von diesen Tests ausgeführte Blöcke des Programms: {0} von {1}',
         uncovered: 'nie ausgeführt:',
@@ -575,6 +571,26 @@ function moveRulesIntoTests(xml: string): { xml: string; moved: number } {
     return { xml: new XMLSerializer().serializeToString(doc), moved: moved };
 }
 
+/**
+ * a suite without the checks "the robot stays on its recorded path" (nepoTest_check_path, until 2026-10-30): {xml, dropped}. The suite is
+ * changed as XML, before Blockly sees it (it doesn't know the block any more). Nothing changes in a suite without them.
+ */
+function dropPathChecks(xml: string): { xml: string; dropped: number } {
+    if (!xml || xml.indexOf(OLD_PATH_CHECK) < 0) {
+        return { xml: xml, dropped: 0 };
+    }
+    const doc = new DOMParser().parseFromString(xml, 'text/xml');
+    const checks = Array.prototype.slice.call(doc.getElementsByTagName('block')).filter((b: Element) => b.getAttribute('type') === OLD_PATH_CHECK) as Element[];
+    for (const check of checks) {
+        const parent = check.parentNode as Element;
+        parent.removeChild(check); // the blocks of a statement are its children (the Lab's XML): the others stay connected
+        if (parent.localName === 'instance' && !Array.prototype.some.call(parent.childNodes, (c: Node) => c.nodeType === 1)) {
+            parent.parentNode.removeChild(parent); // a loose check alone
+        }
+    }
+    return { xml: new XMLSerializer().serializeToString(doc), dropped: checks.length };
+}
+
 /** puts a suite into the workspace (null: a new suite with just the start block) */
 function loadSuite(testsXml: string): void {
     if (!workspace) {
@@ -586,7 +602,8 @@ function loadSuite(testsXml: string): void {
     workspace.clear();
     const old = dropOldSimTests(testsXml);
     const rules = moveRulesIntoTests(old.xml);
-    const xml = rules.xml || BLOCKS.emptySuite(GUISTATE_C.getRobotGroup());
+    const paths = dropPathChecks(rules.xml);
+    const xml = paths.xml || BLOCKS.emptySuite(GUISTATE_C.getRobotGroup());
     let failure: string = null;
     try {
         Blockly.Xml.domToWorkspace(Blockly.Xml.textToDom(xml, workspace), workspace);
@@ -605,8 +622,9 @@ function loadSuite(testsXml: string): void {
     $('#testsStatus').text('');
     if (failure) {
         showList(text('unloadable', failure), []);
-    } else if (old.dropped || rules.moved) {
-        showList([old.dropped ? text('oldSimTests', old.dropped) : '', rules.moved ? text('rulesMoved', rules.moved) : ''].filter((t) => t).join(' '), []);
+    } else if (old.dropped || rules.moved || paths.dropped) {
+        const notices = [old.dropped ? text('oldSimTests', old.dropped) : '', rules.moved ? text('rulesMoved', rules.moved) : '', paths.dropped ? text('pathChecks', paths.dropped) : ''];
+        showList(notices.filter((t) => t).join(' '), []);
     }
     reopenSim();
     setTimeout(() => (listen = true), 300);
@@ -649,11 +667,6 @@ function chainOf(block: any, input: string): any[] {
     return blocks;
 }
 
-/** the first "stays on its recorded path" check of a test, or null */
-function pathCheckOf(test: any): any {
-    return chainOf(test, 'CHECKS').filter((b) => b.type === BLOCKS.PATH_CHECK)[0] || null;
-}
-
 /** the tests of the world shown in the Simulation tab, as it needs them */
 function simTests(): SimTest[] {
     const world = workspace.getBlockById(simEditor.currentBlockId());
@@ -663,7 +676,6 @@ function simTests(): SimTest[] {
     const itemsOf = (checks: any[]) => checks.map((c) => c.getFieldValue('AREA') || c.getFieldValue('OBSTACLE')).filter((id) => id && id !== BLOCKS.ANY_ITEM);
     return BLOCKS.testsOf(world).map(function (test) {
         const checks = chainOf(test, 'CHECKS');
-        const pathCheck = pathCheckOf(test);
         const until = test.getFieldValue('MODE') === 'until' ? [test.getFieldValue('UNTIL')] : [];
         return {
             id: test.id,
@@ -672,9 +684,6 @@ function simTests(): SimTest[] {
             active: test.getFieldValue('ACTIVE') !== 'FALSE' && !test.disabled,
             checks: checks.length,
             refs: [test.getFieldValue('START')].concat(until, itemsOf(checks)),
-            pathCheck: !!pathCheck,
-            path: pathCheck ? SIM.parsePath(pathCheck.data) : null,
-            tolerance: pathCheck ? Number(pathCheck.getFieldValue('TOL')) || 0 : SIM.DEFAULT_TOLERANCE_CM,
         };
     });
 }
@@ -688,28 +697,6 @@ function suiteEdited(): void {
         clearTimeout(codeTimer);
         codeTimer = setTimeout(refreshCode, 600);
     }
-}
-
-function setTolerance(testId: string, cm: number): void {
-    const check = workspace.getBlockById(testId) && pathCheckOf(workspace.getBlockById(testId));
-    check && check.setFieldValue(String(cm), 'TOL'); // a change of the block: undo takes it back
-}
-
-/** the recorded path of a test's path check: a run of the test (record), or nothing (forget) */
-function storePath(testId: string, path: SIM.SimPath): void {
-    const test = workspace.getBlockById(testId);
-    const check = test && pathCheckOf(test);
-    if (!check) {
-        return;
-    }
-    check.data = path ? JSON.stringify(path) : null;
-    BLOCKS.refreshWorldLabels(check);
-    suiteEdited();
-    simEditor.refreshTests();
-}
-
-function forgetPath(testId: string): void {
-    storePath(testId, null);
 }
 
 /** a world, or a block in it, was selected: the world is shown in the Simulation tab (and the test the block is in is selected there) */
@@ -832,11 +819,8 @@ function simulatorScene(): SimScene | string {
     return { background: background, start: { x: cm(pose.x), y: cm(pose.y), heading: ((heading % 360) + 540) % 360 - 180 }, items: items };
 }
 
-/**
- * runs tests of the world shown in the Simulation tab on the Lab's simulator, one after the other (record: one test, and its run becomes the
- * recorded path of its path check). A test with problems doesn't run: the problems are shown.
- */
-function simulate(testIds: string[], record: boolean): void {
+/** runs tests of the world shown in the Simulation tab on the Lab's simulator, one after the other. A test with problems doesn't run: the problems are shown. */
+function simulate(testIds: string[]): void {
     const worldId = simEditor.currentBlockId();
     if (!worldId || running || !testIds.length) {
         return;
@@ -866,12 +850,9 @@ function simulate(testIds: string[], record: boolean): void {
                     if (cancelled) {
                         throw new Error('cancelled');
                     }
-                    return SIMRUN.runTest(test, xml, { record: record, cancelled: () => cancelled }).then(function (report) {
-                        if (record && report.simulation) {
-                            storePath(test.block_id, { path: report.simulation.path.map((p) => [p[1], p[2], p[3]]), time_ms: report.simulation.t });
-                        }
+                    return SIMRUN.runTest(test, xml, { cancelled: () => cancelled }).then(function (report) {
                         if (report.simulation || report.outcome === 'skipped') {
-                            simEditor.showRun(test.block_id, report, record);
+                            simEditor.showRun(test.block_id, report);
                         } else if (report.error) {
                             problems.push(test.name + ': ' + report.error.message);
                         }
@@ -1117,7 +1098,7 @@ function showReport(index: number, report: any): void {
         errorFacts && $details.append(factsItem(errorFacts.facts, report.world_block_id));
     }
     if (report.simulation) {
-        simEditor.showRun(report.block_id, report, false); // the run can be replayed in the Simulation tab
+        simEditor.showRun(report.block_id, report); // the run can be replayed in the Simulation tab
         $details.append($('<li class="linked nepoTestShowSim"></li>').text(text('showSim')).attr('data-block', report.block_id).attr('data-workspace', 'tests'));
     }
     $li.append($details);

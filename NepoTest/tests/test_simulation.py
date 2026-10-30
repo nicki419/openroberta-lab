@@ -366,7 +366,6 @@ def course(*items, **more):
 GOAL = {'id': 'g', 'name': 'Finish', 'kind': 'rect', 'role': 'goal', 'x': 200, 'y': 90, 'w': 10, 'h': 20}
 FAIL = {'id': 'f', 'kind': 'circle', 'role': 'fail', 'x': 100, 'y': 40, 'r': 5}
 WALL = {'id': 'o', 'name': 'Wall', 'kind': 'rect', 'role': 'obstacle', 'x': 250, 'y': 50, 'w': 4, 'h': 100}
-PATH = {'path': [[150, 100, 0], [160, 100, 0]], 'time_ms': 900}
 
 
 def messages(problems, severity=None):
@@ -376,8 +375,7 @@ def messages(problems, severity=None):
 class SimulationWorldTest(unittest.TestCase):
     def test_a_world_with_tests(self):
         rules = check_xml('never_touches', 'c1', 'ANY')
-        tests = (case_xml('t1', 'to the finish', checks=check_xml('reaches', 'c2', 'g') + check_xml('path', 'c3', data=PATH, tol='1.5'),
-                          mode='until', until='g', seconds=12)
+        tests = (case_xml('t1', 'to the finish', checks=check_xml('reaches', 'c2', 'g'), mode='until', until='g', seconds=12)
                  + case_xml('t2', 'from the left', start='st2', checks=check_xml('never_bumps', 'c4', 'o') + check_xml('ends_in', 'c5', 'g'),
                             setup='<block type="nepoTest_given_clap" id="cl"><field name="AT">500</field></block>', should='fail')
                  + case_xml('t3', 'skipped one', active='FALSE', checks=check_xml('never_bumps', 'c6', 'ANY')))
@@ -388,8 +386,7 @@ class SimulationWorldTest(unittest.TestCase):
         self.assertEqual(spec['tests'][0], {
             'name': 'to the finish', 'origin': 'blocks', 'block_id': 't1', 'max_time_ms': 12000,
             'simulation': {'world_block_id': 'w', 'world_name': 'course', 'world': world, 'start': 'A', 'until': 'g',
-                           'checks': [rule, {'check': 'reaches', 'block_id': 'c2', 'item': 'g'},
-                                      {'check': 'path', 'block_id': 'c3', 'tolerance_cm': 1.5, 'path': PATH['path'], 'time_ms': 900}]}})
+                           'checks': [rule, {'check': 'reaches', 'block_id': 'c2', 'item': 'g'}]}})
         second = spec['tests'][1]
         self.assertEqual((second.get('should'), second['world'], second['simulation']['start'], 'until' in second['simulation']),
                          (None, [{'event': 'clap', 'at': 500}], 'st2', False))  # every test of a world should pass: SHOULD is ignored
@@ -431,14 +428,15 @@ class SimulationWorldTest(unittest.TestCase):
 
     def test_warnings(self):
         rules = check_xml('path', 'c0', tol='2')
-        tests = (case_xml('t1', 'nothing') + case_xml('t2', 'no path', checks=check_xml('path', 'c1', tol='2'))
+        tests = (case_xml('t1', 'nothing') + case_xml('t2', 'a path', checks=check_xml('path', 'c1', tol='2', data={'path': [[1, 2, 0]]}))
                  + case_xml('t3', 'on the goal', checks=check_xml('reaches', 'c2', 'g')))
         on_start = dict(GOAL, x=145, y=95)
         _, problems = translate(suite_of(world_xml(course(on_start), rules, tests)))
         found = [(p['block_id'], p['severity']) for p in problems]
-        self.assertIn(('c0', 'error'), found)  # a recorded path is no rule
+        self.assertIn(('c0', 'warning'), found)  # paths are no longer recorded: the check is left out
         self.assertIn(('t1', 'warning'), found)  # checks nothing
-        self.assertIn(('c1', 'warning'), found)  # not recorded yet
+        self.assertIn(('t2', 'warning'), found)  # checks nothing: its path check is left out
+        self.assertIn(('c1', 'warning'), found)
         self.assertIn('test "on the goal": the robot starts on "Finish", which the test checks: move the start or the area', messages(problems, 'warning'))
 
     def test_set_up(self):
@@ -542,7 +540,7 @@ class SimulationWorldTest(unittest.TestCase):
         self.assertEqual((report['outcome'], coverage), ('skipped', None))
         spec = {'format': 'nepotest', 'tests': [{'name': 'x', 'max_time_ms': 1000, 'simulation': {
             'world': SIM.default_world(), 'start': 'A', 'checks': [{'check': 'path', 'rule': True}]}}]}
-        self.assertTrue(any("can't be a rule" in p for p in validate_spec(spec)))
+        self.assertTrue(any('"check" must be one of' in p for p in validate_spec(spec)))  # paths are no longer recorded
         spec['tests'][0]['call'] = 'f'
         self.assertTrue(any('always runs the whole program' in p for p in validate_spec(spec)))
 

@@ -21,8 +21,8 @@ The blocks (all types start with `nepoTest_`; the frontend defines them in nepoT
     nepoTest_check_never_touches  AREA        ... never (ANY: any fail area)
     nepoTest_check_ends_in        AREA        the whole robot is in the area at the end
     nepoTest_check_never_bumps    OBSTACLE    the robot never bumps into it (ANY: anything, the wall too)
-    nepoTest_check_path           TOL         the robot stays within TOL cm of its recorded path (the block's data:
-                                              {"path": [[x, y, heading], ...], "time_ms"}; none: not recorded yet)
+    nepoTest_check_path           TOL         (until 2026-10-30) the robot stays on its recorded path: paths are no longer
+                                              recorded, the check is left out with a warning
     nepoTest_check_does           AFTER DOES  from AFTER ms on, the robot always does DOES (drives_forward, drives_backward,
                                               turns_left, turns_right, stands_still, left_led_on, left_led_off, right_led_on,
                                               right_led_off, leds_on, leds_off, plays_sound, silent)
@@ -102,9 +102,10 @@ PREFIX = 'nepoTest_'
 WORLD = 'nepoTest_world'
 SIM_TEST = 'nepoTest_simcase'
 OLD_SIM_TEST = 'nepoTest_simtest'
+OLD_PATH_CHECK = 'nepoTest_check_path'  # "the robot stays on its recorded path" (until 2026-10-30)
 TEST_TYPES = ('nepoTest_test', WORLD, SIM_TEST)  # their names are one namespace
 CHECK_TYPES = {'nepoTest_check_reaches': 'reaches', 'nepoTest_check_never_touches': 'never_touches',
-               'nepoTest_check_ends_in': 'ends_in', 'nepoTest_check_never_bumps': 'never_bumps', 'nepoTest_check_path': 'path',
+               'nepoTest_check_ends_in': 'ends_in', 'nepoTest_check_never_bumps': 'never_bumps',
                'nepoTest_check_does': 'does', 'nepoTest_check_whenever': 'whenever', 'nepoTest_check_after': 'after',
                'nepoTest_check_variable': 'variable'}
 OPS = {'EQ', 'NEQ', 'LT', 'LTE', 'GT', 'GTE'}
@@ -658,6 +659,9 @@ def _variable_check(b, check, program, problems):
 def _check(b, world, problems, rule=False, program=None):
     """a check block (of a test, or a rule of the world) as a check of simulation.py, or None"""
     kind = CHECK_TYPES.get(b.type)
+    if b.type == OLD_PATH_CHECK:
+        problems.add(b, 'paths are no longer recorded: this check is left out (delete it)', 'warning')
+        return None
     if kind is None:
         problems.add(b, 'this block does not belong under "check"' if not rule else 'only checks are rules of a world')
         return None
@@ -669,23 +673,6 @@ def _check(b, world, problems, rule=False, program=None):
         return _behaviour(b, kind, check, problems)
     if kind == 'variable':
         return _variable_check(b, check, program, problems)
-    if kind == 'path':
-        if rule:
-            problems.add(b, 'a recorded path belongs to one test: put this check into a test, not under "rules"')
-            return None
-        try:
-            check['tolerance_cm'] = float(b.fields.get('TOL', SIM.DEFAULT_TOLERANCE_CM))
-        except ValueError:
-            problems.add(b, 'the tolerance must be a number of cm, not %r' % b.fields.get('TOL'))
-        try:
-            recorded = json.loads(b.data) if b.data else None
-        except ValueError:
-            recorded = None
-        if isinstance(recorded, dict) and isinstance(recorded.get('path'), list) and recorded['path']:
-            check['path'] = recorded['path']
-            if 'time_ms' in recorded:
-                check['time_ms'] = recorded['time_ms']
-        return check
     field = 'OBSTACLE' if kind == 'never_bumps' else 'AREA'
     item = b.fields.get(field) or ''
     roles = ('obstacle',) if kind == 'never_bumps' else SIM.AREA_ROLES
@@ -764,10 +751,6 @@ def _translate_simcase(test_block, world_block, program, problems):
     test['max_time_ms'] = _seconds_field(test_block, 'SECONDS', problems, default=5)
     if not sim['checks']:
         problems.add(test_block, 'test "%s" checks nothing: put checks into it (or rules into its world)' % name, 'warning')
-    for c in sim['checks']:
-        if c['check'] == 'path' and 'path' not in c:
-            problems.add(_Ref(c['block_id']), 'test "%s": its path is not recorded yet, so it is not checked: select the test, then '
-                                              '"Record path" in the Simulation tab' % name, 'warning')
     if not invalid and SIM.start_pose(world, sim['start']) is not None:
         checked = set(c['item'] for c in sim['checks'] if c.get('item') and c['check'] in ('reaches', 'never_touches'))
         checked |= set([sim['until']]) if 'until' in sim else set()

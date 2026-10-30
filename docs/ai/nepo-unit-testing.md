@@ -11,7 +11,7 @@ for the robot. The EdPy runs against a virtual robot, and everything it does is 
   (distance, turn, position): **states** and **measurements** (§4.10);
 - how it drives through a **drawn world** on the Lab's own simulator (its backgrounds, obstacles and coloured areas,
   lines to follow, goal and fail areas, starts): **simulation worlds** with many tests, each from one start, with
-  checks such as "reaches", "never touches", "never bumps into", "stays on its recorded path" (§4.11). They run in the
+  checks such as "reaches", "never touches", "never bumps into", "whenever it sees the line, it turns left" (§4.11). They run in the
   Lab's Tests tab, on the simulator's code, not on the EdPy engine.
 
 Tests are written in NEPO terms too. They're either a JSON file (made for test editors and **AI test generators**) or
@@ -542,8 +542,7 @@ no `expect`. (Until 2026-10-26, a simulation test had a world of its own, and it
    "start": "A",
    "until": "finish",
    "checks": [{"check": "never_touches", "item": "shortcut"},
-              {"check": "reaches", "item": "finish"},
-              {"check": "path", "path": [[46.67, 10, -30], [47.04, 10.24, -34.3], ...], "time_ms": 7383.3, "tolerance_cm": 2}]}}
+              {"check": "reaches", "item": "finish"}]}}
 ```
 
 - **`start`:** the id of one of the world's `starts` (each: `id`, `name`, `x`, `y`, `heading`).
@@ -559,7 +558,6 @@ no `expect`. (Until 2026-10-26, a simulation test had a world of its own, and it
 | `never_touches` | it never touches the area | an area; none: any fail area |
 | `ends_in` | the whole outline is in the area when the run ends | an area |
 | `never_bumps` | it never bumps into the obstacle (its wheels are turned back, as in the simulator) | an obstacle; none: anything, the wall too |
-| `path` | a corner or the middle of an edge of the robot's outline never gets farther than `tolerance_cm` (default 2) from the robot's outline at some pose of `path`, the recorded run | – (`path`, `time_ms`, `tolerance_cm`; no `path`: not recorded yet, the check checks nothing) |
 | `does` | from `after_ms` (default 100) on, in every frame, the robot does `does` | – |
 | `whenever` | in every frame in which the condition `when` (with `percent`: the light conditions) has held for `after_ms` (default 0), the robot does `does` | – |
 | `after` | after each `event`, in some frame within `within_ms`, the robot does `does` | – |
@@ -660,11 +658,9 @@ the Edison does:
   the sensor has no `WebAudio` to connect the microphone to (verified 2026-10-22: its `webAudio` is undefined). A test
   sets the meter's volume itself, so "given" claps work.
 
-**The recorded path.** A run with *Record path* doesn't check the test's path; its path becomes the new `path` of the
-test's `path` check (the check block's data):
-- **The corridor:** the robot's outline at each recorded pose (poses at least every 0.5 cm or 3°), widened by
-  `tolerance_cm`.
-- **The check:** looks near the last matching pose first, then in a grid, so long paths stay cheap.
+**No recorded paths** (since 2026-10-30): the check `path` (the robot stays within `tolerance_cm` of a path recorded
+before) and the panel's *Record path* are gone. A `path` check is no longer valid; the translator leaves an old check
+block out with a warning, and the Tests tab drops it when it loads a suite.
 
 **The report** of a simulation test has the shape of the others (§4.8), with `kind: "simulation"`, `world_block_id`,
 `checks` and `simulation`:
@@ -672,13 +668,13 @@ test's `path` check (the check block's data):
   found (`passed`: true, false, or null: not decided or nothing to check);
 - `simulation.result`, `t`: why and when the run ended (ms): `finished`, `until`, `time_limit`, `error`;
 - `item`, `point`: what the replay marks: the area touched or obstacle bumped into by the first failed check, where
-  the robot left its path or its behaviour first went wrong;
+  its behaviour first went wrong;
 - `path`: `[[t, x, y, heading], …]`, for the replay; `start`: `[x, y, heading]`;
 - `leds`: `[[t, left, right], …]`;
 - `bumps`: the frames in which the robot pushed against something.
 
-Failures: one per failed check, `expect: "simulation"`, a message in words ("the robot left its recorded path (by
-more than 2 cm) after 0.6 s"; a rule's starts with "rule:"), `check_block_id`, `facts` and `why`.
+Failures: one per failed check, `expect: "simulation"`, a message in words ("the robot touched "Shortcut" after
+2.1 s"; a rule's starts with "rule:"), `check_block_id`, `facts` and `why`.
 
 **Why a check failed** (`why`, `nepoTest.simVerdict.ts`; rules in `nepo-test-blocks.md` §5): `{kind, parts}`, `kind`
 one of `decision_missing`, `missed_moment`, `decision_wrong`, `not_enough`, `action_wrong`, `memory_wrong` (a check of
@@ -727,10 +723,10 @@ What the sensors see, on the other hand, *is* a picture: the simulator's sensors
   it curves left (10 % / 40 %), on white it curves right (40 % / 10 %). Its function `toTheWall()` drives until the
   obstacle detection sees something ahead, and stops.
 - **The suite:** `line_follower_with_tests.xml` has the world "Edison track" with two starts; both tests check that
-  the robot never touches "Shortcut" (a fail area beside the track); its path was recorded on the simulator.
+  the robot never touches "Shortcut" (a fail area beside the track).
   `line_follower.tests.json` is the same suite as JSON (the command line runs only its third test). In the Tests tab,
   its three tests pass:
-  - from start A, until it touches the goal area "Finish": it reaches it and stays on its recorded path (7.4 s);
+  - from start A, until it touches the goal area "Finish": it reaches it (7.4 s);
   - from start B, halfway down the track: it reaches "Finish" too (3.9 s);
   - `toTheWall()` as a BDD test with a scripted obstacle (a world's test always runs the whole program).
 

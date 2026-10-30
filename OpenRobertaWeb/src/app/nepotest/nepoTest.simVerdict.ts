@@ -15,7 +15,7 @@
  * - "wrong value" (a variable check): its value at the end, the block that changed it last and when; and whether that block counted one
  *   sound or key press several times (the simulator's sensors are states: one clap is heard for about 0.3 s; the Edison reports it once).
  * What a block does is what its values really were (the record), as the simulator sets the wheels (nepoTest.simProgram wheelsAfter). A check
- * of where the robot goes (areas, bumps, the recorded path) that failed points to the test's first failed check of what it does (seeAlso).
+ * of where the robot goes (areas, bumps) that failed points to the test's first failed check of what it does (seeAlso).
  * The words are in English, as the reports.
  */
 import * as PROGRAM from 'nepoTest.simProgram';

@@ -43,7 +43,12 @@ which looks and behaves like the Lab's simulator. There the learner:
 - draws the world once: the simulator's backgrounds, obstacles and coloured areas, lines to follow, goal and fail
   areas (or takes over the simulator's scene);
 - places the robot's **starts** (A, B, …);
-- runs the world's tests, records a test's path, and watches a run again.
+- runs the world's tests and watches a run again.
+
+**Recorded paths are gone** (2026-10-30): a test could check that the robot stays on a path recorded
+before (*the robot stays on its recorded path ± cm*, `nepoTest_check_path`, and *Record path* in the panel). When a
+suite is loaded, such checks are dropped with a notice (`dropPathChecks` in `tests.controller.ts`); the translator
+leaves a leftover one out with a warning. The status entries below still mention them.
 
 Each test of a world reads: **set up** (where the robot starts, and what happened before: claps, keys, variables),
 **run** (the whole program, for some seconds, or until the robot touches an area), **check** (any number of checks).
@@ -230,7 +235,6 @@ sync:** the field and input names below are the contract between them.
 | `nepoTest_check_never_touches` | *the robot never touches* [area ▾] | `AREA` (or `ANY`: any fail area) | `{"check": "never_touches", "item"}` |
 | `nepoTest_check_ends_in` | *at the end, the robot is completely in* [area ▾] | `AREA` | `{"check": "ends_in", "item"}` |
 | `nepoTest_check_never_bumps` | *the robot never bumps into* [obstacle ▾] | `OBSTACLE` (an obstacle's id, or `ANY`: anything, the wall too) | `{"check": "never_bumps", "item"}` |
-| `nepoTest_check_path` | *the robot stays on its recorded path ±* [2] *cm* (recorded: 7.4 s) | `TOL` (cm, decimals allowed); **the recorded path is the block's `data`** (`{"path": [[x, y, heading], …], "time_ms"}`), set by *Record path* | `{"check": "path", "path", "time_ms", "tolerance_cm"}` (no path: a warning, the check checks nothing) |
 | `nepoTest_check_does` | *from* [100] *ms on, the robot always* [turns left ▾] | `AFTER` (ms), `DOES`: `drives_forward`, `drives_backward`, `turns_left`, `turns_right`, `stands_still`, `left_led_on`, `left_led_off`, `right_led_on`, `right_led_off`, `leds_on`, `leds_off` (both), `plays_sound`, `silent` | `{"check": "does", "does", "after_ms"}` |
 | `nepoTest_check_whenever` | *whenever* [it sees the line ▾] *,* / *the robot* [turns left ▾] *, after* [0] *ms* | `WHEN`: `line`, `no_line`, `obstacle_ahead`, `obstacle_left`, `obstacle_right`, `no_obstacle`, `left_light_below`, `left_light_above`, `right_light_below`, `right_light_above` (with `PERCENT`, shown only for them), `sound`, `play_key`, `rec_key`; `DOES`, `AFTER` (ms) | `{"check": "whenever", "when", "percent", "does", "after_ms"}` |
 | `nepoTest_check_after` | *within* [500] *ms after* [each clap ▾] *,* / *the robot* [drives forward ▾] | `WITHIN` (ms, at least 1), `EVENT`: `clap`, `key` (of the set-up), `line_start`, `line_end`, `obstacle` (appears); `DOES` | `{"check": "after", "event", "within_ms", "does"}` (a clap or key without one in the set-up: a warning) |
@@ -365,7 +369,6 @@ Examples:
     light);
   - "the Lab's simulator has no IR remote control and no IR messages: use this block in a test, not in a simulation
     world" (a set-up remote control code or IR message);
-  - "a recorded path belongs to one test: put this check into a test, not under "rules"";
   - "the simulation world "…" cannot be read: draw it again";
   - the warnings "test "…" checks nothing …", "… its path is not recorded yet, so it is not checked …", "… the program
     sets "…" when it starts, so the value of "set up" is lost";
@@ -463,10 +466,9 @@ whose first block has a `nepoTest_` type. There's no database or REST change.
   - import and listing validate against `blockly.xsd`, re-marshal through JAXB, and run the XSLT/Java transformer;
   - `NepoTestSuitePersistenceTest` checks that all test blocks, names, mutations and `<arg>`s survive;
   - the test blocks only use XSD-valid parts (fields, values, statements, and mutation `name` with `<arg>`).
-- **A simulation world is the block's `data`** (Blockly's `block.data`, saved as `<data>` with JSON text), and so is
-  a recorded path (the path check's `data`). `blockly.xsd` allows `data` as a string, so import and listing keep it.
-  `NepoTestSuitePersistenceTest` checks that the world and the path of `line_follower_with_tests.xml` survive byte for
-  byte. Copying, pasting and undoing a deleted block bring them along.
+- **A simulation world is the block's `data`** (Blockly's `block.data`, saved as `<data>` with JSON text).
+  `blockly.xsd` allows `data` as a string, so import and listing keep it. `NepoTestSuitePersistenceTest` checks that
+  the world of `line_follower_with_tests.xml` survives byte for byte. Copying, pasting and undoing a deleted block bring them along.
 - **Suites saved before 2026-10-26** had simulation tests of their own (`nepoTest_simtest`). `loadSuite` removes them,
   and the *run test* blocks that ran them, from the XML before Blockly sees it, and says so. If a suite can't be loaded
   at all, it is kept as it was for saving (`unloadable`), so an empty suite shown instead doesn't delete it.
@@ -525,15 +527,13 @@ Simulation world: Edison track
 name [halfway]                                    the selected start's or item's name
 +----------------------------------------------+
 |  the simulator's background and wall         |      the drawn world, the starts (A, B: the selected test's
-|   (A)===>   [goal]   [fail]   ■ obstacle  (B) |      solid), its recorded path (blue), its last run (orange)
+|   (A)===>   [goal]   [fail]   ■ obstacle  (B) |      solid), its last run (orange)
 +----------------------------------------------+      and the robot replaying it
 line tracker white (87 %) · LLIGHT 87 % · RLIGHT 76 % · obstacle: none
-[● Record path] [Forget path]  allowed deviation [——o——] 2 cm
 [▶ Run test] [▶▶ Run all] [▶ Replay] [————————o—] 7.4 / 7.4 s
 ✓ passed: the run ended at its area after 7.4 s
 ✓ the robot never touched "Shortcut"
 ✓ the robot reached "Finish" after 7.4 s
-✓ the robot stayed on its recorded path
 Tests in this world
 ✓ (A) follows the track to the finish          (selected)
 ✓ (B) from halfway, it reaches the finish too
@@ -611,14 +611,7 @@ The picture under the block and the sensors shown under the canvas use the same 
 2026-10-22 carries a floor picture of its own (`floor`, for NepoTest's copy of the simulator): it is dropped when the
 suite is loaded.
 
-**Recording, tolerance, running** (always the selected test):
-- **Record path** runs the test on the simulator without checking its path (`record`). The run becomes the recorded
-  path of the test's *stays on its recorded path* check (its `data`). Without such a check, the button is off and the
-  panel says so. The panel draws the selected test's path:
-  - the area the robot covered (its outline at every pose);
-  - the traces of its four corners;
-  - the corridor: the covered area widened by the allowed deviation (0–10 cm, slider: the check's `TOL`).
-- **Forget path** removes it.
+**Running** (always the selected test):
 - **Run test** runs the selected test on its own, even if no *run test* block selects it; **Run all** runs every test of
   the world. A test with problems doesn't run; the panel lists them.
 - **The list of tests** under the picture: ✓, ✗, – (skipped) or ○ (not run), the start's name, the test's name. A click
@@ -626,7 +619,7 @@ suite is loaded.
 - **Replay:** after a run, the panel replays it:
   - the robot moves along its path, with its LEDs, its sensors' values and its infrared rays;
   - the path is orange;
-  - a failure is marked: the area outlined in red, or a red ✗ where the robot left the corridor;
+  - a failure is marked: the area outlined in red;
   - under it, what each check found;
   - *Replay* plays it again, faster for long runs (at most about 8 s); the slider scrubs;
   - below the slider, the replay's tenth of a second: the block running (a chip), what the program read, its
@@ -701,7 +694,7 @@ event), in this order:
 
 What a block does is computed from its real values, as the simulator sets the wheels (`simProgram.wheelsAfter`: backward
 and negative amounts turn the speeds round; the Edison's 7 cm track and 3.7 cm wheels give cm/s and °/s), and judged
-with the same thresholds as the checks. A failed check of where the robot goes (an area, a bump, the recorded path)
+with the same thresholds as the checks. A failed check of where the robot goes (an area, a bump)
 points to the test's first check of what it does that went wrong by then ("probably because "…" failed"), unless that
 one failed because of the world (right, but not enough); otherwise it has only its facts. The words are English.
 
@@ -761,7 +754,7 @@ outline (for its checks of the data, and its unused copy).
   and fail the other.
 - **Simulation tests:**
   - They run only in the Lab (the command line skips them).
-  - Their checks are about areas, bumps, the recorded path, the robot's behaviour and its variables, and a failure
+  - Their checks are about areas, bumps, the robot's behaviour and its variables, and a failure
     comes with its facts and, for behaviour and variables, why (the block to blame). The rules are heuristics: they
     name what the record shows, not what the learner meant; a decision's parts are analysed only for `if` blocks (not
     `?:`), and a block whose powers are variables can't be judged if it never ran.
@@ -769,7 +762,6 @@ outline (for its checks of the data, and its unused copy).
     removed when the program is edited.
   - The behaviour checks know the Edison's sensors and actuators only; they don't check powers (a curve's speeds) or
     tones' frequencies, and *after* has no "for how long".
-  - Recording a path isn't undone by Blockly's undo (*Forget path* removes it).
   - Runs are kept until the page is reloaded; they aren't saved.
   - The simulator's uploaded backgrounds, markers and movable obstacles aren't supported.
   - *From the simulator* works only after the simulator was opened. There's no way back (from a test to the

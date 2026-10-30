@@ -5,8 +5,8 @@
  *
  * - The world has starts (A, B, ...): a robot each, dragged to where it is and turned with its handle (in steps of 15 degrees; Shift: freely).
  *   The start tool adds one. The selected test's start is drawn solid, the others faded.
- * - Below the picture: the world's tests. One is selected (here, or by clicking its block): "Run test" runs it, its run is replayed, and
- *   "Record path" records its path (into its "stays on its recorded path" check). "Run all" runs every test of the world.
+ * - Below the picture: the world's tests. One is selected (here, or by clicking its block): "Run test" runs it, and its run is replayed.
+ *   "Run all" runs every test of the world.
  * - Line and Curve draw a line to follow, like the background's track (click the points; a click on the last point again ends it, as
  *   does a double-click of any speed, a right click or Enter; a click on the first point closes it). Rectangle, Circle and Triangle draw an object (a click: the simulator's default size); what it is (obstacle,
  *   coloured area, goal, fail) and its colour are chosen with the buttons.
@@ -14,7 +14,6 @@
  *   A selected start or item can be named: the tests' blocks show the names.
  * - The mouse wheel and the buttons zoom; dragging the empty floor moves the view. The view is kept with the world (data.view).
  * - The background is chosen from the simulator's; "from the simulator" takes over the simulator's current scene.
- * - The tolerance widens the recorded path to the corridor the robot must stay in (the TOL of the test's path check).
  * - A run is replayed (play, or drag the time slider), with what each check found; under a failed check, why (nepoTest.simVerdict: the
  *   block to blame) and the facts of the second before (nepoTest.simProgram): what the robot sensed, what ran, what it remembered, what it
  *   did, with the program's blocks as chips. Below the slider: what ran at the replay's time, what the program read and decided, what the
@@ -34,9 +33,6 @@ export interface SimTest {
     active: boolean; // false: skipped
     checks: number; // how many checks it has
     refs: string[]; // the starts and items it refers to
-    pathCheck: boolean; // it has a "stays on its recorded path" check
-    path: SIM.SimPath; // that check's recorded path, or null
-    tolerance: number; // that check's tolerance (cm)
 }
 
 /** the scene of the Lab's simulator */
@@ -55,11 +51,6 @@ export interface EditorHost {
     select(testId: string): void;
     /** runs these tests of the world shown */
     run(testIds: string[]): void;
-    /** runs a test and keeps its path (in its path check) */
-    record(testId: string): void;
-    /** the tolerance of a test's path check (cm) */
-    setTolerance(testId: string, cm: number): void;
-    forgetPath(testId: string): void;
     /** the scene of the Lab's simulator, or a message why there is none */
     simulatorScene(): SimScene | string;
     /** a short name of a block of the program (in the Program tab) */
@@ -80,7 +71,6 @@ interface Run {
     item: string;
     point: number[];
     checks: any[]; // the report's checks: {text, rule, passed, message}
-    recorded: boolean; // its path was recorded
     failure: string; // the first failure's message (English, as NepoTest's), if it failed
     errorFacts: PROGRAM.Facts; // the facts of a runtime error
     trace: any[]; // the record in steps of 100 ms (nepoTest.simProgram trace): what ran, read, decided
@@ -133,19 +123,10 @@ const TEXT: { [lang: string]: { [key: string]: string } } = {
         closed: 'closed',
         width: 'width',
         cm: 'cm',
-        record: '● Record path',
-        recordTitle: 'Run the selected test and keep the run as the path the robot must follow (its "stays on its recorded path" check)',
-        recordNoCheck: 'Put a "stays on its recorded path" check (from "Checks") into the selected test to record its path',
-        clearRecord: 'Forget path',
-        tolerance: 'allowed deviation',
         run: '▶ Run test',
         runAll: '▶▶ Run all',
         runAllTitle: 'Run all tests of this world',
         play: 'Replay',
-        recorded: 'Path recorded: {0}',
-        noPath: 'The path of "{0}" is not recorded yet: press "Record path".',
-        noPathCheck: '"{0}" checks no recorded path.',
-        pathInfo: 'Recorded path of "{0}": {1} s; the robot must stay within {2} cm of it.',
         tests: 'Tests in this world',
         noTests: 'This world has no tests yet: put a "test" from "Tests" into it.',
         noTest: 'Select a test (below, or its block) to run it.',
@@ -222,19 +203,10 @@ const TEXT: { [lang: string]: { [key: string]: string } } = {
         closed: 'geschlossen',
         width: 'Breite',
         cm: 'cm',
-        record: '● Weg aufnehmen',
-        recordTitle: 'Den ausgewählten Test ausführen und die Fahrt als Weg behalten, dem der Roboter folgen muss (seine Prüfung „bleibt auf seinem aufgenommenen Weg“)',
-        recordNoCheck: 'Lege eine Prüfung „bleibt auf seinem aufgenommenen Weg“ (aus „Prüfungen“) in den ausgewählten Test, um seinen Weg aufzunehmen',
-        clearRecord: 'Weg vergessen',
-        tolerance: 'erlaubte Abweichung',
         run: '▶ Test ausführen',
         runAll: '▶▶ Alle ausführen',
         runAllTitle: 'Alle Tests dieser Welt ausführen',
         play: 'Abspielen',
-        recorded: 'Weg aufgenommen: {0}',
-        noPath: 'Der Weg von „{0}“ ist noch nicht aufgenommen: drücke „Weg aufnehmen“.',
-        noPathCheck: '„{0}“ prüft keinen aufgenommenen Weg.',
-        pathInfo: 'Aufgenommener Weg von „{0}“: {1} s; der Roboter muss weniger als {2} cm davon abweichen.',
         tests: 'Tests in dieser Welt',
         noTests: 'Diese Welt hat noch keine Tests: lege einen „Test“ aus „Tests“ hinein.',
         noTest: 'Wähle einen Test aus (unten, oder seinen Block), um ihn auszuführen.',
@@ -343,16 +315,12 @@ export class SimEditor {
     private props: HTMLElement;
     private palette: HTMLElement;
     private status: HTMLElement;
-    private pathInfo: HTMLElement;
     private sensorInfo: HTMLElement;
     private canvas: HTMLElement;
     private backgroundSelect: HTMLSelectElement;
     private svg: any;
     private layers: { [name: string]: any } = {};
     private buttons: { [name: string]: HTMLElement } = {};
-    private tolerance: HTMLInputElement;
-    private toleranceLabel: HTMLElement;
-    private previewTolerance: number = null; // while the tolerance slider is dragged
     private timeSlider: HTMLInputElement;
     private timeLabel: HTMLElement;
     private scaleBar: HTMLElement;
@@ -441,29 +409,6 @@ export class SimEditor {
         this.scaleBar = html('div', 'nepoSimScale', this.canvas);
         this.sensorInfo = html('div', 'nepoSimSensors', this.body);
 
-        const recordRow = html('div', 'nepoSimRow', this.body);
-        this.buttons.record = this.textButton(recordRow, 'btn btn-default nepoSimRecord', () => !this.busy && this.selectedTest && this.host.record(this.selectedTest));
-        this.buttons.clearRecord = this.textButton(recordRow, 'btn btn-default', () => this.selectedTest && this.host.forgetPath(this.selectedTest));
-        const tol = html('label', 'nepoSimTolerance', recordRow);
-        this.buttons.toleranceText = html('span', '', tol);
-        this.tolerance = html('input', '', tol);
-        this.tolerance.type = 'range';
-        this.tolerance.min = '0';
-        this.tolerance.max = '10';
-        this.tolerance.step = '0.5';
-        this.toleranceLabel = html('span', 'nepoSimToleranceValue', tol);
-        this.tolerance.addEventListener('input', () => {
-            this.previewTolerance = Number(this.tolerance.value);
-            this.toleranceLabel.textContent = this.tolerance.value + ' cm';
-            this.renderReference();
-        });
-        this.tolerance.addEventListener('change', () => {
-            const tolerance = Number(this.tolerance.value);
-            this.previewTolerance = null;
-            this.selectedTest && this.host.setTolerance(this.selectedTest, tolerance); // it is the TOL of the test's path check
-        });
-        this.pathInfo = html('div', 'nepoSimPathInfo', this.body);
-
         const runRow = html('div', 'nepoSimRow', this.body);
         this.buttons.run = this.textButton(runRow, 'btn btn-primary', () => !this.busy && this.selectedTest && this.host.run([this.selectedTest]));
         this.buttons.runAll = this.textButton(runRow, 'btn btn-default', () => !this.busy && this.host.run(this.testsOfWorld.map((t) => t.id)));
@@ -518,10 +463,6 @@ export class SimEditor {
                 b.title = this.text(name);
             }
         });
-        this.buttons.record.textContent = this.text('record');
-        this.buttons.record.title = this.text('recordTitle');
-        this.buttons.clearRecord.textContent = this.text('clearRecord');
-        this.buttons.toleranceText.textContent = this.text('tolerance') + ' ';
         this.buttons.run.textContent = this.text('run');
         this.buttons.runAll.textContent = this.text('runAll');
         this.buttons.runAll.title = this.text('runAllTitle');
@@ -543,7 +484,6 @@ export class SimEditor {
         this.updateHint();
         this.renderPalette();
         this.renderProps();
-        this.renderPathInfo();
         this.renderStatus();
         this.renderSensors();
         this.renderTests();
@@ -597,7 +537,7 @@ export class SimEditor {
         return this.selectedTest;
     }
 
-    /** the world's tests changed (added, removed, renamed, ticked, their start, their recorded path): the window follows */
+    /** the world's tests changed (added, removed, renamed, ticked, their start): the window follows */
     refreshTests(): void {
         if (!this.data) {
             return;
@@ -613,7 +553,7 @@ export class SimEditor {
         this.renderRun();
     }
 
-    /** a test of the world shown becomes the selected one: its start, its path, its run */
+    /** a test of the world shown becomes the selected one: its start, its run */
     selectTest(testId: string): void {
         if (!this.data || testId === this.selectedTest) {
             return;
@@ -680,11 +620,9 @@ export class SimEditor {
         (this.buttons.run as HTMLButtonElement).disabled = busy || !this.selectedTest;
         (this.buttons.runAll as HTMLButtonElement).disabled = busy || !this.testsOfWorld.length;
         if (busy) {
-            (this.buttons.record as HTMLButtonElement).disabled = true;
             this.status.className = 'nepoSimStatus';
             this.status.textContent = message || this.text('working');
         } else {
-            this.renderPathInfo();
             this.renderStatus();
         }
     }
@@ -739,8 +677,8 @@ export class SimEditor {
 
     // -------------------------------------------------------------------------------------------- runs
 
-    /** the run of a test (its report from nepoTest.simRun); recorded: its path was recorded */
-    showRun(testId: string, report: any, recorded: boolean): void {
+    /** the run of a test (its report from nepoTest.simRun) */
+    showRun(testId: string, report: any): void {
         const sim = report && report.simulation;
         if (!report || (!sim && report.outcome !== 'skipped')) {
             return;
@@ -756,7 +694,6 @@ export class SimEditor {
             item: sim && sim.item,
             point: sim && sim.point,
             checks: report.checks || [],
-            recorded: recorded,
             passed: report.outcome === 'passed',
             skipped: report.outcome === 'skipped',
             failure: failure ? failure.message : report.error ? report.error.message : null,
@@ -768,7 +705,6 @@ export class SimEditor {
         if (testId === this.selectedTest && run.worldId === this.blockId) {
             this.stopPlay();
             this.replayT = this.runEnd(run);
-            this.renderReference();
             this.renderRun();
             this.renderStatus();
             if (this.root.offsetParent && run.path.length) {
@@ -1203,32 +1139,6 @@ export class SimEditor {
         });
     }
 
-    /** the recorded path of the selected test (its path check): record, forget, tolerance */
-    private renderPathInfo(): void {
-        if (!this.pathInfo || !this.data) {
-            return;
-        }
-        const test = this.test();
-        const record = this.buttons.record as HTMLButtonElement;
-        record.disabled = this.busy || !test || !test.pathCheck;
-        record.title = this.text(test && !test.pathCheck ? 'recordNoCheck' : 'recordTitle');
-        (this.buttons.clearRecord as HTMLButtonElement).disabled = !test || !test.path;
-        this.tolerance.disabled = !test || !test.pathCheck;
-        if (test && test.pathCheck && this.previewTolerance === null) {
-            this.tolerance.value = String(test.tolerance);
-            this.toleranceLabel.textContent = test.tolerance + ' cm';
-        }
-        if (!test) {
-            this.pathInfo.textContent = '';
-        } else if (!test.pathCheck) {
-            this.pathInfo.textContent = this.text('noPathCheck', test.name);
-        } else if (!test.path) {
-            this.pathInfo.textContent = this.text('noPath', test.name);
-        } else {
-            this.pathInfo.textContent = this.text('pathInfo', test.name, seconds(test.path.time_ms || 0), test.tolerance);
-        }
-    }
-
     /** the selected test: how its run went, and what each of its checks found */
     private renderStatus(): void {
         if (!this.status || !this.data) {
@@ -1255,10 +1165,7 @@ export class SimEditor {
         (this.buttons.play as HTMLButtonElement).disabled = false;
         this.timeSlider.disabled = false;
         this.status.className = 'nepoSimStatus ' + (run.passed ? 'passed' : 'failed');
-        html('div', '', this.status).textContent =
-            (run.recorded
-                ? this.text('recorded', this.describe(run))
-                : this.text(run.passed ? 'passed' : 'failed', this.describe(run))) + (run.stale ? ' ' + this.text('stale') : '');
+        html('div', '', this.status).textContent = this.text(run.passed ? 'passed' : 'failed', this.describe(run)) + (run.stale ? ' ' + this.text('stale') : '');
         let first = true; // the first facts are open, the others can be opened
         if (run.errorFacts) {
             this.status.appendChild(this.factsElement(run.errorFacts, first));
@@ -1296,7 +1203,7 @@ export class SimEditor {
         return PROGRAM.factsElement(facts, 'nepoFacts', name, (block) => this.chip(block));
     }
 
-    /** the tests of the world: select one to see its start, its path and its run */
+    /** the tests of the world: select one to see its start and its run */
     private renderTests(): void {
         const ul = this.testList;
         if (!ul) {
@@ -1352,7 +1259,7 @@ export class SimEditor {
         this.svg = svg;
         svg.innerHTML = SIM.defs('e');
         el('rect', { x: -5000, y: -5000, width: 10000, height: 10000, fill: SIM.COLORS.outside }, svg);
-        ['ground', 'reference', 'world', 'runPath', 'infrared', 'robot', 'replayRobot', 'overlay'].forEach(
+        ['ground', 'world', 'runPath', 'infrared', 'robot', 'replayRobot', 'overlay'].forEach(
             (name) => (this.layers[name] = el('g', { class: 'nepoSim_' + name }, svg))
         );
         svg.addEventListener('pointerdown', (e: PointerEvent) => this.pointerDown(e));
@@ -1377,7 +1284,6 @@ export class SimEditor {
         }
         this.layers.ground.innerHTML = SIM.groundSvg(this.data.world, 'e');
         this.layers.world.innerHTML = SIM.worldSvg(this.data.world, 'e');
-        this.renderReference();
         this.renderOverlay();
         this.renderProps();
         this.renderRoles();
@@ -1416,14 +1322,6 @@ export class SimEditor {
             g.style.display = 'none';
         }
         this.renderSensors(light, ir.seen);
-    }
-
-    /** the selected test's recorded path, widened by its tolerance */
-    private renderReference(): void {
-        const test = this.data && this.test();
-        const tolerance = this.previewTolerance !== null ? this.previewTolerance : test ? test.tolerance : 0;
-        this.layers.reference.innerHTML = test && test.path ? SIM.referenceSvg(test.path.path, tolerance) : '';
-        this.renderPathInfo();
     }
 
     private renderRun(): void {

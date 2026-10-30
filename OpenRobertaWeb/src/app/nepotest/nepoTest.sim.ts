@@ -55,12 +55,6 @@ export interface SimData {
     view?: { x: number; y: number; scale: number };
 }
 
-/** a recorded path (the data of a "stays on its recorded path" check block): poses [x, y, heading], and how long the run took */
-export interface SimPath {
-    path: number[][];
-    time_ms?: number;
-}
-
 export const DATA_VERSION = 3;
 
 // ------------------------------------------------------------------------------------------------ the simulator's constants
@@ -109,15 +103,12 @@ export const PALETTE = ['#000000', '#0056a6', '#00642f', '#532115', '#585858', '
 // the test's own things
 export const LINE_WIDTH_CM = 4.44 / UNITS_PER_CM; // the black core of simpleBackgroundEdison's track
 export const LINE_BAND = 16; // units: its white band
-export const DEFAULT_TOLERANCE_CM = 2;
 export const ROLES = ['obstacle', 'color', 'goal', 'fail'];
 
 export const COLORS = {
     outside: '#f4f4f4',
     goal: '#1f8f3a',
     fail: '#d0312d',
-    swept: '#2f6fbf',
-    corridor: '#5aa9ff',
     path: '#e67e00',
 };
 
@@ -253,7 +244,7 @@ function readData(text: string): SimData {
         const start = data.world.start || {};
         data.world.starts = [{ id: DEFAULT_START, name: DEFAULT_START, x: Number(start.x) || 0, y: Number(start.y) || 0, heading: Number(start.heading) || 0 }];
         delete data.world.start;
-        delete data.reference; // a recorded path belongs to a test now (its "stays on its recorded path" check)
+        delete data.reference; // a recorded path (paths are no longer recorded)
         delete data.tolerance_cm;
         data.version = DATA_VERSION;
     }
@@ -262,16 +253,6 @@ function readData(text: string): SimData {
     data.world.starts = Array.isArray(data.world.starts) && data.world.starts.length ? data.world.starts : defaultWorld().starts;
     data.world.items = Array.isArray(data.world.items) ? data.world.items : [];
     return data as SimData;
-}
-
-/** the data of a "stays on its recorded path" check block: its recorded path, or null */
-export function parsePath(text: string): SimPath {
-    try {
-        const data = text ? JSON.parse(text) : null;
-        return data && Array.isArray(data.path) && data.path.length ? data : null;
-    } catch (e) {
-        return null;
-    }
 }
 
 export function clone<T>(value: T): T {
@@ -741,25 +722,6 @@ export function worldSvg(world: SimWorld, prefix: string): string {
             const color = item.role === 'goal' ? COLORS.goal : COLORS.fail;
             svg += shapeSvg(item, 'fill="url(#' + prefix + item.role + ')" stroke="' + color + '" stroke-width="0.35" stroke-dasharray="1.2 0.8"' + id(item));
         }
-    }
-    return svg;
-}
-
-/** a recorded path: the area the robot covered (its outline at every pose), widened by the tolerance (cm), and the paths of its corners */
-export function referenceSvg(path: number[][], tolerance: number): string {
-    if (!path || !path.length) {
-        return '';
-    }
-    const outlines = path.map((p) => footprint(p[0], p[1], p[2]));
-    const d = outlines.map((o) => 'M' + o.map(pt).join('L') + 'Z').join('');
-    let svg = '';
-    const tol = Math.max(0, tolerance || 0);
-    if (tol > 0) {
-        svg += '<path d="' + d + '" fill="' + COLORS.corridor + '" stroke="' + COLORS.corridor + '" stroke-width="' + n(2 * tol) + '" stroke-linejoin="round" opacity="0.28"/>';
-    }
-    svg += '<path d="' + d + '" fill="' + COLORS.swept + '" opacity="0.22"/>';
-    for (let c = 0; c < 4; c++) {
-        svg += '<polyline points="' + outlines.map((o) => pt(o[c])).join(' ') + '" fill="none" stroke="' + COLORS.swept + '" stroke-width="0.12" opacity="0.9"/>';
     }
     return svg;
 }
