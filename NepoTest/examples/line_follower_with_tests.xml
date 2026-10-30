@@ -105,11 +105,6 @@
                 <block type="nepoTest_world" id="lft10" intask="true">
                     <field name="NAME">Edison track</field>
                     <data>{"version":3,"world":{"background":"simpleBackgroundEdison","starts":[{"id":"A","name":"A","x":46.67,"y":10,"heading":-30},{"id":"B","name":"B","x":49.87,"y":39.25,"heading":-84.2}],"items":[{"id":"obstacle","name":"Obstacle","kind":"rect","role":"obstacle","x":64.07,"y":50.74,"w":9.63,"h":9.63},{"id":"finish","name":"Finish","kind":"circle","role":"goal","x":28,"y":67.5,"r":3.5},{"id":"shortcut","name":"Shortcut","kind":"rect","role":"fail","x":55,"y":28,"w":10,"h":10}]},"view":{"x":43.33,"y":36.67,"scale":4.5}}</data>
-                    <statement name="RULES">
-                        <block type="nepoTest_check_never_touches" id="lft11" intask="true">
-                            <field name="AREA">shortcut</field>
-                        </block>
-                    </statement>
                     <statement name="TESTS">
                         <block type="nepoTest_simcase" id="lft20" intask="true">
                             <field name="ACTIVE">TRUE</field>
@@ -119,6 +114,9 @@
                             <field name="UNTIL">finish</field>
                             <field name="SECONDS">20</field>
                             <statement name="CHECKS">
+                                <block type="nepoTest_check_never_touches" id="lft11" intask="true">
+                                    <field name="AREA">shortcut</field>
+                                </block>
                                 <block type="nepoTest_check_reaches" id="lft21" intask="true">
                                     <field name="AREA">finish</field>
                                 </block>
@@ -136,6 +134,9 @@
                             <field name="UNTIL">finish</field>
                             <field name="SECONDS">10</field>
                             <statement name="CHECKS">
+                                <block type="nepoTest_check_never_touches" id="lft27" intask="true">
+                                    <field name="AREA">shortcut</field>
+                                </block>
                                 <block type="nepoTest_check_reaches" id="lft26" intask="true">
                                     <field name="AREA">finish</field>
                                 </block>

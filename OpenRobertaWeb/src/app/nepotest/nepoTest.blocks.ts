@@ -4,8 +4,8 @@
  *
  * A test suite: the red start block "nepoTest_suite" with "nepoTest_run" blocks below it; each runs one "nepoTest_test" (given / when / then),
  * one simulation world "nepoTest_world" (all its tests) or one test of a world. A world (its data: the drawn world, see nepoTest.sim) holds
- * tests "nepoTest_simcase" (set up: a start and the past; run: the whole program; check: "nepoTest_check_*" blocks) and rules (checks for all
- * of its tests). The tests and checks refer to the world's starts and items by their ids (fields START, UNTIL, AREA, OBSTACLE) and show their
+ * tests "nepoTest_simcase" (set up: a start and the past, the blocks of the category "Set up"; run: the whole program; check: "nepoTest_check_*"
+ * blocks, of the category "Checks"; the labels "set up:" and "check:" have the colours of their categories). The tests and checks refer to the world's starts and items by their ids (fields START, UNTIL, AREA, OBSTACLE) and show their
  * names: refreshWorldLabels keeps the names up to date. The tests of given / when / then are switched off (BDD_TESTS): the toolbox offers only
  * the blocks of simulation worlds, but suites that have such tests still load and run.
  */
@@ -67,12 +67,11 @@ const MESSAGES: { [lang: string]: { [key: string]: string } } = {
         NEPOTEST_CALL_TOOLTIP: 'Calls one function of the program. The program itself does not run.',
         NEPOTEST_WORLD: 'simulation world',
         NEPOTEST_WORLD_TOOLTIP:
-            'A world the robot drives through: click it to draw it on the right (lines, obstacles, areas, and where the robot can start). Each test below starts the robot somewhere, runs the program and checks what the robot does. The rules are checks for every test.',
-        NEPOTEST_RULES: 'rules for every test',
+            'A world the robot drives through: click it to draw it on the right (lines, obstacles, areas, and where the robot can start). Each test below starts the robot somewhere, runs the program and checks what the robot does.',
         NEPOTEST_TESTS_IN_WORLD: 'tests',
         NEPOTEST_SIMCASE: 'test',
         NEPOTEST_SIMCASE_TOOLTIP:
-            'A test in this world. Set up: where the robot starts, and what happened before (claps, keys, variables). Run: the whole program. Check: it passes only if every check holds (and every rule of the world). Untick the box to skip the test.',
+            'A test in this world. Set up: where the robot starts, and what happened before (claps, keys, variables: the blocks of "Set up"). Run: the whole program. Check: it passes only if every check holds (the blocks of "Checks"). Untick the box to skip the test.',
         NEPOTEST_SET_UP: 'set up:',
         NEPOTEST_START_AT: 'the robot starts at',
         NEPOTEST_RUN_LABEL: 'run:',
@@ -275,7 +274,7 @@ const MESSAGES: { [lang: string]: { [key: string]: string } } = {
             'Measured at the end. After "drive ... cm" and "turn ... °" blocks this is exact; after drives stopped by a wait it depends on the assumed speed.',
         TOOLBOX_NEPOTEST_TESTS: 'Tests',
         TOOLBOX_NEPOTEST_CHECKS: 'Checks',
-        TOOLBOX_NEPOTEST_GIVEN: 'Given',
+        TOOLBOX_NEPOTEST_GIVEN: 'Set up', // the blocks for "set up:" of a test of a world
         TOOLBOX_NEPOTEST_WHEN: 'When',
         TOOLBOX_NEPOTEST_THEN: 'Expect',
         TOOLBOX_NEPOTEST_ACTIONS: 'Actions',
@@ -320,12 +319,11 @@ const MESSAGES: { [lang: string]: { [key: string]: string } } = {
         NEPOTEST_CALL_TOOLTIP: 'Ruft eine Funktion des Programms auf. Das Programm selbst läuft nicht.',
         NEPOTEST_WORLD: 'Simulationswelt',
         NEPOTEST_WORLD_TOOLTIP:
-            'Eine Welt, durch die der Roboter fährt: klicke sie an und zeichne sie rechts (Linien, Hindernisse, Flächen, und wo der Roboter starten kann). Jeder Test darunter startet den Roboter irgendwo, führt das Programm aus und prüft, was der Roboter tut. Die Regeln sind Prüfungen für jeden Test.',
-        NEPOTEST_RULES: 'Regeln für jeden Test',
+            'Eine Welt, durch die der Roboter fährt: klicke sie an und zeichne sie rechts (Linien, Hindernisse, Flächen, und wo der Roboter starten kann). Jeder Test darunter startet den Roboter irgendwo, führt das Programm aus und prüft, was der Roboter tut.',
         NEPOTEST_TESTS_IN_WORLD: 'Tests',
         NEPOTEST_SIMCASE: 'Test',
         NEPOTEST_SIMCASE_TOOLTIP:
-            'Ein Test in dieser Welt. Vorbereiten: wo der Roboter startet, und was vorher passiert ist (Klatschen, Tasten, Variablen). Ausführen: das ganze Programm. Prüfen: er besteht nur, wenn jede Prüfung stimmt (und jede Regel der Welt). Nimm das Häkchen weg, um den Test auszulassen.',
+            'Ein Test in dieser Welt. Vorbereiten: wo der Roboter startet, und was vorher passiert ist (Klatschen, Tasten, Variablen: die Blöcke aus „Vorbereiten“). Ausführen: das ganze Programm. Prüfen: er besteht nur, wenn jede Prüfung stimmt (die Blöcke aus „Prüfungen“). Nimm das Häkchen weg, um den Test auszulassen.',
         NEPOTEST_SET_UP: 'vorbereiten:',
         NEPOTEST_START_AT: 'der Roboter startet bei',
         NEPOTEST_RUN_LABEL: 'ausführen:',
@@ -527,7 +525,7 @@ const MESSAGES: { [lang: string]: { [key: string]: string } } = {
             'Am Ende gemessen. Nach „fahre … cm“ und „drehe … °“ genau; nach Fahrten, die ein Warten beendet, hängt es von der angenommenen Geschwindigkeit ab.',
         TOOLBOX_NEPOTEST_TESTS: 'Tests',
         TOOLBOX_NEPOTEST_CHECKS: 'Prüfungen',
-        TOOLBOX_NEPOTEST_GIVEN: 'Gegeben',
+        TOOLBOX_NEPOTEST_GIVEN: 'Vorbereiten',
         TOOLBOX_NEPOTEST_WHEN: 'Wenn',
         TOOLBOX_NEPOTEST_THEN: 'Erwarte',
         TOOLBOX_NEPOTEST_ACTIONS: 'Aktionen',
@@ -632,6 +630,26 @@ function shouldRow(block: any): void {
         );
 }
 
+/**
+ * a label in the colour of the blocks that go into the input after it, white on that colour: "set up:" in the colour of the "Set up"
+ * category, "check:" in that of "Checks", so a test shows which blocks go where. The colour is read when the block is made (after the theme).
+ */
+function colouredLabel(text: string, colour: () => string): any {
+    const field = new Blockly.Field(text);
+    field.EDITABLE = false; // not clickable, not saved
+    const init = field.init;
+    field.init = function () {
+        init.call(this);
+        if (this.borderRect_ && this.textElement_) {
+            this.borderRect_.style.fill = colour();
+            this.borderRect_.style.fillOpacity = '1';
+            this.borderRect_.style.stroke = 'none';
+            this.textElement_.style.fill = '#ffffff';
+        }
+    };
+    return field;
+}
+
 function comparison(): any {
     return new Blockly.FieldDropdown([
         ['=', 'EQ'],
@@ -713,7 +731,7 @@ function testNames(this: any): string[][] {
 
 // ------------------------------------------------------------------------------------------------ the blocks in a simulation world
 
-/** the simulation world a block is in (a test of it, a check of a test, a rule), or null */
+/** the simulation world a block is in (a test of it, a check of a test), or null */
 export function worldOf(block: any): any {
     let b = block;
     while (b && b.type !== WORLD) {
@@ -1037,7 +1055,6 @@ const DEFINITIONS: { [type: string]: any } = {
             hat(this, Blockly.CAT_PROCEDURE_RGB, 'NEPOTEST_WORLD_TOOLTIP');
             this.appendDummyInput().appendField(msg('NEPOTEST_WORLD')).appendField(new Blockly.FieldTextInput(msg('NEPOTEST_WORLD'), uniqueTestName), 'NAME');
             this.appendDummyInput('PREVIEW').appendField(new Blockly.FieldImage(THUMB_EMPTY, THUMB_W, THUMB_H, '*'), 'PREVIEW');
-            this.appendStatementInput('RULES').setCheck(SIM_CHECK).appendField(msg('NEPOTEST_RULES'));
             this.appendStatementInput('TESTS').setCheck(SIM_CASE).appendField(msg('NEPOTEST_TESTS_IN_WORLD'));
             this.thumbData_ = null;
             const block = this;
@@ -1079,7 +1096,9 @@ const DEFINITIONS: { [type: string]: any } = {
                 .appendField(checkbox('TRUE'), 'ACTIVE')
                 .appendField(msg('NEPOTEST_SIMCASE'))
                 .appendField(new Blockly.FieldTextInput(msg('NEPOTEST_SIMCASE'), uniqueTestName), 'NAME');
-            this.appendDummyInput('START_ROW').appendField(msg('NEPOTEST_SET_UP')).appendField(msg('NEPOTEST_START_AT')).appendField(new Blockly.FieldDropdown(startMenu), 'START');
+            this.appendDummyInput('START_ROW')
+                .appendField(colouredLabel(msg('NEPOTEST_SET_UP'), () => Blockly.CAT_SENSOR_RGB))
+                .appendField(msg('NEPOTEST_START_AT')).appendField(new Blockly.FieldDropdown(startMenu), 'START');
             this.appendStatementInput('SETUP').setCheck(GIVEN);
             this.appendDummyInput('RUN_ROW')
                 .appendField(msg('NEPOTEST_RUN_LABEL'))
@@ -1101,7 +1120,9 @@ const DEFINITIONS: { [type: string]: any } = {
                 .appendField(msg('NEPOTEST_AT_MOST_COMMA'), 'AT_MOST')
                 .appendField(decimal(5), 'SECONDS')
                 .appendField(msg('NEPOTEST_SECONDS'));
-            this.appendStatementInput('CHECKS').setCheck(SIM_CHECK).appendField(msg('NEPOTEST_CHECK')); // every test should pass: no "this test should"
+            this.appendStatementInput('CHECKS')
+                .setCheck(SIM_CHECK)
+                .appendField(colouredLabel(msg('NEPOTEST_CHECK'), () => Blockly.CAT_LOGIC_RGB)); // every test should pass: no "this test should"
             this.showMode_();
         },
         /** "until the robot touches [area], at most": only in the mode "until" (the area stays, so switching back and forth keeps it) */

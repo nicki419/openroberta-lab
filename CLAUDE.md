@@ -85,8 +85,7 @@ programs, which implements the project goal. It covers:
   (reaches, never touches, ends in, never bumps into, stays on its recorded path ± cm), what it does
   (`nepoTest.simBehaviour.ts`: from a time on it always turns left; whenever it sees the line, it turns left; within
   500 ms after each clap, its LED is on; measured in every frame from its real motion, LEDs and sound) and a variable
-  at the end. A test passes only if every check, and every rule of its
-  world, holds; a run never stops at the first failure. Every run is recorded (`nepoTest.simProgram.ts`): a failed
+  at the end. A test passes only if every check holds; a run never stops at the first failure. Every run is recorded (`nepoTest.simProgram.ts`): a failed
   check comes with the facts of the second before it (what the robot sensed, which decisions and blocks ran, its
   variables, what it did) and why (`nepoTest.simVerdict.ts`: the block to blame, e.g. wrong action, wrong decision,
   decision missing, missed the moment, wrong value), with the program's blocks as clickable chips. The replay shows the

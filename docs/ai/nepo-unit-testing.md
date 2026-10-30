@@ -133,7 +133,7 @@ functions  clampSpeed(speed) returns: if speed > 100 return 100; if speed < 0 re
 | **status** | of a run: `finished`, or still running when the budget ran out (`time_limit`, `step_limit`), or `error` |
 | **error** | a runtime problem (16-bit overflow, division by zero, list index out of range, …) with the block where it happened |
 | **virtual time** | milliseconds from program start. Nothing runs in real time; a 60-second scenario takes milliseconds. |
-| **simulation test** | a test of a **simulation world**, a world drawn once on the Lab's own simulator: the robot starts at one of the world's starts, the whole program runs, its sensors read the world, and the test's checks (and the world's rules) decide whether it passes (§4.11) |
+| **simulation test** | a test of a **simulation world**, a world drawn once on the Lab's own simulator: the robot starts at one of the world's starts, the whole program runs, its sensors read the world, and the test's checks decide whether it passes (§4.11) |
 
 ---
 
@@ -541,7 +541,7 @@ no `expect`. (Until 2026-10-26, a simulation test had a world of its own, and it
                        {"id": "shortcut", "name": "Shortcut", "kind": "rect", "role": "fail", "x": 55, "y": 28, "w": 10, "h": 10}]},
    "start": "A",
    "until": "finish",
-   "checks": [{"check": "never_touches", "item": "shortcut", "rule": true},
+   "checks": [{"check": "never_touches", "item": "shortcut"},
               {"check": "reaches", "item": "finish"},
               {"check": "path", "path": [[46.67, 10, -30], [47.04, 10.24, -34.3], ...], "time_ms": 7383.3, "tolerance_cm": 2}]}}
 ```
@@ -550,8 +550,8 @@ no `expect`. (Until 2026-10-26, a simulation test had a world of its own, and it
 - **`until`:** optional, the id of an area (goal, fail or coloured): the run ends when the robot touches it. If the
   robot starts on it, it has to leave it first.
 - **`max_time_ms`:** the run ends then at the latest (default 30 s). It also ends when the program ends, or fails.
-- **`checks`:** what must hold. A check with `"rule": true` is a rule of the world: the Tests tab copies the world's
-  rules into each of its tests.
+- **`checks`:** what must hold. A check with `"rule": true` came from a world's rules (until 2026-10-30, worlds had
+  checks for every test); it counts like any other check, and its message starts with "rule:".
 
 | Check | Holds if | `item` |
 |---|---|---|
@@ -726,8 +726,8 @@ What the sensors see, on the other hand, *is* a picture: the simulator's sensors
 - **The program:** `examples/line_follower.xml` follows the left edge of a line with the single line tracker. On black
   it curves left (10 % / 40 %), on white it curves right (40 % / 10 %). Its function `toTheWall()` drives until the
   obstacle detection sees something ahead, and stops.
-- **The suite:** `line_follower_with_tests.xml` has the world "Edison track" with two starts and the rule "the robot
-  never touches Shortcut" (a fail area beside the track); its path was recorded on the simulator.
+- **The suite:** `line_follower_with_tests.xml` has the world "Edison track" with two starts; both tests check that
+  the robot never touches "Shortcut" (a fail area beside the track); its path was recorded on the simulator.
   `line_follower.tests.json` is the same suite as JSON (the command line runs only its third test). In the Tests tab,
   its three tests pass:
   - from start A, until it touches the goal area "Finish": it reaches it and stays on its recorded path (7.4 s);

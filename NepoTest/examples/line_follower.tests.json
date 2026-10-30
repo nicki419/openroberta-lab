@@ -63,8 +63,7 @@
     "checks": [
      {
       "check": "never_touches",
-      "item": "shortcut",
-      "rule": true
+      "item": "shortcut"
      },
      {
       "check": "reaches",
@@ -755,8 +754,7 @@
     "checks": [
      {
       "check": "never_touches",
-      "item": "shortcut",
-      "rule": true
+      "item": "shortcut"
      },
      {
       "check": "reaches",

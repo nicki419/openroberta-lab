@@ -14,6 +14,7 @@
  *   (nepoTest.simProgram): what the robot sensed, what ran, what it remembered, what it did. The program's blocks in them are chips: a click
  *   shows the block in the Program tab. While a run is replayed, the block running at the replay's time is marked in the Program tab.
  * Suites saved before 2026-10-26 had simulation tests of their own ("nepoTest_simtest", one world each): they are dropped when they are loaded.
+ * Until 2026-10-30, a world had "rules for every test" (checks): they become checks of each of its tests when a suite is loaded.
  * Only for the Edison robots (NepoTest supports them).
  */
 import * as GUISTATE_C from 'guiState.controller';
@@ -257,6 +258,7 @@ const TEXT: { [lang: string]: { [key: string]: string } } = {
         done: '{0} passed, {1} failed, {2} test errors',
         doneSkipped: '{0} passed, {1} failed, {2} test errors, {3} skipped',
         oldSimTests: 'This program had {0} simulation test(s) of an older kind: they were removed. Build them again as tests of a "simulation world" (in "Tests").',
+        rulesMoved: 'The "rules for every test" of {0} simulation world(s) are now checks of each of its tests.',
         unloadable: 'The test suite of this program could not be loaded ({0}). It stays as it was when the program is saved; changes made here are not saved.',
         coverage: 'Blocks of the program executed by these tests: {0} of {1}',
         uncovered: 'never executed:',
@@ -282,6 +284,7 @@ const TEXT: { [lang: string]: { [key: string]: string } } = {
         done: '{0} bestanden, {1} fehlgeschlagen, {2} Testfehler',
         doneSkipped: '{0} bestanden, {1} fehlgeschlagen, {2} Testfehler, {3} ausgelassen',
         oldSimTests: 'Dieses Programm hatte {0} Simulationstest(s) einer älteren Art: sie wurden entfernt. Baue sie als Tests einer „Simulationswelt“ (in „Tests“) neu.',
+        rulesMoved: 'Die „Regeln für jeden Test“ von {0} Simulationswelt(en) sind jetzt Prüfungen in jedem ihrer Tests.',
         unloadable: 'Die Testsammlung dieses Programms konnte nicht geladen werden ({0}). Sie bleibt beim Speichern des Programms, wie sie war; Änderungen hier werden nicht gespeichert.',
         coverage: 'Von diesen Tests ausgeführte Blöcke des Programms: {0} von {1}',
         uncovered: 'nie ausgeführt:',
@@ -517,6 +520,61 @@ function dropOldSimTests(xml: string): { xml: string; dropped: number } {
     return { xml: new XMLSerializer().serializeToString(doc), dropped: dropped };
 }
 
+/**
+ * a suite whose simulation worlds have no "rules for every test" (statement RULES, until 2026-10-30): a copy of the rules goes to the end
+ * of the checks of each test of the world (a world without tests keeps them as loose checks beside it): {xml, moved: the number of worlds}.
+ * The suite is changed as XML, before Blockly sees it (it would drop the input's blocks). Nothing changes in a suite without them.
+ */
+function moveRulesIntoTests(xml: string): { xml: string; moved: number } {
+    if (!xml || xml.indexOf('"RULES"') < 0) {
+        return { xml: xml, moved: 0 };
+    }
+    const doc = new DOMParser().parseFromString(xml, 'text/xml');
+    const children = (el: Element, name: string) => Array.prototype.slice.call(el.childNodes).filter((c: Node) => c.nodeType === 1 && (c as Element).localName === name) as Element[];
+    const statement = (block: Element, name: string) => children(block, 'statement').filter((st) => st.getAttribute('name') === name)[0] || null;
+    /** a copy of a block without ids (Blockly gives the blocks new ones) */
+    const copy = (block: Element) => {
+        const c = block.cloneNode(true) as Element;
+        [c].concat(Array.prototype.slice.call(c.getElementsByTagName('*'))).forEach((e: Element) => e.localName === 'block' && e.removeAttribute('id'));
+        return c;
+    };
+    let moved = 0;
+    const worlds = Array.prototype.slice.call(doc.getElementsByTagName('block')).filter((b: Element) => b.getAttribute('type') === BLOCKS.WORLD) as Element[];
+    for (const world of worlds) {
+        const rulesInput = statement(world, 'RULES');
+        if (!rulesInput) {
+            continue;
+        }
+        world.removeChild(rulesInput);
+        const rules = children(rulesInput, 'block'); // the blocks of a statement are its children, in their order (the Lab's XML)
+        if (!rules.length) {
+            continue;
+        }
+        moved++;
+        const testsInput = statement(world, 'TESTS');
+        const tests = testsInput ? children(testsInput, 'block') : [];
+        if (!tests.length) {
+            const instance = world.parentNode as Element; // the world's instance: the checks go beside it
+            const loose = doc.createElementNS(instance.namespaceURI, 'instance');
+            loose.setAttribute('x', String(Number(instance.getAttribute('x') || 0) + 400));
+            loose.setAttribute('y', instance.getAttribute('y') || '0');
+            rules.forEach((rule) => loose.appendChild(rule));
+            instance.parentNode.insertBefore(loose, instance.nextSibling);
+            continue;
+        }
+        for (const test of tests) {
+            let checks = statement(test, 'CHECKS');
+            if (!checks) {
+                checks = doc.createElementNS(test.namespaceURI, 'statement');
+                checks.setAttribute('name', 'CHECKS');
+                test.appendChild(checks);
+            }
+            rules.forEach((rule) => checks.appendChild(copy(rule)));
+        }
+    }
+    return { xml: new XMLSerializer().serializeToString(doc), moved: moved };
+}
+
 /** puts a suite into the workspace (null: a new suite with just the start block) */
 function loadSuite(testsXml: string): void {
     if (!workspace) {
@@ -527,7 +585,8 @@ function loadSuite(testsXml: string): void {
     unloadable = null;
     workspace.clear();
     const old = dropOldSimTests(testsXml);
-    const xml = old.xml || BLOCKS.emptySuite(GUISTATE_C.getRobotGroup());
+    const rules = moveRulesIntoTests(old.xml);
+    const xml = rules.xml || BLOCKS.emptySuite(GUISTATE_C.getRobotGroup());
     let failure: string = null;
     try {
         Blockly.Xml.domToWorkspace(Blockly.Xml.textToDom(xml, workspace), workspace);
@@ -546,8 +605,8 @@ function loadSuite(testsXml: string): void {
     $('#testsStatus').text('');
     if (failure) {
         showList(text('unloadable', failure), []);
-    } else if (old.dropped) {
-        showList(text('oldSimTests', old.dropped), []);
+    } else if (old.dropped || rules.moved) {
+        showList([old.dropped ? text('oldSimTests', old.dropped) : '', rules.moved ? text('rulesMoved', rules.moved) : ''].filter((t) => t).join(' '), []);
     }
     reopenSim();
     setTimeout(() => (listen = true), 300);
@@ -601,7 +660,6 @@ function simTests(): SimTest[] {
     if (!world) {
         return [];
     }
-    const rules = chainOf(world, 'RULES');
     const itemsOf = (checks: any[]) => checks.map((c) => c.getFieldValue('AREA') || c.getFieldValue('OBSTACLE')).filter((id) => id && id !== BLOCKS.ANY_ITEM);
     return BLOCKS.testsOf(world).map(function (test) {
         const checks = chainOf(test, 'CHECKS');
@@ -612,8 +670,8 @@ function simTests(): SimTest[] {
             name: test.getFieldValue('NAME'),
             start: test.getFieldValue('START'),
             active: test.getFieldValue('ACTIVE') !== 'FALSE' && !test.disabled,
-            checks: checks.length + rules.length,
-            refs: [test.getFieldValue('START')].concat(until, itemsOf(checks), itemsOf(rules)),
+            checks: checks.length,
+            refs: [test.getFieldValue('START')].concat(until, itemsOf(checks)),
             pathCheck: !!pathCheck,
             path: pathCheck ? SIM.parsePath(pathCheck.data) : null,
             tolerance: pathCheck ? Number(pathCheck.getFieldValue('TOL')) || 0 : SIM.DEFAULT_TOLERANCE_CM,

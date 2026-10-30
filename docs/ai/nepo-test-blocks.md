@@ -6,7 +6,7 @@ the project goal in `CLAUDE.md`, on top of the NepoTest framework (`nepo-unit-te
 
 > **The given / when / then tests are switched off** (`BDD_TESTS = false` in `nepoTest.blocks.ts`, 2026-10-27): the
 > toolbox offers only the blocks of simulation worlds (§5): *Tests* (world, test of a world, run test), *Checks*,
-> *Given* (clap, key press, variable) and *Values*. The categories *When*, *Expect*, *Actions* and *States*, the
+> *Set up* (clap, key press, variable; called *Given* until 2026-10-30) and *Values*. The categories *When*, *Expect*, *Actions* and *States*, the
 > *test* block and the other *given* blocks (obstacle, light, line, remote, IR) are no longer offered. Their code is
 > unchanged: suites that have such tests still load, run and save (verified: the line follower's "stops at the wall"
 > passed), and `BDD_TESTS = true` offers them again. The sections below still describe them.
@@ -38,7 +38,7 @@ Tests tab
 4. The **Code** panel shows what the suite translates to (NepoTest JSON), and the program's generated EdPy.
 
 **Simulation worlds** hold the second kind of test (§5). A *simulation world* block has a small picture of its world,
-its **rules** (checks for every test of the world) and its **tests**. Clicking it opens the **Simulation** panel,
+and its **tests**. Clicking it opens the **Simulation** panel,
 which looks and behaves like the Lab's simulator. There the learner:
 - draws the world once: the simulator's backgrounds, obstacles and coloured areas, lines to follow, goal and fail
   areas (or takes over the simulator's scene);
@@ -47,7 +47,11 @@ which looks and behaves like the Lab's simulator. There the learner:
 
 Each test of a world reads: **set up** (where the robot starts, and what happened before: claps, keys, variables),
 **run** (the whole program, for some seconds, or until the robot touches an area), **check** (any number of checks).
-It passes only if every check holds; a run never stops at the first failed check. A test can be skipped (its box) and
+It passes only if every check holds; a run never stops at the first failed check. The labels *set up:* and *check:*
+are drawn in the colours of the toolbox categories whose blocks go there (*Set up*: olive, *Checks*: cyan). A world
+had **rules for every test** (checks) until 2026-10-30: when a suite is loaded, they become checks of each of its
+tests (`moveRulesIntoTests` in `tests.controller.ts`, with a notice; a world without tests keeps them as loose checks
+beside it). A test can be skipped (its box) and
 can be expected to fail. **Simulation tests run on the Lab's own simulator**: its interpreter, its Edison and its
 objects, offscreen and in virtual time (§5). The BDD-style tests (given / when / then) are unchanged: they run in
 NepoTest.
@@ -220,8 +224,8 @@ sync:** the field and input names below are the contract between them.
 | `nepoTest_suite` | red: *test suite: run these tests* | (next: `run` blocks) | the list and order of the tests |
 | `nepoTest_run` | *run test* [name ▾] | `NAME` (dropdown of the workspace's tests, worlds and their tests, shown as "world ▸ test"; `''` shown as `?` = none chosen) | selects a test; a world: all its tests |
 | `nepoTest_test` | *test* [name] *given / when / then*, *this test should* [pass ▾ / fail] | `NAME`, `SHOULD` (`pass`, `fail`); statements `GIVEN`, `WHEN`, `THEN` | one test (`name`, `block_id`, `origin: "blocks"`; `should: "fail"`) |
-| `nepoTest_world` | *simulation world* [name], a picture of its world, *rules for every test*, *tests* | `NAME`; statements `RULES` (check blocks), `TESTS` (`nepoTest_simcase`); **the world is the block's `data`** (JSON, §5); the picture is a `FieldImage` without a value, drawn asynchronously (a PNG of the floor, the objects and the robot at its starts) | nothing itself: its tests (`simulation.world_block_id`, `world_name`, `world`); its rules are copied into each test's `checks` with `"rule": true` |
-| `nepoTest_simcase` | ☑ *test* [name] / *set up: the robot starts at* [A ▾] / (set-up blocks) / *run: the program* [for ▾ / until the robot touches] [area ▾] *, at most* [5] *s* / *check:* (checks) | `ACTIVE` (checkbox, `TRUE`/`FALSE`), `NAME`, `START` (a start's id), `MODE` (`for`, `until`), `UNTIL` (an area's id; shown only for `until`), `SECONDS` (one decimal, at least 0.1); statements `SETUP` (clap, key, variable only: the simulator has no IR remote and no IR messages), `CHECKS` | a test of the world (`simulation` with `start`, `until`, `checks`; `max_time_ms`, `globals`, `world` events; `skip: true` when unticked; no `should`: every test of a world should pass, and a saved `SHOULD` is ignored) |
+| `nepoTest_world` | *simulation world* [name], a picture of its world, *tests* | `NAME`; statement `TESTS` (`nepoTest_simcase`; until 2026-10-30 also `RULES`, see above); **the world is the block's `data`** (JSON, §5); the picture is a `FieldImage` without a value, drawn asynchronously (a PNG of the floor, the objects and the robot at its starts) | nothing itself: its tests (`simulation.world_block_id`, `world_name`, `world`); the rules of an older file are copied into each test's `checks` with `"rule": true` |
+| `nepoTest_simcase` | ☑ *test* [name] / *set up:* (olive) *the robot starts at* [A ▾] / (set-up blocks) / *run: the program* [for ▾ / until the robot touches] [area ▾] *, at most* [5] *s* / *check:* (cyan) (checks) | `ACTIVE` (checkbox, `TRUE`/`FALSE`), `NAME`, `START` (a start's id), `MODE` (`for`, `until`), `UNTIL` (an area's id; shown only for `until`), `SECONDS` (one decimal, at least 0.1); statements `SETUP` (clap, key, variable only: the simulator has no IR remote and no IR messages), `CHECKS` | a test of the world (`simulation` with `start`, `until`, `checks`; `max_time_ms`, `globals`, `world` events; `skip: true` when unticked; no `should`: every test of a world should pass, and a saved `SHOULD` is ignored) |
 | `nepoTest_check_reaches` | *the robot reaches* [area ▾] | `AREA` (an area's id, or `ANY`: any goal area) | `{"check": "reaches", "item"}` |
 | `nepoTest_check_never_touches` | *the robot never touches* [area ▾] | `AREA` (or `ANY`: any fail area) | `{"check": "never_touches", "item"}` |
 | `nepoTest_check_ends_in` | *at the end, the robot is completely in* [area ▾] | `AREA` | `{"check": "ends_in", "item"}` |
@@ -527,7 +531,7 @@ line tracker white (87 %) · LLIGHT 87 % · RLIGHT 76 % · obstacle: none
 [● Record path] [Forget path]  allowed deviation [——o——] 2 cm
 [▶ Run test] [▶▶ Run all] [▶ Replay] [————————o—] 7.4 / 7.4 s
 ✓ passed: the run ended at its area after 7.4 s
-✓ the robot never touched "Shortcut"     (a rule)
+✓ the robot never touched "Shortcut"
 ✓ the robot reached "Finish" after 7.4 s
 ✓ the robot stayed on its recorded path
 Tests in this world
@@ -632,7 +636,7 @@ suite is loaded.
   *show the run*.
 
 **Checks of behaviour** (`nepoTest.simBehaviour.ts`): what the robot does, decided from the run's record when the run
-has ended. A test can check only its behaviour (no area at all); a world's rules can be such checks too.
+has ended. A test can check only its behaviour (no area at all).
 - **What it does** is measured in every frame (1/60 s) from how the robot really moved in the simulator, its position
   and heading: *drives forward / backward* (at least 1 cm/s along its heading; 10 % power is 3.5 cm/s), *turns left /
   right* (at least 10°/s: a curve whose wheels differ by 4 % turns faster), *stands still* (neither). Curving left is

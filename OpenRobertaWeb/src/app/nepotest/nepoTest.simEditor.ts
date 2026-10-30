@@ -32,7 +32,7 @@ export interface SimTest {
     name: string;
     start: string; // the id of its start
     active: boolean; // false: skipped
-    checks: number; // its checks and the world's rules
+    checks: number; // how many checks it has
     refs: string[]; // the starts and items it refers to
     pathCheck: boolean; // it has a "stays on its recorded path" check
     path: SIM.SimPath; // that check's recorded path, or null
