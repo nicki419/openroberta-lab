@@ -958,6 +958,27 @@ function showOptional(block: any, name: string, applies: boolean): void {
     }
 }
 
+/**
+ * shows or hides fields of a block (in a row with others), and renders it if one changed. The bundled Blockly keeps a hidden field's width
+ * from when it was shown (renderWidth) and still leaves room for it: the fields after it stayed where they were, beyond the block's edge.
+ * A hidden field's width is reset here. True if one changed.
+ */
+function showFields(block: any, names: string[], visible: boolean): boolean {
+    let changed = false;
+    for (const name of names) {
+        const field = block.getField(name);
+        if (field && field.isVisible() !== visible) {
+            field.setVisible(visible);
+            visible || (field.renderWidth = 0);
+            changed = true;
+        }
+    }
+    if (changed && block.rendered) {
+        block.render();
+    }
+    return changed;
+}
+
 const POWER_MOVES = ['forward', 'backward', 'turn_left', 'turn_right'];
 
 /** a condition block: the world of "given", for "expect while" */
@@ -1087,17 +1108,8 @@ const DEFINITIONS: { [type: string]: any } = {
         /** "until the robot touches [area], at most": only in the mode "until" (the area stays, so switching back and forth keeps it) */
         showMode_: function (mode?: string) {
             const until = (mode || this.getFieldValue('MODE')) === 'until';
-            let changed = false;
-            for (const name of ['UNTIL', 'AT_MOST']) {
-                const field = this.getField(name);
-                if (field && field.isVisible() !== until) {
-                    field.setVisible(until);
-                    changed = true;
-                }
-            }
-            if (changed && this.rendered) {
-                this.render();
-                until && refreshWorldLabels(this);
+            if (showFields(this, ['UNTIL', 'AT_MOST'], until) && until && this.rendered) {
+                refreshWorldLabels(this);
             }
         },
         onchange: function (event: any) {
@@ -1197,18 +1209,7 @@ const DEFINITIONS: { [type: string]: any } = {
         },
         /** the percent only for the light sensors */
         showPercent_: function (when?: string) {
-            const light = /_light_/.test(when || this.getFieldValue('WHEN'));
-            let changed = false;
-            for (const name of ['PERCENT', 'PERCENT_END']) {
-                const field = this.getField(name);
-                if (field && field.isVisible() !== light) {
-                    field.setVisible(light);
-                    changed = true;
-                }
-            }
-            if (changed && this.rendered) {
-                this.render();
-            }
+            showFields(this, ['PERCENT', 'PERCENT_END'], /_light_/.test(when || this.getFieldValue('WHEN')));
         },
         onchange: function (event: any) {
             this.showPercent_();
