@@ -133,6 +133,7 @@ public class ClientInit {
             server.put("help", help);
             String theme = this.serverProperties.getStringProperty("server.theme");
             server.put("theme", theme);
+            server.put("levels", new JSONObject().put("designer", this.serverProperties.getBooleanProperty("levels.designer"))); // the Level designer tab
             response.setServer(server);
             UtilForREST.addSuccessInfo(response, Key.INIT_SUCCESS);
             return UtilForREST.responseWithFrontendInfo(response, httpSessionState, this.brickCommunicator);

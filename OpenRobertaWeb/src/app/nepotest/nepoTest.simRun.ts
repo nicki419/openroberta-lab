@@ -303,7 +303,7 @@ function compileProblem(result: any): string {
 
 // ------------------------------------------------------------------------------------------------ the test's checks (in units)
 
-interface Shape {
+export interface Shape {
     id: string;
     kind: string;
     polygon: number[][];
@@ -314,13 +314,13 @@ interface Shape {
     parts?: Shape[]; // a wall: its pieces and round corners
 }
 
-function bbox(points: number[][], margin = 0): number[] {
+export function bbox(points: number[][], margin = 0): number[] {
     const xs = points.map((p) => p[0]);
     const ys = points.map((p) => p[1]);
     return [Math.min(...xs) - margin, Math.min(...ys) - margin, Math.max(...xs) + margin, Math.max(...ys) + margin];
 }
 
-function shapeOf(item: SIM.SimItem): Shape {
+export function shapeOf(item: SIM.SimItem): Shape {
     if (SIM.isWall(item)) {
         const pieces = SIM.wallPieces(item);
         const parts = pieces.polygons
@@ -403,7 +403,7 @@ function segmentsCross(a: number[], b: number[], c: number[], d: number[]): bool
 }
 
 /** does the robot's outline touch a shape? */
-function touches(shape: Shape, poly: number[][], box: number[]): boolean {
+export function touches(shape: Shape, poly: number[][], box: number[]): boolean {
     const s = shape.box;
     if (!(box[0] <= s[2] && s[0] <= box[2] && box[1] <= s[3] && s[1] <= box[3])) {
         return false;
@@ -965,7 +965,7 @@ class Run {
 }
 
 /** how far a shape is from the robot's outline (units; 0: they touch) */
-function shapeDistance(shape: Shape, poly: number[][]): number {
+export function shapeDistance(shape: Shape, poly: number[][]): number {
     if (shape.parts) {
         return Math.min(...shape.parts.map((part) => shapeDistance(part, poly)));
     }

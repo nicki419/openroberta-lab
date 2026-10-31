@@ -22,6 +22,10 @@
  *   did, with the program's blocks as chips. Below the slider: what ran at the replay's time, what the program read and decided, what the
  *   robot heard; the block that runs is marked in the Program tab (EditorHost.replayed).
  * The editor knows nothing about Blockly or the test runner: the tests controller passes the data in and gets it back (EditorHost).
+ *
+ * Level mode (the Level designer, levels.controller): a level is a world with one start (the start tool moves it), and goal areas, soft goal
+ * areas (they win only if the robot stands still on them: their seconds in the properties) and fail areas; an obstacle or a wall can lose
+ * the level when the robot bumps into it (a box in its properties). There are no tests: no run, replay or test list.
  */
 import * as SIM from 'nepoTest.sim';
 import * as SIMRUN from 'nepoTest.simRun';
@@ -84,11 +88,19 @@ const TOOL_GROUPS: { label: string; tools: string[] }[] = [
     { label: 'groupPaths', tools: ['line', 'curve'] },
     { label: 'groupObstacles', tools: ['rect', 'circle', 'triangle', 'wall', 'wallCurve'] },
 ];
-const TOOLS: string[] = [].concat(...TOOL_GROUPS.map((g) => g.tools));
+/** the tools of a level (the Level designer): its one start, goal areas, soft goal areas and fail areas; the world's things */
+const LEVEL_TOOL_GROUPS: { label: string; tools: string[] }[] = [
+    { label: null, tools: ['select'] },
+    { label: 'groupLevel', tools: ['start', 'goal', 'softGoal', 'fail'] },
+    { label: 'groupPaths', tools: ['line', 'curve'] },
+    { label: 'groupObstacles', tools: ['rect', 'circle', 'triangle', 'wall', 'wallCurve'] },
+];
+const TOOLS: string[] = [].concat(...LEVEL_TOOL_GROUPS.map((g) => g.tools)); // all tools (a mode has some of them)
 const WALL_TOOLS = ['wall', 'wallCurve'];
 const LINE_TOOLS = ['line', 'curve'].concat(WALL_TOOLS); // they draw a line: to follow, or a wall
 const SHAPE_TOOLS: { [tool: string]: [string, string] } = {
     goal: ['rect', 'goal'],
+    softGoal: ['rect', 'goal'], // with soft: {still}
     fail: ['rect', 'fail'],
     rect: ['rect', 'obstacle'],
     circle: ['circle', 'obstacle'],
@@ -97,6 +109,7 @@ const SHAPE_TOOLS: { [tool: string]: [string, string] } = {
 /** the simulator's backgrounds can't be chosen (for now): a new world has the plain peach floor, an older one keeps its background. true shows the choice */
 const BACKGROUND_CHOICE = false;
 const START = 'start:'; // the prefix of a selected start (selected: an item's id, or START + a start's id)
+export const DEFAULT_STILL_S = 3; // a new soft goal area: the robot must stand still on it for so many seconds
 
 const TEXT: { [lang: string]: { [key: string]: string } } = {
     en: {
@@ -182,6 +195,18 @@ const TEXT: { [lang: string]: { [key: string]: string } } = {
         kind_obstacle: 'Obstacle',
         kind_line: 'Line',
         kind_wall: 'Wall',
+        titleLevel: 'Level',
+        groupLevel: 'Start and areas',
+        startLevel: 'Start: click where the robot starts (a level has one start)',
+        goalLevel: 'Goal area: touching it beats the level',
+        softGoal: 'Soft goal area: the robot beats the level if it stands still on it',
+        failLevel: 'Fail area: touching it loses the level',
+        hintStartLevel: 'Click where the robot starts: the level\'s start moves there. Turn it with its round handle (Select).',
+        lastStartLevel: 'A level has one start: move it (drag it, or use the start tool).',
+        failOnHit: 'bumping into it loses the level',
+        soft: 'soft: the robot must stand still on it',
+        still: 'for',
+        seconds: 's',
     },
     de: {
         title: 'Simulationswelt',
@@ -266,6 +291,18 @@ const TEXT: { [lang: string]: { [key: string]: string } } = {
         kind_obstacle: 'Hindernis',
         kind_line: 'Linie',
         kind_wall: 'Wand',
+        titleLevel: 'Level',
+        groupLevel: 'Start und Bereiche',
+        startLevel: 'Start: klicke dorthin, wo der Roboter startet (ein Level hat einen Start)',
+        goalLevel: 'Zielbereich: wer ihn berührt, schafft das Level',
+        softGoal: 'Weicher Zielbereich: der Roboter schafft das Level, wenn er darauf stillsteht',
+        failLevel: 'Fehlerbereich: wer ihn berührt, verliert das Level',
+        hintStartLevel: 'Klicke dorthin, wo der Roboter startet: der Start des Levels kommt dorthin. Dreh ihn an seinem runden Griff (Auswählen).',
+        lastStartLevel: 'Ein Level hat einen Start: verschiebe ihn (zieh ihn, oder nimm das Start-Werkzeug).',
+        failOnHit: 'wer dagegen fährt, verliert das Level',
+        soft: 'weich: der Roboter muss darauf stillstehen',
+        still: 'für',
+        seconds: 's',
     },
 };
 
@@ -286,6 +323,14 @@ const ICONS: { [name: string]: string } = {
         '" stroke-width="2" stroke-dasharray="3 2"/><path d="M8 12 L11 15 L16 9" fill="none" stroke="' +
         SIM.COLORS.goal +
         '" stroke-width="2"/>',
+    softGoal:
+        '<g opacity="' +
+        SIM.SOFT_OPACITY +
+        '"><rect x="4" y="4" width="16" height="16" fill="#cfe9d5" stroke="' +
+        SIM.COLORS.goal +
+        '" stroke-width="2" stroke-dasharray="3 2"/><path d="M8 12 L11 15 L16 9" fill="none" stroke="' +
+        SIM.COLORS.goal +
+        '" stroke-width="2"/></g>',
     fail: '<rect x="4" y="4" width="16" height="16" fill="#f6d2d1" stroke="' + SIM.COLORS.fail + '" stroke-width="2" stroke-dasharray="3 2"/><path d="M9 9 L15 15 M15 9 L9 15" stroke="' + SIM.COLORS.fail + '" stroke-width="2"/>',
     zoomIn: '<circle cx="10" cy="10" r="6" fill="none" stroke="currentColor" stroke-width="2"/><path d="M14.5 14.5 L20 20 M7 10 H13 M10 7 V13" stroke="currentColor" stroke-width="2"/>',
     zoomOut: '<circle cx="10" cy="10" r="6" fill="none" stroke="currentColor" stroke-width="2"/><path d="M14.5 14.5 L20 20 M7 10 H13" stroke="currentColor" stroke-width="2"/>',
@@ -372,11 +417,24 @@ export class SimEditor {
     // so the browser's dblclick (which needs the same element twice) doesn't always come
     private needsFit = false; // fit the view as soon as the window has a size
     private resizeFrame = 0;
+    private mode: string; // tests (a simulation world of the Tests tab) | level (the Level designer)
+    private prefix: string; // of the ids in the picture (patterns, filters): each editor on the page has its own
 
-    constructor(root: HTMLElement, host: EditorHost) {
+    constructor(root: HTMLElement, host: EditorHost, mode: 'tests' | 'level' = 'tests') {
         this.root = root;
         this.host = host;
+        this.mode = mode;
+        this.prefix = mode === 'level' ? 'lvl' : 'e';
         this.build();
+    }
+
+    private isLevel(): boolean {
+        return this.mode === 'level';
+    }
+
+    /** the text of a tool or title: a level's own, if it has one */
+    private modeText(key: string): string {
+        return this.isLevel() && TEXT.en[key + 'Level'] !== undefined ? this.text(key + 'Level') : this.text(key);
     }
 
     // -------------------------------------------------------------------------------------------- the window
@@ -392,6 +450,7 @@ export class SimEditor {
         const root = this.root;
         root.innerHTML = '';
         root.classList.add('nepoSim');
+        root.classList.toggle('nepoSimLevel', this.isLevel());
         this.none = html('div', 'nepoSimNone', root);
         this.body = html('div', 'nepoSimBody', root);
         const head = html('div', 'nepoSimHead', this.body);
@@ -407,7 +466,7 @@ export class SimEditor {
             return html('div', 'nepoSimGroupButtons', outer);
         };
         let g: HTMLElement;
-        for (const tools of TOOL_GROUPS) {
+        for (const tools of this.isLevel() ? LEVEL_TOOL_GROUPS : TOOL_GROUPS) {
             g = group(tools.label);
             tools.tools.forEach((tool) => this.iconButton(g, tool, ICONS[tool], () => this.setTool(tool)));
         }
@@ -420,6 +479,7 @@ export class SimEditor {
         this.iconButton(g, 'redo', ICONS.redo, () => this.redo());
         this.iconButton(g, 'remove', ICONS.remove, () => this.removeSelected());
         g = group();
+        g.style.display = this.isLevel() ? 'none' : ''; // the Level designer has the whole tab
         this.iconButton(g, 'wide', ICONS.wide, () => {
             document.getElementById('tests') && document.getElementById('tests').classList.toggle('nepoSimWide');
             window.dispatchEvent(new Event('resize'));
@@ -454,6 +514,9 @@ export class SimEditor {
         this.status = html('div', 'nepoSimStatus', this.body);
         this.testsTitle = html('div', 'nepoSimTestsTitle', this.body);
         this.testList = html('ul', 'nepoSimTests', this.body);
+        if (this.isLevel()) {
+            [runRow, this.replayInfo, this.testsTitle, this.testList].forEach((e) => (e.style.display = 'none')); // a level has no tests
+        }
         this.setLanguage(this.lang);
         this.show(null, null, '');
     }
@@ -486,7 +549,7 @@ export class SimEditor {
         Object.keys(this.buttons).forEach((name) => {
             const b = this.buttons[name];
             if (b.classList.contains('nepoSimIcon')) {
-                b.title = this.text(name);
+                b.title = this.modeText(name);
             }
         });
         this.buttons.run.textContent = this.text('run');
@@ -517,7 +580,7 @@ export class SimEditor {
 
     setTitle(name: string): void {
         this.name = name || '';
-        this.title.textContent = this.text('title') + ': ' + this.name;
+        this.title.textContent = this.modeText('title') + (this.name ? ': ' + this.name : '');
     }
 
     /** shows a world (null: no simulation world selected) */
@@ -971,7 +1034,7 @@ export class SimEditor {
         const isStart = this.selected.indexOf(START) === 0;
         const id = isStart ? this.selected.substring(START.length) : this.selected;
         if (isStart && world.starts.length <= 1) {
-            this.showMessage(this.text('lastStart'), true);
+            this.showMessage(this.modeText('lastStart'), true);
             return;
         }
         const thing = isStart ? this.startById(id) : this.item(id);
@@ -991,7 +1054,7 @@ export class SimEditor {
     private setTool(tool: string): void {
         this.finishDrawing(true);
         this.tool = tool;
-        TOOLS.forEach((t) => this.buttons[t].classList.toggle('active', t === tool));
+        TOOLS.forEach((t) => this.buttons[t] && this.buttons[t].classList.toggle('active', t === tool));
         this.canvas.setAttribute('data-tool', tool);
         this.updateHint();
     }
@@ -1007,13 +1070,20 @@ export class SimEditor {
     }
 
     private updateHint(): void {
-        const key = { select: 'hintSelect', start: 'hintStart', line: 'hintLine', curve: 'hintLine', wall: 'hintWall', wallCurve: 'hintWall', goal: 'hintArea', fail: 'hintArea' }[this.tool] || 'hintShape';
-        this.hint.textContent = this.text(key);
+        const key =
+            { select: 'hintSelect', start: 'hintStart', line: 'hintLine', curve: 'hintLine', wall: 'hintWall', wallCurve: 'hintWall', goal: 'hintArea', softGoal: 'hintArea', fail: 'hintArea' }[
+                this.tool
+            ] || 'hintShape';
+        this.hint.textContent = this.modeText(key);
     }
 
     // -------------------------------------------------------------------------------------------- properties
 
-    /** the name of the selected start or item (the tests' blocks show it; fail areas have none), and the look of a selected line or wall */
+    /**
+     * the name of the selected start or item (the tests' blocks show it; fail areas have none), and the look of a selected line or wall; in a
+     * level: whether an obstacle or a wall loses the level when the robot bumps into it, whether a goal area is soft and for how long the robot
+     * must stand still on it
+     */
     private renderProps(): void {
         const props = this.props;
         props.innerHTML = '';
@@ -1041,46 +1111,66 @@ export class SimEditor {
             }
             this.commit(before);
         });
-        if (!item || item.kind !== 'line') {
+        if (!item) {
             return;
         }
-        const check = (key: string, label: string) => {
+        const check = (label: string, checked: boolean, change: (on: boolean) => void) => {
             const l = html('label', '', props);
             const c = html('input', '', l);
             c.type = 'checkbox';
-            c.checked = !!(item as any)[key];
+            c.checked = checked;
             l.appendChild(document.createTextNode(' ' + label));
             c.addEventListener('change', () => {
                 const before = this.snapshot();
-                (item as any)[key] = c.checked;
+                change(c.checked);
                 this.commit(before);
             });
         };
-        check('smooth', this.text('curved'));
-        if ((item.points || []).length > 2) {
-            check('closed', this.text('closed'));
+        const number = (label: string, unit: string, value: number, min: number, max: number, step: number, change: (v: number) => void) => {
+            const l = html('label', '', props);
+            l.appendChild(document.createTextNode(label + ' '));
+            const input = html('input', 'nepoSimNumber', l);
+            input.type = 'number';
+            input.min = String(min);
+            input.max = String(max);
+            input.step = String(step);
+            input.value = String(round(value));
+            l.appendChild(document.createTextNode(' ' + unit));
+            input.addEventListener('keydown', (e: KeyboardEvent) => e.stopPropagation());
+            input.addEventListener('change', () => {
+                const before = this.snapshot();
+                change(Math.max(min, Math.min(max, Number(input.value) || value)));
+                this.commit(before);
+            });
+        };
+        if (this.isLevel() && item.role === 'obstacle') {
+            check(this.text('failOnHit'), !!item.failOnHit, (on) => (on ? (item.failOnHit = true) : delete item.failOnHit));
         }
-        const l = html('label', '', props);
-        l.appendChild(document.createTextNode(this.text('width') + ' '));
-        const w = html('input', 'nepoSimNumber', l);
-        w.type = 'number';
-        w.min = '0.5';
-        w.max = '5';
-        w.step = '0.1';
+        if (this.isLevel() && item.role === 'goal' && item.kind !== 'line') {
+            check(this.text('soft'), !!item.soft, (on) => (on ? (item.soft = { still: DEFAULT_STILL_S }) : delete item.soft));
+            if (item.soft) {
+                number(this.text('still'), this.text('seconds'), item.soft.still || DEFAULT_STILL_S, 0.5, 60, 0.5, (v) => (item.soft.still = v));
+            }
+        }
+        if (item.kind !== 'line') {
+            return;
+        }
+        check(this.text('curved'), !!item.smooth, (on) => (item.smooth = on));
+        if ((item.points || []).length > 2) {
+            check(this.text('closed'), !!item.closed, (on) => (item.closed = on));
+        }
         const width = SIM.isWall(item) ? SIM.WALL_WIDTH_CM : SIM.LINE_WIDTH_CM;
-        w.value = String(round(item.width || width));
-        l.appendChild(document.createTextNode(' ' + this.text('cm')));
-        w.addEventListener('change', () => {
-            const v = Math.max(0.5, Math.min(5, Number(w.value) || width));
-            const before = this.snapshot();
-            item.width = v;
-            this.commit(before);
-        });
+        number(this.text('width'), this.text('cm'), item.width || width, 0.5, 5, 0.1, (v) => (item.width = v));
     }
 
     /** the selected test: how its run went, and what each of its checks found */
     private renderStatus(): void {
         if (!this.status || !this.data) {
+            return;
+        }
+        if (this.isLevel()) {
+            this.status.className = 'nepoSimStatus';
+            this.status.textContent = ''; // a level has no tests
             return;
         }
         const test = this.test();
@@ -1196,7 +1286,7 @@ export class SimEditor {
         const svg = el('svg', { class: 'nepoSimSvg', tabindex: 0 });
         this.canvas.appendChild(svg);
         this.svg = svg;
-        svg.innerHTML = SIM.defs('e');
+        svg.innerHTML = SIM.defs(this.prefix);
         el('rect', { x: -5000, y: -5000, width: 10000, height: 10000, fill: SIM.COLORS.outside }, svg);
         ['ground', 'world', 'runPath', 'infrared', 'robot', 'replayRobot', 'overlay'].forEach(
             (name) => (this.layers[name] = el('g', { class: 'nepoSim_' + name }, svg))
@@ -1221,8 +1311,8 @@ export class SimEditor {
         if (!this.data) {
             return;
         }
-        this.layers.ground.innerHTML = SIM.groundSvg(this.data.world, 'e');
-        this.layers.world.innerHTML = SIM.worldSvg(this.data.world, 'e');
+        this.layers.ground.innerHTML = SIM.groundSvg(this.data.world, this.prefix);
+        this.layers.world.innerHTML = SIM.worldSvg(this.data.world, this.prefix);
         this.renderOverlay();
         this.renderProps();
         this.renderStatus();
@@ -1247,13 +1337,13 @@ export class SimEditor {
         const ir = SIM.infrared(world, shown[0], shown[1], shown[2]);
         for (const s of world.starts) {
             const g = el('g', { transform: SIM.robotTransform(s.x, s.y, s.heading), opacity: s === active && !replay ? 1 : 0.4 }, starts);
-            g.innerHTML = SIM.robotSvg('e', s === active && !replay ? light : this.lightAt(s.x, s.y, s.heading));
+            g.innerHTML = SIM.robotSvg(this.prefix, s === active && !replay ? light : this.lightAt(s.x, s.y, s.heading));
         }
         this.layers.infrared.innerHTML = SIM.infraredSvg(world, shown[0], shown[1], shown[2], this.data.view ? this.data.view.scale : 4);
         const g = this.layers.replayRobot;
         if (replay) {
             g.setAttribute('transform', SIM.robotTransform(replay[0], replay[1], replay[2]));
-            g.innerHTML = SIM.robotSvg('e', light, this.ledsAt(run, this.replayT));
+            g.innerHTML = SIM.robotSvg(this.prefix, light, this.ledsAt(run, this.replayT));
             g.style.display = '';
         } else {
             g.innerHTML = '';
@@ -1380,7 +1470,7 @@ export class SimEditor {
             return;
         }
         const scale = this.data.view.scale;
-        SIM.shadowSizes(this.svg, 'e', scale);
+        SIM.shadowSizes(this.svg, this.prefix, scale);
         const lengths = [1, 5, 10, 20, 50, 100, 200];
         let cm = lengths[lengths.length - 1];
         for (const l of lengths) {
@@ -1544,8 +1634,12 @@ export class SimEditor {
         if (this.tool === 'start') {
             const before = this.snapshot();
             const world = this.data.world;
-            const start = { id: newId('st'), name: SIM.nextStartName(world), x: round(p[0]), y: round(p[1]), heading: this.activeStart().heading };
-            world.starts.push(start);
+            let start = { id: newId('st'), name: SIM.nextStartName(world), x: round(p[0]), y: round(p[1]), heading: this.activeStart().heading };
+            if (this.isLevel()) {
+                start = Object.assign(world.starts[0], { x: start.x, y: start.y }); // a level has one start
+            } else {
+                world.starts.push(start);
+            }
             this.selected = START + start.id;
             this.setTool('select');
             this.commit(before);
@@ -1554,6 +1648,7 @@ export class SimEditor {
         const shape = SHAPE_TOOLS[this.tool];
         if (shape) {
             const item = this.newShape(shape[0], shape[1], p);
+            this.tool === 'softGoal' && (item.soft = { still: DEFAULT_STILL_S });
             this.beginDrag(e, { kind: 'create', item: item, anchor: p, before: this.snapshot(), moved: false });
             this.data.world.items.push(item);
             return;
@@ -1688,7 +1783,7 @@ export class SimEditor {
 
     /** a light re-render while dragging */
     private renderEdit(): void {
-        this.layers.world.innerHTML = SIM.worldSvg(this.data.world, 'e');
+        this.layers.world.innerHTML = SIM.worldSvg(this.data.world, this.prefix);
         this.renderSensorsOfRobots();
         this.renderOverlay();
     }

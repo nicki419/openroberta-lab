@@ -93,7 +93,8 @@ public class ServerStarter {
             OptionSpec<String> serverDefineOpt = parser.acceptsAll(asList("d", "server-property")).withRequiredArg().ofType(String.class);
             OptionSpec<String> pluginDefineOpt = parser.acceptsAll(asList("D", "plugin-property")).withRequiredArg().ofType(String.class);
             OptionSet options = parser.parse(args);
-            List<String> serverDefines = serverDefineOpt.values(options);
+            List<String> serverDefines = new ArrayList<>(EnvFile.serverDefines(new File(EnvFile.FILE_NAME), System.getenv())); // -d overrides them
+            serverDefines.addAll(serverDefineOpt.values(options));
             List<String> pluginDefines = pluginDefineOpt.values(options);
 
             final ServerStarter serverStarter = new ServerStarter("classpath:/openRoberta.properties", serverDefines);

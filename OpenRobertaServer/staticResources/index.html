@@ -447,6 +447,11 @@ limitations under the License.
                             <span class='menuTab'>Tests</span>
                         </a>
                     </li>
+                    <li class='nav-item hidden'>
+                        <a class='nav-link mainTab' data-bs-toggle='tab' href='#levels' id='tabLevels' role='tab'>
+                            <span class='menuTab'>Level designer</span>
+                        </a>
+                    </li>
                     <li class='nav-item hidden mainTab tabLinkNN'>
                         <a class='nav-link' data-bs-toggle='tab' href='#nn' id='tabNN'>
                             <span class='menuTab' lkey='Blockly.Msg.TAB_NN'>Neural Network</span>&nbsp;
@@ -1215,6 +1220,10 @@ limitations under the License.
                 </div>
                 <div id='testsSimPane' style='display: none;'></div>
             </div>
+        </div>
+        <div class='tab-pane fade' id='levels'>
+            <div id='levelsEditor'></div>
+            <div id='levelsSide'></div>
         </div>
 
         <div class='tab-pane fade' id='nn' style='display: none;'>

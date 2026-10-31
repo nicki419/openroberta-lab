@@ -23,3 +23,5 @@ OpenRobertaServer/db-*
 dbIptoCountry/
 **/notifications.json
 **/data/test/output/*
+# the Lab's settings for the levels and the study (see .env.example); not in git
+.env

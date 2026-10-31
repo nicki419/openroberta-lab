@@ -565,6 +565,10 @@ function setView(view) {
         // the test suite belongs to the program: the program menu (save, export, ...) stays available
         $('#head-navigation-configuration-edit').css('display', 'none');
         $('#head-navigation-program-edit').css('display', 'inline');
+    } else if (view === 'tabLevels') {
+        // the Level designer works on files: the program menu stays as it is
+        $('#head-navigation-configuration-edit').css('display', 'none');
+        $('#head-navigation-program-edit').css('display', 'inline');
     } else if (view === 'tabSourceCodeEditor') {
         $('#head-navigation-configuration-edit').css('display', 'none');
         $('#head-navigation-program-edit').css('display', 'inline');
@@ -898,6 +902,11 @@ function getServerVersion() {
 
 function isPublicServerVersion() {
     return GUISTATE.server.isPublic;
+}
+
+/** the Level designer tab is shown (LEVEL_DESIGNER in the server's .env) */
+function isLevelDesignerOn() {
+    return !!(GUISTATE.server.levels && GUISTATE.server.levels.designer);
 }
 
 function getUserName() {
@@ -1238,6 +1247,7 @@ export {
     setStartWithoutPopup,
     getServerVersion,
     isPublicServerVersion,
+    isLevelDesignerOn,
     getUserName,
     getUserAccountName,
     isUserAccountActivated,

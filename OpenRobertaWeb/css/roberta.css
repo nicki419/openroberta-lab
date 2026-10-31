@@ -489,6 +489,88 @@ body.blocklyMinimalBody * {
     flex-direction: column;
 }
 
+/* the Level designer tab (levels.controller.ts): the world editor in level mode, the level's texts and files beside it */
+#levels {
+    position: relative;
+    height: 100%;
+}
+
+#levelsEditor {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    right: 340px;
+    display: flex;
+    flex-direction: column;
+    padding: 6px 10px;
+}
+
+#levelsSide {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 340px;
+    overflow-y: auto;
+    padding: 8px 12px;
+    background: #fff;
+    border-left: 1px solid #ccc;
+}
+
+.nepoLevelFiles {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 6px;
+}
+
+.nepoLevelRepo {
+    width: 100%;
+    margin-bottom: 6px;
+}
+
+.nepoLevelMessage.error {
+    color: #b02a24;
+    margin-bottom: 6px;
+}
+
+.nepoLevelField {
+    display: block;
+    margin-bottom: 8px;
+}
+
+.nepoLevelField > span:first-child {
+    display: block;
+    font-weight: bold;
+}
+
+.nepoLevelField input[type='number'] {
+    display: inline-block;
+    width: 7em;
+}
+
+.nepoLevelUnit {
+    margin-left: 4px;
+}
+
+.nepoLevelProblems {
+    padding-left: 18px;
+}
+
+.nepoLevelProblem {
+    color: #b02a24;
+}
+
+.nepoLevelOk {
+    color: #1f8f3a;
+}
+
+.nepoLevelHelp {
+    color: #777;
+    font-size: 12px;
+}
+
 .nepoSimNone {
     color: #777;
     padding: 12px 2px;

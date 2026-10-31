@@ -15,7 +15,9 @@
  * the same with role 'obstacle' (a wall: an obstacle of that shape, width cm thick), {id, name, kind: 'rect', role, x, y, w, h} (top left
  * corner), {id, name, kind: 'circle', role, x, y, r}, {id, name, kind: 'triangle', role, points}; role obstacle | color (a coloured area, with
  * color: a hex colour; drawn before 2026-10-30, the editor no longer makes them) | goal | fail (fail areas have no names: a test checks
- * that the robot touches none of them). Obstacles are always the simulator's cyan
+ * that the robot touches none of them). A level (the Program tab's simulator, levels/level.model) is a world with one start and two things
+ * the tests don't use: a goal area can be soft ({soft: {still: s}}: touching it wins only if the robot stands still on it for s seconds;
+ * drawn lighter), and an obstacle or a wall can lose the level when the robot bumps into it ({failOnHit: true}; drawn red). Obstacles are always the simulator's cyan
  * (an older colour is ignored). The tests' blocks refer to starts and items by their ids, and show their names.
  * Version 2 (one simulation test per world, until 2026-10-26) had one start and the test's recorded path: the start becomes start A.
  */
@@ -35,6 +37,8 @@ export interface SimItem {
     w?: number;
     h?: number;
     r?: number;
+    soft?: { still?: number }; // a level's soft goal area: touching it wins only when its conditions hold too (still: the robot stands still for so many s)
+    failOnHit?: boolean; // a level's obstacle or wall: bumping into it loses the level
 }
 
 export interface SimStart {
@@ -100,6 +104,8 @@ export const IR_MAX_LENGTH = 9; // units
 export const IR_RAYS = [-Math.PI / 8, -Math.PI / 16, 0, Math.PI / 16, Math.PI / 8];
 export const LED_POINT = [16.5, 4.5]; // EdisonLeds; the left one at -y
 export const OBSTACLE_COLOR = '#33B8CA';
+export const FAIL_OBSTACLE_COLOR = '#E0533F'; // a level's obstacle that loses the level when the robot bumps into it
+export const SOFT_OPACITY = 0.5; // a level's soft goal area: the goal area's look, lighter
 export const COLOR_AREA_COLOR = '#FBED00';
 // the test's own things
 export const LINE_WIDTH_CM = 4.44 / UNITS_PER_CM; // the black core of simpleBackgroundEdison's track
@@ -193,6 +199,16 @@ export function newItemName(world: SimWorld, item: SimItem, word: (kind: string)
 }
 
 /** the areas a test can touch (goal, fail and coloured areas; not lines or obstacles) */
+/** a level's soft goal area: touching it wins only when its conditions hold too */
+export function isSoft(item: SimItem): boolean {
+    return item.role === 'goal' && item.kind !== 'line' && !!item.soft;
+}
+
+/** the colour of an obstacle or a wall: a level's obstacle that loses the level when the robot bumps into it is red */
+export function obstacleColor(item: SimItem): string {
+    return item.failOnHit ? FAIL_OBSTACLE_COLOR : OBSTACLE_COLOR;
+}
+
 export function isArea(item: SimItem): boolean {
     return item.kind !== 'line' && (item.role === 'goal' || item.role === 'fail' || item.role === 'color');
 }
@@ -762,13 +778,13 @@ export function worldSvg(world: SimWorld, prefix: string): string {
     }
     for (const item of items) {
         if (item.kind !== 'line' && item.role === 'obstacle') {
-            svg += shapeSvg(item, 'fill="' + OBSTACLE_COLOR + '" filter="url(#' + prefix + 'obstacleShadow)"' + id(item));
+            svg += shapeSvg(item, 'fill="' + obstacleColor(item) + '" filter="url(#' + prefix + 'obstacleShadow)"' + id(item));
         } else if (isWall(item) && (item.points || []).length >= 2) {
             svg +=
                 '<path d="' +
                 linePathD(item) +
                 '" fill="none" stroke="' +
-                OBSTACLE_COLOR +
+                obstacleColor(item) +
                 '" stroke-width="' +
                 n(item.width || WALL_WIDTH_CM) +
                 '" stroke-linecap="round" stroke-linejoin="round" filter="url(#' +
@@ -781,7 +797,8 @@ export function worldSvg(world: SimWorld, prefix: string): string {
     for (const item of items) {
         if (item.kind !== 'line' && (item.role === 'goal' || item.role === 'fail')) {
             const color = item.role === 'goal' ? COLORS.goal : COLORS.fail;
-            svg += shapeSvg(item, 'fill="url(#' + prefix + item.role + ')" stroke="' + color + '" stroke-width="0.35" stroke-dasharray="1.2 0.8"' + id(item));
+            const soft = isSoft(item) ? ' opacity="' + SOFT_OPACITY + '"' : '';
+            svg += shapeSvg(item, 'fill="url(#' + prefix + item.role + ')" stroke="' + color + '" stroke-width="0.35" stroke-dasharray="1.2 0.8"' + soft + id(item));
         }
     }
     return svg;
@@ -908,7 +925,7 @@ export function thumbnail(data: SimData, width: number, height: number, floor: H
                 ctx.beginPath();
                 ctx.moveTo(u(poly[0][0]), u(poly[0][1]));
                 poly.slice(1).forEach((p) => ctx.lineTo(u(p[0]), u(p[1])));
-                ctx.strokeStyle = OBSTACLE_COLOR;
+                ctx.strokeStyle = obstacleColor(item);
                 ctx.lineWidth = (item.width || WALL_WIDTH_CM) * UNITS_PER_CM;
                 ctx.lineCap = 'round';
                 ctx.lineJoin = 'round';
@@ -920,14 +937,16 @@ export function thumbnail(data: SimData, width: number, height: number, floor: H
             }
             shape(item);
             if (item.role === 'obstacle') {
-                ctx.fillStyle = OBSTACLE_COLOR;
+                ctx.fillStyle = obstacleColor(item);
                 ctx.fill();
             } else {
+                ctx.globalAlpha = isSoft(item) ? SOFT_OPACITY : 1;
                 ctx.fillStyle = item.role === 'goal' ? 'rgba(31, 143, 58, 0.35)' : 'rgba(208, 49, 45, 0.35)';
                 ctx.fill();
                 ctx.lineWidth = 2;
                 ctx.strokeStyle = item.role === 'goal' ? COLORS.goal : COLORS.fail;
                 ctx.stroke();
+                ctx.globalAlpha = 1;
             }
         }
         for (const st of world.starts) {

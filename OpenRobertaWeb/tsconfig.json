@@ -335,6 +335,12 @@
       "tests.controller": [
         "app/roberta/controller/tests.controller"
       ],
+      "level.model": [
+        "app/levels/level.model"
+      ],
+      "levels.controller": [
+        "app/roberta/controller/levels.controller"
+      ],
       "wires": [
         "app/configVisualization/wires"
       ],
