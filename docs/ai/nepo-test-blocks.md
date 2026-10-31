@@ -230,8 +230,8 @@ sync:** the field and input names below are the contract between them.
 | `nepoTest_test` | *test* [name] *given / when / then*, *this test should* [pass ▾ / fail] | `NAME`, `SHOULD` (`pass`, `fail`); statements `GIVEN`, `WHEN`, `THEN` | one test (`name`, `block_id`, `origin: "blocks"`; `should: "fail"`) |
 | `nepoTest_world` | *simulation world* [name], a picture of its world, *tests* | `NAME`; statement `TESTS` (`nepoTest_simcase`; until 2026-10-30 also `RULES`, see above); **the world is the block's `data`** (JSON, §5); the picture is a `FieldImage` without a value, drawn asynchronously (a PNG of the floor, the objects and the robot at its starts) | nothing itself: its tests (`simulation.world_block_id`, `world_name`, `world`); the rules of an older file are copied into each test's `checks` with `"rule": true` |
 | `nepoTest_simcase` | ☑ *test* [name] / *set up:* (olive) *the robot starts at* [A ▾] / (set-up blocks) / *run: the program* [for ▾ / until the robot touches] [area ▾] *, at most* [5] *s* / *check:* (cyan) (checks) | `ACTIVE` (checkbox, `TRUE`/`FALSE`), `NAME`, `START` (a start's id), `MODE` (`for`, `until`), `UNTIL` (an area's id; shown only for `until`), `SECONDS` (one decimal, at least 0.1); statements `SETUP` (clap, key, variable only: the simulator has no IR remote and no IR messages), `CHECKS` | a test of the world (`simulation` with `start`, `until`, `checks`; `max_time_ms`, `globals`, `world` events; `skip: true` when unticked; no `should`: every test of a world should pass, and a saved `SHOULD` is ignored) |
-| `nepoTest_check_reaches` | *the robot reaches* [area ▾] | `AREA` (an area's id, or `ANY`: any goal area) | `{"check": "reaches", "item"}` |
-| `nepoTest_check_never_touches` | *the robot never touches* [area ▾] | `AREA` (or `ANY`: any fail area) | `{"check": "never_touches", "item"}` |
+| `nepoTest_check_reaches` | *the robot reaches* [area ▾] | `AREA` (a goal area's id, or `ANY`: any goal area; the menu offers goal areas only, as do *ends in* and *until*) | `{"check": "reaches", "item"}` |
+| `nepoTest_check_never_touches` | *the robot never touches a fail area* | none: fail areas have no names, the check is about all of them | `{"check": "never_touches"}` |
 | `nepoTest_check_ends_in` | *at the end, the robot is completely in* [area ▾] | `AREA` | `{"check": "ends_in", "item"}` |
 | `nepoTest_check_never_bumps` | *the robot never bumps into* [obstacle ▾] | `OBSTACLE` (the id of an obstacle or a wall drawn in the world, or `ANY`: anything, the floor's border too) | `{"check": "never_bumps", "item"}` |
 | `nepoTest_check_does` | *from* [100] *ms on, the robot always* [turns left ▾] | `AFTER` (ms), `DOES`: `drives_forward`, `drives_backward`, `turns_left`, `turns_right`, `stands_still`, `left_led_on`, `left_led_off`, `right_led_on`, `right_led_off`, `leds_on`, `leds_off` (both), `plays_sound`, `silent` | `{"check": "does", "does", "after_ms"}` |
@@ -531,7 +531,7 @@ name [halfway]                                    the selected start's, goal are
 line tracker white (87 %) · LLIGHT 87 % · RLIGHT 76 % · obstacle: none
 [▶ Run test] [▶▶ Run all] [▶ Replay] [————————o—] 7.4 / 7.4 s
 ✓ passed: the run ended at its area after 7.4 s
-✓ the robot never touched "Shortcut"
+✓ the robot never touched a fail area
 ✓ the robot reached "Finish" after 7.4 s
 Tests in this world
 ✓ (A) follows the track to the finish          (selected)
@@ -547,8 +547,9 @@ chose what an object is and changed a selected one).
   its round handle, in steps of 15°; Shift turns it freely. The *start* tool (the second) adds a start where you
   click, named with the next free letter. A world keeps at least one start.
 - **Names:** a selected start, goal area or obstacle gets a name field; the tests' blocks show the names. New ones are
-  named by their kind ("Goal 1", "Obstacle 2", "Wall 1"). The picture shows the goal areas' names. Fail areas have no
-  name field (the blocks call them "Fail area 1", …, or by a name from an older world).
+  named by their kind ("Goal 1", "Obstacle 2", "Wall 1"). The picture shows the goal areas' names. **Fail areas have
+  no names** and are in no dropdown: *the robot never touches a fail area* is about all of them, and reports say "a
+  fail area".
 - **Deleting what a test uses:** the start or item goes; the tests that used it show a warning on their block, and the
   panel names them. Undo brings it back.
 - **Lines:** *Line* (straight segments) and *Curve* (smooth through the points) draw a line to follow, like the

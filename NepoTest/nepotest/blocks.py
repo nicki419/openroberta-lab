@@ -18,7 +18,7 @@ The blocks (all types start with `nepoTest_`; the frontend defines them in nepoT
                                         until 2026-10-30) is ignored.
   CHECK (in CHECKS; AREA, OBSTACLE: an item's id, or ANY)
     nepoTest_check_reaches        AREA        the robot touches the area (ANY: any goal area) at some time
-    nepoTest_check_never_touches  AREA        ... never (ANY: any fail area)
+    nepoTest_check_never_touches              the robot never touches a fail area (fail areas have no names)
     nepoTest_check_ends_in        AREA        the whole robot is in the area at the end
     nepoTest_check_never_bumps    OBSTACLE    the robot never bumps into it (an obstacle or a wall; ANY: anything, the edge of
                                               the floor too)
@@ -674,6 +674,8 @@ def _check(b, world, problems, rule=False, program=None):
         return _behaviour(b, kind, check, problems)
     if kind == 'variable':
         return _variable_check(b, check, program, problems)
+    if kind == 'never_touches':
+        return check  # any fail area: fail areas have no names
     field = 'OBSTACLE' if kind == 'never_bumps' else 'AREA'
     item = b.fields.get(field) or ''
     roles = ('obstacle',) if kind == 'never_bumps' else SIM.AREA_ROLES
@@ -753,7 +755,9 @@ def _translate_simcase(test_block, world_block, program, problems):
     if not sim['checks']:
         problems.add(test_block, 'test "%s" checks nothing: put checks into it (or rules into its world)' % name, 'warning')
     if not invalid and SIM.start_pose(world, sim['start']) is not None:
-        checked = set(c['item'] for c in sim['checks'] if c.get('item') and c['check'] in ('reaches', 'never_touches'))
+        checked = set(c['item'] for c in sim['checks'] if c.get('item') and c['check'] == 'reaches')
+        if any(c['check'] == 'never_touches' for c in sim['checks']):
+            checked |= set(i.get('id') for i in world.get('items') or [] if i.get('role') == 'fail' and i.get('kind') != 'line')
         checked |= set([sim['until']]) if 'until' in sim else set()
         for _, message, severity in SIM.start_problems(world, sim['start'], checked):
             problems.add(test_block, 'test "%s": %s' % (name, message), severity)

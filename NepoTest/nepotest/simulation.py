@@ -531,7 +531,9 @@ def start_pose(world_data, start_id=None):
 
 
 def item_name(world_data, item):
-    """an item's name: its own, or its kind and number ("Goal 2"), as the blocks show it"""
+    """an item's name: its own, or its kind and number ("Goal 2"), as the blocks show it; fail areas have none ("Fail area")"""
+    if item.get('role') == 'fail' and item.get('kind') != 'line':
+        return 'Fail area'
     if item.get('name'):
         return item['name']
     def kind_of(i):
@@ -1051,8 +1053,8 @@ def start_problems(world_data, start_id=None, checked=()):
     names = dict((i.get('id'), item_name(world_data, i)) for i in world_data.get('items') or [])
     for shape in world.goals + world.fails + world.colors:
         if shape.id in checked and world.touching(poly, [shape]) is not None:
-            problems.append((shape.id, 'the robot starts on "%s", which the test checks: move the start or the area'
-                             % names.get(shape.id, shape.id), 'warning'))
+            what = 'a fail area' if shape.role == 'fail' else '"%s"' % names.get(shape.id, shape.id)
+            problems.append((shape.id, 'the robot starts on %s, which the test checks: move the start or the area' % what, 'warning'))
     return problems
 
 

@@ -524,6 +524,17 @@ class SimulationWorldTest(unittest.TestCase):
         self.assertEqual(len(found), 4, found)
         self.assertTrue(all(any(word in p for p in found) for word in ('after_ms', 'percent', 'within_ms', 'only numbers')), found)
 
+    def test_fail_areas_have_no_names(self):
+        """"never touches" is about every fail area (they have no names), and a start on one is warned about"""
+        named = dict(FAIL, name='Ditch')
+        self.assertEqual(SIM.item_name({'items': [named]}, named), 'Fail area')
+        tests = case_xml('t1', 'stays out', checks=check_xml('never_touches', 'c1', 'f'))
+        spec, problems = translate(suite_of(world_xml(course(named), tests=tests)))
+        self.assertEqual((problems, spec['tests'][0]['simulation']['checks']), ([], [{'check': 'never_touches', 'block_id': 'c1'}]))
+        on_start = dict(FAIL, x=150, y=100)  # start A is in the middle
+        _, problems = translate(suite_of(world_xml(course(on_start), tests=tests)))
+        self.assertIn('test "stays out": the robot starts on a fail area, which the test checks: move the start or the area', messages(problems, 'warning'))
+
     def test_walls(self):
         """a wall: a line with the role obstacle, an obstacle of its shape (the editor's wall tools)"""
         wall = {'id': 'w1', 'kind': 'line', 'role': 'obstacle', 'points': [[170, 80], [170, 120]], 'width': 2}

@@ -538,10 +538,10 @@ no `expect`. (Until 2026-10-26, a simulation test had a world of its own, and it
                         {"id": "B", "name": "B", "x": 49.87, "y": 39.25, "heading": -84.2}],
              "items": [{"id": "obstacle", "name": "Obstacle", "kind": "rect", "role": "obstacle", "x": 64.07, "y": 50.74, "w": 9.63, "h": 9.63},
                        {"id": "finish", "name": "Finish", "kind": "circle", "role": "goal", "x": 28, "y": 67.5, "r": 3.5},
-                       {"id": "shortcut", "name": "Shortcut", "kind": "rect", "role": "fail", "x": 55, "y": 28, "w": 10, "h": 10}]},
+                       {"id": "shortcut", "kind": "rect", "role": "fail", "x": 55, "y": 28, "w": 10, "h": 10}]},
    "start": "A",
    "until": "finish",
-   "checks": [{"check": "never_touches", "item": "shortcut"},
+   "checks": [{"check": "never_touches"},
               {"check": "reaches", "item": "finish"}]}}
 ```
 
@@ -555,7 +555,7 @@ no `expect`. (Until 2026-10-26, a simulation test had a world of its own, and it
 | Check | Holds if | `item` |
 |---|---|---|
 | `reaches` | the robot's outline touches the area at some time | an area; none: any goal area |
-| `never_touches` | it never touches the area | an area; none: any fail area |
+| `never_touches` | it never touches the area | none: any fail area (the Tests tab makes only these: fail areas have no names); an area |
 | `ends_in` | the whole outline is in the area when the run ends | an area |
 | `never_bumps` | it never bumps into the obstacle (its wheels are turned back, as in the simulator) | an obstacle or a wall; none: anything, the edge of the floor too |
 | `does` | from `after_ms` (default 100) on, in every frame, the robot does `does` | – |
@@ -678,7 +678,7 @@ block out with a warning, and the Tests tab drops it when it loads a suite.
 - `leds`: `[[t, left, right], …]`;
 - `bumps`: the frames in which the robot pushed against something.
 
-Failures: one per failed check, `expect: "simulation"`, a message in words ("the robot touched "Shortcut" after
+Failures: one per failed check, `expect: "simulation"`, a message in words ("the robot touched a fail area after
 2.1 s"; a rule's starts with "rule:"), `check_block_id`, `facts` and `why`.
 
 **Why a check failed** (`why`, `nepoTest.simVerdict.ts`; rules in `nepo-test-blocks.md` §5): `{kind, parts}`, `kind`
@@ -728,7 +728,7 @@ What the sensors see, on the other hand, *is* a picture: the simulator's sensors
   it curves left (10 % / 40 %), on white it curves right (40 % / 10 %). Its function `toTheWall()` drives until the
   obstacle detection sees something ahead, and stops.
 - **The suite:** `line_follower_with_tests.xml` has the world "Edison track" with two starts; both tests check that
-  the robot never touches "Shortcut" (a fail area beside the track).
+  the robot never touches a fail area (there is one beside the track).
   `line_follower.tests.json` is the same suite as JSON (the command line runs only its third test). In the Tests tab,
   its three tests pass:
   - from start A, until it touches the goal area "Finish": it reaches it (7.4 s);

@@ -478,7 +478,7 @@ let nextRobotId = 9000000;
 /** the name of an item of the world, for the reports (in English, as NepoTest's) */
 function nameOf(world: SIM.SimWorld, id: string): string {
     const item = world.items.filter((i) => i.id === id)[0];
-    return item ? '"' + SIM.itemName(world, item, (kind) => KIND_WORDS[kind] || kind) + '"' : '"' + id + '"';
+    return item ? SIM.quotedName(world, item, (kind) => KIND_WORDS[kind] || kind) : '"' + id + '"';
 }
 
 /** what a check of a test checks, in words */

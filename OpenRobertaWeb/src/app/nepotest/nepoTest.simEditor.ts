@@ -1137,7 +1137,7 @@ export class SimEditor {
     private factsList(facts: PROGRAM.Facts): HTMLElement {
         const name = (id: string) => {
             const item = this.item(id);
-            return item ? '"' + SIM.itemName(this.data.world, item, (k) => this.kindWord(k)) + '"' : id;
+            return item ? SIM.quotedName(this.data.world, item, (k) => this.kindWord(k)) : id;
         };
         return PROGRAM.factsElement(facts, 'nepoFacts', name, (block) => this.chip(block));
     }

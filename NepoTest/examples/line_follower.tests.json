@@ -47,7 +47,6 @@
       },
       {
        "id": "shortcut",
-       "name": "Shortcut",
        "kind": "rect",
        "role": "fail",
        "x": 55,
@@ -62,8 +61,7 @@
     "until": "finish",
     "checks": [
      {
-      "check": "never_touches",
-      "item": "shortcut"
+      "check": "never_touches"
      },
      {
       "check": "reaches",
@@ -116,7 +114,6 @@
       },
       {
        "id": "shortcut",
-       "name": "Shortcut",
        "kind": "rect",
        "role": "fail",
        "x": 55,
@@ -131,8 +128,7 @@
     "until": "finish",
     "checks": [
      {
-      "check": "never_touches",
-      "item": "shortcut"
+      "check": "never_touches"
      },
      {
       "check": "reaches",

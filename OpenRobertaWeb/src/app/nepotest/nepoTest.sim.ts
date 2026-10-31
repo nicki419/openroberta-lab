@@ -14,7 +14,8 @@
  * items: {id, name, kind: 'line', points: [[x, y], ...], smooth, closed, width} (the test's addition, drawn like the background's track),
  * the same with role 'obstacle' (a wall: an obstacle of that shape, width cm thick), {id, name, kind: 'rect', role, x, y, w, h} (top left
  * corner), {id, name, kind: 'circle', role, x, y, r}, {id, name, kind: 'triangle', role, points}; role obstacle | color (a coloured area, with
- * color: a hex colour; drawn before 2026-10-30, the editor no longer makes them) | goal | fail. Obstacles are always the simulator's cyan
+ * color: a hex colour; drawn before 2026-10-30, the editor no longer makes them) | goal | fail (fail areas have no names: a test checks
+ * that the robot touches none of them). Obstacles are always the simulator's cyan
  * (an older colour is ignored). The tests' blocks refer to starts and items by their ids, and show their names.
  * Version 2 (one simulation test per world, until 2026-10-26) had one start and the test's recorded path: the start becomes start A.
  */
@@ -164,13 +165,21 @@ export function itemKind(item: SimItem): string {
     return isWall(item) ? 'wall' : item.kind === 'line' ? 'line' : item.role;
 }
 
-/** an item's name; an item without one (from the simulator's scene, or older data) is called by its kind and number, "Goal 2" */
+/** an item's name; an item without one (from the simulator's scene, or older data) is called by its kind and number, "Goal 2". Fail areas have no names: "Fail area" */
 export function itemName(world: SimWorld, item: SimItem, word: (kind: string) => string): string {
+    if (item.role === 'fail' && item.kind !== 'line') {
+        return word('fail');
+    }
     if (item.name) {
         return item.name;
     }
     const same = world.items.filter((i) => itemKind(i) === itemKind(item));
     return word(itemKind(item)) + ' ' + (same.indexOf(item) + 1);
+}
+
+/** an item as reports and facts name it (in English): its name in quotes; a fail area, which has none: a fail area */
+export function quotedName(world: SimWorld, item: SimItem, word: (kind: string) => string): string {
+    return item.role === 'fail' && item.kind !== 'line' ? 'a fail area' : '"' + itemName(world, item, word) + '"';
 }
 
 /** the name of a new item: its kind's word and the first free number, "Goal 1", "Goal 2" */

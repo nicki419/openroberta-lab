@@ -82,8 +82,8 @@ const MESSAGES: { [lang: string]: { [key: string]: string } } = {
         NEPOTEST_CHECK: 'check:',
         NEPOTEST_CHECK_REACHES: 'the robot reaches',
         NEPOTEST_CHECK_REACHES_TOOLTIP: 'Holds if the robot touches this area at some time during the run.',
-        NEPOTEST_CHECK_NEVER_TOUCHES: 'the robot never touches',
-        NEPOTEST_CHECK_NEVER_TOUCHES_TOOLTIP: 'Fails as soon as the robot touches this area. The run goes on: every check is checked.',
+        NEPOTEST_CHECK_NEVER_TOUCHES: 'the robot never touches a fail area',
+        NEPOTEST_CHECK_NEVER_TOUCHES_TOOLTIP: 'Fails as soon as the robot touches a fail area. The run goes on: every check is checked.',
         NEPOTEST_CHECK_ENDS_IN: 'at the end, the robot is completely in',
         NEPOTEST_CHECK_ENDS_IN_TOOLTIP: 'Holds if the whole robot is inside this area when the run ends.',
         NEPOTEST_CHECK_NEVER_BUMPS: 'the robot never bumps into',
@@ -131,7 +131,6 @@ const MESSAGES: { [lang: string]: { [key: string]: string } } = {
         NEPOTEST_EVENT_LINE_END: 'it stops seeing the line',
         NEPOTEST_EVENT_OBSTACLE: 'an obstacle appears',
         NEPOTEST_ANY_GOAL: 'any goal area',
-        NEPOTEST_ANY_FAIL: 'any fail area',
         NEPOTEST_ANYTHING: 'anything (the edge of the floor too)',
         NEPOTEST_KIND_GOAL: 'Goal',
         NEPOTEST_KIND_FAIL: 'Fail area',
@@ -330,8 +329,8 @@ const MESSAGES: { [lang: string]: { [key: string]: string } } = {
         NEPOTEST_CHECK: 'prüfen:',
         NEPOTEST_CHECK_REACHES: 'der Roboter erreicht',
         NEPOTEST_CHECK_REACHES_TOOLTIP: 'Stimmt, wenn der Roboter diese Fläche irgendwann während der Fahrt berührt.',
-        NEPOTEST_CHECK_NEVER_TOUCHES: 'der Roboter berührt nie',
-        NEPOTEST_CHECK_NEVER_TOUCHES_TOOLTIP: 'Scheitert, sobald der Roboter diese Fläche berührt. Die Fahrt geht weiter: jede Prüfung wird geprüft.',
+        NEPOTEST_CHECK_NEVER_TOUCHES: 'der Roboter berührt nie einen Fehlerbereich',
+        NEPOTEST_CHECK_NEVER_TOUCHES_TOOLTIP: 'Scheitert, sobald der Roboter einen Fehlerbereich berührt. Die Fahrt geht weiter: jede Prüfung wird geprüft.',
         NEPOTEST_CHECK_ENDS_IN: 'am Ende ist der Roboter ganz in',
         NEPOTEST_CHECK_ENDS_IN_TOOLTIP: 'Stimmt, wenn der ganze Roboter am Ende der Fahrt in dieser Fläche ist.',
         NEPOTEST_CHECK_NEVER_BUMPS: 'der Roboter stößt nie an',
@@ -379,7 +378,6 @@ const MESSAGES: { [lang: string]: { [key: string]: string } } = {
         NEPOTEST_EVENT_LINE_END: 'dem Verlieren der Linie',
         NEPOTEST_EVENT_OBSTACLE: 'dem Auftauchen eines Hindernisses',
         NEPOTEST_ANY_GOAL: 'irgendeinen Zielbereich',
-        NEPOTEST_ANY_FAIL: 'irgendeinen Fehlerbereich',
         NEPOTEST_ANYTHING: 'irgendetwas (auch den Rand des Bodens)',
         NEPOTEST_KIND_GOAL: 'Ziel',
         NEPOTEST_KIND_FAIL: 'Fehlerbereich',
@@ -758,14 +756,12 @@ function startMenu(this: any): string[][] {
     return worldOptions(this, (world) => world.starts.map((s) => [s.name, s.id]));
 }
 
-/** the areas of the world (goal, fail and coloured areas), those with `role` first; with "any ... area" first if anyKey is given */
-function areaMenu(role: string, anyKey?: string): (this: any) => string[][] {
+/** the goal areas of the world (fail areas have no names: a test checks them all), with "any goal area" first if anyKey is given */
+function goalMenu(anyKey?: string): (this: any) => string[][] {
     return function (this: any) {
-        return worldOptions(this, function (world) {
-            const areas = world.items.filter(SIM.isArea);
-            const sorted = areas.filter((i) => i.role === role).concat(areas.filter((i) => i.role !== role));
-            return (anyKey ? [[msg(anyKey), ANY_ITEM]] : []).concat(sorted.map((i) => [SIM.itemName(world, i, kindWord), i.id]));
-        });
+        return worldOptions(this, (world) =>
+            (anyKey ? [[msg(anyKey), ANY_ITEM]] : []).concat(world.items.filter((i) => SIM.isArea(i) && i.role === 'goal').map((i) => [SIM.itemName(world, i, kindWord), i.id]))
+        );
     };
 }
 
@@ -1100,7 +1096,7 @@ const DEFINITIONS: { [type: string]: any } = {
                     ),
                     'MODE'
                 )
-                .appendField(new Blockly.FieldDropdown(areaMenu('goal')), 'UNTIL')
+                .appendField(new Blockly.FieldDropdown(goalMenu()), 'UNTIL')
                 .appendField(msg('NEPOTEST_AT_MOST_COMMA'), 'AT_MOST')
                 .appendField(decimal(5), 'SECONDS')
                 .appendField(msg('NEPOTEST_SECONDS'));
@@ -1124,7 +1120,7 @@ const DEFINITIONS: { [type: string]: any } = {
     nepoTest_check_reaches: {
         init: function () {
             checkBlock(this, 'NEPOTEST_CHECK_REACHES_TOOLTIP');
-            this.appendDummyInput().appendField(msg('NEPOTEST_CHECK_REACHES')).appendField(new Blockly.FieldDropdown(areaMenu('goal', 'NEPOTEST_ANY_GOAL')), 'AREA');
+            this.appendDummyInput().appendField(msg('NEPOTEST_CHECK_REACHES')).appendField(new Blockly.FieldDropdown(goalMenu('NEPOTEST_ANY_GOAL')), 'AREA');
         },
         onchange: function (event: any) {
             followWorld(this, event);
@@ -1133,7 +1129,7 @@ const DEFINITIONS: { [type: string]: any } = {
     nepoTest_check_never_touches: {
         init: function () {
             checkBlock(this, 'NEPOTEST_CHECK_NEVER_TOUCHES_TOOLTIP');
-            this.appendDummyInput().appendField(msg('NEPOTEST_CHECK_NEVER_TOUCHES')).appendField(new Blockly.FieldDropdown(areaMenu('fail', 'NEPOTEST_ANY_FAIL')), 'AREA');
+            this.appendDummyInput().appendField(msg('NEPOTEST_CHECK_NEVER_TOUCHES')); // any fail area: they have no names
         },
         onchange: function (event: any) {
             followWorld(this, event);
@@ -1142,7 +1138,7 @@ const DEFINITIONS: { [type: string]: any } = {
     nepoTest_check_ends_in: {
         init: function () {
             checkBlock(this, 'NEPOTEST_CHECK_ENDS_IN_TOOLTIP');
-            this.appendDummyInput().appendField(msg('NEPOTEST_CHECK_ENDS_IN')).appendField(new Blockly.FieldDropdown(areaMenu('goal')), 'AREA');
+            this.appendDummyInput().appendField(msg('NEPOTEST_CHECK_ENDS_IN')).appendField(new Blockly.FieldDropdown(goalMenu()), 'AREA');
         },
         onchange: function (event: any) {
             followWorld(this, event);
@@ -2093,7 +2089,7 @@ export function toolbox(): string {
         cat(
             'NEPOTEST_CHECKS',
             b('nepoTest_check_reaches', f('AREA', ANY_ITEM)) +
-                b('nepoTest_check_never_touches', f('AREA', ANY_ITEM)) +
+                b('nepoTest_check_never_touches') +
                 b('nepoTest_check_ends_in') +
                 b('nepoTest_check_never_bumps', f('OBSTACLE', ANY_ITEM)) +
                 b('nepoTest_check_does', f('DOES', 'turns_left')) +

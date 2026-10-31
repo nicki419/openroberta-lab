@@ -355,7 +355,7 @@ function factsItem(facts: SIMPROGRAM.Facts, worldBlockId: string): any {
     const world = worldBlock ? SIM.parseData(worldBlock.data).world : null;
     const name = function (id: string) {
         const item = world && world.items.filter((i) => i.id === id)[0];
-        return item ? '"' + SIM.itemName(world, item, BLOCKS.kindWord) + '"' : id;
+        return item ? SIM.quotedName(world, item, BLOCKS.kindWord) : id;
     };
     return $('<li class="nepoTestFactsItem"></li>').append(SIMPROGRAM.factsElement(facts, 'nepoFacts', name, programChip));
 }
