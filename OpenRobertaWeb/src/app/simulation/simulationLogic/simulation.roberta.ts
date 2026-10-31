@@ -17,7 +17,7 @@ import * as HUEBEE from 'huebee';
 // @ts-ignore
 import * as Blockly from 'blockly';
 import * as NN_CTRL from 'nn.controller';
-import { IObservableSimulationObject, SimulationScene } from 'simulation.scene';
+import { ILevelHost, IObservableSimulationObject, SimulationScene } from 'simulation.scene';
 import { SelectionListener } from 'robot.base';
 import {
     BaseSimulationObject,
@@ -61,6 +61,7 @@ export class SimulationRoberta implements Simulation {
     private TILE_SIZE: number = 90;
     private EV_WALL_SIZE: number = 10;
     private _configType: string = 'std'; // to distinguish between "rcj" and "std"
+    levelHost: ILevelHost = null; // the levels of the Program tab's simulator (levels.player, Edison)
 
     private constructor() {}
 
@@ -206,6 +207,7 @@ export class SimulationRoberta implements Simulation {
         if (this.allInterpretersTerminated()) {
             typeof this.callbackOnEnd === 'function' && this.callbackOnEnd();
             console.log('END of Sim');
+            this.level() && this.level().ended();
         }
         // only reset mobile robots, because currently all non mobile real "robots" do not reset their actuators when the program is executed
         this.scene.robots.forEach((robot) => {
@@ -689,7 +691,16 @@ export class SimulationRoberta implements Simulation {
     }
 
     resetPose() {
+        if (this.level()) {
+            this.level().restart(); // "Restart level"
+            return;
+        }
         this.scene.resetPoseAndDrawings();
+    }
+
+    /** the level played, if this robot plays levels (levels.player) */
+    level(): ILevelHost {
+        return this.levelHost && this.levelHost.active(this.robotType) ? this.levelHost : null;
     }
 
     resetRenderUntil(num: number) {
@@ -834,6 +845,7 @@ export class SimulationRoberta implements Simulation {
     }
 
     stopProgram(): void {
+        this.level() && this.level().stopped();
         this.interpreters.forEach((interpreter) => {
             interpreter.removeHighlights();
             interpreter.terminate();

@@ -148,6 +148,7 @@ require.config({
         'nepoTest.simVerdict': 'js/app/nepotest/nepoTest.simVerdict',
         'tests.controller': 'js/app/roberta/controller/tests.controller',
         'level.model': 'js/app/levels/level.model',
+        'levels.player': 'js/app/levels/levels.player',
         'levels.controller': 'js/app/roberta/controller/levels.controller',
     },
     shim: {
@@ -324,6 +325,7 @@ require([
     'robotBlock',
     'tests.controller',
     'levels.controller',
+    'levels.player',
     'startView.controller',
     //start connections
     'connection.interface',
@@ -373,6 +375,7 @@ require([
     robotBlock = require('robotBlock');
     testsController = require('tests.controller');
     levelsController = require('levels.controller');
+    levelsPlayer = require('levels.player');
     startViewController = require('startView.controller');
     connectionController = require('connection.controller');
     aceEditor = require('aceEditor');
@@ -439,6 +442,7 @@ function initProgramming(robot, extensions, opt_callback, opt_params) {
             progInfoController.init();
             progCodeController.init();
             progSimController.createProgSimInstance();
+            levelsPlayer.init();
             progSimController.createProgSimDebugInstance();
             progSimController.createProgSimMultiInstance();
             progRunController.init();

@@ -81,18 +81,21 @@ function seconds(ms: number): string {
 const NO_SCENE = { sim: { enableChangeObjectButtons() {}, disableChangeObjectButtons() {} } }; // what the objects call on their scene
 let nextObjectId = 7000000; // the simulator's own objects count from 0: their mouse handlers on #robotLayer are never touched
 
-/** a rect, circle or triangle of the world as the simulator's object; without the mouse handlers it puts on the simulator's canvas */
-function simObject(item: SIM.SimItem, type: SimObjectType, listener: SelectionListener): any {
+/**
+ * a rect, circle or triangle of the world as the simulator's object; without the mouse handlers it puts on the simulator's canvas. The scene: a
+ * dummy (a test's run has none), or the Program tab's (a level, levels.player); the colour: an obstacle's (else the simulator's)
+ */
+function simObject(item: SIM.SimItem, type: SimObjectType, listener: SelectionListener, scene: any = NO_SCENE, obstacleColor?: string): any {
     const id = nextObjectId++;
-    const color = (item.role === 'color' && item.color) || undefined; // obstacles: the simulator's colour
+    const color = (item.role === 'color' && item.color) || obstacleColor || undefined; // obstacles: the simulator's colour
     let object: any;
     if (item.kind === 'rect') {
-        object = new RectangleSimulationObject(id, NO_SCENE, listener, type, { x: u(item.x), y: u(item.y) }, null, color, item.w * SIM.UNITS_PER_CM, item.h * SIM.UNITS_PER_CM);
+        object = new RectangleSimulationObject(id, scene, listener, type, { x: u(item.x), y: u(item.y) }, null, color, item.w * SIM.UNITS_PER_CM, item.h * SIM.UNITS_PER_CM);
     } else if (item.kind === 'circle') {
-        object = new CircleSimulationObject(id, NO_SCENE, listener, type, { x: u(item.x), y: u(item.y) }, null, color, item.r * SIM.UNITS_PER_CM);
+        object = new CircleSimulationObject(id, scene, listener, type, { x: u(item.x), y: u(item.y) }, null, color, item.r * SIM.UNITS_PER_CM);
     } else {
         const p = item.points.map((q) => [u(q[0]), u(q[1])]);
-        object = new TriangleSimulationObject(id, NO_SCENE, listener, type, { x: 0, y: 0 }, null, color, p[0][0], p[0][1], p[1][0], p[1][1], p[2][0], p[2][1]);
+        object = new TriangleSimulationObject(id, scene, listener, type, { x: 0, y: 0 }, null, color, p[0][0], p[0][1], p[1][0], p[1][1], p[2][0], p[2][1]);
     }
     object.removeMouseEvents();
     return object;
@@ -102,10 +105,13 @@ function isShape(item: SIM.SimItem): boolean {
     return item.kind === 'rect' || item.kind === 'circle' || (item.kind === 'triangle' && (item.points || []).length === 3);
 }
 
-/** the simulator's obstacles of an item: one for a rect, circle or triangle; for a wall, two triangles per piece and a circle at each point */
-function obstaclesOf(item: SIM.SimItem, listener: SelectionListener): any[] {
+/**
+ * the simulator's obstacles of an item: one for a rect, circle or triangle; for a wall, two triangles per piece and a circle at each point. A
+ * level (levels.player) gives the Program tab's scene and the obstacle's colour
+ */
+export function obstaclesOf(item: SIM.SimItem, listener: SelectionListener, scene?: any, color?: string): any[] {
     if (!SIM.isWall(item)) {
-        return isShape(item) ? [simObject(item, SimObjectType.Obstacle, listener)] : [];
+        return isShape(item) ? [simObject(item, SimObjectType.Obstacle, listener, scene, color)] : [];
     }
     if ((item.points || []).length < 2) {
         return [];
@@ -114,7 +120,7 @@ function obstaclesOf(item: SIM.SimItem, listener: SelectionListener): any[] {
     const parts: SIM.SimItem[] = [];
     pieces.polygons.forEach((q) => parts.push({ id: item.id, kind: 'triangle', role: 'obstacle', points: [q[0], q[1], q[2]] }, { id: item.id, kind: 'triangle', role: 'obstacle', points: [q[0], q[2], q[3]] }));
     pieces.circles.forEach((c) => parts.push({ id: item.id, kind: 'circle', role: 'obstacle', x: c[0], y: c[1], r: c[2] }));
-    return parts.map((part) => simObject(part, SimObjectType.Obstacle, listener));
+    return parts.map((part) => simObject(part, SimObjectType.Obstacle, listener, scene, color));
 }
 
 /**

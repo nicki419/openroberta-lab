@@ -6,13 +6,15 @@
  * - the world is drawn with the Tests tab's world editor in level mode (nepoTest.simEditor): one start, goal areas, soft goal areas, fail
  *   areas, lines, obstacles and walls (in their properties: whether bumping into them loses the level)
  * - beside it: the level's title, instructions and time limit; what is wrong with it (no goal area, the robot starts on something); the
- *   files: new, open a file, open a level of the levels folder, download
+ *   files: new, open a file, open a level of the levels folder, download; "Try in simulator" plays it in the Program tab's simulator
+ *   (levels.player) with the program there
  * - the level being drawn is kept in the browser (localStorage), so a reload doesn't lose it
  */
 import * as GUISTATE_C from 'guiState.controller';
 import * as UTIL from 'util.roberta';
 import * as $ from 'jquery';
 import * as LEVEL from 'level.model';
+import * as PLAYER from 'levels.player';
 import { SimEditor } from 'nepoTest.simEditor';
 
 const DRAFT_KEY = 'nepoLevelDraft';
@@ -36,6 +38,9 @@ const TEXT: { [lang: string]: { [key: string]: string } } = {
         openRepo: 'Open a level of the levels folder…',
         download: 'Download',
         downloadTitle: 'Download the level as a file: put it into a set\'s folder in the repository\'s levels folder',
+        tryIt: 'Try in simulator',
+        tryItTitle: 'Play the level in the Program tab\'s simulator, with the program there',
+        notEdison: 'Levels are played by the Edison: choose it as the robot to try the level.',
         title: 'Title',
         instructions: 'Instructions',
         instructionsHint: 'What the learner sees beside the simulator (optional)',
@@ -65,6 +70,9 @@ const TEXT: { [lang: string]: { [key: string]: string } } = {
         openRepo: 'Ein Level des Level-Ordners öffnen…',
         download: 'Herunterladen',
         downloadTitle: 'Das Level als Datei herunterladen: lege sie in den Ordner eines Sets im Level-Ordner des Repositorys',
+        tryIt: 'In der Simulation ausprobieren',
+        tryItTitle: 'Das Level in der Simulation des Programm-Tabs spielen, mit dem Programm dort',
+        notEdison: 'Level spielt der Edison: wähle ihn als Roboter, um das Level auszuprobieren.',
         title: 'Titel',
         instructions: 'Anleitung',
         instructionsHint: 'Was die Lernenden neben der Simulation sehen (optional)',
@@ -164,6 +172,7 @@ function build(): void {
     button('newLevel', 'btn-default', () => open(LEVEL.newLevel(), ''));
     button('openFile', 'btn-default', () => ui.fileInput.click());
     button('download', 'btn-primary', download);
+    button('tryIt', 'btn-default', () => showMessage(PLAYER.tryLevel(LEVEL.parseLevel(level)) ? '' : text('notEdison'), true));
     ui.repo = html('select', 'nepoLevelRepo', side);
     ui.repo.addEventListener('change', () => {
         const id = ui.repo.value;
@@ -226,7 +235,8 @@ function setLanguage(newLang: string): void {
     }
     editor.setLanguage(lang);
     ui.heading.textContent = text('level');
-    ['newLevel', 'openFile', 'download'].forEach((name) => (ui[name].textContent = text(name)));
+    ['newLevel', 'openFile', 'download', 'tryIt'].forEach((name) => (ui[name].textContent = text(name)));
+    ui.tryIt.title = text('tryItTitle');
     ui.newLevel.title = text('newTitle');
     ui.openFile.title = text('openFileTitle');
     ui.download.title = text('downloadTitle');

@@ -37,6 +37,25 @@ export interface IObservableSimulationObject {
     notifyObservers(): void;
 }
 
+/**
+ * a level of the Program tab's simulator (levels.player, Edison): it sets up the scene (floor, obstacles, areas, the robot at its start), watches
+ * the robot in every frame and decides whether the level is beaten or lost. While a level is played, nothing in the scene can be moved or edited.
+ */
+export interface ILevelHost {
+    /** is a level played for this robot type? */
+    active(robotType: string): boolean;
+    /** the scene is loaded (run: a run of the program begins) */
+    sceneReady(scene: SimulationScene, run: boolean): void;
+    /** a frame was simulated (after the robot's actions and sensors) */
+    frame(robot: RobotBase, dt: number, running: boolean): void;
+    /** the learner stopped the program (before it is terminated) */
+    stopped(): void;
+    /** the program ended (or was stopped) */
+    ended(): void;
+    /** "Restart level" (the reset button) */
+    restart(): void;
+}
+
 export class RcjScoringTool implements IObserver {
     private MAX_TIME = 8;
     private POINTS_OBSTACLE = 20;
@@ -910,6 +929,9 @@ export class SimulationScene {
     }
 
     handleKeyEvent(e: KeyboardEvent) {
+        if (this.sim.level()) {
+            return; // a level: nothing is pasted or deleted
+        }
         if (e.key === 'v' && (e.ctrlKey || e.metaKey)) {
             this.pasteObject(this.sim.lastMousePosition);
             e.stopImmediatePropagation();
@@ -1015,26 +1037,30 @@ export class SimulationScene {
                 robot.replaceState(interpreters[index]);
                 robot.reset();
             });
-            this.showFullyLoadedSim(callbackOnLoaded);
+            this.showFullyLoadedSim(callbackOnLoaded, true);
         }
         this.robots.forEach((robot, index) => {
             robot.time = 0;
         });
     }
 
-    private showFullyLoadedSim(callbackOnLoaded: () => void) {
-        this.obstacleList.forEach((obstacle) => {
-            obstacle.removeMouseEvents();
-            obstacle.addMouseEvents();
-        });
-        this.markerList.forEach((marker) => {
-            marker.removeMouseEvents();
-            marker.addMouseEvents();
-        });
-        this.colorAreaList.forEach((colorArea) => {
-            colorArea.removeMouseEvents();
-            colorArea.addMouseEvents();
-        });
+    private showFullyLoadedSim(callbackOnLoaded: () => void, run: boolean = false) {
+        if (!this.sim.level()) {
+            // a level's things can't be moved: they get no mouse events
+            this.obstacleList.forEach((obstacle) => {
+                obstacle.removeMouseEvents();
+                obstacle.addMouseEvents();
+            });
+            this.markerList.forEach((marker) => {
+                marker.removeMouseEvents();
+                marker.addMouseEvents();
+            });
+            this.colorAreaList.forEach((colorArea) => {
+                colorArea.removeMouseEvents();
+                colorArea.addMouseEvents();
+            });
+        }
+        this.sim.levelHost && this.sim.levelHost.sceneReady(this, run);
         $('#canvasDiv').fadeIn('slow');
         $('#simDiv>.pace').fadeOut('fast');
         typeof callbackOnLoaded === 'function' && callbackOnLoaded();
@@ -1332,7 +1358,8 @@ export class SimulationScene {
             }
             //}
         });
-
+        const level = this.sim.level();
+        level && this.robots.length && level.frame(this.robots[0], dt, interpreterRunning);
         this.draw(dt, interpreterRunning);
     }
 

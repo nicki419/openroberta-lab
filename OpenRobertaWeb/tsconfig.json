@@ -338,6 +338,9 @@
       "level.model": [
         "app/levels/level.model"
       ],
+      "levels.player": [
+        "app/levels/levels.player"
+      ],
       "levels.controller": [
         "app/roberta/controller/levels.controller"
       ],

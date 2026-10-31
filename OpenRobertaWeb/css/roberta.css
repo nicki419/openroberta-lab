@@ -571,6 +571,99 @@ body.blocklyMinimalBody * {
     font-size: 12px;
 }
 
+/* the levels of the Program tab's simulator (levels.player.ts): the scene can't be edited, a bar shows the set and the level */
+#simDiv.nepoLevels #simEditButtons {
+    display: none !important;
+}
+
+#levelBar,
+#levelMessage {
+    display: none;
+}
+
+#simDiv.nepoLevels #levelBar {
+    display: block;
+    position: absolute;
+    top: 10px;
+    left: 12px;
+    right: 12px;
+    max-width: 560px;
+    z-index: 99;
+    padding: 6px 10px;
+    background: rgba(255, 255, 255, 0.92);
+    border-radius: 6px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+}
+
+.levelBarRow {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 12px;
+}
+
+.levelBarLabel {
+    margin: 0;
+    font-weight: normal;
+}
+
+.levelBarLabel select {
+    max-width: 260px;
+}
+
+.levelClock {
+    margin-left: auto;
+    font-variant-numeric: tabular-nums;
+}
+
+.levelTitle {
+    font-weight: bold;
+    margin-top: 4px;
+}
+
+.levelInstructions {
+    white-space: pre-wrap;
+    font-size: 13px;
+}
+
+#simDiv.nepoLevels #levelMessage {
+    display: block; /* hidden by its style when there is no message */
+    position: absolute;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 100;
+    min-width: 260px;
+    max-width: 80%;
+    padding: 14px 18px;
+    background: #fff;
+    border-radius: 8px;
+    border-top: 6px solid #d0312d;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+    text-align: center;
+}
+
+#simDiv.nepoLevels #levelMessage.won {
+    border-top-color: #1f8f3a;
+}
+
+.levelMessageTitle {
+    font-size: 20px;
+    font-weight: bold;
+    color: #1f8f3a;
+}
+
+.levelMessageText {
+    margin: 6px 0;
+}
+
+.levelMessageButtons {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 8px;
+}
+
 .nepoSimNone {
     color: #777;
     padding: 12px 2px;
