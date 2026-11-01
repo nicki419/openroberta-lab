@@ -47,6 +47,13 @@ function setInitToken(newInitToken) {
 }
 
 /**
+ * the init token (for a request sent another way: navigator.sendBeacon when the page is left)
+ */
+function getInitToken() {
+    return initToken;
+}
+
+/**
  * set a error fn. A error function must accept one parameter: the response.
  */
 function setErrorFn(newErrorFn) {
@@ -240,4 +247,4 @@ function showServerError(type) {
     }
     alert(message);
 }
-export { setInitToken, setErrorFn, get, json, download, xml, ping, listRobotsFromAgent, sendProgramHexToAgent, showServerError };
+export { setInitToken, getInitToken, setErrorFn, get, json, download, xml, ping, listRobotsFromAgent, sendProgramHexToAgent, showServerError };

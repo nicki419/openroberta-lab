@@ -37,12 +37,21 @@ const STILL_DEG = 1; // ... and turns less than this, from where it began to sta
 const DEFAULT_STILL_S = 3;
 const AREA_FILL = { goal: 'rgba(31, 143, 58, 0.35)', fail: 'rgba(208, 49, 45, 0.35)' };
 
-/** what the learner has done: per set the level played and the levels beaten; per level its attempts */
+/** what the learner has done: per set the level played and the levels beaten; per level its attempts and what the telemetry counts */
 export interface Progress {
     version: number;
     set: string;
     sets: { [set: string]: { current: string; beaten: string[] } };
-    levels: { [level: string]: { attempts: number } };
+    levels: { [level: string]: LevelStats };
+}
+
+/** a level's attempts, and what the telemetry counts (levels.telemetry): time, the tests there were when it was first opened, test runs */
+export interface LevelStats {
+    attempts: number;
+    activeMs?: number; // the level the current one, the page visible
+    firstOpened?: number; // when (ms since 1970)
+    testsAtStart?: string[]; // the ids of the tests then
+    testRuns?: number;
 }
 
 interface Attempt {
@@ -184,7 +193,12 @@ function loadProgress(json: string): void {
                 const s = p.sets[id] || {};
                 loaded.sets[id] = { current: typeof s.current === 'string' ? s.current : null, beaten: Array.isArray(s.beaten) ? s.beaten.filter((b: any) => typeof b === 'string') : [] };
             });
-            loaded.levels = p.levels && typeof p.levels === 'object' ? p.levels : {};
+            if (p.levels && typeof p.levels === 'object') {
+                Object.keys(p.levels).forEach((id) => {
+                    const s = p.levels[id];
+                    s && typeof s === 'object' && (loaded.levels[id] = Object.assign({}, s, { attempts: Number(s.attempts) || 0 }));
+                });
+            }
         }
     } catch (e) {
         console.warn('the progress in the levels is not readable: they start anew', e);
@@ -200,6 +214,17 @@ function progressChanged(): void {
 /** the progress (a copy) */
 export function getProgress(): Progress {
     return JSON.parse(JSON.stringify(progress));
+}
+
+/** the level played, if it is one of the sets (not one tried from the Level designer) */
+export function currentLevel(): { id: string; set: string; index: number } {
+    const c = current();
+    return c.id ? { id: c.id, set: c.set.id, index: c.index } : null;
+}
+
+/** a level's stats in the progress (to count in them; saved with the program) */
+export function levelStats(id: string): LevelStats {
+    return progress.levels[id] || (progress.levels[id] = { attempts: 0 });
 }
 
 /** tells what happens: level_opened, attempt_started, attempt_ended, set_selected (the telemetry listens) */
@@ -497,7 +522,7 @@ function beginAttempt(): void {
     const c = current();
     let n = 1;
     if (c.id) {
-        const stats = progress.levels[c.id] || (progress.levels[c.id] = { attempts: 0 });
+        const stats = levelStats(c.id);
         n = ++stats.attempts;
     }
     attempt = { n: n, decided: false, outcome: null, t: 0, still: null };

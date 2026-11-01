@@ -344,6 +344,9 @@
       "levels.autosave": [
         "app/levels/levels.autosave"
       ],
+      "levels.telemetry": [
+        "app/levels/levels.telemetry"
+      ],
       "levels.controller": [
         "app/roberta/controller/levels.controller"
       ],

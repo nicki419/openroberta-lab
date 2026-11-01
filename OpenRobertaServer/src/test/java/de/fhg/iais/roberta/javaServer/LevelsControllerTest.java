@@ -60,6 +60,28 @@ public class LevelsControllerTest {
     }
 
     @Test
+    public void telemetryIsAppendedPerParticipant() throws Exception {
+        File dir = new File(this.folder.getRoot(), "telemetry");
+        JSONArray events = new JSONArray().put(new JSONObject().put("kind", "level_opened").put("level", "01-a/01-b")).put("not an event");
+        File file = LevelsController.writeTelemetry(dir, 7, "anna.b", 42, events);
+        LevelsController.writeTelemetry(dir, 7, "anna.b", 43, new JSONArray().put(new JSONObject().put("kind", "attempt_started")));
+        Assert.assertEquals("user-7-anna_b.jsonl", file.getName());
+        java.util.List<String> lines = Files.readAllLines(file.toPath(), StandardCharsets.UTF_8);
+        Assert.assertEquals(2, lines.size());
+        JSONObject first = new JSONObject(lines.get(0));
+        Assert.assertEquals("level_opened", first.getString("kind"));
+        Assert.assertEquals("01-a/01-b", first.getString("level"));
+        Assert.assertEquals(7, first.getInt("userId"));
+        Assert.assertEquals("anna.b", first.getString("account"));
+        Assert.assertEquals(42, first.getLong("session"));
+        Assert.assertTrue(first.has("serverTime"));
+        Assert.assertEquals("attempt_started", new JSONObject(lines.get(1)).getString("kind"));
+        File anonymous = LevelsController.writeTelemetry(dir, -1, null, 9, new JSONArray().put(new JSONObject().put("kind", "set_selected")));
+        Assert.assertEquals("session-9.jsonl", anonymous.getName());
+        Assert.assertTrue(new JSONObject(Files.readAllLines(anonymous.toPath(), StandardCharsets.UTF_8).get(0)).isNull("account"));
+    }
+
+    @Test
     public void setNames() {
         Assert.assertEquals("first steps", LevelsController.setName("01-first-steps"));
         Assert.assertEquals("Mazes", LevelsController.setName("Mazes"));

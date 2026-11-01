@@ -111,6 +111,18 @@ the blocks of simulation worlds. Their code is kept, and suites that have such t
 generated EdPy under CPython with EdPy semantics: 16-bit ints, floor division, constant folding, a virtual clock, and
 latched sensors from EdPy's library. The document also lists which behaviour is verified, derived or assumed.
 
+**`docs/ai/nepo-levels.md`** documents the **levels** for a study with participants:
+- **Playing:** the Program tab's simulator (Edison) plays the level sets in `levels/` instead of its backgrounds. A level
+  is beaten by reaching a goal area, or by standing still on a soft one; it is lost by touching a fail area, bumping into
+  a red obstacle, or running out of time. Nothing in the scene can be moved, and beating a level unlocks the next.
+- **The Level designer tab:** switched on by `LEVEL_DESIGNER=true` in `.env`; it draws levels and downloads them as files.
+- **Progress:** saved inside the program XML, with autosave once the program has been saved by hand.
+- **Study telemetry:** attempts with NEPO and EdPy snapshots, time and tests per level, appended to a `.jsonl` file per
+  participant.
+
+Read it before changing the simulator's level hooks, the level format or the telemetry. `levels/README.md` is the
+designers' guide.
+
 ## Where the Edison V2 code lives (short map)
 
 | What | Where |
@@ -131,6 +143,7 @@ latched sensors from EdPy's library. The document also lists which behaviour is 
 | Frontend (TypeScript sources) | `OpenRobertaWeb/src/**` (compiles into `OpenRobertaServer/staticResources`) |
 | **NEPO unit-test framework** (Python) | `NepoTest/` (`nepotest/`, `nepotest/engine/`, `examples/`, `tests/`, `schema/`) |
 | **Tests tab** (test blocks, runner) | `OpenRobertaWeb/src/app/nepotest/*` (blocks, suite storage, runner, Web Worker, simulation world `nepoTest.sim.ts`, panel `nepoTest.simEditor.ts`, runs on the Lab's simulator `nepoTest.simRun.ts`, the record and the facts of a failure `nepoTest.simProgram.ts`, the checks of behaviour `nepoTest.simBehaviour.ts`, why a check failed `nepoTest.simVerdict.ts`), `OpenRobertaWeb/src/app/roberta/controller/tests.controller.ts`; markup in `staticResources/index.html` (`#tabTests`, `#tests`); translation `NepoTest/nepotest/blocks.py` |
+| **Levels** (simulator levels, designer, progress, telemetry) | `levels/` (sets), `OpenRobertaWeb/src/app/levels/*` (`level.model`, `levels.player`, `levels.autosave`, `levels.telemetry`), `OpenRobertaWeb/src/app/roberta/controller/levels.controller.ts` (the Level designer tab), the world editor's level mode (`nepoTest.simEditor.ts`), hooks `ILevelHost` in `simulation.scene.ts`/`simulation.roberta.ts`; server `OpenRobertaServer/…/main/EnvFile.java` (`.env`), `…/restServices/all/controller/LevelsController.java` (REST `/levels`, `/levels/telemetry`) |
 | Source map for tests (block id → EdPy ranges) | `OpenRobertaRobot/…/bean/SourceMapBean`, filled by `EdisonPythonVisitor.preVisitCheck/postVisitCheck`, served by `ProjectWorkflowRestController` `/projectWorkflow/sourceForTest`; test `OpenRobertaServer/src/test/java/…/javaServer/EdisonSourceMapTest` |
 
 `…` = `src/main/java/de/fhg/iais/roberta`. Paths are repo-relative.
@@ -186,7 +199,7 @@ python -m nepotest run examples/patrol.tests.json      # state tests (patrol_wit
 python -m nepotest run examples/line_follower.tests.json   # its simulation tests are skipped: they run in the Tests tab
 ```
 
-These passed on 2026-10-31: 144 + 8 tests, including the live-Lab tests and the schema check; the reference-compiler
+These passed on 2026-11-01: 145 + 8 tests, including the live-Lab tests and the schema check; the reference-compiler
 check last ran on 2026-10-18. Each suite has one deliberate expected failure, which shows generator quirk #14. The clap
 counter and patrol example test files each report one deliberate failure: quirk #14 (clap counter), and a square
 driven while the obstacle is still there (patrol). The line follower's file runs its BDD test and skips its two
@@ -202,6 +215,9 @@ The frontend (including the Tests tab): in `OpenRobertaWeb`, `npx tsc --noEmit -
 Reload the page; the server serves `staticResources` directly.
 
 Run the server locally: `./admin.sh -git-mode create-empty-db` once, then `./ora.sh start-from-git` → http://localhost:1999.
+The server reads `.env` in the working directory (see `.env.example`: the Level designer, the levels folder, the telemetry
+folder). Rebuilding the server jar (`mvn -o -pl OpenRobertaServer install -DskipTests`) fails while the Lab runs: it locks
+the jars in `OpenRobertaServer/target/resources`.
 On Windows use Git Bash. "Show source" works offline. Running a program on a real Edison needs the external Edison
 compile service and the EdComm audio cable.
 

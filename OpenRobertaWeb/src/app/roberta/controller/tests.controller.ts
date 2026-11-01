@@ -792,6 +792,7 @@ function simulate(testIds: string[]): void {
                 return;
             }
             simEditor.setBusy(true);
+            const counts = { passed: 0, failed: 0, error: 0, skipped: 0 };
             let chain: Promise<any> = Promise.resolve();
             answer.tests.forEach(function (test) {
                 chain = chain.then(function () {
@@ -799,6 +800,7 @@ function simulate(testIds: string[]): void {
                         throw new Error('cancelled');
                     }
                     return SIMRUN.runTest(test, xml, { cancelled: () => cancelled }).then(function (report) {
+                        counts[report.outcome] = (counts[report.outcome] || 0) + 1;
                         if (report.simulation || report.outcome === 'skipped') {
                             simEditor.showRun(test.block_id, report);
                         } else if (report.error) {
@@ -807,7 +809,10 @@ function simulate(testIds: string[]): void {
                     });
                 });
             });
-            return chain.then(() => done());
+            return chain.then(() => {
+                runFinished('simulation', counts);
+                done();
+            });
         })
         .then(null, function (err) {
             done(err.message === 'cancelled' ? text('stopped') : text('runnerFailed', err.message), true);
@@ -954,6 +959,7 @@ function runTests(): void {
                     .then(() => RUNNER.finish(simulationReports))
                     .then(function (finish) {
                         const s = finish.summary;
+                        runFinished('runner', { passed: s.passed, failed: s.failed, error: s.error, skipped: s.skipped || 0 });
                         finishRun(s.skipped ? text('doneSkipped', s.passed, s.failed, s.error, s.skipped) : text('done', s.passed, s.failed, s.error));
                         showCoverage(finish.coverage);
                     });
@@ -1104,6 +1110,36 @@ function finishRun(status: string): void {
     $('#testsStopButton').prop('disabled', true);
     $('#testsStatus').text(status);
     $('#testsResults .waiting .nepoTestOutcome').text('—');
+}
+
+// ------------------------------------------------------------------------------------------------ for the levels' telemetry (levels.telemetry)
+
+const runListeners: ((run: { from: string; passed: number; failed: number; error: number; skipped: number }) => void)[] = [];
+
+/** the tests of the suite (test blocks, and the tests of simulation worlds): their block ids and names */
+export function testInventory(): { id: string; name: string }[] {
+    if (!workspace) {
+        return [];
+    }
+    return workspace
+        .getAllBlocks()
+        .filter((b) => b.type === 'nepoTest_test' || b.type === 'nepoTest_simcase')
+        .map((b) => ({ id: b.id, name: b.getFieldValue('NAME') }));
+}
+
+/** tells when tests were run: from the Test runner or the Simulation panel, with how many passed, failed, ... */
+export function onRunFinished(listener: (run: { from: string; passed: number; failed: number; error: number; skipped: number }) => void): void {
+    runListeners.push(listener);
+}
+
+function runFinished(from: string, counts: { passed: number; failed: number; error: number; skipped: number }): void {
+    runListeners.forEach(function (listener) {
+        try {
+            listener(Object.assign({ from: from }, counts));
+        } catch (e) {
+            console.error(e);
+        }
+    });
 }
 
 export { serializeSuite, loadSuite };

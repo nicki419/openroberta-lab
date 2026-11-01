@@ -455,7 +455,11 @@ whose first block has a `nepoTest_` type. There's no database or REST change.
 | Save, save as | the program workspace XML plus the suite | `program.controller.js` `saveToServer`, `saveAsProgramToServer` → `NEPOTEST_SUITE.merge` |
 | Export, get link | the same, inside `<export><program>` | `exportXml`, `linkProgram` |
 | Load (list, gallery, import, new program, robot switch) | test instances are split off and put into the Tests tab; a program without them gets a new, empty suite | `programToBlocklyWorkspace(xml, fromShowSource, keepTests)` → `NEPOTEST_SUITE.split` / `loadTests` |
-| Reloads with a workflow result (show source, simulation, run, source editor) and re-renders (language, toolbox) | the regenerated XML has no tests, so the current suite is **kept** | `reloadProgram(result)` and `reloadView` pass `keepTests` |
+| Reloads with a workflow result (show source, simulation, run, source editor) and re-renders (language, toolbox) | the regenerated XML has no tests, so the current suite is **kept**; the program stays saved or unsaved as it was (autosave relies on it) | `reloadProgram(result)` and `reloadView` pass `keepTests` |
+
+One more instance travels the same way: the learner's progress in the simulator's levels. Its block is
+`nepoLevel_progress`, and its `data` holds the progress as JSON (`docs/ai/nepo-levels.md`). `split` returns it as
+`progress`, `merge` appends it, and `program.controller` hands it to the levels with `loadLevelProgress`.
 
 **The rules this relies on:**
 - **The program workspace never contains test blocks,** so code generation, simulation and run never see them.
