@@ -149,6 +149,7 @@ require.config({
         'tests.controller': 'js/app/roberta/controller/tests.controller',
         'level.model': 'js/app/levels/level.model',
         'levels.player': 'js/app/levels/levels.player',
+        'levels.autosave': 'js/app/levels/levels.autosave',
         'levels.controller': 'js/app/roberta/controller/levels.controller',
     },
     shim: {
@@ -326,6 +327,7 @@ require([
     'tests.controller',
     'levels.controller',
     'levels.player',
+    'levels.autosave',
     'startView.controller',
     //start connections
     'connection.interface',
@@ -376,6 +378,7 @@ require([
     testsController = require('tests.controller');
     levelsController = require('levels.controller');
     levelsPlayer = require('levels.player');
+    levelsAutosave = require('levels.autosave');
     startViewController = require('startView.controller');
     connectionController = require('connection.controller');
     aceEditor = require('aceEditor');
@@ -443,6 +446,7 @@ function initProgramming(robot, extensions, opt_callback, opt_params) {
             progCodeController.init();
             progSimController.createProgSimInstance();
             levelsPlayer.init();
+            levelsAutosave.init();
             progSimController.createProgSimDebugInstance();
             progSimController.createProgSimMultiInstance();
             progRunController.init();

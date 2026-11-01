@@ -170,9 +170,15 @@ function initEvents() {
 
 /**
  * Save program to server
+ *
+ * @param {boolean} [opt_quiet] true: an autosave (levels.autosave): no popups are closed and success isn't told, only errors
+ * @param {function} [opt_done] called with the server's answer
  */
-function saveToServer() {
-    $('.modal').modal('hide'); // close all opened popups
+function saveToServer(opt_quiet, opt_done) {
+    var quiet = opt_quiet === true;
+    if (!quiet) {
+        $('.modal').modal('hide'); // close all opened popups
+    }
     var xmlProgram = Blockly.Xml.workspaceToDom(blocklyWorkspace);
     var xmlProgramText = NEPOTEST_SUITE.merge(Blockly.Xml.domToText(xmlProgram)); // with the test suite of the Tests tab
     var isNamedConfig = !GUISTATE_C.isConfigurationStandard() && !GUISTATE_C.isConfigurationAnonymous();
@@ -191,9 +197,12 @@ function saveToServer() {
                 GUISTATE_C.setProgramTimestamp(result.lastChanged);
                 GUISTATE_C.setProgramSaved(true);
                 GUISTATE_C.setConfigurationSaved(true);
-                LOG.info('save program ' + GUISTATE_C.getProgramName());
+                LOG.info((quiet ? 'autosave program ' : 'save program ') + GUISTATE_C.getProgramName());
             }
-            MSG.displayInformation(result, 'MESSAGE_EDIT_SAVE_PROGRAM', result.message, GUISTATE_C.getProgramName());
+            if (!quiet || result.rc !== 'ok') {
+                MSG.displayInformation(result, 'MESSAGE_EDIT_SAVE_PROGRAM', result.message, GUISTATE_C.getProgramName());
+            }
+            typeof opt_done === 'function' && opt_done(result);
         }
     );
 }
@@ -573,10 +582,12 @@ function programToBlocklyWorkspace(xml, opt_fromShowSource, opt_keepTests) {
     if (!xml) {
         return;
     }
+    var wasSaved = GUISTATE_C.isProgramSaved();
     var withTests = NEPOTEST_SUITE.split(xml);
     xml = withTests.program;
     if (!opt_keepTests) {
         NEPOTEST_SUITE.loadTests(withTests.tests);
+        NEPOTEST_SUITE.loadLevelProgress(withTests.progress); // the levels of the simulator (levels.player)
     }
     listenToBlocklyEvents = false;
     blocklyWorkspace.clear();
@@ -600,7 +611,8 @@ function programToBlocklyWorkspace(xml, opt_fromShowSource, opt_keepTests) {
     var isNamedConfig = !GUISTATE_C.isConfigurationStandard() && !GUISTATE_C.isConfigurationAnonymous();
     var configName = isNamedConfig ? GUISTATE_C.getConfigurationName() : undefined;
     var xmlConfigText = GUISTATE_C.isConfigurationAnonymous() ? GUISTATE_C.getConfigurationXML() : undefined;
-    GUISTATE_C.setProgramSaved(true);
+    // a re-render (a run, show source, a tab shown) shows the same program: an unsaved one stays unsaved (else autosave misses the change)
+    GUISTATE_C.setProgramSaved(opt_keepTests ? wasSaved : true);
     var language = GUISTATE_C.getLanguage();
     if ($('#codeDiv').hasClass('rightActive') && opt_fromShowSource) {
         PROGRAM.showSourceProgram(GUISTATE_C.getProgramName(), configName, xmlProgram, xmlConfigText, language, getSSID(), getPassword(), function (result) {

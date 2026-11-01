@@ -12,6 +12,9 @@
  *   says what happened.
  * - Above the scene: the set, the level (beaten ✓, locked 🔒), its title and instructions, the time left.
  * - "Try in simulator" in the Level designer plays a level of its own (tryLevel): no progress.
+ * - The progress (per set the level played and the levels beaten, per level the attempts) is saved with the program (nepoTest.suite), once
+ *   the learner has played; loading a program brings its progress back (a program without one starts anew). A change of the progress is an
+ *   unsaved change of the program (autosave saves it: levels.autosave).
  * - Events (onEvent) tell others what happens: a level is opened, an attempt begins and ends, a set is chosen.
  */
 import * as GUISTATE_C from 'guiState.controller';
@@ -21,6 +24,7 @@ import * as $ from 'jquery';
 import * as SIM from 'nepoTest.sim';
 import * as SIMRUN from 'nepoTest.simRun';
 import * as LEVEL from 'level.model';
+import * as SUITE from 'nepoTest.suite';
 import { SimulationRoberta } from 'simulation.roberta';
 import { ILevelHost, SimulationScene } from 'simulation.scene';
 import { Ground } from 'simulation.objects';
@@ -145,6 +149,7 @@ function newProgress(): Progress {
 
 export function init(): void {
     SimulationRoberta.Instance.levelHost = host;
+    SUITE.setLevelProgress(serializeProgress, loadProgress);
     build();
     GUISTATE_C.addLanguageListener(() => renderBar());
     LEVEL.fetchSets().then(
@@ -160,6 +165,41 @@ export function init(): void {
             levelChanged();
         }
     );
+}
+
+/** the progress to save with the program (JSON), once the learner has played (else null: the program stays as it is) */
+function serializeProgress(): string {
+    return Object.keys(progress.levels).length ? JSON.stringify(progress) : null;
+}
+
+/** the progress of a loaded program (null: none, the levels start anew) */
+function loadProgress(json: string): void {
+    let loaded: Progress = null;
+    try {
+        const p = json ? JSON.parse(json) : null;
+        if (p && typeof p === 'object' && p.sets && typeof p.sets === 'object') {
+            loaded = newProgress();
+            loaded.set = typeof p.set === 'string' ? p.set : null;
+            Object.keys(p.sets).forEach((id) => {
+                const s = p.sets[id] || {};
+                loaded.sets[id] = { current: typeof s.current === 'string' ? s.current : null, beaten: Array.isArray(s.beaten) ? s.beaten.filter((b: any) => typeof b === 'string') : [] };
+            });
+            loaded.levels = p.levels && typeof p.levels === 'object' ? p.levels : {};
+        }
+    } catch (e) {
+        console.warn('the progress in the levels is not readable: they start anew', e);
+    }
+    changeLevel(() => (progress = loaded || newProgress()));
+}
+
+/** the progress changed: an unsaved change of the program (once there is progress to save) */
+function progressChanged(): void {
+    !trial && serializeProgress() && GUISTATE_C.setProgramSaved(false);
+}
+
+/** the progress (a copy) */
+export function getProgress(): Progress {
+    return JSON.parse(JSON.stringify(progress));
 }
 
 /** tells what happens: level_opened, attempt_started, attempt_ended, set_selected (the telemetry listens) */
@@ -309,6 +349,7 @@ export function selectLevel(id: string): void {
         return; // locked
     }
     changeLevel(() => (setProgress(set).current = id));
+    progressChanged();
 }
 
 export function selectSet(id: string): void {
@@ -319,6 +360,7 @@ export function selectSet(id: string): void {
         progress.set = id;
         emit('set_selected', { set: id });
     });
+    progressChanged();
 }
 
 /** "Try in simulator" (Level designer): plays a level of its own in the Program tab's simulator; false if the robot isn't an Edison */
@@ -460,6 +502,7 @@ function beginAttempt(): void {
     }
     attempt = { n: n, decided: false, outcome: null, t: 0, still: null };
     renderClock(0);
+    progressChanged();
     c.id && emit('attempt_started', { level: c.id, set: c.set.id, attempt: n });
 }
 
@@ -551,6 +594,7 @@ function decide(outcome: string, item: SIM.SimItem, stop: boolean): void {
     if (won && c.set) {
         const p = setProgress(c.set);
         p.beaten.indexOf(c.id) < 0 && p.beaten.push(c.id);
+        progressChanged();
     }
     if (['stopped', 'restarted', 'switched'].indexOf(outcome) < 0) {
         showMessage(outcome, c);

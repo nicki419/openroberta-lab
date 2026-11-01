@@ -341,6 +341,9 @@
       "levels.player": [
         "app/levels/levels.player"
       ],
+      "levels.autosave": [
+        "app/levels/levels.autosave"
+      ],
       "levels.controller": [
         "app/roberta/controller/levels.controller"
       ],

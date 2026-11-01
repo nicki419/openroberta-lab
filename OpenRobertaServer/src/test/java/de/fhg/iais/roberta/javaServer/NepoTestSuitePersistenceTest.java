@@ -62,6 +62,22 @@ public class NepoTestSuitePersistenceTest {
         Assert.assertTrue(program.contains("<field name=\"ACTIVE\">TRUE</field>"));
     }
 
+    /**
+     * the learner's progress in the levels of the Program tab's simulator is saved with the program as one more instance (nepoTest.suite)
+     */
+    @Test
+    public void testLevelProgressSurvivesImportAndLoad() throws Exception {
+        String progress = "{\"version\":1,\"set\":\"01-first-steps\",\"sets\":{\"01-first-steps\":{\"current\":\"01-first-steps/02-b\",\"beaten\":[\"01-first-steps/01-a\"]}},\"levels\":{\"01-first-steps/01-a\":{\"attempts\":3}}}";
+        String instance =
+            "<instance x=\"0\" y=\"0\"><block type=\"nepoLevel_progress\" id=\"nepoLevelProgress\" intask=\"true\"><data>"
+                + progress.replace("\"", "&quot;")
+                + "</data></block></instance>";
+        String export = Util.readResourceContent("/nepotest/line_follower_with_tests.xml").replaceFirst("</block_set>", instance + "</block_set>");
+        String program = importAndLoad(export);
+        Assert.assertEquals(progress, dataOf(program, "nepoLevel_progress", "nepoLevelProgress").replace("&quot;", "\""));
+        Assert.assertEquals(count(export, "type=\"nepoTest_"), count(program, "type=\"nepoTest_"));
+    }
+
     @Test
     public void testBlocksSurviveImportAndLoad() throws Exception {
         String export = Util.readResourceContent("/nepotest/clap_counter_with_tests.xml");
