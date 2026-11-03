@@ -5,7 +5,8 @@
  *
  * - the world is drawn with the Tests tab's world editor in level mode (nepoTest.simEditor): one start, goal areas, soft goal areas, fail
  *   areas, lines, obstacles and walls (in their properties: whether bumping into them loses the level)
- * - beside it: the level's title, instructions and time limit; what is wrong with it (no goal area, the robot starts on something); the
+ * - beside it: the level's title, instructions, time limit and floor size; what is wrong with it (no goal area, the robot starts on something,
+ *   something lies outside the floor); the
  *   files: new, open a file, open a level of the levels folder, download; "Try in simulator" plays it in the Program tab's simulator
  *   (levels.player) with the program there
  * - the level being drawn is kept in the browser (localStorage), so a reload doesn't lose it
@@ -15,6 +16,7 @@ import * as UTIL from 'util.roberta';
 import * as $ from 'jquery';
 import * as LEVEL from 'level.model';
 import * as PLAYER from 'levels.player';
+import * as SIM from 'nepoTest.sim';
 import { SimEditor } from 'nepoTest.simEditor';
 
 const DRAFT_KEY = 'nepoLevelDraft';
@@ -48,6 +50,9 @@ const TEXT: { [lang: string]: { [key: string]: string } } = {
         seconds: 's',
         noLimit: 'none',
         timeLimitHint: 'The simulator\'s time; empty: no limit',
+        floorSize: 'Floor size',
+        cm: 'cm',
+        floorSizeHint: 'Width × height in cm, {0} to {1} (usually 300 × 200). What is drawn keeps its place, measured from the top left corner.',
         problems: 'To check',
         noProblems: 'The level can be played.',
         noGoal: 'There is no goal area: the level can\'t be beaten.',
@@ -55,6 +60,7 @@ const TEXT: { [lang: string]: { [key: string]: string } } = {
         startOnGoal: 'The robot starts on a goal area: it beats the level at once.',
         startOnFail: 'The robot starts on a fail area: it loses the level at once.',
         startOnObstacle: 'The robot starts on an obstacle.',
+        itemsOutside: 'Something drawn lies (partly) outside the floor: make the floor bigger, or move it onto the floor.',
         notALevel: '"{0}" is not a level: {1}',
         noLevels: 'The levels folder has no levels.',
         levelsError: 'The levels folder can\'t be read: {0}',
@@ -80,6 +86,9 @@ const TEXT: { [lang: string]: { [key: string]: string } } = {
         seconds: 's',
         noLimit: 'keins',
         timeLimitHint: 'Die Zeit der Simulation; leer: kein Limit',
+        floorSize: 'Bodengröße',
+        cm: 'cm',
+        floorSizeHint: 'Breite × Höhe in cm, {0} bis {1} (sonst 300 × 200). Das Gezeichnete bleibt, wo es ist, gemessen von der linken oberen Ecke.',
         problems: 'Zu prüfen',
         noProblems: 'Das Level kann gespielt werden.',
         noGoal: 'Es gibt keinen Zielbereich: das Level kann nicht geschafft werden.',
@@ -87,6 +96,7 @@ const TEXT: { [lang: string]: { [key: string]: string } } = {
         startOnGoal: 'Der Roboter startet auf einem Zielbereich: er schafft das Level sofort.',
         startOnFail: 'Der Roboter startet auf einem Fehlerbereich: er verliert das Level sofort.',
         startOnObstacle: 'Der Roboter startet auf einem Hindernis.',
+        itemsOutside: 'Etwas Gezeichnetes liegt (teilweise) außerhalb des Bodens: vergrößere den Boden oder schiebe es auf den Boden.',
         notALevel: '„{0}“ ist kein Level: {1}',
         noLevels: 'Der Level-Ordner hat keine Level.',
         levelsError: 'Der Level-Ordner kann nicht gelesen werden: {0}',
@@ -222,6 +232,30 @@ function build(): void {
     ui.timeLimit.min = '1';
     ui.timeLimit.step = '1';
     ui.timeLimitUnit = html('span', 'nepoLevelUnit', limit);
+    // the floor's size: width x height (cm), taken when a field is left or Enter is pressed
+    const size = html('div', 'nepoLevelField', side);
+    ui.floorSizeLabel = html('span', '', size);
+    const sizeInput = (name: string) => {
+        const input = html('input', 'form-control nepoLevelSizeInput', size);
+        input.type = 'number';
+        input.min = String(SIM.FLOOR_MIN_CM);
+        input.max = String(SIM.FLOOR_MAX_CM);
+        input.step = '1';
+        const take = () => {
+            editor.setFloorSize(Number(ui.floorW.value), Number(ui.floorH.value));
+            renderSize(true); // the size taken (whole cm, within the limits), also when nothing changed
+        };
+        input.addEventListener('keydown', (e: KeyboardEvent) => {
+            e.stopPropagation();
+            e.key === 'Enter' && take();
+        });
+        input.addEventListener('change', take);
+        ui[name] = input;
+    };
+    sizeInput('floorW');
+    html('span', 'nepoLevelUnit', size).textContent = '×';
+    sizeInput('floorH');
+    ui.floorSizeUnit = html('span', 'nepoLevelUnit', size);
     ui.problemsTitle = html('h5', 'nepoLevelProblemsTitle', side);
     ui.problems = html('ul', 'nepoLevelProblems', side);
     ui.help = html('p', 'nepoLevelHelp', side);
@@ -247,6 +281,9 @@ function setLanguage(newLang: string): void {
     ui.timeLimit.placeholder = text('noLimit');
     ui.timeLimit.title = text('timeLimitHint');
     ui.timeLimitUnit.textContent = text('seconds');
+    ui.floorSizeLabel.textContent = text('floorSize');
+    ui.floorSizeUnit.textContent = text('cm');
+    ui.floorW.title = ui.floorH.title = text('floorSizeHint', SIM.FLOOR_MIN_CM, SIM.FLOOR_MAX_CM);
     ui.problemsTitle.textContent = text('problems');
     ui.help.textContent = text('help');
     renderRepo();
@@ -264,6 +301,7 @@ function open(newLevel: LEVEL.Level, fileName: string): void {
     ui.title.value = level.title || '';
     ui.instructions.value = level.instructions || '';
     ui.timeLimit.value = level.timeLimit > 0 ? String(level.timeLimit) : '';
+    renderSize(true);
     renderProblems();
     saveDraft();
 }
@@ -272,8 +310,18 @@ function open(newLevel: LEVEL.Level, fileName: string): void {
 function changed(data: any): void {
     level.world = data.world;
     level.view = data.view;
+    renderSize();
     renderProblems();
     saveDraft();
+}
+
+/** the floor's size in its fields (also after an undo); a field being typed into is left alone, unless its value was just taken */
+function renderSize(taken = false): void {
+    const [bw, bh] = SIM.backgroundSize(level.world);
+    [
+        [ui.floorW, bw],
+        [ui.floorH, bh],
+    ].forEach(([input, units]) => (taken || document.activeElement !== input) && (input.value = String(Math.round(units / SIM.UNITS_PER_CM))));
 }
 
 function fieldChanged(): void {

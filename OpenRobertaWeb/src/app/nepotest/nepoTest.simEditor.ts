@@ -1069,6 +1069,18 @@ export class SimEditor {
         this.fit();
     }
 
+    /** a level's peach floor gets a size of its own (cm; SIM.floorSizeOf: whole cm, within the limits); what is on it stays where it is */
+    setFloorSize(w: number, h: number): void {
+        if (!this.data || this.data.world.background !== SIM.PEACH) {
+            return;
+        }
+        const before = this.snapshot();
+        const size = SIM.floorSizeOf({ w: w, h: h });
+        size ? (this.data.world.size = size) : delete this.data.world.size;
+        this.commit(before);
+        this.fit();
+    }
+
     private updateHint(): void {
         const key =
             { select: 'hintSelect', start: 'hintStart', line: 'hintLine', curve: 'hintLine', wall: 'hintWall', wallCurve: 'hintWall', goal: 'hintArea', softGoal: 'hintArea', fail: 'hintArea' }[

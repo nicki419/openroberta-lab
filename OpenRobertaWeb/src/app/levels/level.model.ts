@@ -7,8 +7,9 @@
  *   {format: 'nepo-level', version: 1,
  *    title, instructions,            optional texts the learner sees
  *    timeLimit,                      optional: seconds of the simulator's time
- *    world: {background: 'peach', starts: [one start], items: [...]},     the world of the Tests tab (nepoTest.sim), with soft goal areas
- *    view: {x, y, scale}}            and obstacles or walls with failOnHit; the designer's zoom
+ *    world: {background: 'peach', size, starts: [one start], items: [...]},   the world of the Tests tab (nepoTest.sim), with soft goal
+ *                                    areas and obstacles or walls with failOnHit; size: optional, the floor's {w, h} in cm (none: 300 x 200)
+ *    view: {x, y, scale}}            the designer's zoom
  */
 import * as SIM from 'nepoTest.sim';
 import * as SIMRUN from 'nepoTest.simRun';
@@ -58,9 +59,9 @@ export function parseLevel(json: any): Level {
     if (raw.version > VERSION) {
         throw new Error('a newer level (version ' + raw.version + ')');
     }
-    // the world as the Tests tab reads it (starts, items, the background), on the peach floor, with one start
-    const data = SIM.parseData(JSON.stringify({ version: SIM.DATA_VERSION, world: raw.world, view: raw.view }));
-    data.world.background = SIM.PEACH;
+    // the world as the Tests tab reads it (starts, items, the floor's size), on the peach floor, with one start
+    const world = Object.assign({}, raw.world, { background: SIM.PEACH });
+    const data = SIM.parseData(JSON.stringify({ version: SIM.DATA_VERSION, world: world, view: raw.view }));
     data.world.starts = data.world.starts.slice(0, 1);
     const level: Level = { format: FORMAT, version: VERSION, title: text(raw.title), instructions: text(raw.instructions), world: data.world };
     const limit = Number(raw.timeLimit);
@@ -92,6 +93,7 @@ export function serialize(level: Level): string {
     const worldText =
         '{"background": ' +
         JSON.stringify(world.background) +
+        (world.size ? ', "size": ' + JSON.stringify(world.size) : '') +
         ',\n  "starts": ' +
         JSON.stringify(world.starts) +
         ',\n  "items": [' +
@@ -126,9 +128,22 @@ export function isSolid(item: SIM.SimItem): boolean {
     return item.kind === 'rect' || item.kind === 'circle' || (item.kind === 'triangle' && points === 3) || (SIM.isWall(item) && points >= 2);
 }
 
+/** [minX, minY, maxX, maxY] of an item (cm); a line's and a wall's by their points */
+function itemBox(item: SIM.SimItem): number[] {
+    if (item.points && item.points.length) {
+        const xs = item.points.map((p) => p[0]);
+        const ys = item.points.map((p) => p[1]);
+        return [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)];
+    }
+    if (item.kind === 'circle') {
+        return [item.x - item.r, item.y - item.r, item.x + item.r, item.y + item.r];
+    }
+    return [item.x, item.y, item.x + item.w, item.y + item.h];
+}
+
 /**
  * what is wrong with a level (keys of the designer's texts): no goal area; the robot starts outside the floor, or touches a goal area, a fail
- * area or an obstacle at its start
+ * area or an obstacle at its start; something lies (partly) outside the floor (after the floor was made smaller)
  */
 export function levelProblems(level: Level): string[] {
     const problems: string[] = [];
@@ -142,6 +157,10 @@ export function levelProblems(level: Level): string[] {
     if (box[0] < SIM.BORDER || box[1] < SIM.BORDER || box[2] > SIM.BORDER + bw || box[3] > SIM.BORDER + bh) {
         problems.push('startOutside');
     }
+    const [fw, fh] = [bw / SIM.UNITS_PER_CM, bh / SIM.UNITS_PER_CM];
+    const slack = 0.01; // cm: a point drawn on the floor's edge is on it
+    const outside = (b: number[]) => b[0] < -slack || b[1] < -slack || b[2] > fw + slack || b[3] > fh + slack;
+    world.items.some((i) => outside(itemBox(i))) && problems.push('itemsOutside');
     const touched = (role: string) => world.items.some((i) => i.role === role && isSolid(i) && SIMRUN.touches(SIMRUN.shapeOf(i), poly, box));
     touched('goal') && problems.push('startOnGoal');
     touched('fail') && problems.push('startOnFail');

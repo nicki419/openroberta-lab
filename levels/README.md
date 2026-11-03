@@ -22,6 +22,9 @@ Set `LEVEL_DESIGNER=true` in `.env` (copy `.env.example`), restart the server (`
   - a soft goal area: how long the robot must stand still on it;
   - an obstacle or a wall: whether bumping into it loses the level.
 - Give the level a title, instructions (optional) and a time limit (optional).
+- **Floor size:** width × height in cm, 50 to 600 (usually 300 × 200). What is drawn keeps its place, measured from the
+  top left corner, so shrinking the floor cuts off the right and the bottom; the list of things to check says when
+  something then lies outside the floor.
 - **Download** it and put the file into a set's folder here.
 - **Open file…** or "Open a level of the levels folder…" loads a level again to change it.
 
@@ -56,8 +59,9 @@ puts the robot back on its start.
 }
 ```
 
-- **Units:** cm from the floor's top left corner (the peach floor is 300 × 200 cm). x points right, y down, and angles
-  are degrees counterclockwise.
+- **Units:** cm from the floor's top left corner. x points right, y down, and angles are degrees counterclockwise.
+- **`size`:** the floor's size in whole cm, optional: `"world": {"background": "peach", "size": {"w": 150, "h": 100}, …}`
+  (50 to 600 each). Without it, the floor is 300 × 200 cm.
 - **`world`:** a simulation world as in the Tests tab (`OpenRobertaWeb/src/app/nepotest/nepoTest.sim.ts`).
 - **`timeLimit`:** in seconds, optional.
 - **`soft`:** the conditions of a soft goal area. For now there is one, `still` (seconds).

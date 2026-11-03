@@ -30,17 +30,24 @@ Designers' guide: `levels/README.md`. Configuration: `.env.example`.
 
 ```json
 {"format": "nepo-level", "version": 1, "title": "...", "instructions": "...", "timeLimit": 15,
- "world": {"background": "peach", "starts": [one start], "items": [...]}, "view": {...}}
+ "world": {"background": "peach", "size": {"w": 150, "h": 100}, "starts": [one start], "items": [...]}, "view": {...}}
 ```
 
 - **`world`:** the Tests tab's simulation world (`nepoTest.sim.ts`, data version 3): cm from the top left of the
-  300 × 200 cm peach floor, angles counterclockwise.
+  peach floor, angles counterclockwise.
+- **The floor's size** (`world.size`, optional; none: 300 × 200 cm, the Tests tab's floor):
+  - whole cm, `SIM.FLOOR_MIN_CM` to `SIM.FLOOR_MAX_CM` (50 to 600); `SIM.floorSizeOf` rounds and clamps, and leaves
+    300 × 200 out;
+  - `SIM.backgroundSize` gives it, so the editor, the floor sensors, the player's floor image and scene, and the Tests
+    tab's runs all follow it; `simulation.py background_size` and `validate_world` are its Python copy;
+  - the designer sets it in its panel (`SimEditor.setFloorSize`, undoable). Drawn things keep their coordinates, so a
+    smaller floor cuts off the right and the bottom.
 - **Two item fields the Tests tab doesn't make:**
   - a goal area with `soft: {still: s}` (drawn at 50 % opacity);
   - an obstacle or wall with `failOnHit: true` (drawn red, `SIM.FAIL_OBSTACLE_COLOR`).
-- **`parseLevel`** reads a level: peach floor, one start, a positive time limit or none.
-- **`levelProblems`** (shown by the designer) reports: no goal area, and a start that is outside the floor, on a goal, on
-  a fail area or on an obstacle.
+- **`parseLevel`** reads a level: peach floor (with its size), one start, a positive time limit or none.
+- **`levelProblems`** (shown by the designer) reports: no goal area; a start that is outside the floor, on a goal, on
+  a fail area or on an obstacle; and something drawn that lies (partly) outside the floor.
 - **Ids:**
   - A level's id is `<set folder>/<file name without .json>`, and progress refers to it, so don't rename levels during
     a study.

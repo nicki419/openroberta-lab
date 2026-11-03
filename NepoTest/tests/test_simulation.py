@@ -553,6 +553,17 @@ class SimulationWorldTest(unittest.TestCase):
         world['items'] = [dict(wall, role='goal'), dict(wall, id='w2', width=0)]
         self.assertEqual(len(SIM.validate_world(world, 'w')), 2)
 
+    def test_a_levels_floor_of_its_own_size(self):
+        world = SIM.default_world()
+        self.assertEqual(SIM.background_size(world), (900, 600))  # 300 x 200 cm
+        world['size'] = {'w': 150, 'h': 120}
+        self.assertEqual((SIM.background_size(world), SIM.validate_world(world, 'w')), ((450, 360), []))
+        self.assertEqual(SIM.SimWorld(world).ground, (10, 10, 460, 370))
+        self.assertEqual(SIM.background_size(dict(world, size={'w': 10, 'h': 999.6})), (150, 1800))  # within 50 to 600 cm, whole cm
+        self.assertEqual(len(SIM.validate_world(dict(world, size={'w': 10, 'h': 999.6}), 'w')), 1)
+        other = dict(world, background='drawBackground')
+        self.assertEqual((SIM.background_size(other), len(SIM.validate_world(other, 'w'))), ((700, 500), 1))  # only the peach floor
+
     def test_a_run_of_tenths_of_a_second(self):
         def length(seconds):
             case = case_xml('t1', 'short', checks=check_xml('reaches', 'c1', 'ANY')).replace('<field name="SECONDS">5</field>', '<field name="SECONDS">%s</field>' % seconds)

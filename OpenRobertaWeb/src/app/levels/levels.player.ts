@@ -409,9 +409,9 @@ function endTrial(): void {
 
 // ------------------------------------------------------------------------------------------------ the scene
 
-/** the floor: the peach floor with the level's lines (what the sensors read); an image, as the scene draws it with its src */
+/** the floor: the peach floor (the level's size) with the level's lines (what the sensors read); an image, as the scene draws it with its src */
 function floorImage(level: LEVEL.Level): Promise<HTMLImageElement> {
-    const key = JSON.stringify(level.world.items.filter((i) => SIM.isPath(i)));
+    const key = JSON.stringify([SIM.backgroundSize(level.world), level.world.items.filter((i) => SIM.isPath(i))]);
     if (!images[key]) {
         images[key] = new Promise(function (resolve, reject) {
             const [bw, bh] = SIM.backgroundSize(level.world);

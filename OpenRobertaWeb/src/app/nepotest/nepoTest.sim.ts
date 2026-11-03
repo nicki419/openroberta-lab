@@ -17,7 +17,8 @@
  * color: a hex colour; drawn before 2026-10-30, the editor no longer makes them) | goal | fail (fail areas have no names: a test checks
  * that the robot touches none of them). A level (the Program tab's simulator, levels/level.model) is a world with one start and two things
  * the tests don't use: a goal area can be soft ({soft: {still: s}}: touching it wins only if the robot stands still on it for s seconds;
- * drawn lighter), and an obstacle or a wall can lose the level when the robot bumps into it ({failOnHit: true}; drawn red). Obstacles are always the simulator's cyan
+ * drawn lighter), and an obstacle or a wall can lose the level when the robot bumps into it ({failOnHit: true}; drawn red); its peach floor
+ * can have a size of its own (world.size: {w, h} in cm, 50 to 600; none: 300 x 200, the tests' floor). Obstacles are always the simulator's cyan
  * (an older colour is ignored). The tests' blocks refer to starts and items by their ids, and show their names.
  * Version 2 (one simulation test per world, until 2026-10-26) had one start and the test's recorded path: the start becomes start A.
  */
@@ -51,6 +52,7 @@ export interface SimStart {
 
 export interface SimWorld {
     background: string;
+    size?: { w: number; h: number }; // a level's peach floor in cm (none: 300 x 200)
     starts: SimStart[];
     items: SimItem[];
 }
@@ -77,6 +79,8 @@ export const BACKGROUNDS: { [name: string]: number[] } = {
     mathBackground: [700, 500],
 }; // peach and RobotEdison.imgList; sizes in units (for the simulator's: the pixels of the images)
 export const DEFAULT_BACKGROUND = PEACH;
+export const FLOOR_MIN_CM = 50; // a level's own size of the peach floor (world.size), in whole cm
+export const FLOOR_MAX_CM = 600;
 const OBJECT_BACKGROUND = 'simpleBackgroundEdison'; // on the peach floor, a clicked object gets the size it has on the simulator's default
 export const BACKGROUND_PATH = '/css/img/simBackgrounds/';
 export const ROBOT_IMAGE = '/css/img/simulator/edison.png';
@@ -285,6 +289,8 @@ function readData(text: string): SimData {
     }
     delete data.floor; // a picture of the floor for NepoTest's copy of the simulator (until 2026-10-22): the simulator draws its own
     data.world.background = BACKGROUNDS[data.world.background] ? data.world.background : DEFAULT_BACKGROUND;
+    const size = data.world.background === PEACH ? floorSizeOf(data.world.size) : null;
+    size ? (data.world.size = size) : delete data.world.size;
     data.world.starts = Array.isArray(data.world.starts) && data.world.starts.length ? data.world.starts : defaultWorld().starts;
     data.world.items = Array.isArray(data.world.items) ? data.world.items : [];
     return data as SimData;
@@ -294,8 +300,25 @@ export function clone<T>(value: T): T {
     return JSON.parse(JSON.stringify(value));
 }
 
+/** the background's size in units; the peach floor of a level can have a size of its own */
 export function backgroundSize(world: SimWorld): number[] {
-    return BACKGROUNDS[world.background] || BACKGROUNDS[DEFAULT_BACKGROUND];
+    const size = world.background === PEACH && world.size;
+    return size ? [size.w * UNITS_PER_CM, size.h * UNITS_PER_CM] : BACKGROUNDS[world.background] || BACKGROUNDS[DEFAULT_BACKGROUND];
+}
+
+/** a size of the peach floor (world.size): whole cm from FLOOR_MIN_CM to FLOOR_MAX_CM; null for none, or for the floor's usual 300 x 200 cm */
+export function floorSizeOf(size: any): { w: number; h: number } {
+    if (!size || typeof size !== 'object') {
+        return null;
+    }
+    const cm = (v: any, usual: number) => {
+        const n = Number(v);
+        return isFinite(n) && n > 0 ? Math.max(FLOOR_MIN_CM, Math.min(FLOOR_MAX_CM, Math.round(n))) : usual;
+    };
+    const [uw, uh] = BACKGROUNDS[PEACH].map((v) => v / UNITS_PER_CM);
+    const w = cm(size.w, uw);
+    const h = cm(size.h, uh);
+    return w === uw && h === uh ? null : { w: w, h: h };
 }
 
 // ------------------------------------------------------------------------------------------------ geometry
@@ -472,7 +495,7 @@ export function backgroundUrl(name: string): string {
 /** what the floor picture (nepoTest.simRun floorCanvas) is made from: the background, the coloured areas and the lines */
 export function floorKey(world: SimWorld): string {
     const parts = world.items.filter((i) => isPath(i) || i.role === 'color');
-    return '2|' + world.background + '|' + JSON.stringify(parts.map((i) => [i.kind, i.color, i.points, i.smooth, i.closed, i.width, i.x, i.y, i.w, i.h, i.r]));
+    return '2|' + world.background + '|' + backgroundSize(world).join('x') + '|' + JSON.stringify(parts.map((i) => [i.kind, i.color, i.points, i.smooth, i.closed, i.width, i.x, i.y, i.w, i.h, i.r]));
 }
 
 function u(v: number): number {

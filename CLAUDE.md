@@ -199,7 +199,7 @@ python -m nepotest run examples/patrol.tests.json      # state tests (patrol_wit
 python -m nepotest run examples/line_follower.tests.json   # its simulation tests are skipped: they run in the Tests tab
 ```
 
-These passed on 2026-11-01: 145 + 8 tests, including the live-Lab tests and the schema check; the reference-compiler
+These passed on 2026-11-03: 146 + 8 tests, including the live-Lab tests and the schema check; the reference-compiler
 check last ran on 2026-10-18. Each suite has one deliberate expected failure, which shows generator quirk #14. The clap
 counter and patrol example test files each report one deliberate failure: quirk #14 (clap counter), and a square
 driven while the obstacle is still there (patrol). The line follower's file runs its BDD test and skips its two

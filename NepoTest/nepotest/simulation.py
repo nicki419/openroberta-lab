@@ -39,6 +39,9 @@ test chooses one). Touching an obstacle is no failure of its own, as in the simu
                {"id": "c1", "kind": "circle", "role": "color", "color": "#000000", "x": 40, "y": 60, "r": 4},
                {"id": "g1", "name": "Finish", "kind": "triangle", "role": "goal", "points": [[70, 5], [80, 5], [75, 12]]}]}
 
+A level of the Program tab's simulator (levels/) can give the peach floor a size of its own: "size": {"w": 150, "h": 100}
+(whole cm, 50 to 600; none: 300 x 200).
+
 Units are cm, measured from the top left corner of the background; x points right and y down (as on the screen).
 Angles are degrees, counterclockwise as seen from above; 0 points right. Roles: obstacle, color (a coloured area the
 sensors see; "color" is a hex colour), goal, fail. Names are optional (the blocks show them). The simulator itself works
@@ -83,6 +86,7 @@ PEACH = 'peach'  # the tests' own floor: plain light peach (#f7d1b3), 3 x 2 m, w
 BACKGROUNDS = {PEACH: (900, 600), 'simpleBackgroundEdison': (260, 220), 'drawBackground': (700, 500),
                'rescueBackground': (800, 540), 'mathBackground': (700, 500)}  # and RobotEdison.imgList; sizes in units
 DEFAULT_BACKGROUND = PEACH
+FLOOR_MIN_CM, FLOOR_MAX_CM = 50, 600  # a level's own size of the peach floor ("size"), whole cm (nepoTest.sim.ts floorSizeOf)
 PLAIN_BACKGROUNDS = {PEACH: 0xf7 + 0xd1 + 0xb3, 'drawBackground': 765}  # backgrounds this module can draw itself: R + G + B
 WALL_SUM = 3 * 153  # the wall pattern's brightness, for floors drawn here (never under a sensor: the robot can't get there)
 
@@ -565,6 +569,23 @@ def migrate_v1(world):
     return {'background': PEACH, 'start': (world or {}).get('start') or {'x': 0, 'y': 0, 'heading': 0}, 'items': items}
 
 
+def background_size(world):
+    """(w, h) of a world's background in units; a level's peach floor can have a size of its own ("size": {"w", "h"} in
+    cm, rounded to whole cm and kept within FLOOR_MIN_CM to FLOOR_MAX_CM, as nepoTest.sim.ts backgroundSize does)"""
+    background = world.get('background') or DEFAULT_BACKGROUND
+    size = world.get('size')
+    usual = BACKGROUNDS.get(background, BACKGROUNDS[DEFAULT_BACKGROUND])
+    if background != PEACH or not isinstance(size, dict):
+        return usual
+
+    def units(v, default):
+        if not _number(v) or v <= 0:
+            return default
+        return int(max(FLOOR_MIN_CM, min(FLOOR_MAX_CM, math.floor(v + 0.5))) * UNITS_PER_CM)
+
+    return (units(size.get('w'), usual[0]), units(size.get('h'), usual[1]))
+
+
 class SimWorld(object):
     """the drawn world: background, start pose (start: a start's id; none: the world's only or first start), floor
     picture, obstacles, goal and fail areas"""
@@ -572,7 +593,7 @@ class SimWorld(object):
     def __init__(self, data, floor=None, start=None):
         data = data or {}
         self.background = data.get('background') or DEFAULT_BACKGROUND
-        self.background_size = BACKGROUNDS.get(self.background, BACKGROUNDS[DEFAULT_BACKGROUND])
+        self.background_size = background_size(data)
         bw, bh = self.background_size
         self.ground = (BORDER, BORDER, BORDER + bw, BORDER + bh)  # Ground(10, 10, w, h) as (x0, y0, x1, y1)
         start = start_pose(data, start) or {}
@@ -914,12 +935,18 @@ def _number(v):
 
 
 def validate_world(world, where):
-    """[problem] of a simulation world: background, starts, items"""
+    """[problem] of a simulation world: background, its size, starts, items"""
     problems = []
     if not isinstance(world, dict):
         return ['%s must be an object' % where]
     if world.get('background') not in BACKGROUNDS:
         problems.append('%s.background must be one of %s' % (where, ', '.join(BACKGROUNDS)))
+    size = world.get('size')
+    if size is not None:
+        if world.get('background') != PEACH:
+            problems.append('%s.size: only the peach floor can have a size of its own' % where)
+        elif not isinstance(size, dict) or not all(_number(size.get(k)) and FLOOR_MIN_CM <= size[k] <= FLOOR_MAX_CM for k in ('w', 'h')):
+            problems.append('%s.size must be {"w", "h"}: cm from %d to %d' % (where, FLOOR_MIN_CM, FLOOR_MAX_CM))
     starts = world.get('starts')
     if not isinstance(starts, list) or not starts:
         problems.append('%s.starts must be a list of at least one start' % where)
