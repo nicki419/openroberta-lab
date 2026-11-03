@@ -406,6 +406,22 @@ class SimulationWorldTest(unittest.TestCase):
         _, problems = translate(suite_of(world, run=()))
         self.assertIn('the tests of world "course" are not under the start block, so they do not run', messages(problems, 'warning'))
 
+    def test_without_a_start_block_every_test_runs(self):
+        """since 2026-11-04 a suite has no start block: every test of every world runs, in their order; an unticked one is skipped"""
+        first = world_xml(course(GOAL), tests=case_xml('t1', 'one', checks=check_xml('reaches', 'c1', 'ANY'))
+                          + case_xml('t2', 'two', active='FALSE', checks=check_xml('reaches', 'c2', 'ANY')))
+        second = world_xml(course(WALL), world_id='w2', name='hall', tests=case_xml('t3', 'three', checks=check_xml('never_bumps', 'c3', 'o')))
+        loose = case_xml('t9', 'loose', checks=check_xml('reaches', 'c9', 'ANY'))
+        xml = ('<block_set xmlns="http://de.fhg.iais.roberta.blockly" robottype="edison">%s</block_set>'
+               % ''.join('<instance x="0" y="%d">%s</instance>' % (100 * i, b) for i, b in enumerate((first, loose, second))))
+        spec, problems = translate(xml)
+        self.assertEqual([(t['name'], t.get('skip', False)) for t in spec['tests']], [('one', False), ('two', True), ('three', False)])
+        self.assertEqual([(p['block_id'], p['severity'], p['message']) for p in problems],
+                         [('t9', 'warning', 'test "loose" is not in a simulation world, so it does not run')])
+        self.assertEqual(validate_spec(spec), [])
+        _, problems = translate('<block_set xmlns="http://de.fhg.iais.roberta.blockly" robottype="edison"></block_set>')
+        self.assertEqual(messages(problems, 'error'), ['there are no tests yet: build a simulation world and a test in it'])
+
     def test_names_are_one_namespace(self):
         tests = case_xml('t1', 'course', checks=check_xml('reaches', 'c1', 'ANY'))
         bdd = '<block type="nepoTest_test" id="b"><field name="NAME">one</field></block>'

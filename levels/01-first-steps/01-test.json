@@ -1,0 +1,13 @@
+{
+ "format": "nepo-level",
+ "version": 1,
+ "title": "Test",
+ "instructions": "",
+ "world": {"background": "peach",
+  "starts": [{"heading":0,"name":"A","x":73.11,"y":66.61,"id":"A"}],
+  "items": [
+    {"kind":"line","name":"Line 1","closed":false,"id":"lmw120l1h3","points":[[75.06,66.76],[159.82,73.75],[115.84,97.35],[93.7,123.27],[115.84,132.3],[127.49,113.66],[145.84,107.54],[145.84,127.93],[134.19,160.26],[151.09,185.61],[210.51,110.16],[201.77,62.39]],"smooth":true},
+    {"role":"goal","kind":"rect","w":34.66,"name":"Goal 1","x":186.04,"h":18.35,"y":49.92,"id":"smw120rtm4"}
+  ]},
+ "view": {"x":182.4,"y":132.97,"scale":3.433}
+}

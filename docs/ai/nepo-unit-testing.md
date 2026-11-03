@@ -688,8 +688,8 @@ behaviour that went wrong by then); `parts` words (strings) and blocks (`{block:
 the robot drive forward, turning right (left wheel 40 %, right wheel 10 %), but whenever it sees the line, it should
 turn left"]`. Not every failed check has one.
 
-**The facts of a failure** (`nepoTest.simProgram.ts`; also in `checks[].facts`, and for a runtime error): the second
-before the failure (`from`, `to`, ms), from the run's record:
+**The facts of a failure** (`nepoTest.simProgram.ts`; also in `checks[].facts`, and for a runtime error; the Tests tab
+doesn't show them since 2026-11-04, `SHOW_FACTS`): the second before the failure (`from`, `to`, ms), from the run's record:
 - `sensed`: `[{sensor, port, mode, block, count, values: [[value, how often], …], last}]`, what the program read;
 - `ran`: `{decisions: [{block, kind: if | wait | while, k, yes, no, inputs}], actions: [{block, actuator, op, args, t,
   times, when: {block, part}}]}`, the decisions and how often their condition held, and the blocks in effect for the

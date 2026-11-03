@@ -86,9 +86,10 @@ programs, which implements the project goal. It covers:
   (`nepoTest.simBehaviour.ts`: from a time on it always turns left; whenever it sees the line, it turns left; within
   500 ms after each clap, its LED is on; measured in every frame from its real motion, LEDs and sound) and a variable
   at the end. A test passes only if every check holds; a run never stops at the first failure. Every run is recorded (`nepoTest.simProgram.ts`): a failed
-  check comes with the facts of the second before it (what the robot sensed, which decisions and blocks ran, its
-  variables, what it did) and why (`nepoTest.simVerdict.ts`: the block to blame, e.g. wrong action, wrong decision,
-  decision missing, missed the moment, wrong value), with the program's blocks as clickable chips. The replay shows the
+  check comes with why (`nepoTest.simVerdict.ts`: the block to blame, e.g. wrong action, wrong decision, decision
+  missing, missed the moment, wrong value), with the program's blocks as clickable chips. The facts of the second
+  before it (what the robot sensed, which decisions and blocks ran, its variables, what it did) are computed but not
+  shown (`SHOW_FACTS = false` in `nepoTest.simProgram.ts`, GitHub issue #9). The replay shows the
   block running at its time and outlines it in the Program tab. They have the simulator's semantics, not the
   robot's (sensors are states). The command line skips them; `NepoTest/nepotest/simulation.py` checks their data (its copy of the
   simulator is no longer used);
@@ -98,8 +99,8 @@ programs, which implements the project goal. It covers:
 Read it before working on testing.
 
 **`docs/ai/nepo-test-blocks.md`** documents the Lab's **Tests tab**: learners build test suites from NEPO test blocks
-(red start block, test blocks with given / when / then, simulation worlds with their tests and checks, run-test
-blocks), see the converted code, and run the tests in the browser (NepoTest in Pyodide, in a Web Worker; simulation
+(test blocks with given / when / then, simulation worlds with their tests and checks; every ticked test runs, there is
+no start block any more: GitHub issue #8), see the converted code, and run the tests in the browser (NepoTest in Pyodide, in a Web Worker; simulation
 tests on the Lab's simulator). For a simulation world, the **Simulation** panel (it looks like the Lab's simulator)
 draws the world and its starts, lists its tests, runs them and replays runs. It covers
 the block vocabulary (the contract between `nepoTest.blocks.ts` and `NepoTest/nepotest/blocks.py`), how suites are

@@ -104,7 +104,7 @@ its world: start, set-up, checks, the world's things) differs from the one recor
 | the Tests tab's worlds and tests as JSON (`suiteToJson`, `testOfBlock`) | `nepotest/nepoTest.aiFormat.ts` |
 | an answer made whole and checked (`checkAnswer`): its structure, every item and start of a drawn world (on the floor, kinds, roles, sizes), names (not taken), ids, roles of the items the checks name, the program's variables; `without` leaves out what has problems | `nepoTest.aiFormat.ts` |
 | duplicates (`meaningOf`, `dropDuplicates`): the same floor and things (without ids and names), start pose, set-up, end of the run and checks | `nepoTest.aiFormat.ts` |
-| JSON → blocks (`suiteXml`, `worldXml`, `testXml`; `addToWorkspace`: one undo step, new worlds to the right, run blocks under the start block, tests of a learner's world after its tests) | `nepoTest.aiFormat.ts`; `tests.controller` `addAiTests` |
+| JSON → blocks (`suiteXml`, `worldXml`, `testXml`; `addToWorkspace`: one undo step, new worlds to the right, tests of a learner's world after its tests; every ticked test runs, so no run blocks) | `nepoTest.aiFormat.ts`; `tests.controller` `addAiTests` |
 | the calls and the checks of an answer: format, then NepoTest's translator in the worker (a start outside the floor or on an obstacle, …), then at most 2 repairs, then duplicates out | `nepotest/nepoTest.ai.ts` (`infer`, `generate`, `check`) |
 | what an answer is checked against: the learner's tests, the program's variables, the names taken | `tests.controller` `aiContext`, `aiTests`, `aiProgramXml` |
 

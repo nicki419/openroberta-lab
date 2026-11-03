@@ -1,7 +1,7 @@
 /**
  * The Tests tab: learners build a test suite for their program from NEPO test blocks (nepoTest.blocks), look at the code it turns into and run it.
  *
- * - the workspace (#testsBlocklyDiv) holds the red start block of the suite, test blocks, and "run test" blocks below the start block
+ * - the workspace (#testsBlocklyDiv) holds the test blocks and the simulation worlds with their tests; "Run tests" runs every ticked test
  * - the suite is saved with the program (nepoTest.suite: extra instances of the program's XML)
  * - "Code" shows the suite as NepoTest JSON and the program's generated EdPy
  * - "Test runner" converts the program with the Lab (REST /projectWorkflow/sourceForTest: EdPy + source map) and runs the suite in the browser
@@ -9,10 +9,12 @@
  *   per test, errors per block (the block coverage only if SHOW_COVERAGE)
  * - "Simulation" shows the selected simulation world and its tests (nepoTest.simEditor): the world is drawn there, its tests are run and
  *   replayed. The world is the world block's data (JSON), so it is saved with the suite, and undo of a deleted block brings it back.
- * - A failed check of a simulation test comes with why (nepoTest.simVerdict: the block to blame) and the facts of the second before it
- *   (nepoTest.simProgram): what the robot sensed, what ran, what it remembered, what it did. The program's blocks in them are chips: a click
- *   shows the block in the Program tab. While a run is replayed, the block running at the replay's time is marked in the Program tab.
+ * - A failed check of a simulation test comes with why (nepoTest.simVerdict: the block to blame). The program's blocks in it are chips: a click
+ *   shows the block in the Program tab. The facts of the second before it (nepoTest.simProgram: what the robot sensed, what ran, what it
+ *   remembered, what it did) are shown only if SIMPROGRAM.SHOW_FACTS. While a run is replayed, the block running at the replay's time is marked in the Program tab.
  * Suites saved before 2026-10-26 had simulation tests of their own ("nepoTest_simtest", one world each): they are dropped when they are loaded.
+ * Until 2026-11-04, a red start block with "run test" blocks below it chose the tests to run: when such a suite is loaded, they are removed, and
+ * the tests they didn't run are unticked (a test of given / when / then: disabled), so the same tests run.
  * Until 2026-10-30, a world had "rules for every test" (checks): they become checks of each of its tests when a suite is loaded. A test
  * could check that the robot stays on a path recorded before ("nepoTest_check_path"): such checks are dropped when they are loaded.
  * Only for the Edison robots (NepoTest supports them).
@@ -150,8 +152,6 @@ function initEvents(): void {
         if (GUISTATE_C.isProgramSaved()) {
             GUISTATE_C.setProgramSaved(false);
         }
-        renameRunBlocks(event);
-        fillRunBlocks(event);
         if ($('#testsCodePane').is(':visible')) {
             clearTimeout(codeTimer);
             codeTimer = setTimeout(refreshCode, 600);
@@ -254,6 +254,8 @@ const TEXT: { [lang: string]: { [key: string]: string } } = {
         oldSimTests: 'This program had {0} simulation test(s) of an older kind: they were removed. Build them again as tests of a "simulation world" (in "Tests").',
         rulesMoved: 'The "rules for every test" of {0} simulation world(s) are now checks of each of its tests.',
         pathChecks: 'Paths are no longer recorded: {0} check(s) "the robot stays on its recorded path" were removed.',
+        startBlock: 'The start block "test suite: run these tests" and its "run test" blocks are gone: every ticked test runs when you press "Run tests".',
+        startBlockUnticked: '{0} test(s) that did not run before were unticked, so the same tests run.',
         unloadable: 'The test suite of this program could not be loaded ({0}). It stays as it was when the program is saved; changes made here are not saved.',
         coverage: 'Blocks of the program executed by these tests: {0} of {1}',
         uncovered: 'never executed:',
@@ -429,47 +431,7 @@ function refreshProgramDropdowns(): void {
     setTimeout(() => (listen = true), 100);
 }
 
-/** keeps "run test" blocks attached to a test when it is renamed */
-function renameRunBlocks(event: any): void {
-    if (event.type !== Blockly.Events.CHANGE || event.element !== 'field' || event.name !== 'NAME') {
-        return;
-    }
-    const changed = workspace.getBlockById(event.blockId);
-    if (!BLOCKS.isTestBlock(changed)) {
-        return;
-    }
-    for (const block of workspace.getAllBlocks()) {
-        if (block.type === 'nepoTest_run' && block.getFieldValue('NAME') === event.oldValue) {
-            block.setFieldValue(event.newValue, 'NAME');
-        }
-    }
-}
-
-/**
- * when a block is created (a "run test" block, or a test), "run test" blocks without a test get one that no other "run test" block runs yet,
- * in the same undo step. Loaded suites are left as they are (listen is off while loading).
- */
-function fillRunBlocks(event: any): void {
-    if (event.type !== Blockly.Events.CREATE) {
-        return;
-    }
-    const runBlocks = workspace.getAllBlocks().filter((b) => b.type === 'nepoTest_run');
-    const taken = runBlocks.map((b) => b.getFieldValue('NAME'));
-    const free = BLOCKS.testNamesOf(workspace).filter((name) => taken.indexOf(name) < 0);
-    const group = Blockly.Events.getGroup();
-    Blockly.Events.setGroup(event.group);
-    for (const block of runBlocks) {
-        if (!free.length) {
-            break;
-        }
-        if (block.getFieldValue('NAME') === '') {
-            block.setFieldValue(free.shift(), 'NAME');
-        }
-    }
-    Blockly.Events.setGroup(group);
-}
-
-/** the suite as block_set XML; null if it is empty (only the start block), so programs without tests stay unchanged */
+/** the suite as block_set XML; null if it is empty (no blocks), so programs without tests stay unchanged */
 function serializeSuite(always?: boolean): string {
     if (!workspace) {
         return null;
@@ -478,7 +440,7 @@ function serializeSuite(always?: boolean): string {
         return unloadable;
     }
     const blocks = workspace.getAllBlocks();
-    if (!always && blocks.length <= 1) {
+    if (!always && !blocks.length) {
         return null;
     }
     return Blockly.Xml.domToText(Blockly.Xml.workspaceToDom(workspace));
@@ -591,7 +553,69 @@ function dropPathChecks(xml: string): { xml: string; dropped: number } {
     return { xml: new XMLSerializer().serializeToString(doc), dropped: checks.length };
 }
 
-/** puts a suite into the workspace (null: a new suite with just the start block) */
+/**
+ * a suite without the red start block "nepoTest_suite" and the "run test" blocks (nepoTest_run, until 2026-11-04 they chose the tests to run; now
+ * every ticked test runs): {xml, dropped, unticked}. So that the same tests run as before, a test of a world that no "run test" block under the
+ * start block ran (neither the test nor its world) is unticked, and a test of given / when / then that none ran is disabled. The suite is changed
+ * as XML, before Blockly sees it (it doesn't know the blocks any more). Nothing changes in a suite without a start block.
+ */
+function dropStartBlock(xml: string): { xml: string; dropped: boolean; unticked: number } {
+    if (!xml || xml.indexOf('nepoTest_suite') < 0) {
+        return { xml: xml, dropped: false, unticked: 0 };
+    }
+    const doc = new DOMParser().parseFromString(xml, 'text/xml');
+    const root = doc.documentElement;
+    const children = (el: Element, name: string) => Array.prototype.slice.call(el.childNodes).filter((c: Node) => c.nodeType === 1 && (c as Element).localName === name) as Element[];
+    const field = (block: Element, name: string) => children(block, 'field').filter((f) => f.getAttribute('name') === name)[0] || null;
+    const nameOf = (block: Element) => (field(block, 'NAME') || { textContent: '' }).textContent;
+    const chosen: string[] = []; // the names the "run test" blocks under the start block chose
+    let dropped = false;
+    for (const instance of children(root, 'instance')) {
+        const blocks = children(instance, 'block'); // the blocks of a chain are the instance's children, in their order (the Lab's XML)
+        const isStart = !!blocks[0] && blocks[0].getAttribute('type') === 'nepoTest_suite';
+        for (const block of blocks) {
+            if (block.getAttribute('type') === 'nepoTest_run') {
+                isStart && block.getAttribute('disabled') !== 'true' && chosen.push(nameOf(block));
+                instance.removeChild(block);
+            }
+        }
+        if (isStart || !children(instance, 'block').length) {
+            root.removeChild(instance);
+            dropped = dropped || isStart;
+        }
+    }
+    if (!dropped) {
+        return { xml: new XMLSerializer().serializeToString(doc), dropped: false, unticked: 0 };
+    }
+    let unticked = 0;
+    const tops = children(root, 'instance').map((instance) => children(instance, 'block')[0]).filter((b) => !!b);
+    for (const top of tops) {
+        if (top.getAttribute('type') === 'nepoTest_test' && chosen.indexOf(nameOf(top)) < 0 && top.getAttribute('disabled') !== 'true') {
+            top.setAttribute('disabled', 'true');
+            unticked++;
+        } else if (top.getAttribute('type') === BLOCKS.WORLD && chosen.indexOf(nameOf(top)) < 0) {
+            const tests = children(top, 'statement').filter((st) => st.getAttribute('name') === 'TESTS')[0];
+            for (const test of tests ? children(tests, 'block') : []) {
+                const active = field(test, 'ACTIVE');
+                if (test.getAttribute('type') !== BLOCKS.SIM_TEST || chosen.indexOf(nameOf(test)) >= 0 || (active && active.textContent === 'FALSE')) {
+                    continue;
+                }
+                if (active) {
+                    active.textContent = 'FALSE';
+                } else {
+                    const box = doc.createElementNS(test.namespaceURI, 'field');
+                    box.setAttribute('name', 'ACTIVE');
+                    box.textContent = 'FALSE';
+                    test.insertBefore(box, test.firstChild);
+                }
+                unticked++;
+            }
+        }
+    }
+    return { xml: new XMLSerializer().serializeToString(doc), dropped: true, unticked: unticked };
+}
+
+/** puts a suite into the workspace (null: a new, empty suite) */
 function loadSuite(testsXml: string): void {
     if (!workspace) {
         return;
@@ -603,7 +627,8 @@ function loadSuite(testsXml: string): void {
     const old = dropOldSimTests(testsXml);
     const rules = moveRulesIntoTests(old.xml);
     const paths = dropPathChecks(rules.xml);
-    const xml = paths.xml || BLOCKS.emptySuite(GUISTATE_C.getRobotGroup());
+    const start = dropStartBlock(paths.xml);
+    const xml = start.xml || BLOCKS.emptySuite(GUISTATE_C.getRobotGroup());
     let failure: string = null;
     try {
         Blockly.Xml.domToWorkspace(Blockly.Xml.textToDom(xml, workspace), workspace);
@@ -614,16 +639,19 @@ function loadSuite(testsXml: string): void {
         workspace.clear();
         Blockly.Xml.domToWorkspace(Blockly.Xml.textToDom(BLOCKS.emptySuite(GUISTATE_C.getRobotGroup()), workspace), workspace);
     }
-    if (!workspace.getTopBlocks(false).some((b) => b.type === 'nepoTest_suite')) {
-        Blockly.Xml.domToWorkspace(Blockly.Xml.textToDom(BLOCKS.emptySuite(GUISTATE_C.getRobotGroup()), workspace), workspace);
-    }
     workspace.getTopBlocks(false).forEach((b) => BLOCKS.refreshWorldLabels(b)); // the dropdowns show the names of the worlds' starts and items
     $('#testsResults, #testsProblems, #testsCoverage').empty();
     $('#testsStatus').text('');
     if (failure) {
         showList(text('unloadable', failure), []);
-    } else if (old.dropped || rules.moved || paths.dropped) {
-        const notices = [old.dropped ? text('oldSimTests', old.dropped) : '', rules.moved ? text('rulesMoved', rules.moved) : '', paths.dropped ? text('pathChecks', paths.dropped) : ''];
+    } else if (old.dropped || rules.moved || paths.dropped || start.dropped) {
+        const notices = [
+            old.dropped ? text('oldSimTests', old.dropped) : '',
+            rules.moved ? text('rulesMoved', rules.moved) : '',
+            paths.dropped ? text('pathChecks', paths.dropped) : '',
+            start.dropped ? text('startBlock') : '',
+            start.unticked ? text('startBlockUnticked', start.unticked) : '',
+        ];
         showList(notices.filter((t) => t).join(' '), []);
     }
     reopenSim();
@@ -1044,7 +1072,7 @@ function showReport(index: number, report: any): void {
             }
             $details.append($f);
             f.why && $details.append(whyItem(f.why));
-            f.facts && $details.append(factsItem(f.facts, report.world_block_id));
+            SIMPROGRAM.SHOW_FACTS && f.facts && $details.append(factsItem(f.facts, report.world_block_id));
         }
     });
     const errorFacts = (report.failures || []).filter((f) => f.expect === 'error' && f.facts)[0];
@@ -1055,7 +1083,7 @@ function showReport(index: number, report: any): void {
             $e.attr('data-block', report.error.block_id).attr('data-workspace', 'program');
         }
         $details.append($e);
-        errorFacts && $details.append(factsItem(errorFacts.facts, report.world_block_id));
+        SIMPROGRAM.SHOW_FACTS && errorFacts && $details.append(factsItem(errorFacts.facts, report.world_block_id));
     }
     if (report.simulation) {
         simEditor.showRun(report.block_id, report); // the run can be replayed in the Simulation tab

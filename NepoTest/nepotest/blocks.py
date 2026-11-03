@@ -2,8 +2,12 @@
 
 The blocks (all types start with `nepoTest_`; the frontend defines them in nepoTest.blocks.ts):
 
-    nepoTest_suite                      the red start block; `nepoTest_run` blocks below it choose the tests to run
-    nepoTest_run          NAME          run the test NAME (a test, a simulation world: all its tests, or a test of a world)
+    The suite runs every test: each test (given / when / then) and each test of each simulation world, in their order;
+    an unticked test of a world is skipped, a disabled block left out.
+    nepoTest_suite                      (until 2026-11-04) the red start block; `nepoTest_run` blocks below it chose the tests
+    nepoTest_run          NAME          to run (NAME: a test, a simulation world: all its tests, or a test of a world). A suite
+                                        with a start block still runs only these (the Tests tab converts such a suite when it
+                                        loads it: what didn't run is unticked).
     nepoTest_test         NAME SHOULD   a test: statement inputs GIVEN (the world), WHEN (one action), THEN (expectations);
                                         SHOULD: pass | fail ("this test should fail": it passes if it fails)
     nepoTest_world        NAME          a simulation world (block data: JSON, see below); statement input TESTS
@@ -862,6 +866,9 @@ def translate_simulation(tests_xml, block_id, program=None):
     return tests, list(problems)
 
 
+NO_TESTS = 'there are no tests yet: build a simulation world and a test in it'
+
+
 def translate(tests_xml, program=None):
     """(spec, problems) for a test block_set. program (a NepoProgram) enables name checks.
 
@@ -869,16 +876,41 @@ def translate(tests_xml, program=None):
     problems = _Problems()
     spec = {'format': 'nepotest', 'version': 1, 'program': 'program', 'tests': []}
     if not tests_xml:
-        problems.add(None, 'the test suite is empty: build a test and put "run test" under the start block')
+        problems.add(None, NO_TESTS)
         return spec, list(problems)
     suite = _Suite(ET.fromstring(tests_xml), problems)
     starts = [c for c in suite.chains if c and c[0].type == 'nepoTest_suite']
-    if not starts:
-        problems.add(None, 'the start block of the test suite is missing')
-        return spec, list(problems)
+    selected = _with_start_block(suite, starts[0], problems) if starts else _every_test(suite, problems)
+    for block in selected:
+        spec['tests'].append(suite.translate(block, program, problems))
+    return spec, list(problems)
+
+
+def _every_test(suite, problems):
+    """the test blocks of a suite without a start block: every test and every test of every world, in their order (an unticked
+    one is skipped when it is translated)"""
+    selected = []
+    for chain in suite.chains:
+        for top in chain:
+            if top.disabled:
+                continue
+            if top.type == 'nepoTest_test':
+                selected.append(top)
+            elif top.type == WORLD:
+                selected += suite.tests_of(top, problems)
+            elif top.type == SIM_TEST:
+                problems.add(top, 'test "%s" is not in a simulation world, so it does not run' % (top.fields.get('NAME') or '').strip(),
+                             'warning')
+    if not selected:
+        problems.add(None, NO_TESTS)
+    return selected
+
+
+def _with_start_block(suite, start, problems):
+    """the test blocks of a suite of before 2026-11-04: those the "run test" blocks under its start block choose, in their order"""
     old_names = [(b.fields.get('NAME') or '').strip() for b in suite.old]
     selected, chosen = [], set()  # test blocks, in the order they run; the names chosen by "run test" blocks
-    for run in starts[0][1:]:
+    for run in start[1:]:
         if run.type != 'nepoTest_run' or run.disabled:
             continue
         name = run.fields.get('NAME') or ''
@@ -904,7 +936,5 @@ def translate(tests_xml, program=None):
         elif block.type == WORLD and not any(t.id in ids for t in suite.tests_of(block, _Problems())):
             problems.add(block, 'the tests of world "%s" are not under the start block, so they do not run' % name, 'warning')
     if not selected:
-        problems.add(starts[0][0], 'put "run test" blocks under the start block')
-    for block in selected:
-        spec['tests'].append(suite.translate(block, program, problems))
-    return spec, list(problems)
+        problems.add(start[0], 'put "run test" blocks under the start block')
+    return selected

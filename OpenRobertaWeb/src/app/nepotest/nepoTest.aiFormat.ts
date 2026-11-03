@@ -629,30 +629,16 @@ function canonical(value: any): string {
 // ------------------------------------------------------------------------------------------------ JSON → blocks
 
 /**
- * the worlds as a Tests suite (block_set XML): a start block with a run block per world, and the world blocks with their tests. The ids are
- * `<prefix>-<world>`, `<prefix>-<world>-<test>`, `<prefix>-<world>-<test>-<part>`, so a problem of the translator names its test. For a world of the
- * learner (existing), its block holds only the new tests.
+ * the worlds as a Tests suite (block_set XML): the world blocks with their tests (every ticked test runs). The ids are `<prefix>-<world>`,
+ * `<prefix>-<world>-<test>`, `<prefix>-<world>-<test>-<part>`, so a problem of the translator names its test. For a world of the learner
+ * (existing), its block holds only the new tests.
  */
 export function suiteXml(worlds: Resolved[], prefix: string, provenance?: (world: Resolved, test: AiTest) => Provenance): string {
-    let runs = '';
     let tops = '';
     worlds.forEach((w, i) => {
-        const id = prefix + '-' + (i + 1);
-        runs += '<block type="nepoTest_run" id="' + id + '-run"><field name="NAME">' + esc(w.name) + '</field></block>';
-        tops += '<instance x="40" y="' + (200 + 400 * i) + '">' + worldXml(w, id, provenance) + '</instance>';
+        tops += '<instance x="40" y="' + (200 + 400 * i) + '">' + worldXml(w, prefix + '-' + (i + 1), provenance) + '</instance>';
     });
-    return (
-        '<block_set xmlns="' +
-        NS +
-        '" robottype="edison" xmlversion="3.1" description="" tags="">' +
-        '<instance x="40" y="40"><block type="nepoTest_suite" id="' +
-        prefix +
-        '-suite"></block>' +
-        runs +
-        '</instance>' +
-        tops +
-        '</block_set>'
-    );
+    return '<block_set xmlns="' + NS + '" robottype="edison" xmlversion="3.1" description="" tags="">' + tops + '</block_set>';
 }
 
 /** a world block with its data and tests */
@@ -745,9 +731,8 @@ function literalXml(value: Value, id: () => string): string {
 }
 
 /**
- * adds the worlds' tests to a Tests workspace, as one undo step: a new world goes to the right of the blocks there, with a run block under the start
- * block; the tests of a learner's world go after its tests (and a run block for it, if none runs it or one of its tests). Each test's block gets
- * its provenance (with its id and its signature). Returns the ids of the test blocks added.
+ * adds the worlds' tests to a Tests workspace, as one undo step: a new world goes to the right of the blocks there; the tests of a learner's world
+ * go after its tests. Each test's block gets its provenance (with its id and its signature). Returns the ids of the test blocks added.
  */
 export function addToWorkspace(workspace: any, worlds: Resolved[], prefix: string, provenance: (world: Resolved, test: AiTest) => Provenance): string[] {
     const added: string[] = [];
@@ -756,19 +741,14 @@ export function addToWorkspace(workspace: any, worlds: Resolved[], prefix: strin
     try {
         let x = rightOf(workspace) + 60;
         const y = topOf(workspace);
-        const suite = workspace.getTopBlocks(false).filter((b: any) => b.type === 'nepoTest_suite')[0];
-        const runs = workspace.getAllBlocks().filter((b: any) => b.type === 'nepoTest_run').map((b: any) => b.getFieldValue('NAME'));
         worlds.forEach((w, i) => {
             const id = prefix + '-' + (i + 1);
             let tests: any[];
-            let runName: string = null;
             if (w.existing) {
                 const own = workspace.getTopBlocks(true).filter((b: any) => b.type === BLOCKS.WORLD && b.getFieldValue('NAME') === w.name)[0];
                 if (!own) {
                     return;
                 }
-                const ownTests = BLOCKS.testsOf(own);
-                const runsIt = runs.indexOf(w.name) >= 0 || ownTests.some((t: any) => runs.indexOf(t.getFieldValue('NAME')) >= 0);
                 tests = w.tests.map((t, j) => {
                     const block = place(workspace, testXml(t, id + '-' + (j + 1), provenance(w, t)), 0, 0);
                     const last = BLOCKS.testsOf(own).slice(-1)[0];
@@ -776,12 +756,10 @@ export function addToWorkspace(workspace: any, worlds: Resolved[], prefix: strin
                     connection.connect(block.previousConnection);
                     return block;
                 });
-                runName = runsIt ? null : w.name;
             } else {
                 const world = place(workspace, worldXml(w, id, provenance), x, y);
                 x += world.getHeightWidth().width + 60;
                 tests = BLOCKS.testsOf(world);
-                runName = w.name;
             }
             tests.forEach((t) => {
                 const p = provenanceOf(t);
@@ -792,14 +770,6 @@ export function addToWorkspace(workspace: any, worlds: Resolved[], prefix: strin
                 }
                 added.push(t.id);
             });
-            if (runName && suite) {
-                const run = place(workspace, '<block type="nepoTest_run" id="' + id + '-run"><field name="NAME">' + esc(runName) + '</field></block>', 0, 0);
-                let last = suite;
-                while (last.getNextBlock()) {
-                    last = last.getNextBlock();
-                }
-                last.nextConnection.connect(run.previousConnection);
-            }
         });
         workspace.getTopBlocks(false).forEach((b: any) => BLOCKS.refreshWorldLabels(b, Blockly.Events.getGroup()));
     } finally {

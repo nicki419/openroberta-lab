@@ -2,8 +2,9 @@
  * The NEPO test blocks of the Tests tab (block types nepoTest_*). They are defined here at runtime (Blockly itself is built elsewhere) and translated
  * into NepoTest's JSON test format by NepoTest/nepotest/blocks.py, which documents every block's fields and inputs. Keep both in sync.
  *
- * A test suite: the red start block "nepoTest_suite" with "nepoTest_run" blocks below it; each runs one "nepoTest_test" (given / when / then),
- * one simulation world "nepoTest_world" (all its tests) or one test of a world. A world (its data: the drawn world, see nepoTest.sim) holds
+ * A test suite: every "nepoTest_test" (given / when / then) and every test of every simulation world "nepoTest_world" runs when "Run tests" is
+ * pressed; an unticked test of a world is skipped. (Until 2026-11-04, a red start block "nepoTest_suite" with "nepoTest_run" blocks below it chose
+ * the tests to run: tests.controller converts such a suite when it loads it.) A world (its data: the drawn world, see nepoTest.sim) holds
  * tests "nepoTest_simcase" (set up: a start and the past, the blocks of the category "Set up"; run: the whole program; check: "nepoTest_check_*"
  * blocks, of the category "Checks"; the labels "set up:" and "check:" have the colours of their categories). The tests and checks refer to the world's starts and items by their ids (fields START, UNTIL, AREA, OBSTACLE) and show their
  * names: refreshWorldLabels keeps the names up to date. The tests of given / when / then are switched off (BDD_TESTS): the toolbox offers only
@@ -28,9 +29,6 @@ export function setProgramInfoProvider(provider: () => ProgramInfo): void {
 
 const MESSAGES: { [lang: string]: { [key: string]: string } } = {
     en: {
-        NEPOTEST_SUITE: 'test suite: run these tests',
-        NEPOTEST_SUITE_TOOLTIP: 'Put "run test" blocks below: these tests run when you press "run tests".',
-        NEPOTEST_RUN: 'run test',
         NEPOTEST_TEST: 'test',
         NEPOTEST_GIVEN: 'given',
         NEPOTEST_WHEN: 'when',
@@ -71,7 +69,7 @@ const MESSAGES: { [lang: string]: { [key: string]: string } } = {
         NEPOTEST_TESTS_IN_WORLD: 'tests',
         NEPOTEST_SIMCASE: 'test',
         NEPOTEST_SIMCASE_TOOLTIP:
-            'A test in this world. Set up: where the robot starts, and what happened before (claps, keys, variables: the blocks of "Set up"). Run: the whole program. Check: it passes only if every check holds (the blocks of "Checks"). Untick the box to skip the test.',
+            'A test in this world. Set up: where the robot starts, and what happened before (claps, keys, variables: the blocks of "Set up"). Run: the whole program. Check: it passes only if every check holds (the blocks of "Checks"). Every ticked test runs when you press "Run tests": untick the box to skip it.',
         NEPOTEST_SET_UP: 'set up:',
         NEPOTEST_START_AT: 'the robot starts at',
         NEPOTEST_RUN_LABEL: 'run:',
@@ -277,9 +275,6 @@ const MESSAGES: { [lang: string]: { [key: string]: string } } = {
         TOOLBOX_NEPOTEST_VALUES: 'Values',
     },
     de: {
-        NEPOTEST_SUITE: 'Testsammlung: diese Tests ausführen',
-        NEPOTEST_SUITE_TOOLTIP: 'Lege „Test ausführen“-Blöcke darunter: diese Tests laufen, wenn du „Tests ausführen“ drückst.',
-        NEPOTEST_RUN: 'Test ausführen',
         NEPOTEST_TEST: 'Test',
         NEPOTEST_GIVEN: 'gegeben',
         NEPOTEST_WHEN: 'wenn',
@@ -318,7 +313,7 @@ const MESSAGES: { [lang: string]: { [key: string]: string } } = {
         NEPOTEST_TESTS_IN_WORLD: 'Tests',
         NEPOTEST_SIMCASE: 'Test',
         NEPOTEST_SIMCASE_TOOLTIP:
-            'Ein Test in dieser Welt. Vorbereiten: wo der Roboter startet, und was vorher passiert ist (Klatschen, Tasten, Variablen: die Blöcke aus „Vorbereiten“). Ausführen: das ganze Programm. Prüfen: er besteht nur, wenn jede Prüfung stimmt (die Blöcke aus „Prüfungen“). Nimm das Häkchen weg, um den Test auszulassen.',
+            'Ein Test in dieser Welt. Vorbereiten: wo der Roboter startet, und was vorher passiert ist (Klatschen, Tasten, Variablen: die Blöcke aus „Vorbereiten“). Ausführen: das ganze Programm. Prüfen: er besteht nur, wenn jede Prüfung stimmt (die Blöcke aus „Prüfungen“). Jeder Test mit Häkchen läuft, wenn du „Tests ausführen“ drückst: nimm das Häkchen weg, um ihn auszulassen.',
         NEPOTEST_SET_UP: 'vorbereiten:',
         NEPOTEST_START_AT: 'der Roboter startet bei',
         NEPOTEST_RUN_LABEL: 'ausführen:',
@@ -545,7 +540,6 @@ function msg(key: string): string {
 const GIVEN = 'nepoTestGiven';
 const WHEN = 'nepoTestWhen';
 const THEN = 'nepoTestThen';
-const RUN = 'nepoTestRun';
 const ACTION = 'nepoTestAction';
 const STATE = 'nepoTestState';
 const CONDITION = 'nepoTestCondition';
@@ -553,7 +547,7 @@ const SIM_CASE = 'nepoTestSimCase';
 const SIM_CHECK = 'nepoTestSimCheck';
 export const WORLD = 'nepoTest_world';
 export const SIM_TEST = 'nepoTest_simcase';
-const TEST_TYPES = ['nepoTest_test', WORLD, SIM_TEST]; // their names are one namespace: "run test" runs any of them by its name
+const TEST_TYPES = ['nepoTest_test', WORLD, SIM_TEST]; // their names are one namespace
 const CHECK_TYPES = [
     'nepoTest_check_reaches',
     'nepoTest_check_never_touches',
@@ -676,45 +670,9 @@ export function testsOf(world: any): any[] {
     return tests;
 }
 
-/** the names a new "run test" block can get, in their order on the workspace: the tests (given / when / then) and the simulation worlds */
-export function testNamesOf(workspace: any): string[] {
-    return workspace
-        .getTopBlocks(true)
-        .filter((b) => b.type === 'nepoTest_test' || b.type === WORLD)
-        .map((b) => b.getFieldValue('NAME'));
-}
-
-/** what a "run test" block can run, as dropdown options [label, name]: the tests, the worlds (all their tests) and each test of a world */
-function runnableOptions(workspace: any): string[][] {
-    const options: string[][] = [];
-    for (const top of workspace.getTopBlocks(true)) {
-        const name = top.getFieldValue('NAME');
-        if (top.type === 'nepoTest_test') {
-            options.push([name, name]);
-        } else if (top.type === WORLD) {
-            options.push([name, name]);
-            testsOf(top).forEach((t) => options.push([name + ' ▸ ' + t.getFieldValue('NAME'), t.getFieldValue('NAME')]));
-        }
-    }
-    return options;
-}
-
-/** a test (given / when / then), a simulation world, or a test of a world: what "run test" runs by its name */
+/** a test (given / when / then), a simulation world, or a test of a world: their names are one namespace */
 export function isTestBlock(block: any): boolean {
     return !!block && TEST_TYPES.indexOf(block.type) >= 0;
-}
-
-function testNames(this: any): string[][] {
-    const block = this && this.sourceBlock_;
-    const options = block && block.workspace ? runnableOptions(block.workspace) : [];
-    const current = this && this.getValue && this.getValue();
-    if (current && !options.some((o) => o[1] === current)) {
-        options.push([current, current]);
-    }
-    if (current === '' || !options.length) {
-        options.unshift(['?', '']);
-    }
-    return options;
 }
 
 // ------------------------------------------------------------------------------------------------ the blocks in a simulation world
@@ -1004,22 +962,6 @@ function measureBlock(block: any): void {
 }
 
 const DEFINITIONS: { [type: string]: any } = {
-    nepoTest_suite: {
-        init: function () {
-            hat(this, Blockly.CAT_ACTIVITY_RGB, 'NEPOTEST_SUITE_TOOLTIP');
-            this.appendDummyInput().appendField(msg('NEPOTEST_SUITE'));
-            this.setNextStatement(true, RUN);
-            this.setDeletable(false);
-        },
-    },
-    nepoTest_run: {
-        init: function () {
-            this.setColour(Blockly.CAT_PROCEDURE_RGB);
-            this.appendDummyInput().appendField(msg('NEPOTEST_RUN')).appendField(new Blockly.FieldDropdown(testNames), 'NAME');
-            this.setPreviousStatement(true, RUN);
-            this.setNextStatement(true, RUN);
-        },
-    },
     nepoTest_test: {
         init: function () {
             hat(this, Blockly.CAT_PROCEDURE_RGB, 'NEPOTEST_TEST_TOOLTIP');
@@ -2083,8 +2025,7 @@ export function toolbox(): string {
             'NEPOTEST_TESTS',
             bdd(b('nepoTest_test', '<statement name="WHEN">' + b('nepoTest_when_run') + '</statement><statement name="THEN">' + b('nepoTest_expect_status') + '</statement>')) +
                 b(WORLD, '<statement name="TESTS">' + simTest + '</statement>') +
-                simTest +
-                b('nepoTest_run')
+                simTest
         ) +
         cat(
             'NEPOTEST_CHECKS',
@@ -2110,11 +2051,7 @@ export function toolbox(): string {
     );
 }
 
-/** the content of a new, empty test suite: the start block */
+/** the content of a new, empty test suite: no blocks */
 export function emptySuite(robotGroup: string): string {
-    return (
-        '<block_set xmlns="http://de.fhg.iais.roberta.blockly" robottype="' +
-        robotGroup +
-        '" xmlversion="3.1" description="" tags=""><instance x="40" y="40"><block type="nepoTest_suite" id="nepoTestSuite" deletable="false"></block></instance></block_set>'
-    );
+    return '<block_set xmlns="http://de.fhg.iais.roberta.blockly" robottype="' + robotGroup + '" xmlversion="3.1" description="" tags=""></block_set>';
 }

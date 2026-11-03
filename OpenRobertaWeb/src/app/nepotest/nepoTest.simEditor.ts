@@ -18,8 +18,8 @@
  * - The mouse wheel and the buttons zoom; dragging the empty floor moves the view. The view is kept with the world (data.view).
  * - The background can't be chosen (BACKGROUND_CHOICE): a new world has the plain peach floor, an older one keeps the simulator's.
  * - A run is replayed (play, or drag the time slider), with what each check found; under a failed check, why (nepoTest.simVerdict: the
- *   block to blame) and the facts of the second before (nepoTest.simProgram): what the robot sensed, what ran, what it remembered, what it
- *   did, with the program's blocks as chips. Below the slider: what ran at the replay's time, what the program read and decided, what the
+ *   block to blame) and, only if PROGRAM.SHOW_FACTS, the facts of the second before (nepoTest.simProgram): what the robot sensed, what
+ *   ran, what it remembered, what it did, with the program's blocks as chips. Below the slider: what ran at the replay's time, what the program read and decided, what the
  *   robot heard; the block that runs is marked in the Program tab (EditorHost.replayed).
  * The editor knows nothing about Blockly or the test runner: the tests controller passes the data in and gets it back (EditorHost).
  *
@@ -1208,7 +1208,7 @@ export class SimEditor {
         this.status.className = 'nepoSimStatus ' + (run.passed ? 'passed' : 'failed');
         html('div', '', this.status).textContent = this.text(run.passed ? 'passed' : 'failed', this.describe(run)) + (run.stale ? ' ' + this.text('stale') : '');
         let first = true; // the first facts are open, the others can be opened
-        if (run.errorFacts) {
+        if (PROGRAM.SHOW_FACTS && run.errorFacts) {
             this.status.appendChild(this.factsElement(run.errorFacts, first));
             first = false;
         }
@@ -1220,7 +1220,7 @@ export class SimEditor {
             if (check.why) {
                 li.appendChild(VERDICT.explanationElement(check.why, 'nepoWhy', (block) => this.chip(block)));
             }
-            if (check.facts) {
+            if (PROGRAM.SHOW_FACTS && check.facts) {
                 li.appendChild(this.factsElement(check.facts, first));
                 first = false;
             }

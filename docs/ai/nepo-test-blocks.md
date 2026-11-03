@@ -5,11 +5,25 @@ Robot configuration. They run the tests in the browser and see the results per t
 the project goal in `CLAUDE.md`, on top of the NepoTest framework (`nepo-unit-testing.md`).
 
 > **The given / when / then tests are switched off** (`BDD_TESTS = false` in `nepoTest.blocks.ts`, 2026-10-27): the
-> toolbox offers only the blocks of simulation worlds (§5): *Tests* (world, test of a world, run test), *Checks*,
+> toolbox offers only the blocks of simulation worlds (§5): *Tests* (world, test of a world), *Checks*,
 > *Set up* (clap, key press, variable; called *Given* until 2026-10-30) and *Values*. The categories *When*, *Expect*, *Actions* and *States*, the
 > *test* block and the other *given* blocks (obstacle, light, line, remote, IR) are no longer offered. Their code is
 > unchanged: suites that have such tests still load, run and save (verified: the line follower's "stops at the wall"
 > passed), and `BDD_TESTS = true` offers them again. The sections below still describe them.
+
+> **No start block, no "run test" (2026-11-04, GitHub issue #8):** **Run tests** runs every test: each test of each
+> simulation world whose box is ticked, and each test of given / when / then that isn't disabled, in their order on the
+> workspace. Until then, the red start block *test suite: run these tests* (`nepoTest_suite`) with *run test* blocks
+> (`nepoTest_run`) below it chose the tests, and the rest were drafts. When such a suite is loaded, `tests.controller`
+> `dropStartBlock` removes both from the XML before Blockly sees it. The tests no *run test* block ran are unticked; a
+> test of given / when / then is disabled instead. So the same tests run as before, and a notice says so. NepoTest's
+> translator still honours a start block (`blocks.py` `_with_start_block`), so older files keep their meaning on the
+> command line. Diagrams and passages below that show the start block describe the tab before that date.
+>
+> **The facts of a failure aren't shown (2026-11-04, GitHub issue #9):** they were too detailed for learners; the *why*
+> of a failed check is enough. They are still computed and stay in the report (`SHOW_FACTS = false` in
+> `nepoTest.simProgram.ts`; true shows them again, in the Test runner and in the Simulation panel). See "Why it failed:
+> the facts" below.
 
 ```
 Tests tab
@@ -31,8 +45,8 @@ Tests tab
    program, or one of its functions. Under *then*, put what must be true: a result, a variable, the actions the
    program commanded, or what the robot is doing and when (a block from *States* in an *expect … at the end*,
    *… within … ms after …*, *expect while …* block; also distance, turn and end position).
-2. Put a **run test** block for it under the red **start block**. Only tests under the start block run, so a learner
-   can keep drafts.
+2. Leave its box ticked: every ticked test runs (until 2026-11-04, a **run test** block under the red **start block**
+   chose it). Untick a test to keep it as a draft.
 3. Press **Run tests**. Each test turns ✓, ✗ or ⚠. Failures say what was expected and what happened. Clicking a
    runtime error opens the Program tab with the failing block selected. Clicking a test selects its test block.
 4. The **Code** panel shows what the suite translates to (NepoTest JSON), and the program's generated EdPy.
@@ -62,6 +76,19 @@ NepoTest.
 
 **The suite is saved with the program:** with save, save as, export, and "get link". It comes back when the program is
 loaded or imported. The tab appears only for the Edison robots, since NepoTest supports only them.
+
+**Issues #8 and #9 (2026-11-04), verified in headless Chrome against a Lab built from this repository:**
+- **A new suite** has no blocks and isn't stored; the toolbox has no *run test*.
+- **The line follower's suite** (`examples/line_follower_with_tests.xml`, with a start block and two *run test* blocks)
+  was imported. The start block and the run blocks were gone, the notice said so, all three tests stayed ticked, and
+  *Run tests* gave 3 passed. Without the *run test* block of its world, the world's two tests came in unticked
+  ("2 test(s) that did not run before were unticked"), and the translator skipped them. Saved and loaded again, the
+  suite stayed the same, without a notice.
+- **A failing program** (it steers the wrong way): in the Test runner and in the Simulation panel, the failed checks
+  said why ("why (wrong action): [steer forwards … 10 … 40] makes the robot drive forward, turning left …", "why (see
+  another check): …"), and no facts were shown.
+- **AI tests** (`addAiTests`) were added without run blocks and ran with the others. The fixture of
+  `NepoTest/tests/test_ai_format.py` was made again (`suiteXml` has no start block now).
 
 **Status (2026-09-25), verified in Chrome against a Lab built from this repository:**
 - **Loading and running:** the example program with its suite was imported through the Lab's real import path (all 77
@@ -225,8 +252,8 @@ sync:** the field and input names below are the contract between them.
 
 | Block | Looks like | Fields / inputs | Becomes (NepoTest JSON) |
 |---|---|---|---|
-| `nepoTest_suite` | red: *test suite: run these tests* | (next: `run` blocks) | the list and order of the tests |
-| `nepoTest_run` | *run test* [name ▾] | `NAME` (dropdown of the workspace's tests, worlds and their tests, shown as "world ▸ test"; `''` shown as `?` = none chosen) | selects a test; a world: all its tests |
+| `nepoTest_suite` | (until 2026-11-04) red: *test suite: run these tests*; no longer defined in the Lab: a loaded suite loses it | (next: `run` blocks) | (in a file that still has it) the list and order of the tests |
+| `nepoTest_run` | (until 2026-11-04) *run test* [name ▾]; no longer defined in the Lab | `NAME` (a test, a world, or a test of a world) | (in a file that still has it) selects a test; a world: all its tests |
 | `nepoTest_test` | *test* [name] *given / when / then*, *this test should* [pass ▾ / fail] | `NAME`, `SHOULD` (`pass`, `fail`); statements `GIVEN`, `WHEN`, `THEN` | one test (`name`, `block_id`, `origin: "blocks"`; `should: "fail"`) |
 | `nepoTest_world` | *simulation world* [name], a picture of its world, *tests* | `NAME`; statement `TESTS` (`nepoTest_simcase`; until 2026-10-30 also `RULES`, see above); **the world is the block's `data`** (JSON, §5); the picture is a `FieldImage` without a value, drawn asynchronously (a PNG of the floor, the objects and the robot at its starts) | nothing itself: its tests (`simulation.world_block_id`, `world_name`, `world`); the rules of an older file are copied into each test's `checks` with `"rule": true` |
 | `nepoTest_simcase` | ☑ *test* [name] / *set up:* (olive) *the robot starts at* [A ▾] / (set-up blocks) / *run: the program* [for ▾ / until the robot touches] [area ▾] *, at most* [5] *s* / *check:* (cyan) (checks) | `ACTIVE` (checkbox, `TRUE`/`FALSE`), `NAME`, `START` (a start's id), `MODE` (`for`, `until`), `UNTIL` (an area's id; shown only for `until`), `SECONDS` (one decimal, at least 0.1); statements `SETUP` (clap, key, variable only: the simulator has no IR remote and no IR messages), `CHECKS` | a test of the world (`simulation` with `start`, `until`, `checks`; `max_time_ms`, `globals`, `world` events; `skip: true` when unticked; no `should`: every test of a world should pass, and a saved `SHOULD` is ignored) |
@@ -302,8 +329,7 @@ for *expect while*; they describe the world of *given*):
 
 - **Connection checks** keep the structure valid while the learner builds. `GIVEN` accepts only *given* blocks,
   `WHEN` exactly one *when* block (no next connection), `THEN` only *expect* blocks, ⟨action⟩ inputs only action
-  blocks, ⟨state⟩ inputs only state blocks, and ⟨condition⟩ inputs only condition blocks. Run blocks attach only below
-  the start block.
+  blocks, ⟨state⟩ inputs only state blocks, and ⟨condition⟩ inputs only condition blocks.
 - **Optional inputs show only where they apply:** no "at … %" for "stands still", the curves or a stopped motor, and no
   Hz except for "plays a tone" (`showOptional`, called from the blocks' `onchange`). An input with a block in it stays
   visible, so the translator's message about it can be followed.
@@ -324,15 +350,10 @@ for *expect while*; they describe the world of *given*):
   outside a world. A dropdown without a value gets the world's first fitting item when the block comes into a world.
 - **The checkbox** of a test: the bundled Blockly's undo hands `FieldCheckbox.setValue` a boolean, which it takes as
   "unchecked"; the field accepts both (`checkbox` in `nepoTest.blocks.ts`).
-- **Names** of tests, worlds and their tests are one namespace: *run test* runs any of them by its name.
-- **Run blocks follow the tests** (`tests.controller.ts`):
-  - When a block is created, *run test* blocks without a test (`?`) get a test or a world that no run block runs yet,
-    in workspace order. The new block and this choice are one undo step. Loaded suites are left as they are.
-  - Renaming a test renames its run blocks.
-  - While a dropdown shows `?`, `?` stays in its menu. Blockly doesn't open a menu with one option, so a single test,
+- **Names** of tests, worlds and their tests are one namespace (until 2026-11-04, *run test* ran any of them by its name).
+- **Dropdowns:** while a dropdown shows `?`, `?` stays in its menu. Blockly doesn't open a menu with one option, so a single test,
     function or variable could otherwise never be picked (`nameOptions` in `nepoTest.blocks.ts`).
 - **Colours** follow NEPO:
-  - start block: red (activity);
   - tests, simulation worlds and their tests: green (procedure);
   - checks: logic cyan, like *expect*;
   - *given*: sensor green;
@@ -349,7 +370,6 @@ Examples:
 - "put "run the program" or "call function" under "when"";
 - "there are two tests named …";
 - "there is no test named …";
-- "choose the test to run in "run test"" (a run block still showing `?`);
 - "the program has no function …";
 - "the Edison only knows whole numbers";
 - "expect the result only works with call function";
@@ -361,7 +381,8 @@ Examples:
 - simulation worlds:
   - "test "…": its start is not in the world (any more): choose one of its starts", "this area is not in the world
     (any more): choose another one" (also for the area that ends the run, and obstacles);
-  - "test "…": put this test into a simulation world" (a test outside a world that *run test* selects);
+  - the warning "test "…" is not in a simulation world, so it does not run" (a test of a world lying outside one);
+  - "there are no tests yet: build a simulation world and a test in it";
   - "test "…": the robot starts outside the floor …", "… starts on an obstacle …"; the warning "… starts on "…",
     which the test checks …";
   - "in a simulation world, draw obstacles, lines and areas into the world instead" (a set-up obstacle, line or
@@ -374,8 +395,8 @@ Examples:
   - the warning "test "…" is a simulation test of an older kind: it does not run …" (the command line; the Tab drops
     them on load).
 
-A test or world that isn't under the start block, and a test listed twice (also with its world), are **warnings**.
-Everything else is an error and stops the run.
+A test of a world outside a world is a **warning** (in a file with a start block: a test or world that isn't under it,
+and a test listed twice). Everything else is an error and stops the run.
 
 ---
 
@@ -477,7 +498,9 @@ the AI test assistant (`nepoAi_notes`, `docs/ai/nepo-ai-tests.md`). Their owners
 - **Suites saved before 2026-10-26** had simulation tests of their own (`nepoTest_simtest`). `loadSuite` removes them,
   and the *run test* blocks that ran them, from the XML before Blockly sees it, and says so. If a suite can't be loaded
   at all, it is kept as it was for saving (`unloadable`), so an empty suite shown instead doesn't delete it.
-- **An empty suite** (only the start block) isn't stored, so programs without tests stay byte-for-byte unchanged.
+- **Suites saved before 2026-11-04** had the red start block and *run test* blocks. `loadSuite` removes them and
+  unticks (or disables) the tests they didn't run (`dropStartBlock`), from the XML before Blockly sees it, and says so.
+- **An empty suite** (no blocks) isn't stored, so programs without tests stay byte-for-byte unchanged.
 - **An edit in the Tests tab** marks the program unsaved, like an edit in the Program tab.
 - **Compatibility:** a Lab without this feature would show unknown test blocks when it opens such a program. That's
   accepted for this fork.
@@ -623,8 +646,7 @@ The picture under the block and the sensors shown under the canvas use the same 
 suite is loaded.
 
 **Running** (always the selected test):
-- **Run test** runs the selected test on its own, even if no *run test* block selects it; **Run all** runs every test of
-  the world. A test with problems doesn't run; the panel lists them.
+- **Run test** runs the selected test on its own, even if it is unticked; **Run all** runs every test of the world. A test with problems doesn't run; the panel lists them.
 - **The list of tests** under the picture: ✓, ✗, – (skipped) or ○ (not run), the start's name, the test's name. A click
   selects the test (and its block).
 - **Replay:** after a run, the panel replays it:
@@ -666,8 +688,9 @@ has ended. A test can check only its behaviour (no area at all).
   second after it went wrong); of a variable: around its last change ("it became 3 at 0.33 s").
 
 **Why it failed: the facts** (`nepoTest.simProgram.ts`). Every run is recorded, and a failed check (and a runtime error)
-comes with the facts of the second before it. The panel shows them under the check (*what happened before*, the first
-one open), the runner under the failure:
+comes with the facts of the second before it. **Since 2026-11-04 they aren't shown** (`SHOW_FACTS = false`, GitHub issue
+#9): learners found them too detailed, and the *why* below is enough. With `SHOW_FACTS = true`, the panel shows them
+under the check (*what happened before*, the first one open), the runner under the failure:
 - **sensed:** what the program read, per sensor and the block that read it ("line tracker sees black: no 49×, yes
   11×");
 - **ran:** the decisions it took, with how often their condition held ("[if …] yes 11×, no 49×"; a `wait until`:
@@ -682,7 +705,7 @@ The blocks are chips with the block's text (from the Program tab); a click opens
 selected. The facts are English, like the other messages.
 
 **Why it failed: the block to blame** (`nepoTest.simVerdict.ts`). A failed check of what the robot does, or of a
-variable, gets a *why* line above its facts (in the panel and in the runner): its kind and what happened, with the
+variable, gets a *why* line under it (in the panel and in the runner; above its facts, when they are shown): its kind and what happened, with the
 blocks as chips. The rules look at the record where the check went wrong (the failing stretch, the time after the
 event), in this order:
 - **decision missing:** no block read the sensor the check is about, then or at all ("no block of the program reads the

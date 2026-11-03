@@ -5,6 +5,7 @@ import contextlib
 import io
 import json
 import os
+import re
 import unittest
 
 from nepotest import Bundle, NepoProgram, TestSubject, run_spec, validate_spec
@@ -115,6 +116,17 @@ class TranslateTest(unittest.TestCase):
         p = self.problems(suite(('f', CALL_CLAMP.replace('>150<', '>1.5<') + EXPECT_100)), program)
         self.assertIn(('n', 'error', 'the Edison only knows whole numbers (1.5)'), p)
         self.assertEqual(self.problems(suite(), program)[0][2], 'put "run test" blocks under the start block')
+
+    def test_without_a_start_block_every_test_runs(self):
+        """since 2026-11-04 a suite has no start block: every test runs, in their order; a disabled one is left out"""
+        program = NepoProgram(split_program(read(WITH_TESTS))[0])
+        xml = suite(('a', CALL_CLAMP + EXPECT_100), ('b', CALL_CLAMP + EXPECT_100), ('c', CALL_CLAMP + EXPECT_100))
+        xml = re.sub(r'<instance x="0" y="0"><block type="nepoTest_suite".*?</instance>', '', xml, count=1)  # no start block
+        xml = xml.replace('<block type="nepoTest_test" id="d1"', '<block type="nepoTest_test" id="d1" disabled="true"')
+        spec, problems = translate(xml, program)
+        self.assertEqual(([t['name'] for t in spec['tests']], problems), (['a', 'c'], []))
+        _, (problem,) = translate(xml.replace('nepoTest_test', 'nepoTest_old'), program)
+        self.assertEqual(problem['message'], 'there are no tests yet: build a simulation world and a test in it')
 
 
 class BrowserApiTest(unittest.TestCase):

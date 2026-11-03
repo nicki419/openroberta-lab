@@ -16,7 +16,7 @@
  *   blocks that run are found as the debugger finds them (State.evalHighlightings): an operation's "+" begins blocks, the next operation
  *   ends those in the previous one's "-".
  * - facts: for a failed check, the second before it: what the robot sensed, what ran (decisions and actions), what it remembered, what it
- *   did. factLines puts them into words, with the blocks as chips.
+ *   did. factLines puts them into words, with the blocks as chips. They are not shown (SHOW_FACTS): too detailed for learners.
  * - trace: the record in steps of 100 ms, for the report (and the replay: what ran, what the program read, what the robot could sense).
  * - What an action block does: the block in effect for an actuator at a time (inEffectAt), the wheel speeds a motor action sets, as the
  *   simulator sets them (wheelsAfter), and how the robot moves at those speeds (motionOf). nepoTest.simVerdict blames blocks with them.
@@ -534,6 +534,12 @@ export interface Action extends Effect {
 }
 
 export const FACTS_MS = 1000;
+/**
+ * the facts of a failure are computed (the report has them, nepoTest.simVerdict uses the record), but not shown under a failed check: learners
+ * found them too detailed, why the check failed (the verdict) is enough (GitHub issue #9, 2026-11-04). true shows them again, in the Test runner
+ * and in the Simulation panel.
+ */
+export const SHOW_FACTS = false;
 
 /** the frames of a time (ms): those that end after `from` and by `to` */
 export function framesBetween(rec: Recorder, from: number, to: number): Frame[] {
