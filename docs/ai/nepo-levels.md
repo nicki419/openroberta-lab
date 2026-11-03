@@ -19,11 +19,12 @@ Designers' guide: `levels/README.md`. Configuration: `.env.example`.
 | Level format, parsing, checks, file names, `fetchSets()` | `OpenRobertaWeb/src/app/levels/level.model.ts` |
 | Playing levels in the simulator: scene, referee, bar, messages, progress | `OpenRobertaWeb/src/app/levels/levels.player.ts` |
 | Autosave | `OpenRobertaWeb/src/app/levels/levels.autosave.ts` |
-| Telemetry | `OpenRobertaWeb/src/app/levels/levels.telemetry.ts` |
+| Telemetry | `OpenRobertaWeb/src/app/levels/levels.telemetry.ts` (an attempt's EdPy is asked for once: `attemptSource`, also used by the AI test assistant) |
 | The Level designer tab | `OpenRobertaWeb/src/app/roberta/controller/levels.controller.ts`; markup `#tabLevels`, `#levels` in `index.html` |
 | The world editor (level mode) | `OpenRobertaWeb/src/app/nepotest/nepoTest.simEditor.ts` (`mode: 'level'`) |
-| Hooks in the simulator | `simulation.scene.ts` (`ILevelHost`, `showFullyLoadedSim`, `update`, `handleKeyEvent`), `simulation.roberta.ts` (`levelHost`, `level()`, `stopProgram`, `callbackOnTermination`, `resetPose`) |
-| Progress in the program XML | `nepoTest.suite.ts` (`setLevelProgress`, `split`/`merge`); NepoTest's `blocks.py` `split_program` leaves it out |
+| Hooks in the simulator | `simulation.scene.ts` (`ILevelHost`, `showFullyLoadedSim`, `update`, `handleKeyEvent`, `centerBackground` with `insetRight`), `simulation.roberta.ts` (`levelHost`, `level()`, `stopProgram`, `callbackOnTermination`, `resetPose`) |
+| A panel beside the scene (the AI test assistant's, `docs/ai/nepo-ai-tests.md`) | an element of `#simDiv` with the class `levelSidePanel`: the scene is centred in the rest (`levels.player` `insetRight`, `sidePanelChanged`) |
+| Progress in the program XML | `nepoTest.suite.ts` (`setLevelProgress`, `split`/`merge`, `loadExtras`); NepoTest's `blocks.py` `split_program` leaves it out |
 | Tests | `LevelsControllerTest`, `EnvFileTest`, `NepoTestSuitePersistenceTest` (progress survives import and load), `NepoTest/tests/test_blocks.py` |
 
 ## A level

@@ -457,9 +457,11 @@ whose first block has a `nepoTest_` type. There's no database or REST change.
 | Load (list, gallery, import, new program, robot switch) | test instances are split off and put into the Tests tab; a program without them gets a new, empty suite | `programToBlocklyWorkspace(xml, fromShowSource, keepTests)` → `NEPOTEST_SUITE.split` / `loadTests` |
 | Reloads with a workflow result (show source, simulation, run, source editor) and re-renders (language, toolbox) | the regenerated XML has no tests, so the current suite is **kept**; the program stays saved or unsaved as it was (autosave relies on it) | `reloadProgram(result)` and `reloadView` pass `keepTests` |
 
-One more instance travels the same way: the learner's progress in the simulator's levels. Its block is
-`nepoLevel_progress`, and its `data` holds the progress as JSON (`docs/ai/nepo-levels.md`). `split` returns it as
-`progress`, `merge` appends it, and `program.controller` hands it to the levels with `loadLevelProgress`.
+Other data travels the same way, each as one more instance whose block's `data` is JSON (the suite's *extras*): the
+learner's progress in the simulator's levels (`nepoLevel_progress`, `docs/ai/nepo-levels.md`) and what the learner told
+the AI test assistant (`nepoAi_notes`, `docs/ai/nepo-ai-tests.md`). Their owners register with `setLevelProgress` and
+`setAiNotes`; `split` returns them as `extras`, `merge` appends them, and `program.controller` hands them back with
+`loadExtras`. NepoTest's `blocks.py` leaves them out (`EXTRA_TYPES`).
 
 **The rules this relies on:**
 - **The program workspace never contains test blocks,** so code generation, simulation and run never see them.

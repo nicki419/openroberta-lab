@@ -54,6 +54,8 @@ export interface ILevelHost {
     ended(): void;
     /** "Restart level" (the reset button) */
     restart(): void;
+    /** the width (px) a panel beside the scene takes on its right (the scene is centred in the rest) */
+    insetRight(): number;
 }
 
 export class RcjScoringTool implements IObserver {
@@ -1264,7 +1266,8 @@ export class SimulationScene {
         let $canvasDiv: JQuery<HTMLElement> = $('#canvasDiv');
         let canvasOffset = $simDiv.offset();
         let offsetY = canvasOffset.top;
-        this.playground.w = $simDiv.outerWidth() - 50;
+        let inset = this.sim.level() ? this.sim.level().insetRight() : 0;
+        this.playground.w = $simDiv.outerWidth() - 50 - inset;
         this.playground.h = $(window).height() - offsetY;
         let scaleX = this.playground.w / (this.backgroundImg.width + 20);
         let scaleY = this.playground.h / (this.backgroundImg.height + 20);

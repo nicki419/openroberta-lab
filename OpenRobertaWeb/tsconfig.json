@@ -353,6 +353,9 @@
       "levels.telemetry": [
         "app/levels/levels.telemetry"
       ],
+      "levels.aiAssistant": [
+        "app/levels/levels.aiAssistant"
+      ],
       "levels.controller": [
         "app/roberta/controller/levels.controller"
       ],

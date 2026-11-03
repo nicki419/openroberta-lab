@@ -101,6 +101,8 @@ from .spec import validate_spec
 
 PREFIX = 'nepoTest_'
 LEVEL_PROGRESS = 'nepoLevel_progress'  # the learner's progress in the levels of the Lab's simulator, saved with the program: neither program nor test
+AI_NOTES = 'nepoAi_notes'  # what the learner told the Lab's AI test assistant, saved with the program: neither program nor test
+EXTRA_TYPES = (LEVEL_PROGRESS, AI_NOTES)
 WORLD = 'nepoTest_world'
 SIM_TEST = 'nepoTest_simcase'
 OLD_SIM_TEST = 'nepoTest_simtest'
@@ -125,14 +127,14 @@ def is_test_instance(instance):
     return first is not None and (first.get('type') or '').startswith(PREFIX)
 
 
-def is_progress_instance(instance):
+def is_extra_instance(instance):
     first = next((b for b in instance if _tag(b) == 'block'), None)
-    return first is not None and first.get('type') == LEVEL_PROGRESS
+    return first is not None and first.get('type') in EXTRA_TYPES
 
 
 def split_program(xml_text):
-    """(program block_set XML without test instances, test block_set XML or None) from a program's (or an export's) XML; the levels'
-    progress is left out"""
+    """(program block_set XML without test instances, test block_set XML or None) from a program's (or an export's) XML; the extras
+    (the levels' progress, the AI test assistant's notes) are left out"""
     m = re.search(r'<program>\s*(.*?)\s*</program>', xml_text, re.S)
     block_set_text = m.group(1) if m else xml_text.strip()
     if not re.match(r'<block_set[^>]*\sxmlns=', block_set_text):
@@ -144,7 +146,7 @@ def split_program(xml_text):
         if _tag(inst) == 'instance' and is_test_instance(inst):
             root.remove(inst)
             tests.append(inst)
-        elif _tag(inst) == 'instance' and is_progress_instance(inst):
+        elif _tag(inst) == 'instance' and is_extra_instance(inst):
             root.remove(inst)
     program = ET.tostring(root, encoding='unicode')
     return program, (ET.tostring(tests, encoding='unicode') if len(tests) else None)

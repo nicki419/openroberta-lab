@@ -3,8 +3,8 @@
 When a learner runs a changed program on a level, the assistant guesses what the program is meant to do and offers
 to write **scenario-based simulation tests** for it. The learner can say in one sentence what the program should do.
 The tests become ordinary blocks in the Tests tab. This document covers what is built so far: the calls through the
-Lab server (phase 1) and the test JSON both ways (phase 2). The assistant's panel (phase 3) and its telemetry events
-(phase 4) come later.
+Lab server (phase 1), the test JSON both ways (phase 2) and the assistant beside the simulator with its switch
+(phase 3). Its telemetry events (phase 4) come later.
 
 ## What the model gets, and what it doesn't
 
@@ -38,6 +38,20 @@ at most 20,000 characters).
 
 Measured on 2026-11-03 (`deepseek-flash`, a prompt of about 12,700 tokens, 12,400 of them cached from the second call
 on): infer 3 to 5 s; generate 7 to 18 s at effort low, 71 s at high; a repair 4 s.
+
+## The assistant beside the simulator (`OpenRobertaWeb/src/app/levels/levels.aiAssistant.ts`)
+
+| What | Where |
+|---|---|
+| **The switch:** "AI test assistant" in the Edit menu (`#menuAiTestsItem`, Edison only), with a tick; greyed out if the server has no API key (`server.ai.available`) | `index.html`, `levels.aiAssistant` `switchTo`, `renderMenu` |
+| kept per test subject on the server: `POST /rest/ai/switch` (`{on}` switches, `{}` asks; the answer `{on: true, false or null, stored}`), in `ai-switch.json` beside the telemetry, keyed as the telemetry files (`user-<id>-<account>`). A POST, as every call that knows the session. An account never switched gets the default (`AI_TESTS_DEFAULT`), or the page's switch if it was switched before logging in. Nobody logged in: the open page only | `AiController.aiSwitch`, `ai/AiSwitches`; `AiSwitchesTest` |
+| **The panel** (`#aiAssistant`, class `levelSidePanel`): to the right of the scene while the AI is on and a level of the sets is played (not "Try in simulator"); the scene is centred in the rest, the level bar and its messages move over | `levels.aiAssistant` `renderVisibility`; `levels.player` `insetRight`; `roberta.css` (`#simDiv.nepoAi`) |
+| **The trigger:** `attempt_started` of a level (Play). A changed program starts a guess: the fingerprint is the program's XML without ids, positions, description and tags, its top blocks sorted (moving a block doesn't count). An unchanged run makes no call. While tests are written or reviewed, a run doesn't interrupt | `levels.aiAssistant` `attemptStarted`, `fingerprint` |
+| one EdPy request per attempt, shared with the telemetry | `levels.telemetry` `attemptSource` |
+| **The states:** idle, thinking (from Play, with the seconds since), the offer (the guess, an optional sentence of at most 200 characters, "Write tests", "Not now", "Don't ask on this level"), the guess alone, nothing new to test (`ask` false), writing, the review list (all ticked; untick any), done ("Open Tests tab"; the tests don't run), no new tests, discarded, no suggestions on this level ("Suggest tests again"), an error ("Try again"). Answers that come after the AI was switched off, or after a newer run began, are dropped | `levels.aiAssistant` `render` |
+| **After "Not now":** every changed run still gets a guess (with the declined one); the offer comes back only when the model says it means something new (`same_as_declined` false) and at least 3 changed runs have passed | `DECLINED_RUNS` |
+| **The notes**, saved with the program as one more instance (`nepoAi_notes`, as the level progress): the learner's sentences word for word (`{text, time, level, answer: write or not_now}`, sent as `said` with later calls), the guess declined and the changed runs since, the levels it doesn't ask on | `nepoTest.suite` `setAiNotes`, `loadExtras`; `NepoTestSuitePersistenceTest`, `NepoTest/tests/test_blocks.py` |
+| the added tests: `tests.controller` `addAiTests` (one undo step), with their provenance (the call that wrote them) | `levels.aiAssistant` `addTests` |
 
 ## The test JSON (`OpenRobertaServer/src/main/resources/ai/tests.md`, `schemas/generate.schema.json`)
 
@@ -88,7 +102,29 @@ the test as the model wrote it. The world's data stays the drawn world, so editi
   and generate on the line follower without a level, the tests added in one undo step with their provenance, run on
   the simulator (the line tests pass; "stops before the box" fails, as it should: the program has no obstacle stop).
 
+**Phase 3 in headless Chrome (2026-11-03, the line follower and a "drive to the wall" program, level "Drive to the
+goal"):**
+- **The switch:** switched on in the Edit menu, the panel shows, and the scene moves left to make room for it. The
+  server stores the switch for the account; after a reload and a new login it is on again. With nobody logged in, the
+  switch holds for the page and makes no server call. The panel is hidden while the AI is off and while a level is
+  tried from the Level designer.
+- **Changed and unchanged runs:** a 1-second run showed "thinking" from Play, and the offer 1.4 s after the stop. An
+  unchanged run and a run after moving two blocks made no call.
+- **"Not now":** after it, two changed runs (other speeds) got a guess but no offer. The third changed run (a new
+  program, driving to the wall) brought the offer back.
+- **Writing tests:** with a sentence, 2 tests came in 13 s. One was unticked, so 1 was added, in a new world, with its
+  provenance, and no test ran. "Open Tests tab" opened the Tests tab. Without a sentence, 3 tests came in 17 s and
+  "Discard" added none.
+- **The sentence** was autosaved with the program, came back after the reload, and was sent as `said` with the next
+  guess.
+- **The other states:** switching off during a guess dropped its answer; a (faked) timeout showed "Try again", which
+  worked; "Don't ask on this level" stopped the calls on the level, and "Suggest tests again" brought them back.
+
 ## Open points
+
+- **Earlier sentences pin the guess.** The model takes the intent from the learner's words first, so a sentence about
+  an earlier version of the program decides later guesses too. Seen on 2026-11-03: after "drive to the wall and stop",
+  the program was rebuilt into a line follower, and the guess stayed "drive to the wall" with "nothing new to test".
 
 - The model takes the worked examples as models: given the same sentence as example 1, it drew nearly the same
   worlds. Keep the examples varied.

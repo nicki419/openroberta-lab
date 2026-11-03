@@ -664,6 +664,189 @@ body.blocklyMinimalBody * {
     margin-top: 8px;
 }
 
+/* the AI test assistant beside the levels' simulator (levels.aiAssistant.ts): a panel on the scene's right while the AI is on */
+#aiAssistant {
+    display: none;
+}
+
+#simDiv.nepoLevels.nepoAi {
+    --nepo-side-panel: min(320px, 45%);
+}
+
+#simDiv.nepoLevels.nepoAi #aiAssistant {
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: var(--nepo-side-panel);
+    z-index: 98;
+    background: #fff;
+    border-left: 1px solid #c8c8c8;
+    overflow-y: auto;
+    font-size: 14px;
+    line-height: 1.45;
+    user-select: text;
+    -webkit-user-select: text;
+}
+
+#simDiv.nepoLevels.nepoAi #levelBar {
+    right: calc(var(--nepo-side-panel) + 12px);
+}
+
+#simDiv.nepoLevels.nepoAi #levelMessage {
+    left: calc((100% - var(--nepo-side-panel)) / 2);
+}
+
+#menuAiTestsItem {
+    border-top: 1px solid #e0e0e0;
+}
+
+.aiHead {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    border-bottom: 1px solid #e0e0e0;
+    background: #f4f4f4;
+    font-weight: bold;
+}
+
+.aiDot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #1f8f3a;
+}
+
+.aiBody {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px 14px 16px;
+}
+
+.aiBody p {
+    margin: 0;
+}
+
+.aiEyebrow {
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #666;
+}
+
+.aiNote {
+    font-size: 12px;
+    color: #666;
+}
+
+.aiIntent {
+    margin: 0;
+    padding: 8px 10px;
+    border-radius: 6px;
+    background: #e8f3ea;
+    font-weight: bold;
+}
+
+.aiLabel {
+    margin: 0;
+    font-size: 12px;
+    font-weight: normal;
+    color: #555;
+}
+
+.aiSentence {
+    width: 100%;
+    padding: 6px 8px;
+    border: 1px solid #bbb;
+    border-radius: 4px;
+}
+
+.aiButtons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.aiBody .btn.aiLink {
+    align-self: flex-start;
+    padding: 0;
+    border: 0;
+    background: none;
+    font-size: 12px;
+    color: #666;
+    text-decoration: underline;
+}
+
+.aiProgress {
+    height: 6px;
+    border-radius: 3px;
+    background: #e6e6e6;
+    overflow: hidden;
+}
+
+.aiProgress i {
+    display: block;
+    width: 40%;
+    height: 100%;
+    border-radius: 3px;
+    background: #1f8f3a;
+    animation: aiSlide 1.4s ease-in-out infinite;
+}
+
+@keyframes aiSlide {
+    from {
+        transform: translateX(-100%);
+    }
+    to {
+        transform: translateX(250%);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .aiProgress i {
+        width: 60%;
+        animation: none;
+    }
+}
+
+.aiWorld {
+    font-size: 12px;
+    font-weight: bold;
+    color: #555;
+}
+
+.aiChecklist {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.aiChecklist label {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: start;
+    gap: 8px;
+    margin: 0;
+    font-weight: normal;
+}
+
+.aiChecklist input {
+    margin: 4px 0 0;
+}
+
+.aiChecklist small {
+    display: block;
+    color: #666;
+}
+
 .nepoSimNone {
     color: #777;
     padding: 12px 2px;

@@ -128,8 +128,11 @@ designers' guide.
 meant to do and writes scenario tests for it. The model gets the program, the learner's sentences and their tests,
 **never the level** (no title, instructions or world): it draws each test's world itself. Its prompt is the context
 pack in `OpenRobertaServer/src/main/resources/ai/`. Its test JSON becomes Tests-tab blocks through
-`nepoTest.aiFormat.ts`, checked and repaired by `nepoTest.ai.ts`. Read it before changing the prompt, the test JSON or
-the calls.
+`nepoTest.aiFormat.ts`, checked and repaired by `nepoTest.ai.ts`. The assistant's panel sits to the right of the levels'
+simulator (`levels.aiAssistant.ts`): a run of a changed program brings a guess and an offer, the learner reviews the tests
+before they are added, and they don't run. It is switched on and off in the Edit menu, per test subject on the server
+(`/rest/ai/switch`). The learner's sentences are saved with the program (`nepoAi_notes`). Read it before changing the
+prompt, the test JSON, the calls or the panel.
 
 ## Where the Edison V2 code lives (short map)
 
@@ -152,7 +155,7 @@ the calls.
 | **NEPO unit-test framework** (Python) | `NepoTest/` (`nepotest/`, `nepotest/engine/`, `examples/`, `tests/`, `schema/`) |
 | **Tests tab** (test blocks, runner) | `OpenRobertaWeb/src/app/nepotest/*` (blocks, suite storage, runner, Web Worker, simulation world `nepoTest.sim.ts`, panel `nepoTest.simEditor.ts`, runs on the Lab's simulator `nepoTest.simRun.ts`, the record and the facts of a failure `nepoTest.simProgram.ts`, the checks of behaviour `nepoTest.simBehaviour.ts`, why a check failed `nepoTest.simVerdict.ts`), `OpenRobertaWeb/src/app/roberta/controller/tests.controller.ts`; markup in `staticResources/index.html` (`#tabTests`, `#tests`); translation `NepoTest/nepotest/blocks.py` |
 | **Levels** (simulator levels, designer, progress, telemetry) | `levels/` (sets), `OpenRobertaWeb/src/app/levels/*` (`level.model`, `levels.player`, `levels.autosave`, `levels.telemetry`), `OpenRobertaWeb/src/app/roberta/controller/levels.controller.ts` (the Level designer tab), the world editor's level mode (`nepoTest.simEditor.ts`), hooks `ILevelHost` in `simulation.scene.ts`/`simulation.roberta.ts`; server `OpenRobertaServer/…/main/EnvFile.java` (`.env`), `…/restServices/all/controller/LevelsController.java` (REST `/levels`, `/levels/telemetry`) |
-| **AI test assistant** (DeepSeek through the server, context pack, test JSON ↔ blocks) | `OpenRobertaServer/…/ai/*` (`AiService`, `AiPrompts`, `DeepSeekClient`, `ContextPack`, `AiSettings`), `…/restServices/all/controller/AiController.java`, the context pack `OpenRobertaServer/src/main/resources/ai/`, `OpenRobertaWeb/src/app/nepotest/nepoTest.aiFormat.ts`, `nepoTest.ai.ts`; tests `AiServiceTest`, `AiPromptsTest`, `NepoTest/tests/test_ai_format.py` |
+| **AI test assistant** (DeepSeek through the server, context pack, test JSON ↔ blocks, the panel and its switch) | `OpenRobertaServer/…/ai/*` (`AiService`, `AiPrompts`, `DeepSeekClient`, `ContextPack`, `AiSettings`, `AiSwitches`), `…/restServices/all/controller/AiController.java`, the context pack `OpenRobertaServer/src/main/resources/ai/`, `OpenRobertaWeb/src/app/nepotest/nepoTest.aiFormat.ts`, `nepoTest.ai.ts`, the panel `OpenRobertaWeb/src/app/levels/levels.aiAssistant.ts` (menu item `#menuAiTestsItem` in `index.html`); tests `AiServiceTest`, `AiPromptsTest`, `AiSwitchesTest`, `NepoTest/tests/test_ai_format.py` |
 | Source map for tests (block id → EdPy ranges) | `OpenRobertaRobot/…/bean/SourceMapBean`, filled by `EdisonPythonVisitor.preVisitCheck/postVisitCheck`, served by `ProjectWorkflowRestController` `/projectWorkflow/sourceForTest`; test `OpenRobertaServer/src/test/java/…/javaServer/EdisonSourceMapTest` |
 
 `…` = `src/main/java/de/fhg/iais/roberta`. Paths are repo-relative.

@@ -48,15 +48,18 @@ class SplitTest(unittest.TestCase):
         self.assertEqual(tests.count('<instance'), 9)  # the suite + 8 tests
         self.assertEqual(split_program(read(os.path.join(EXAMPLES, 'clap_counter.xml')))[1], None)
 
-    def test_split_leaves_out_the_levels_progress(self):
-        """the Lab saves the learner's progress in the simulator's levels with the program: it is neither program nor test"""
+    def test_split_leaves_out_the_levels_progress_and_the_ai_notes(self):
+        """the Lab saves the learner's progress in the simulator's levels and what they told the AI test assistant with the program: they
+        are neither program nor test"""
         xml = read(WITH_TESTS).replace(
             '</block_set>',
             '<instance x="0" y="0"><block type="nepoLevel_progress" id="nepoLevelProgress" intask="true"><data>{"version": 1}</data>'
-            '</block></instance></block_set>', 1)
+            '</block></instance><instance x="0" y="0"><block type="nepoAi_notes" id="nepoAiNotes" intask="true"><data>{"version": 1}'
+            '</data></block></instance></block_set>', 1)
         program, tests = split_program(xml)
-        self.assertNotIn('nepoLevel_progress', program)
-        self.assertNotIn('nepoLevel_progress', tests)
+        for extra in ('nepoLevel_progress', 'nepoAi_notes'):
+            self.assertNotIn(extra, program)
+            self.assertNotIn(extra, tests)
         self.assertIn('robControls_start', program)
         self.assertEqual(tests.count('<instance'), 9)
 

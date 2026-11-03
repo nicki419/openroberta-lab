@@ -12,6 +12,7 @@
  * it was first opened and the tests there were then, the test runs. Each event has an id (the page's and a number: a resent one can be told),
  * the client's time, the program's name, the robot and the account; the server adds its time, the user and the session.
  * The events wait in a queue: sent every few seconds, and when the page is hidden or left (navigator.sendBeacon).
+ * An attempt's EdPy is asked for once: the AI test assistant takes it from here too (attemptSource).
  */
 import * as GUISTATE_C from 'guiState.controller';
 import * as COMM from 'comm';
@@ -37,6 +38,7 @@ let queue: any[] = [];
 let sending: any[] = null;
 let sendingSince = 0;
 let lastTick = Date.now();
+let source: { key: string; program: string; edpy: Promise<{ edpy: string; error: string }> } = null; // the last attempt's program
 
 export function init(): void {
     PLAYER.onEvent(levelEvent);
@@ -118,33 +120,51 @@ function levelEvent(kind: string, data: any): void {
 
 /** an attempt: the program that runs, in NEPO (with its tests) and in EdPy (the Lab generates it) */
 function attemptStarted(data: any): void {
-    const workspace = GUISTATE_C.getBlocklyWorkspace();
-    const program = Blockly.Xml.domToText(Blockly.Xml.workspaceToDom(workspace));
+    const run = attemptSource(data.level, data.attempt);
     const event: any = {
         kind: 'attempt_started',
         level: data.level,
         set: data.set,
         attempt: data.attempt,
         tests: TESTS_C.testInventory().length,
-        nepo: SUITE.merge(program),
+        nepo: SUITE.merge(run.program),
         edpy: null,
     };
-    let sent = false;
-    const done = function (edpy: string, error: string) {
-        if (!sent) {
-            sent = true;
-            event.edpy = edpy;
-            error && (event.edpyError = error);
-            send(event);
-        }
-    };
-    setTimeout(() => done(null, 'no answer'), EDPY_WAIT_MS);
-    const isNamedConfig = !GUISTATE_C.isConfigurationStandard() && !GUISTATE_C.isConfigurationAnonymous();
-    const configName = isNamedConfig ? GUISTATE_C.getConfigurationName() : undefined;
-    const configXml = GUISTATE_C.isConfigurationAnonymous() ? GUISTATE_C.getConfigurationXML() : undefined;
-    PROGRAM.showSourceProgram(GUISTATE_C.getProgramName(), configName, program, configXml, '', '', GUISTATE_C.getLanguage(), function (result: any) {
-        done(result.rc === 'ok' ? result.sourceCode : null, result.rc === 'ok' ? null : result.message || result.rc);
+    run.edpy.then(function (result) {
+        event.edpy = result.edpy;
+        result.error && (event.edpyError = result.error);
+        send(event);
     });
+}
+
+/**
+ * the program of the attempt that begins (its XML, without tests) and its EdPy (null and why, if the Lab didn't make it within EDPY_WAIT_MS). Asked
+ * for once per attempt: whoever asks first (the telemetry, the AI test assistant) starts it.
+ */
+export function attemptSource(level: string, attempt: number): { program: string; edpy: Promise<{ edpy: string; error: string }> } {
+    const program = Blockly.Xml.domToText(Blockly.Xml.workspaceToDom(GUISTATE_C.getBlocklyWorkspace()));
+    const key = level + '#' + attempt;
+    if (source && source.key === key && source.program === program) {
+        return source;
+    }
+    const edpy = new Promise<{ edpy: string; error: string }>(function (resolve) {
+        let done = false;
+        const finish = function (code: string, error: string) {
+            if (!done) {
+                done = true;
+                resolve({ edpy: code, error: error });
+            }
+        };
+        setTimeout(() => finish(null, 'no answer'), EDPY_WAIT_MS);
+        const isNamedConfig = !GUISTATE_C.isConfigurationStandard() && !GUISTATE_C.isConfigurationAnonymous();
+        const configName = isNamedConfig ? GUISTATE_C.getConfigurationName() : undefined;
+        const configXml = GUISTATE_C.isConfigurationAnonymous() ? GUISTATE_C.getConfigurationXML() : undefined;
+        PROGRAM.showSourceProgram(GUISTATE_C.getProgramName(), configName, program, configXml, '', '', GUISTATE_C.getLanguage(), function (result: any) {
+            finish(result.rc === 'ok' ? result.sourceCode : null, result.rc === 'ok' ? null : result.message || result.rc);
+        });
+    });
+    source = { key: key, program: program, edpy: edpy };
+    return source;
 }
 
 function testRun(run: any): void {

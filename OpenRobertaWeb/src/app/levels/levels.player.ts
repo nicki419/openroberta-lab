@@ -12,6 +12,8 @@
  *   says what happened.
  * - Above the scene: the set, the level (beaten ✓, locked 🔒), its title and instructions, the time left.
  * - "Try in simulator" in the Level designer plays a level of its own (tryLevel): no progress.
+ * - A panel beside the scene (an element of #simDiv with the class levelSidePanel, such as the AI test assistant's) takes the scene's right:
+ *   the scene is centred in the rest (insetRight; sidePanelChanged when it is shown or hidden).
  * - The progress (per set the level played and the levels beaten, per level the attempts) is saved with the program (nepoTest.suite), once
  *   the learner has played; loading a program brings its progress back (a program without one starts anew). A change of the progress is an
  *   unsaved change of the program (autosave saves it: levels.autosave).
@@ -291,7 +293,19 @@ const host: ILevelHost = {
         attempt = null;
         renderClock(0);
     },
+    insetRight: function (): number {
+        let width = 0;
+        $('#simDiv > .levelSidePanel:visible').each((i, e) => {
+            width = Math.max(width, (e as HTMLElement).offsetWidth);
+        });
+        return width;
+    },
 };
+
+/** a panel beside the scene was shown or hidden: the scene is centred anew */
+export function sidePanelChanged(): void {
+    scene && SimulationRoberta.Instance.level() && scene.centerBackground(false);
+}
 
 // ------------------------------------------------------------------------------------------------ the level played
 

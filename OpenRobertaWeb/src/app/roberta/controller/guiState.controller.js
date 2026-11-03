@@ -909,6 +909,11 @@ function isLevelDesignerOn() {
     return !!(GUISTATE.server.levels && GUISTATE.server.levels.designer);
 }
 
+/** the AI test assistant: {available: the server has an API key, default: on for a test subject never switched (AI_TESTS_DEFAULT)} */
+function getServerAi() {
+    return GUISTATE.server.ai || { available: false, default: false };
+}
+
 function getUserName() {
     return GUISTATE.user.name;
 }
@@ -1248,6 +1253,7 @@ export {
     getServerVersion,
     isPublicServerVersion,
     isLevelDesignerOn,
+    getServerAi,
     getUserName,
     getUserAccountName,
     isUserAccountActivated,

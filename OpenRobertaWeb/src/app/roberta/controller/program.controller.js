@@ -587,7 +587,7 @@ function programToBlocklyWorkspace(xml, opt_fromShowSource, opt_keepTests) {
     xml = withTests.program;
     if (!opt_keepTests) {
         NEPOTEST_SUITE.loadTests(withTests.tests);
-        NEPOTEST_SUITE.loadLevelProgress(withTests.progress); // the levels of the simulator (levels.player)
+        NEPOTEST_SUITE.loadExtras(withTests.extras); // the levels' progress (levels.player), the AI test assistant's notes (levels.aiAssistant)
     }
     listenToBlocklyEvents = false;
     blocklyWorkspace.clear();

@@ -63,18 +63,24 @@ public class NepoTestSuitePersistenceTest {
     }
 
     /**
-     * the learner's progress in the levels of the Program tab's simulator is saved with the program as one more instance (nepoTest.suite)
+     * the learner's progress in the levels of the Program tab's simulator and what they told the AI test assistant are saved with the program, each as
+     * one more instance (nepoTest.suite)
      */
     @Test
-    public void testLevelProgressSurvivesImportAndLoad() throws Exception {
+    public void testLevelProgressAndAiNotesSurviveImportAndLoad() throws Exception {
         String progress = "{\"version\":1,\"set\":\"01-first-steps\",\"sets\":{\"01-first-steps\":{\"current\":\"01-first-steps/02-b\",\"beaten\":[\"01-first-steps/01-a\"]}},\"levels\":{\"01-first-steps/01-a\":{\"attempts\":3}}}";
-        String instance =
+        String notes = "{\"version\":1,\"said\":[{\"text\":\"It should stop before the wall\",\"time\":\"2026-11-03T17:06:22.314Z\",\"level\":\"01-first-steps/01-a\",\"answer\":\"write\"}],\"declined\":null,\"quiet\":[]}";
+        String instances =
             "<instance x=\"0\" y=\"0\"><block type=\"nepoLevel_progress\" id=\"nepoLevelProgress\" intask=\"true\"><data>"
                 + progress.replace("\"", "&quot;")
+                + "</data></block></instance>"
+                + "<instance x=\"0\" y=\"0\"><block type=\"nepoAi_notes\" id=\"nepoAiNotes\" intask=\"true\"><data>"
+                + notes.replace("\"", "&quot;")
                 + "</data></block></instance>";
-        String export = Util.readResourceContent("/nepotest/line_follower_with_tests.xml").replaceFirst("</block_set>", instance + "</block_set>");
+        String export = Util.readResourceContent("/nepotest/line_follower_with_tests.xml").replaceFirst("</block_set>", instances + "</block_set>");
         String program = importAndLoad(export);
         Assert.assertEquals(progress, dataOf(program, "nepoLevel_progress", "nepoLevelProgress").replace("&quot;", "\""));
+        Assert.assertEquals(notes, dataOf(program, "nepoAi_notes", "nepoAiNotes").replace("&quot;", "\""));
         Assert.assertEquals(count(export, "type=\"nepoTest_"), count(program, "type=\"nepoTest_"));
     }
 

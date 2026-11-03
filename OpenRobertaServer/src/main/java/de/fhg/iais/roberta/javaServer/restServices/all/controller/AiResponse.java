@@ -6,7 +6,7 @@ import de.fhg.iais.roberta.ai.AiService;
 import de.fhg.iais.roberta.generated.restEntities.BaseResponse;
 
 /**
- * the response of /ai/infer and /ai/generate: a base response plus the checked answer (answer), what the browser may log about the call (meta) and,
+ * the response of /ai/infer, /ai/generate and /ai/switch: a base response plus the checked answer (answer), what the browser may log about the call (meta) and,
  * if it failed, why (aiError: a code, aiMessage: in words). Hand-written, because the generator of the REST entities isn't part of this repository.
  */
 public class AiResponse extends BaseResponse {
@@ -21,6 +21,15 @@ public class AiResponse extends BaseResponse {
         response.meta = outcome.meta;
         response.aiError = outcome.ok ? null : outcome.error;
         response.aiMessage = outcome.ok ? null : outcome.message;
+        return response;
+    }
+
+    /**
+     * @return a response with an answer of the server's own (/ai/switch)
+     */
+    public static AiResponse of(JSONObject answer) {
+        AiResponse response = new AiResponse();
+        response.answer = answer;
         return response;
     }
 

@@ -153,6 +153,7 @@ require.config({
         'levels.player': 'js/app/levels/levels.player',
         'levels.autosave': 'js/app/levels/levels.autosave',
         'levels.telemetry': 'js/app/levels/levels.telemetry',
+        'levels.aiAssistant': 'js/app/levels/levels.aiAssistant',
         'levels.controller': 'js/app/roberta/controller/levels.controller',
     },
     shim: {
@@ -332,6 +333,7 @@ require([
     'levels.player',
     'levels.autosave',
     'levels.telemetry',
+    'levels.aiAssistant',
     'startView.controller',
     //start connections
     'connection.interface',
@@ -384,6 +386,7 @@ require([
     levelsPlayer = require('levels.player');
     levelsAutosave = require('levels.autosave');
     levelsTelemetry = require('levels.telemetry');
+    levelsAiAssistant = require('levels.aiAssistant');
     startViewController = require('startView.controller');
     connectionController = require('connection.controller');
     aceEditor = require('aceEditor');
@@ -453,6 +456,7 @@ function initProgramming(robot, extensions, opt_callback, opt_params) {
             levelsTelemetry.init(); // before the player: it hears the first level opened
             levelsPlayer.init();
             levelsAutosave.init();
+            levelsAiAssistant.init(); // the AI test assistant beside the levels' simulator
             progSimController.createProgSimDebugInstance();
             progSimController.createProgSimMultiInstance();
             progRunController.init();
