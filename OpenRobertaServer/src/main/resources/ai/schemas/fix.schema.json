@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "The answer of the task fix: the failed tests fixed, and those left as they are because the program is wrong",
+  "type": "object",
+  "required": ["worlds", "program_wrong"],
+  "additionalProperties": false,
+  "properties": {
+    "worlds": {"type": "array", "maxItems": 3, "items": {"$ref": "generate.schema.json#/$defs/world"}},
+    "program_wrong": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["test", "world", "reason"],
+        "additionalProperties": false,
+        "properties": {
+          "test": {"type": "string", "minLength": 1, "maxLength": 80},
+          "world": {"type": "string", "maxLength": 80},
+          "reason": {"type": "string", "minLength": 1, "maxLength": 300}
+        }
+      }
+    }
+  }
+}

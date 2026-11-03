@@ -1,7 +1,11 @@
 /**
  * The AI test assistant beside the Program tab's simulator (Edison, while a level of the sets is played). When the learner runs a changed program, it
  * guesses what the program is meant to do (nepoTest.ai infer) and offers to write scenario tests for it (generate); the learner can say in one
- * sentence what the program should do. The tests the learner keeps become blocks in the Tests tab (tests.controller addAiTests); they don't run.
+ * sentence what the program should do. The tests the learner ticks first run on the simulator, for the program as it is (nepoTest.ai runTests).
+ * Those that pass are added; for those that failed, the learner sees what went wrong and chooses: the assistant tries to fix them (nepoTest.ai fix:
+ * the model gets how they ran), or they are discarded. A fix may also say that a test is right and the program is wrong: the learner then adds it
+ * anyway or discards it. The fixed tests run again (at most FIXES fixes). Nothing is added until every failed test is decided; then the tests
+ * become blocks in the Tests tab, in one undo step (tests.controller addAiTests), where they don't run by themselves.
  * The model never gets the level: only the program, the learner's sentences and their tests.
  *
  * - The switch: "AI test assistant" in the Edit menu. It is kept per test subject by the server (POST /rest/ai/switch, beside the telemetry), so it
@@ -12,8 +16,9 @@
  *   unchanged one changes nothing, and no call is made. The run never waits for the AI. While tests are written or reviewed, a run doesn't
  *   interrupt: its change is looked at with the next run.
  * - What it shows: idle, thinking (from Play), the offer, the guess alone (after "Not now": until the guess means something new and at least
- *   DECLINED_RUNS changed runs have passed), nothing new to test, writing, the review list (all ticked), done, no new tests, discarded, no
- *   suggestions on this level, an error. An answer that comes after the AI was switched off, or after a newer run began, is dropped.
+ *   DECLINED_RUNS changed runs have passed), nothing new to test, writing, the review list (all ticked), checking (the ticked tests run), the
+ *   results (what failed, and the questions: fix or discard; add anyway or discard), fixing, done, no new tests, discarded, no suggestions on this
+ *   level, an error. An answer that comes after the AI was switched off, or after a newer run began, is dropped; so is a check that runs then.
  * - Its notes are saved with the program (nepoTest.suite): the learner's sentences word for word (sent with later calls), the guess declined
  *   and the changed runs since, the levels it doesn't ask on, the tests it added (so the telemetry can tell which were deleted).
  * The EdPy of a run is the one the telemetry asks for (levels.telemetry attemptSource): one request serves both.
@@ -24,7 +29,11 @@
  * - ai_offer_shown; ai_offer_answered: write, not_now, never_here or ignored (the offer was replaced: why), the sentence word for word (also
  *   one typed but not sent), the guess answered, the time to answer
  * - ai_tests_generated: the tests offered (JSON), the repairs, what was left out and why, the duplicates, the calls, the time, the tokens
- * - ai_tests_added: the tests added (ticked) and those unticked, their worlds; discarded: none added
+ * - ai_tests_checked: a run of the chosen (or fixed) tests on the program: each test's outcome, its failed checks and why
+ * - ai_failed_answered: the learner's choice for the failed tests (fix or discard), or for those the assistant thinks right (add or discard)
+ * - ai_tests_fixed: a fix: the tests fixed (JSON), those it left as they are (the program is wrong) and why, the repairs, the calls, the tokens
+ * - ai_tests_added: the tests added (ticked; whether each passed, how often it was fixed), those unticked, the failed ones not added, their worlds;
+ *   discarded: none added
  * - ai_ask_again: "Suggest tests again" on a level
  */
 import * as GUISTATE_C from 'guiState.controller';
@@ -36,14 +45,31 @@ import * as PLAYER from 'levels.player';
 import * as TELEMETRY from 'levels.telemetry';
 import * as SUITE from 'nepoTest.suite';
 import * as TESTS_C from 'tests.controller';
+import * as VERDICT from 'nepoTest.simVerdict';
 
 const GROUP = 'edison';
 const TICK_MS = 1000;
 const DECLINED_RUNS = 3; // after "Not now": changed runs before it offers again
 const MAX_SENTENCE = 200;
 const MAX_SAID = 50; // sentences kept in the notes (the server sends the last 5)
+const FIXES = 2; // how often the assistant tries to fix the tests of a batch
 
-type State = 'idle' | 'thinking' | 'offer' | 'guess' | 'nothing' | 'writing' | 'review' | 'done' | 'empty' | 'discarded' | 'quiet' | 'error';
+type State =
+    | 'idle'
+    | 'thinking'
+    | 'offer'
+    | 'guess'
+    | 'nothing'
+    | 'writing'
+    | 'review'
+    | 'checking'
+    | 'results'
+    | 'fixing'
+    | 'done'
+    | 'empty'
+    | 'discarded'
+    | 'quiet'
+    | 'error';
 
 /** what the learner told the assistant about the program: saved with it */
 export interface Notes {
@@ -56,13 +82,46 @@ export interface Notes {
 
 interface View {
     state: State;
-    since?: number; // thinking, writing: since when (ms)
+    since?: number; // thinking, writing, fixing: since when (ms)
     intent?: string;
     for?: string; // writing: the sentence, or the guess
-    added?: { tests: number; worlds: FORMAT.Resolved[] };
+    progress?: { index: number; count: number; name: string }; // checking: the test that runs
+    count?: number; // fixing: how many tests
+    added?: { tests: number; worlds: FORMAT.Resolved[]; failing: number; unchecked: number; notAdded: number };
     error?: string;
     message?: string;
     retry?: () => void;
+    other?: { label: string; action: () => void }; // error: another way on
+}
+
+/**
+ * a test the learner chose, or one the assistant fixed: where it is, how it ran, what becomes of it. passed: it is added; failed: to be decided;
+ * fix: to be fixed; flagged: the assistant thinks it is right and the program wrong (reason), to be decided; kept: failed, added anyway;
+ * unchecked: added without a run (the runs failed); discarded; leftOut: the fix left it out (reason: why); gaveUp: it still failed after the last
+ * fix (not added)
+ */
+interface Candidate {
+    world: FORMAT.Resolved; // its world (its tests don't count): one of the answer's, or the learner's (existing)
+    test: FORMAT.AiTest;
+    call: string; // the call that wrote it (generate or fix)
+    fixes: number; // how often it was fixed
+    ran: AI.Ran; // its last run
+    state: 'passed' | 'failed' | 'fix' | 'flagged' | 'kept' | 'unchecked' | 'discarded' | 'leftOut' | 'gaveUp';
+    reason?: string; // flagged: why the assistant thinks the program is wrong; leftOut: why the fix left it out
+}
+
+/** the tests the learner chose from the review list, until they are added */
+interface Batch {
+    call: string; // the generate call
+    prefix: string; // of the blocks added
+    intent: string;
+    sentence: string;
+    before: string[]; // the learner's sentences before (said)
+    worlds: FORMAT.Resolved[]; // the worlds of the answer
+    candidates: Candidate[];
+    fixes: number; // the fixes made
+    leftOut: number; // tests a fix left out (it couldn't fix them, or they had problems)
+    unticked: { name: string; world: string }[];
 }
 
 let on = false;
@@ -76,6 +135,8 @@ let request: AI.Request = null; // the last guess's
 let guess: any = null; // its answer {intent, confidence, ask, same_as_declined, not_covered}
 let generated: AI.Generated = null;
 let ticked: boolean[][] = [];
+let writing: { intent: string; sentence: string; before: string[] } = null; // what the tests of the review list were written for
+let batch: Batch = null;
 let notes: Notes = newNotes();
 let guessCall: any = null; // the meta of the guess's call
 let offer: { intent: string; call: string; shownAt: number } = null; // the offer shown and not answered yet
@@ -106,7 +167,7 @@ const TEXT: { [key: string]: string } = {
     writingNote: 'Usually 10 to 20 s. You can keep working meanwhile.',
     scenarios: '{0} scenarios',
     scenario: '1 scenario',
-    untick: "Untick any you don't want.",
+    untick: "Untick any you don't want. The others run on your program before they are added.",
     newWorld: 'In a new world: “{0}”',
     yourWorld: 'In your world “{0}”',
     leftOut: '{0} more were left out: they had problems, or you have them already.',
@@ -115,8 +176,14 @@ const TEXT: { [key: string]: string } = {
     discard: 'Discard',
     doneHead: 'Done',
     done: '{0} added to the Tests tab, {1}. {2}',
-    notRunOne: "It hasn't run yet.",
-    notRunMany: "They haven't run yet.",
+    passedOne: 'It passed on your program.',
+    passedMany: 'They passed on your program.',
+    failingOne: '1 of them fails on your program: you added it anyway.',
+    failingMany: '{0} of them fail on your program: you added them anyway.',
+    uncheckedOne: "It couldn't run on your program first.",
+    uncheckedMany: "They couldn't run on your program first.",
+    notAddedOne: "1 more failed, and wasn't added.",
+    notAddedMany: "{0} more failed, and weren't added.",
     oneTest: '1 test',
     tests: '{0} tests',
     inNewWorld: 'in a new world: {0}',
@@ -126,6 +193,41 @@ const TEXT: { [key: string]: string } = {
     and: ' and ',
     doneNote: 'The assistant stays like this until the next changed run.',
     openTests: 'Open Tests tab',
+    checkingHead: 'Checking the tests',
+    checking: 'Test {0} of {1} runs on your program: “{2}”',
+    checkingNote: 'Each test runs in its own world on the simulator.',
+    resultsHead: 'Test results',
+    resultsSummary: '{0} of {1} passed on your program.',
+    ranPassed: 'passed',
+    ranPassedFixed: 'passed after a fix',
+    ranFailed: 'failed',
+    ranKept: 'fails: added anyway',
+    ranDiscarded: 'discarded',
+    ranGaveUp: "still failed after {0} fixes: it won't be added",
+    ranFix: 'failed: to be fixed',
+    ranSame: 'left out: fixed, it checks the same as “{0}”',
+    ranBroken: 'left out: its fix had problems',
+    ranNotFixed: "left out: I couldn't fix it",
+    flagged: 'I think this test is right, and your program is wrong:',
+    askFix: 'Should I try to fix the failed tests, or discard them?',
+    askFixOne: 'Should I try to fix the failed test, or discard it?',
+    askFixNote: 'The tests that passed are added either way.',
+    fixThem: 'Fix them',
+    fixIt: 'Fix it',
+    discardThem: 'Discard them',
+    discardIt: 'Discard it',
+    fixChosen: "I'll fix them once you've decided about the others.",
+    askFlagged: "Add them anyway? A test that fails shows what your program doesn't do yet.",
+    askFlaggedOne: "Add it anyway? A test that fails shows what your program doesn't do yet.",
+    addAnyway: 'Add anyway',
+    goOnAdd: 'Add the others',
+    goOnNone: 'OK',
+    fixingHead: 'Fixing tests',
+    fixing: 'Fixing {0} tests: I look at how they ran on your program.',
+    fixingOne: 'Fixing 1 test: I look at how it ran on your program.',
+    noneAdded: 'None of the tests passed on your program, so none were added.',
+    runFailed: "The tests couldn't run on your program ({0}).",
+    addUnchecked: 'Add them without running',
     emptyHead: 'No new tests',
     empty: 'The tests I wrote were already there or had problems, so none were added.',
     discardedHead: 'No tests added',
@@ -312,7 +414,7 @@ function shown(): boolean {
 }
 
 function busy(): boolean {
-    return view.state === 'writing' || view.state === 'review';
+    return ['writing', 'review', 'checking', 'results', 'fixing'].indexOf(view.state) >= 0;
 }
 
 function levelEvent(kind: string, data: any): void {
@@ -406,14 +508,13 @@ async function write(intent: string, sentence: string, before: string[]): Promis
         return;
     }
     generated = result;
+    writing = { intent: intent, sentence: sentence, before: before };
     ticked = result.worlds.map((w) => w.tests.map(() => true));
     show({ state: result.worlds.some((w) => w.tests.length) ? 'review' : 'empty', intent: intent });
 }
 
 /** ai_tests_generated: the tests offered, the repairs, what was left out, the calls */
 function recordGenerated(intent: string, sentence: string, result: AI.Generated, ms: number, stale: boolean): void {
-    const tokens: any = {};
-    result.calls.forEach((m) => Object.keys((m && m.tokens) || {}).forEach((k) => (tokens[k] = (tokens[k] || 0) + (Number(m.tokens[k]) || 0))));
     record('ai_tests_generated', {
         intent: intent,
         sentence: sentence || null,
@@ -429,8 +530,15 @@ function recordGenerated(intent: string, sentence: string, result: AI.Generated,
         duplicates: result.duplicates,
         calls: result.calls.map(callOf),
         latencyMs: ms,
-        tokens: tokens,
+        tokens: tokensOf(result.calls),
     });
+}
+
+/** the tokens of calls, summed */
+function tokensOf(calls: any[]): any {
+    const tokens: any = {};
+    calls.forEach((m) => Object.keys((m && m.tokens) || {}).forEach((k) => (tokens[k] = (tokens[k] || 0) + (Number(m.tokens[k]) || 0))));
+    return tokens;
 }
 
 /** the offer shown is answered (write, not_now, never_here) or, replaced by something else, ignored (reason: what replaced it) */
@@ -451,10 +559,12 @@ function closeOffer(answer: string, sentence?: string): void {
     offer = null;
 }
 
-function errorView(kind: string, result: { error: string; message: string }, retry: () => void): View {
+function errorView(kind: string, result: { error: string; message: string }, retry: () => void, other?: { label: string; action: () => void }): View {
     const e = result.error || '';
     const message =
-        e === 'timeout' || e === 'network' || e === 'unreachable' || e.indexOf('http_') === 0
+        kind === 'check'
+            ? text('runFailed', result.message)
+            : e === 'timeout' || e === 'network' || e === 'unreachable' || e.indexOf('http_') === 0
             ? text(kind === 'infer' ? 'noAnswerInfer' : 'noAnswerGenerate')
             : e === 'limit'
             ? text('limit')
@@ -463,7 +573,7 @@ function errorView(kind: string, result: { error: string; message: string }, ret
             : e === 'not_configured'
             ? text('notConfigured')
             : text('unusable', e);
-    return { state: 'error', error: e, message: message, retry: e === 'not_configured' ? null : retry };
+    return { state: 'error', error: e, message: message, retry: e === 'not_configured' ? null : retry, other: other };
 }
 
 /** the learner's sentence, if they wrote one: kept word for word */
@@ -515,29 +625,282 @@ function askHereAgain(): void {
     show({ state: 'idle' });
 }
 
-/** "Add n tests": the ticked ones become blocks in the Tests tab, with where they came from; they don't run */
-function addTests(): void {
-    const worlds = generated.worlds
-        .map((w, i) => Object.assign({}, w, { tests: w.tests.filter((t, j) => ticked[i][j]) }))
-        .filter((w) => w.tests.length);
+/** "Add n tests": the ticked ones run on the program first (checking) */
+function chooseTests(): void {
     const meta = generated.calls[generated.calls.length - 1] || {};
-    const ids = TESTS_C.addAiTests(worlds, AI.prefixOf(meta, generated.repairs), (w, test) => ({
+    const chosen: Candidate[] = [];
+    generated.worlds.forEach((w, i) =>
+        w.tests.forEach((t, j) => ticked[i][j] && chosen.push({ world: w, test: t, call: meta.callId || null, fixes: 0, ran: null, state: 'failed' }))
+    );
+    batch = {
         call: meta.callId || null,
-        scenario: test.scenario || '',
-        generated: test,
-        added: new Date().toISOString(),
-    }));
+        prefix: AI.prefixOf(meta, generated.repairs),
+        intent: writing.intent,
+        sentence: writing.sentence,
+        before: writing.before,
+        worlds: generated.worlds,
+        candidates: chosen,
+        fixes: 0,
+        leftOut: 0,
+        unticked: unticked(),
+    };
+    check(chosen);
+}
+
+/** the tests in their worlds, as an answer has them (a world: the tests of the list that are in it) */
+function worldsOf(list: Candidate[]): FORMAT.Resolved[] {
+    const worlds: FORMAT.Resolved[] = [];
+    const sources: FORMAT.Resolved[] = [];
+    list.forEach((c) => {
+        let i = sources.indexOf(c.world);
+        if (i < 0) {
+            i = sources.push(c.world) - 1;
+            worlds.push({ name: c.world.name, existing: c.world.existing, data: c.world.data, tests: [] });
+        }
+        worlds[i].tests.push(c.test);
+    });
+    return worlds;
+}
+
+/** the tests run on the program, one after the other; then what is still to be decided, or they are added */
+async function check(list: Candidate[]): Promise<void> {
+    const mine = ++token;
+    const started = Date.now();
+    show({ state: 'checking', progress: { index: 0, count: list.length, name: list[0].test.name } });
+    let runs: AI.Ran[];
+    try {
+        runs = await AI.runTests(worldsOf(list), TESTS_C.aiProgramXml(), {
+            cancelled: () => mine !== token,
+            onTest: (index, count, test) => {
+                if (mine === token && view.state === 'checking') {
+                    view.progress = { index: index, count: count, name: test.name };
+                    render();
+                }
+            },
+        });
+    } catch (e) {
+        if (mine !== token) {
+            return; // switched off, or another program loaded
+        }
+        const message = String((e && e.message) || e);
+        record('ai_tests_checked', { call: batch.call, fix: batch.fixes, ok: false, error: message, latencyMs: Date.now() - started, tests: [] });
+        show(
+            errorView('check', { error: 'run', message: message }, () => check(list), {
+                label: text('addUnchecked'),
+                action: () => {
+                    list.forEach((c) => (c.state = 'unchecked'));
+                    decide();
+                },
+            })
+        );
+        return;
+    }
+    if (mine !== token) {
+        return;
+    }
+    runs.forEach((r) => {
+        const c = list.filter((x) => x.test === r.test)[0];
+        c.ran = r;
+        c.state = AI.passed(r) ? 'passed' : 'failed';
+    });
+    record('ai_tests_checked', {
+        call: batch.call,
+        fix: batch.fixes,
+        ok: true,
+        latencyMs: Date.now() - started,
+        passed: list.filter((c) => c.state === 'passed').length,
+        failed: list.filter((c) => c.state === 'failed').length,
+        tests: list.map((c) => ({
+            name: c.test.name,
+            world: c.world.name,
+            outcome: c.ran.report.outcome,
+            fixes: c.fixes,
+            failed: AI.failuresOf(c.ran).map((f) => f.text),
+            why: AI.failuresOf(c.ran).map((f) => (f.why ? f.why.kind : null)),
+        })),
+    });
+    decide();
+}
+
+/**
+ * what is still to be decided is shown (results; also the tests that still failed after the last fix, once); then the tests to fix are fixed, or
+ * the tests are added
+ */
+function decide(): void {
+    const gaveUp = batch.fixes >= FIXES ? batch.candidates.filter((c) => c.state === 'failed') : [];
+    gaveUp.forEach((c) => (c.state = 'gaveUp'));
+    if (gaveUp.length || batch.candidates.some((c) => c.state === 'failed' || c.state === 'flagged')) {
+        show({ state: 'results' });
+        return;
+    }
+    const toFix = batch.candidates.filter((c) => c.state === 'fix');
+    toFix.length ? fix(toFix) : finish();
+}
+
+/** the learner's choice for the failed tests (fix, discard) or for those the assistant thinks right (add, discard) */
+function answerFailed(group: 'failed' | 'flagged', answer: string): void {
+    const tests = batch.candidates.filter((c) => c.state === group);
+    tests.forEach((c) => (c.state = answer === 'fix' ? 'fix' : answer === 'add' ? 'kept' : 'discarded'));
+    record('ai_failed_answered', { call: batch.call, group: group, answer: answer, fix: batch.fixes, tests: tests.map((c) => ({ name: c.test.name, world: c.world.name })) });
+    decide();
+}
+
+/** the worlds of the batch's answer (a fix may keep a test in one of them: base "existing") */
+function batchWorlds(): FORMAT.Resolved[] {
+    const worlds = batch.worlds.filter((w) => !w.existing);
+    batch.candidates.forEach((c) => !c.world.existing && worlds.indexOf(c.world) < 0 && worlds.push(c.world));
+    return worlds;
+}
+
+/** what a fix is checked against: the learner's tests, and the answer's worlds as existing worlds, with the tests kept in them */
+function fixContext(kept: Candidate[]): FORMAT.Context {
+    const ctx = TESTS_C.aiContext();
+    const own = batchWorlds();
+    ctx.existing.worlds.forEach((w) => kept.filter((c) => c.world.existing && c.world.name === w.name).forEach((c) => w.tests.push(c.test)));
+    own.forEach((w) => ctx.existing.worlds.push({ name: w.name, world: w.data.world, tests: kept.filter((c) => c.world === w).map((c) => c.test) }));
+    ctx.names = ctx.names.concat(
+        own.map((w) => w.name),
+        kept.map((c) => c.test.name)
+    );
+    return ctx;
+}
+
+/** the world of a fixed test: one of the answer's (base "existing" with its name), the learner's, or a new one */
+function worldOfFix(w: FORMAT.Resolved): FORMAT.Resolved {
+    const own = w.existing ? batchWorlds().filter((x) => x.name === w.name)[0] : null;
+    return own || { name: w.name, existing: w.existing, data: w.data, tests: [] };
+}
+
+/** "Fix": the model gets how the tests ran, and fixes them or says the program is wrong; the fixed tests run again */
+async function fix(toFix: Candidate[]): Promise<void> {
+    const mine = ++token;
+    show({ state: 'fixing', since: Date.now(), count: toFix.length });
+    const kept = batch.candidates.filter((c) => c.state === 'passed' || c.state === 'kept' || c.state === 'unchecked');
+    const data = Object.assign({}, request, { tests: TESTS_C.aiTests(), said: batch.before });
+    const started = Date.now();
+    const result = await AI.fix(
+        data,
+        batch.intent,
+        batch.sentence,
+        toFix.map((c) => c.ran),
+        kept.map((c) => ({ test: c.test.name, world: c.world.name })),
+        fixContext(kept),
+        TESTS_C.aiProgramXml(),
+        TESTS_C.aiBlockLabel
+    );
+    const stale = mine !== token || !on;
+    recordFixed(result, Date.now() - started, stale, toFix);
+    if (stale) {
+        return;
+    }
+    if (!result.ok) {
+        show(
+            errorView('fix', result, () => fix(toFix), {
+                label: toFix.length === 1 ? text('discardIt') : text('discardThem'),
+                action: () => {
+                    toFix.forEach((c) => (c.state = 'discarded'));
+                    decide();
+                },
+            })
+        );
+        return;
+    }
+    batch.fixes++;
+    const call = (result.calls[result.calls.length - 1] || {}).callId || null;
+    const fixed: Candidate[] = [];
+    result.worlds.forEach((w) =>
+        w.tests.forEach((t) => {
+            const from = toFix.filter((c) => c.test.name === t.name)[0]; // a fix keeps the name (nepoTest.ai checks it)
+            const c: Candidate = { world: worldOfFix(w), test: t, call: call, fixes: (from ? from.fixes : 0) + 1, ran: null, state: 'failed' };
+            fixed.push(c);
+            from ? (batch.candidates[batch.candidates.indexOf(from)] = c) : batch.candidates.push(c); // in the place of the test it fixes
+        })
+    );
+    toFix.forEach((c) => {
+        const wrong = result.programWrong.filter((p) => p.test === c.test.name)[0];
+        if (wrong) {
+            c.state = 'flagged';
+            c.reason = wrong.reason;
+        } else if (!fixed.some((f) => f.test.name === c.test.name)) {
+            const same = result.duplicates.filter((d) => d.test === c.test.name)[0]; // fixed, it checks the same as another test
+            const broken = result.dropped.some((p) => p.test === c.test.name);
+            c.state = 'leftOut';
+            c.reason = same ? text('ranSame', same.same) : broken ? text('ranBroken') : text('ranNotFixed');
+            batch.leftOut++;
+        }
+    });
+    fixed.length ? check(fixed) : decide();
+}
+
+/** ai_tests_fixed: the tests fixed, those left as they are (the program is wrong), the repairs, what was left out, the calls */
+function recordFixed(result: AI.Generated, ms: number, stale: boolean, toFix: Candidate[]): void {
+    record('ai_tests_fixed', {
+        call: batch.call,
+        fix: batch.fixes + 1,
+        failed: toFix.map((c) => ({ name: c.test.name, world: c.world.name })),
+        ok: result.ok,
+        error: result.error,
+        message: result.message || null,
+        stale: stale,
+        count: result.worlds.reduce((n, w) => n + w.tests.length, 0),
+        tests: { worlds: result.worlds.map((w) => (w.existing ? { name: w.name, base: 'existing', tests: w.tests } : { name: w.name, world: w.data.world, tests: w.tests })) },
+        programWrong: result.programWrong,
+        repairs: result.repairs,
+        leftOut: result.dropped.map(AI.problemText),
+        duplicates: result.duplicates,
+        calls: result.calls.map(callOf),
+        latencyMs: ms,
+        tokens: tokensOf(result.calls),
+    });
+}
+
+/** every failed test is decided: the tests that passed, those kept anyway (and those added unchecked) become blocks in the Tests tab */
+function finish(): void {
+    const keep = batch.candidates.filter((c) => c.state === 'passed' || c.state === 'kept' || c.state === 'unchecked');
+    const notAdded = batch.candidates.filter((c) => c.state === 'discarded' || c.state === 'leftOut' || c.state === 'gaveUp');
+    if (!keep.length) {
+        record('ai_tests_added', { call: batch.call, discarded: true, added: [], unticked: batch.unticked, failed: notAdded.map(failedOf), leftOut: batch.leftOut, fixes: batch.fixes, worlds: [] });
+        batch = null;
+        show({ state: 'discarded', message: text('noneAdded') });
+        return;
+    }
+    const worlds = worldsOf(keep);
+    const added = new Date().toISOString();
+    const passedOf = (c: Candidate) => (c.state === 'unchecked' ? null : c.state === 'passed');
+    const ids = TESTS_C.addAiTests(worlds, batch.prefix, (w, test) => {
+        const c = keep.filter((x) => x.test === test)[0];
+        return { call: c.call, scenario: test.scenario || '', generated: test, added: added, checked: { passed: passedOf(c), fixes: c.fixes } };
+    });
     notes.added = notes.added.concat(ids);
     notesChanged();
     const names = TESTS_C.testInventory().filter((x) => ids.indexOf(x.id) >= 0);
     record('ai_tests_added', {
-        call: meta.callId || null,
+        call: batch.call,
         discarded: false,
-        added: names.map((x) => ({ id: x.id, name: x.name })),
-        unticked: unticked(),
+        added: names.map((x) => {
+            const c = keep.filter((k) => k.test.name === x.name)[0];
+            return { id: x.id, name: x.name, passed: c ? passedOf(c) : null, fixes: c ? c.fixes : 0 };
+        }),
+        unticked: batch.unticked,
+        failed: notAdded.map(failedOf),
+        leftOut: batch.leftOut,
+        fixes: batch.fixes,
         worlds: worlds.map((w) => ({ name: w.name, existing: w.existing, tests: w.tests.map((x) => x.name) })),
     });
-    show({ state: 'done', added: { tests: ids.length, worlds: worlds } });
+    const counts = {
+        tests: ids.length,
+        worlds: worlds,
+        failing: keep.filter((c) => c.state === 'kept').length,
+        unchecked: keep.filter((c) => c.state === 'unchecked').length,
+        notAdded: notAdded.length,
+    };
+    batch = null;
+    show({ state: 'done', added: counts });
+}
+
+/** a failed test that wasn't added: discarded by the learner, left out by a fix, or still failing after the last fix */
+function failedOf(c: Candidate): any {
+    return { name: c.test.name, world: c.world.name, fixes: c.fixes, how: c.state === 'gaveUp' ? 'gave_up' : c.state === 'leftOut' ? 'left_out' : 'discarded', reason: c.reason || null };
 }
 
 /** the tests of the review list the learner unticked: their names and worlds */
@@ -719,11 +1082,36 @@ function render(): void {
         case 'review':
             renderReview(body, head, note, buttons, button);
             break;
+        case 'checking': {
+            head('checkingHead');
+            const p = view.progress;
+            html('p', '', body, text('checking', p.index + 1, p.count, p.name));
+            html('i', '', html('div', 'aiProgress aiProgressSteps', body)).style.width = Math.round((100 * (p.index + 0.5)) / p.count) + '%';
+            note(text('checkingNote'));
+            break;
+        }
+        case 'results':
+            renderResults(body, head, note, buttons, button);
+            break;
+        case 'fixing':
+            head('fixingHead');
+            html('p', '', body, view.count === 1 ? text('fixingOne') : text('fixing', view.count));
+            progress();
+            note(text('writingNote'));
+            break;
         case 'done': {
             head('doneHead');
             const added = view.added;
             const one = added.tests === 1;
-            html('p', '', body, text('done', one ? text('oneTest') : text('tests', added.tests), whereAdded(added.worlds), text(one ? 'notRunOne' : 'notRunMany')));
+            const how = added.unchecked
+                ? text(one ? 'uncheckedOne' : 'uncheckedMany')
+                : added.failing
+                ? added.failing === 1
+                    ? text('failingOne')
+                    : text('failingMany', added.failing)
+                : text(one ? 'passedOne' : 'passedMany');
+            html('p', '', body, text('done', one ? text('oneTest') : text('tests', added.tests), whereAdded(added.worlds), how));
+            added.notAdded && note(added.notAdded === 1 ? text('notAddedOne') : text('notAddedMany', added.notAdded));
             note(text('doneNote'));
             button(buttons(), text('openTests'), 'btn-primary aiOpenTests', openTests);
             break;
@@ -735,6 +1123,7 @@ function render(): void {
             break;
         case 'discarded':
             head('discardedHead');
+            view.message && html('p', '', body, view.message);
             note(text('again'));
             break;
         case 'quiet':
@@ -745,8 +1134,84 @@ function render(): void {
         case 'error':
             head('errorHead');
             html('p', '', body, view.message);
-            view.retry && button(buttons(), text('tryAgain'), 'btn-primary aiRetry', view.retry);
+            if (view.retry || view.other) {
+                const row = buttons();
+                view.retry && button(row, text('tryAgain'), 'btn-primary aiRetry', view.retry);
+                view.other && button(row, view.other.label, 'btn-default aiOther', view.other.action);
+            }
             break;
+    }
+}
+
+/** a block of the program as a chip: a click selects it in the Program tab */
+function chip(block: string): HTMLElement {
+    const e = html('span', 'nepoChip', null, TESTS_C.aiBlockLabel(block));
+    e.addEventListener('click', () => {
+        const b = GUISTATE_C.getBlocklyWorkspace() && GUISTATE_C.getBlocklyWorkspace().getBlockById(block);
+        b && b.select();
+    });
+    return e;
+}
+
+/** the runs of the batch: each test, how it ran and what becomes of it; then the questions for the failed ones and for those the assistant thinks right */
+function renderResults(body: Element, head: (key: string) => any, note: (s: string) => any, buttons: () => any, button: (parent: Element, label: string, cls: string, action: () => void) => any): void {
+    const shown = batch.candidates.filter((c) => c.ran || c.state === 'flagged');
+    head('resultsHead');
+    html('p', '', body, text('resultsSummary', shown.filter((c) => c.state === 'passed').length, shown.length));
+    const list = html('ul', 'aiResults', body);
+    shown.forEach((c) => {
+        const state = c.state;
+        const li = html('li', 'aiRun aiRun_' + state, list);
+        html('span', 'aiRunIcon', li, state === 'passed' ? '✓' : state === 'discarded' || state === 'leftOut' ? '–' : '✗').setAttribute('aria-hidden', 'true');
+        const main = html('div', 'aiRunMain', li);
+        html('span', 'aiRunName', main, c.test.name);
+        const label: { [s: string]: string } = {
+            passed: c.fixes ? text('ranPassedFixed') : text('ranPassed'),
+            failed: text('ranFailed'),
+            fix: text('ranFix'),
+            flagged: text('ranFailed'),
+            kept: text('ranKept'),
+            discarded: text('ranDiscarded'),
+            leftOut: c.reason,
+            gaveUp: text('ranGaveUp', batch.fixes),
+        };
+        html('small', 'aiRunState', main, label[state] || state);
+        if (state !== 'passed' && state !== 'discarded' && state !== 'leftOut' && c.ran) {
+            const details = html('ul', 'aiRunDetails', main);
+            AI.failuresOf(c.ran).forEach((f) => {
+                const item = html('li', '', details, f.text);
+                f.why && item.appendChild(VERDICT.explanationElement(f.why, 'nepoWhy', chip));
+            });
+        }
+        if (state === 'flagged' && c.reason) {
+            const box = html('div', 'aiReason', main);
+            html('b', '', box, text('flagged') + ' ');
+            box.appendChild(document.createTextNode(c.reason));
+        }
+    });
+    const failed = batch.candidates.filter((c) => c.state === 'failed');
+    const flagged = batch.candidates.filter((c) => c.state === 'flagged');
+    if (failed.length) {
+        const one = failed.length === 1;
+        html('p', 'aiQuestion', body, one ? text('askFixOne') : text('askFix'));
+        shown.some((c) => c.state === 'passed') && note(text('askFixNote'));
+        const row = buttons();
+        button(row, one ? text('fixIt') : text('fixThem'), 'btn-primary aiFix', () => answerFailed('failed', 'fix'));
+        button(row, one ? text('discardIt') : text('discardThem'), 'btn-default aiDiscardFailed', () => answerFailed('failed', 'discard'));
+    } else if (batch.candidates.some((c) => c.state === 'fix')) {
+        note(text('fixChosen'));
+    }
+    if (flagged.length) {
+        const one = flagged.length === 1;
+        html('p', 'aiQuestion', body, one ? text('askFlaggedOne') : text('askFlagged'));
+        const row = buttons();
+        button(row, text('addAnyway'), 'btn-primary aiAddAnyway', () => answerFailed('flagged', 'add'));
+        button(row, one ? text('discardIt') : text('discardThem'), 'btn-default aiDiscardFlagged', () => answerFailed('flagged', 'discard'));
+    }
+    if (!failed.length && !flagged.length && !batch.candidates.some((c) => c.state === 'fix')) {
+        // only the tests that still failed after the last fix were left: shown once
+        const others = batch.candidates.some((c) => c.state === 'passed' || c.state === 'kept' || c.state === 'unchecked');
+        button(buttons(), others ? text('goOnAdd') : text('goOnNone'), 'btn-primary aiGoOn', finish);
     }
 }
 
@@ -779,7 +1244,7 @@ function renderReview(body: Element, head: (key: string) => any, note: (s: strin
     const left = generated.dropped.length + generated.duplicates.length;
     left && note(text('leftOut', left));
     const row = buttons();
-    const add = button(row, total === 1 ? text('addOne') : text('add', total), 'btn-primary aiAdd', addTests);
+    const add = button(row, total === 1 ? text('addOne') : text('add', total), 'btn-primary aiAdd', chooseTests);
     button(row, text('discard'), 'btn-default aiDiscard', discard);
 }
 

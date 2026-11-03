@@ -28,7 +28,8 @@ import de.fhg.iais.roberta.util.Key;
 import de.fhg.iais.roberta.util.UtilForREST;
 
 /**
- * the AI test assistant's calls (see {@link AiService}): POST /ai/infer and POST /ai/generate, with the browser's data in the usual request envelope.
+ * the AI test assistant's calls (see {@link AiService}): POST /ai/infer, POST /ai/generate and POST /ai/fix, with the browser's data in the usual
+ * request envelope.
  * The response has the checked answer, or aiError and aiMessage. Every call is appended to the participant's telemetry file (kind ai_call, with the
  * per-call prompt and the raw answer), as the level events are ({@link LevelsController#writeTelemetry}).
  * <p>
@@ -59,6 +60,14 @@ public class AiController {
     @Produces(MediaType.APPLICATION_JSON)
     public Response generate(@OraData DbSession dbSession, FullRestRequest request) {
         return call(AiService.GENERATE, dbSession, request);
+    }
+
+    @POST
+    @Path("/fix")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response fix(@OraData DbSession dbSession, FullRestRequest request) {
+        return call(AiService.FIX, dbSession, request);
     }
 
     /**

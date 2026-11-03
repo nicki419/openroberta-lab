@@ -25,8 +25,10 @@ import de.fhg.iais.roberta.util.ServerProperties;
  * <li>infer: what is the program meant to do? {intent, confidence, ask, same_as_declined, not_covered}; short, 20 s.</li>
  * <li>generate: scenario tests for the intent, as test JSON {worlds: [...]}; 90 s; with a repair: the earlier answer and its problems follow, as a
  * conversation.</li>
+ * <li>fix: the tests of an answer that failed when they ran on the learner's program, with how they ran: {worlds: [the fixed tests],
+ * program_wrong: [{test, world, reason}: the tests left as they are, because the program is wrong]}; as generate (its effort, 90 s, repairs).</li>
  * </ul>
- * The reasoning effort of each is a setting (AI_EFFORT_INFER, AI_EFFORT_GENERATE; default low). Measured on 2026-11-03 with deepseek-flash and a
+ * The reasoning effort of each is a setting (AI_EFFORT_INFER, AI_EFFORT_GENERATE, also for fix; default low). Measured on 2026-11-03 with deepseek-flash and a
  * 12,700-token prompt: infer about 4 s; generate about 16 s at low (2,400 reasoning tokens), 71 s at high (11,300).
  * <p>
  * One instance serves the whole server (the limits per session are here).
@@ -36,6 +38,7 @@ public class AiService {
     private static final Logger LOG = LoggerFactory.getLogger(AiService.class);
     public static final String INFER = "infer";
     public static final String GENERATE = "generate";
+    public static final String FIX = "fix";
     private static final int MAX_REASONING = 20000; // characters of the reasoning kept in the telemetry
 
     private final AiSettings settings;
@@ -60,6 +63,7 @@ public class AiService {
         Map<String, Integer> perHour = new HashMap<>();
         perHour.put(INFER, 60);
         perHour.put(GENERATE, 30);
+        perHour.put(FIX, 30);
         this.limits = new AiLimits(perHour, System::currentTimeMillis);
     }
 
@@ -96,7 +100,7 @@ public class AiService {
     /**
      * a call of the assistant. Never throws.
      *
-     * @param kind {@link #INFER} or {@link #GENERATE}
+     * @param kind {@link #INFER}, {@link #GENERATE} or {@link #FIX}
      * @param session the session's number (the limits are per session)
      * @param data the browser's data (see {@link AiPrompts})
      */
@@ -108,7 +112,7 @@ public class AiService {
         event.put("level", data == null ? JSONObject.NULL : data.opt("levelId")); // logged only: the model never gets the level
         event.put("fingerprint", data == null ? JSONObject.NULL : data.opt("fingerprint"));
         event.put("model", this.settings.getModel());
-        if ( !INFER.equals(kind) && !GENERATE.equals(kind) || data == null ) {
+        if ( !INFER.equals(kind) && !GENERATE.equals(kind) && !FIX.equals(kind) || data == null ) {
             return outcome.fail("bad_request", "unknown call " + kind);
         }
         if ( !this.settings.isAvailable() ) {
@@ -163,7 +167,7 @@ public class AiService {
             if ( "length".equals(result.finishReason) ) {
                 return outcome.fail("cut_off", "the answer was cut off (too long)");
             }
-            outcome.answer = infer ? AiPrompts.checkInfer(result.content) : AiPrompts.checkGenerate(result.content);
+            outcome.answer = infer ? AiPrompts.checkInfer(result.content) : FIX.equals(kind) ? AiPrompts.checkFix(result.content) : AiPrompts.checkGenerate(result.content);
             outcome.ok = true;
             event.put("status", "ok").put("error", JSONObject.NULL);
             return outcome;

@@ -270,6 +270,50 @@ public class AiServiceTest {
     }
 
     @Test
+    public void fixSendsTheFailedTestsAndHowTheyRan() throws Exception {
+        JSONObject answer =
+            new JSONObject()
+                .put("worlds", new JSONArray())
+                .put("program_wrong", new JSONArray().put(new JSONObject().put("test", "From A, it reaches Goal 1").put("world", "Follow the line").put("reason", "It never reads the line tracker.")));
+        script(200, completion(answer, "stop"));
+        JSONObject failed = generateAnswer();
+        JSONObject fix =
+            new JSONObject()
+                .put("tests", failed)
+                .put("results", new JSONArray().put("test \"From A, it reaches Goal 1\" (world \"Follow the line\"): failed\nChecks:\n- failed: the robot did not reach \"Goal 1\""))
+                .put("kept", new JSONArray().put(new JSONObject().put("test", "Stops at the box").put("world", "A box")));
+        JSONObject data = data().put("intent", "Follow the black line to Goal 1.").put("sentence", JSONObject.NULL).put("fix", fix);
+        AiService service = service(KEY);
+        AiService.Outcome outcome = service.call(AiService.FIX, 7, data);
+        Assert.assertTrue(outcome.message, outcome.ok);
+        Assert.assertEquals(0, outcome.answer.getJSONArray("worlds").length());
+        Assert.assertEquals("It never reads the line tracker.", outcome.answer.getJSONArray("program_wrong").getJSONObject(0).getString("reason"));
+        Assert.assertEquals("fix", outcome.event.getString("call"));
+        JSONObject body = new JSONObject(this.requests.get(0).getString("body"));
+        Assert.assertEquals("high", body.getString("reasoning_effort")); // as generate
+        JSONArray messages = body.getJSONArray("messages");
+        Assert.assertEquals(2, messages.length());
+        String prompt = messages.getJSONObject(1).getString("content");
+        Assert.assertTrue(prompt, prompt.contains("## Task: fix\n\nThe intent you guessed: \"Follow the black line to Goal 1.\"\nThe learner wrote no sentence.\n"));
+        Assert.assertTrue(prompt, prompt.contains("These tests you wrote failed when they ran on the learner's program:\n\n```json\n" + failed + "\n```\n"));
+        Assert
+            .assertTrue(
+                prompt,
+                prompt.contains("How they ran:\n\n- test \"From A, it reaches Goal 1\" (world \"Follow the line\"): failed\n  Checks:\n  - failed: the robot did not reach \"Goal 1\"\n"));
+        Assert.assertTrue(prompt, prompt.endsWith("These tests of your answer passed, and the learner keeps them:\n\n- \"Stops at the box\" (world \"A box\")\n"));
+        Assert.assertFalse(prompt.contains("01-first-steps"));
+
+        script(200, completion(new JSONObject().put("worlds", new JSONArray()).put("program_wrong", new JSONArray()), "stop"));
+        Assert.assertEquals("bad_answer", service.call(AiService.FIX, 7, data).error); // fixes nothing, flags nothing
+        script(200, completion(generateAnswer(), "stop"));
+        AiService.Outcome fixed = service.call(AiService.FIX, 7, data);
+        Assert.assertTrue(fixed.message, fixed.ok);
+        Assert.assertEquals(0, fixed.answer.getJSONArray("program_wrong").length()); // missing: none
+        Assert.assertEquals("bad_request", service.call(AiService.FIX, 7, data().put("intent", "Drive.")).error); // no failed tests
+        Assert.assertEquals(3, this.requests.size());
+    }
+
+    @Test
     public void aServerErrorIsTriedOnceMore() {
         script(503, "{\"error\": \"busy\"}");
         script(200, completion(inferAnswer(), "stop"));

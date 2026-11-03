@@ -1230,7 +1230,12 @@ export function aiProgramXml(): string {
     return programXml();
 }
 
-/** adds generated tests to the suite (one undo step; they don't run): the ids of their blocks */
+/** a short name of a block of the program ("curve forward 40 10"): how the assistant names the blocks of a run */
+export function aiBlockLabel(blockId: string): string {
+    return blockLabel(blockId);
+}
+
+/** adds generated tests to the suite (one undo step; they don't run there): the ids of their blocks */
 export function addAiTests(worlds: AIFORMAT.Resolved[], prefix: string, provenance: (world: AIFORMAT.Resolved, test: AIFORMAT.AiTest) => AIFORMAT.Provenance): string[] {
     if (!workspace) {
         return [];

@@ -14,7 +14,7 @@ import org.junit.Test;
  * the context pack and the parts of a prompt: the pack loads, its examples use the format of the per-call message and their answers pass the checks
  */
 public class AiPromptsTest {
-    private static final Pattern ANSWER = Pattern.compile("## The answer \\((infer|generate)\\)\\n.*?```json\\n(.*?)\\n```", Pattern.DOTALL);
+    private static final Pattern ANSWER = Pattern.compile("## The answer \\((infer|generate|fix)\\)\\n.*?```json\\n(.*?)\\n```", Pattern.DOTALL);
 
     @Test
     public void trimNepo() {
@@ -70,7 +70,28 @@ public class AiPromptsTest {
             Assert.assertTrue(schemas.group(1), new JSONObject(schemas.group(2)).has("$schema"));
             found++;
         }
-        Assert.assertEquals(2, found);
+        Assert.assertEquals(3, found);
+    }
+
+    @Test
+    public void checkFix() {
+        JSONObject answer = AiPrompts.checkFix("{\"program_wrong\": [{\"test\": \"A\", \"world\": \"W\", \"reason\": \"" + String.join("", java.util.Collections.nCopies(400, "x")) + "\"}]}");
+        Assert.assertEquals(0, answer.getJSONArray("worlds").length());
+        Assert.assertEquals(AiPrompts.MAX_REASON, answer.getJSONArray("program_wrong").getJSONObject(0).getString("reason").length());
+        for ( String bad : new String[] {
+            "{}",
+            "{\"worlds\": [], \"program_wrong\": []}",
+            "{\"worlds\": {}, \"program_wrong\": [{\"test\": \"A\", \"reason\": \"r\"}]}",
+            "{\"program_wrong\": [{\"test\": \"A\"}]}",
+            "{\"worlds\": [{\"name\": \"W\"}]}"
+        } ) {
+            try {
+                AiPrompts.checkFix(bad);
+                Assert.fail(bad);
+            } catch ( AiException e ) {
+                Assert.assertEquals(bad, "bad_answer", e.getCode());
+            }
+        }
     }
 
     @Test
@@ -84,11 +105,15 @@ public class AiPromptsTest {
                 JSONObject answer = AiPrompts.checkInfer(answers.group(2));
                 Assert.assertEquals(new JSONObject(answers.group(2)).getString("intent"), answer.getString("intent"));
                 Assert.assertTrue(new JSONObject(answers.group(2)).keySet().equals(answer.keySet()));
+            } else if ( "fix".equals(answers.group(1)) ) {
+                JSONObject answer = AiPrompts.checkFix(answers.group(2));
+                Assert.assertEquals(1, answer.getJSONArray("worlds").length());
+                Assert.assertEquals(1, answer.getJSONArray("program_wrong").length());
             } else {
                 AiPrompts.checkGenerate(answers.group(2));
             }
         }
-        Assert.assertEquals("[infer, generate, infer, generate]", kinds.toString());
+        Assert.assertEquals("[infer, generate, infer, generate, fix]", kinds.toString());
     }
 
     @Test
@@ -99,7 +124,8 @@ public class AiPromptsTest {
             "The learner's tests",
             "What the learner said before",
             "Task: infer",
-            "Task: generate"
+            "Task: generate",
+            "Task: fix"
         } ) {
             Assert.assertTrue(heading, text.contains("\n### " + heading + "\n\n"));
         }
@@ -109,5 +135,7 @@ public class AiPromptsTest {
         Assert.assertTrue(text.contains("EdPy:\n```python\nwhile True:\n"));
         Assert.assertTrue(text.contains("The guess the learner declined: none."));
         Assert.assertTrue(text.contains("The learner's sentence: \"This program should follow a black line and stop if it senses an obstacle\""));
+        Assert.assertTrue(text.contains("How they ran:\n\n- test \"On the line, it follows it to the goal\" (world \"A line to a goal\"): failed\n  The run ended after 8 s"));
+        Assert.assertTrue(text.contains("These tests of your answer passed, and the learner keeps them:\n\n- \"Started beside the line, it finds it\""));
     }
 }

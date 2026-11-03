@@ -15,7 +15,10 @@ import org.json.JSONObject;
  *  levelId, fingerprint: the level played and the program's fingerprint (only logged),
  *  infer:    declined: the guess the learner declined (or null)
  *  generate: intent: the guess, sentence: the learner's sentence (or null),
- *            repair: {answer: the answer with problems, problems: ["...", ...]} (or null)}
+ *            repair: {answer: the answer with problems, problems: ["...", ...]} (or null)
+ *  fix:      as generate, and fix: {tests: the failed tests as test JSON, each world in full,
+ *                                   results: ["how a failed test ran", ...] (the browser writes them from the runs),
+ *                                   kept: [{test, world}: the tests of the answer that passed]}}
  * </pre>
  * The model gets nothing of the level the learner plays (no title, instructions, time limit or world): tests made from the level would give its
  * solution away and test the level instead of the learner's idea. So the message has the program, the learner's tests and the learner's words
@@ -33,6 +36,10 @@ public final class AiPrompts {
     public static final int MAX_PROBLEMS = 30;
     public static final int MAX_PROBLEM = 300;
     public static final int MAX_ANSWER = 60000;
+    public static final int MAX_RESULTS = 15; // failed tests of a fix
+    public static final int MAX_RESULT = 4000;
+    public static final int MAX_KEPT = 30;
+    public static final int MAX_REASON = 300;
 
     private static final String FIXED_START_END = "Ed.TimeWait(250, Ed.TIME_MILLISECONDS)";
     private static final Pattern CONFIG = Pattern.compile("<config>.*?</config>", Pattern.DOTALL);
@@ -45,7 +52,7 @@ public final class AiPrompts {
     }
 
     /**
-     * @param task {@link AiService#INFER} or {@link AiService#GENERATE}
+     * @param task {@link AiService#INFER}, {@link AiService#GENERATE} or {@link AiService#FIX}
      * @param data the browser's data (see the class comment)
      * @return the user message
      * @throws AiException bad_request (something required is missing) or too_large
@@ -98,11 +105,50 @@ public final class AiPrompts {
                 throw new AiException("bad_request", "the intent is missing");
             }
             String sentence = optText(data, "sentence");
-            m.append("## Task: generate\n\n");
+            boolean fix = AiService.FIX.equals(task);
+            m.append(fix ? "## Task: fix\n\n" : "## Task: generate\n\n");
             m.append("The intent you guessed: ").append(quote(limited("the intent", intent, MAX_GUESS))).append('\n');
             m.append(sentence == null ? "The learner wrote no sentence.\n" : "The learner's sentence: " + quote(limited("the sentence", sentence, MAX_SENTENCE)) + "\n");
+            if ( fix ) {
+                appendFix(m, data.optJSONObject("fix"));
+            }
         }
         return m.toString();
+    }
+
+    /** the task fix: the failed tests, how they ran (one item each, its lines indented), the tests that passed */
+    private static void appendFix(StringBuilder m, JSONObject fix) {
+        JSONObject tests = fix == null ? null : fix.optJSONObject("tests");
+        JSONArray worlds = tests == null ? null : tests.optJSONArray("worlds");
+        JSONArray results = fix == null ? null : fix.optJSONArray("results");
+        if ( worlds == null || worlds.length() == 0 || results == null || results.length() == 0 ) {
+            throw new AiException("bad_request", "a fix needs the failed tests and how they ran");
+        }
+        if ( results.length() > MAX_RESULTS ) {
+            throw new AiException("too_large", "a fix has at most " + MAX_RESULTS + " failed tests");
+        }
+        m.append("\nThese tests you wrote failed when they ran on the learner's program:\n\n");
+        m.append("```json\n").append(limited("the failed tests", tests.toString(), MAX_TESTS)).append("\n```\n\n");
+        m.append("How they ran:\n\n");
+        for ( int i = 0; i < results.length(); i++ ) {
+            String result = limited("a result", results.optString(i, ""), MAX_RESULT).replace("\r", "").trim();
+            m.append("- ").append(result.replace("\n", "\n  ")).append('\n');
+        }
+        JSONArray kept = fix.optJSONArray("kept");
+        if ( kept != null && kept.length() > MAX_KEPT ) {
+            throw new AiException("too_large", "a fix has at most " + MAX_KEPT + " tests that passed");
+        }
+        if ( kept == null || kept.length() == 0 ) {
+            m.append("\nNo other test of your answer passed.\n");
+        } else {
+            m.append("\nThese tests of your answer passed, and the learner keeps them:\n\n");
+            for ( int i = 0; i < kept.length(); i++ ) {
+                JSONObject test = kept.optJSONObject(i);
+                String name = test == null ? "" : test.optString("test", "");
+                String world = test == null ? "" : test.optString("world", "");
+                m.append("- ").append(quote(line(name, MAX_GUESS))).append(world.isEmpty() ? "" : " (world " + quote(line(world, MAX_GUESS)) + ")").append('\n');
+            }
+        }
     }
 
     /**
@@ -225,6 +271,48 @@ public final class AiPrompts {
             }
         }
         return answer;
+    }
+
+    /**
+     * @param content the model's answer to fix
+     * @return the answer: {worlds: the fixed tests (each world with an array of tests; may be empty), program_wrong: [{test, world, reason}] (may be
+     *         empty)}, not both empty (the browser checks the rest)
+     * @throws AiException bad_answer
+     */
+    public static JSONObject checkFix(String content) {
+        JSONObject answer = parse(content);
+        JSONArray worlds = optArray(answer, "worlds");
+        for ( int i = 0; i < worlds.length(); i++ ) {
+            JSONObject world = worlds.optJSONObject(i);
+            if ( world == null || world.optJSONArray("tests") == null ) {
+                throw new AiException("bad_answer", "world " + (i + 1) + " of the answer has no tests");
+            }
+        }
+        JSONArray wrong = optArray(answer, "program_wrong");
+        for ( int i = 0; i < wrong.length(); i++ ) {
+            JSONObject entry = wrong.optJSONObject(i);
+            if ( entry == null || optText(entry, "test") == null || optText(entry, "reason") == null ) {
+                throw new AiException("bad_answer", "program_wrong " + (i + 1) + " of the answer has no test or no reason");
+            }
+            String reason = optText(entry, "reason");
+            entry.put("reason", reason.length() > MAX_REASON ? reason.substring(0, MAX_REASON) : reason);
+        }
+        if ( worlds.length() == 0 && wrong.length() == 0 ) {
+            throw new AiException("bad_answer", "the answer fixes no test, and says of none that the program is wrong");
+        }
+        return answer.put("worlds", worlds).put("program_wrong", wrong);
+    }
+
+    /** an array of the answer: missing or null is empty */
+    private static JSONArray optArray(JSONObject answer, String key) {
+        Object value = answer.opt(key);
+        if ( value == null || value == JSONObject.NULL ) {
+            return new JSONArray();
+        }
+        if ( !(value instanceof JSONArray) ) {
+            throw new AiException("bad_answer", "the answer's " + key + " is not an array");
+        }
+        return (JSONArray) value;
     }
 
     private static JSONObject parse(String content) {

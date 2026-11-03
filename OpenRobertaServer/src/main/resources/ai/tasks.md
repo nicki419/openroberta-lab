@@ -1,8 +1,8 @@
 # Tasks
 
 Each call's message has these parts: **The program** (NEPO and EdPy), **The learner's tests** (JSON, or none), **What
-the learner said before** (their earlier sentences about this program, or none), and last **Task: infer** or **Task:
-generate** with what that task needs. You are not told what task the learner is working on.
+the learner said before** (their earlier sentences about this program, or none), and last **Task: infer**, **Task:
+generate** or **Task: fix** with what that task needs. You are not told what task the learner is working on.
 
 ## Task: infer
 
@@ -39,3 +39,44 @@ Without a sentence, take the intent from the guess, and write only tests that th
 After a generate answer, a message may list problems found in it ("test …: …"). Then answer again with the whole
 corrected test JSON: fix every problem, and keep the tests that had none as they were. If a test can't be fixed,
 leave it out.
+
+## Task: fix
+
+The learner chose tests from your generate answer, and each of them ran on the learner's program in the simulator.
+The task gives the intent and the learner's sentence again, the tests that failed (as you wrote them, each world in
+full), how each of them ran, and the names of the tests that passed. The learner asked you to fix the failed ones.
+
+How a test ran: why the run ended and when, where the robot started and ended, where it was every few seconds, and
+each check: passed, failed or not checked, with what happened. A failed check of what the robot does may say why
+("why (wrong action): …", with the program's blocks in brackets) and what happened in the second before it: what the
+program read from the sensors ("sensed"), its decisions and actions ("ran"), its variables ("remembered") and what
+the robot did ("did").
+
+A test fails for one of two reasons. Decide which, for each failed test:
+
+- **The test is wrong**: its world, start, set-up or timing don't make its scenario happen, or it checks more than the
+  intent asks for. For example: the start isn't on the line, the goal area doesn't cover the line's end,
+  `max_time_ms` is too short for the program's speed, a thing is in the robot's way that the scenario doesn't mean, a
+  check names the wrong item, or a check wants a way of driving the learner didn't ask for. Then fix the test: change
+  what is wrong, and keep its scenario.
+- **The program is wrong**: the test makes its scenario happen, and the program doesn't do what the learner's
+  sentence says (without a sentence: what the intent says). Then don't change the test: a test changed until a wrong
+  program passes it hides the mistake. Put it into `program_wrong`.
+
+Answer:
+
+```json
+{"worlds": [{"name": "A line to a goal", "base": "existing",
+             "tests": [{"name": "On the line, it follows it to the goal", "...": "the fixed test, all its fields"}]}],
+ "program_wrong": [{"test": "Stops before the box on the line", "world": "A box on the line",
+                    "reason": "The robot drives into the box: your program never reads the obstacle sensor, and you said it should stop at obstacles."}]}
+```
+
+- `worlds`: the fixed tests, in the test JSON, with the names they had. The worlds of your generate answer now count
+  as the learner's: to keep a test in its world, write `"base": "existing"` with the world's name. If the world itself
+  must change, draw it anew under another name. Don't repeat the tests that passed, and don't add new tests.
+- `program_wrong`: the tests you leave as they are because the program is wrong. `test` and `world`: their names;
+  `reason`: one or two sentences for the learner, at most 300 characters: what the robot does, and what it should do.
+- Every failed test is either fixed or in `program_wrong`; leave out one you can't fix. `worlds` or `program_wrong`
+  may be empty, but not both.
+- Repairs work as for generate: answer again with the whole corrected answer, `program_wrong` included.

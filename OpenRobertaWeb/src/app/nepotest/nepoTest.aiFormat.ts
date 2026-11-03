@@ -11,8 +11,8 @@
  *   floor, names, ids, roles and variables. The problems go back to the model (a repair); NepoTest's translator checks the rest (geometry: a start
  *   outside the floor or on an obstacle), see nepoTest.ai.
  * - suiteXml / addToWorkspace: the tests as blocks: a world block with its data and tests (nepoTest_simcase), their set-up (claps, keys,
- *   variables) and checks, and a run block under the start block for each new world. This is the inverse of NepoTest/nepotest/blocks.py: blocks
- *   made from JSON translate back to the same tests (NepoTest/tests/test_ai_format.py).
+ *   variables) and checks. This is the inverse of NepoTest/nepotest/blocks.py: blocks made from JSON translate back to the same tests
+ *   (NepoTest/tests/test_ai_format.py).
  * - duplicates: a test with the same world, start, set-up, end of the run and checks as another one.
  *
  * A test the assistant added keeps where it came from in its block's data: {ai: {call, block, scenario, generated, added}}. `block` is its id when
@@ -93,12 +93,13 @@ export interface Problem {
 
 /** where an AI test came from (in its block's data) */
 export interface Provenance {
-    call: string; // the generate call's id (callId of its ai_call in the telemetry)
+    call: string; // the id of the call that wrote it, generate or fix (callId of its ai_call in the telemetry)
     block?: string; // the block's id when it was added
     scenario: string;
     generated: AiTest; // the test as the model wrote it
     added?: string; // ISO time
     asAdded?: string; // the test when it was added (signatureOf): it was edited if it differs now
+    checked?: { passed: boolean; fixes: number }; // how it ran on the program before it was added (passed null: it couldn't run), how often it was fixed
 }
 
 const NS = 'http://de.fhg.iais.roberta.blockly';

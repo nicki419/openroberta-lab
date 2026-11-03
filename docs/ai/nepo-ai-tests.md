@@ -2,14 +2,16 @@
 
 When a learner runs a changed program on a level, the assistant guesses what the program is meant to do and offers
 to write **scenario-based simulation tests** for it. The learner can say in one sentence what the program should do.
-The tests become ordinary blocks in the Tests tab. This document covers what is built so far: the calls through the
+The tests the learner keeps run on the simulator first; the model fixes those that fail, or says the program is wrong.
+Then they become ordinary blocks in the Tests tab. This document covers what is built so far: the calls through the
 Lab server (phase 1), the test JSON both ways (phase 2), the assistant beside the simulator with its switch
-(phase 3) and its events in the study's telemetry (phase 4).
+(phase 3), its events in the study's telemetry (phase 4), and the check and fix of the chosen tests (2026-11-03).
 
 ## What the model gets, and what it doesn't
 
 - **It gets** the learner's program (its NEPO XML and its EdPy), the learner's tests (as test JSON), the learner's
-  earlier sentences about the program, and the task (infer or generate, with the guess and the learner's sentence).
+  earlier sentences about the program, and the task (infer, generate or fix, with the guess and the learner's sentence;
+  a fix also gets its own failed tests and how they ran on the simulator, in the tests' own worlds).
 - **It never gets the level** the learner plays: no title, instructions, time limit or world (lines, areas, obstacles,
   starts). Tests made from the level would give its solution away and test the level instead of the learner's idea.
   The model draws the world of each test itself, or adds tests to one of the learner's worlds. The level's id goes
@@ -21,9 +23,9 @@ Lab server (phase 1), the test JSON both ways (phase 2), the assistant beside th
 
 | What | Where |
 |---|---|
-| REST: `POST /rest/ai/infer`, `POST /rest/ai/generate` (the usual request envelope; the response has `answer`, `meta`, or `aiError` and `aiMessage`) | `javaServer/restServices/all/controller/AiController`, `AiResponse` |
-| the calls: limits per session (one of each kind at a time; 60 infers, 30 generates per hour), the context pack first, the answer checked for its shape, the `ai_call` event | `ai/AiService` |
-| the per-call message (`## The program`, `## The learner's tests`, `## What the learner said before`, `## Task: …`), the trimming of NEPO XML and EdPy, the answer checks | `ai/AiPrompts` |
+| REST: `POST /rest/ai/infer`, `POST /rest/ai/generate`, `POST /rest/ai/fix` (the usual request envelope; the response has `answer`, `meta`, or `aiError` and `aiMessage`) | `javaServer/restServices/all/controller/AiController`, `AiResponse` |
+| the calls: limits per session (one of each kind at a time; 60 infers, 30 generates, 30 fixes per hour), the context pack first, the answer checked for its shape, the `ai_call` event; a fix as generate (its effort, 90 s, repairs) | `ai/AiService` |
+| the per-call message (`## The program`, `## The learner's tests`, `## What the learner said before`, `## Task: …`), the trimming of NEPO XML and EdPy, the answer checks (`checkFix`: `worlds` and `program_wrong`, not both empty) | `ai/AiPrompts` |
 | DeepSeek's chat API: JSON mode, reasoning effort, timeouts (infer 20 s, generate 90 s), one more try after 429, 5xx or no connection | `ai/DeepSeekClient` |
 | the context pack: the system prompt, its `promptVersion` (hash) | `ai/ContextPack`, `src/main/resources/ai/` (`pack.txt` lists the files) |
 | `.env`: `DEEPSEEK_URL`, `DEEPSEEK_MODEL` (`deepseek-flash`), `AI_TESTS_DEFAULT`, `AI_PACK_DIR` (read at every call: change the prompt without a rebuild), `AI_EFFORT_INFER`, `AI_EFFORT_GENERATE` (default low) | `main/EnvFile`, `ai/AiSettings`, `openRoberta.properties` |
@@ -48,10 +50,53 @@ on): infer 3 to 5 s; generate 7 to 18 s at effort low, 71 s at high; a repair 4 
 | **The panel** (`#aiAssistant`, class `levelSidePanel`): to the right of the scene while the AI is on and a level of the sets is played (not "Try in simulator"); the scene is centred in the rest, the level bar and its messages move over | `levels.aiAssistant` `renderVisibility`; `levels.player` `insetRight`; `roberta.css` (`#simDiv.nepoAi`) |
 | **The trigger:** `attempt_started` of a level (Play). A changed program starts a guess: the fingerprint is the program's XML without ids, positions, description and tags, its top blocks sorted (moving a block doesn't count). An unchanged run makes no call. While tests are written or reviewed, a run doesn't interrupt | `levels.aiAssistant` `attemptStarted`, `fingerprint` |
 | one EdPy request per attempt, shared with the telemetry | `levels.telemetry` `attemptSource` |
-| **The states:** idle, thinking (from Play, with the seconds since), the offer (the guess, an optional sentence of at most 200 characters, "Write tests", "Not now", "Don't ask on this level"), the guess alone, nothing new to test (`ask` false), writing, the review list (all ticked; untick any), done ("Open Tests tab"; the tests don't run), no new tests, discarded, no suggestions on this level ("Suggest tests again"), an error ("Try again"). Answers that come after the AI was switched off, or after a newer run began, are dropped | `levels.aiAssistant` `render` |
+| **The check and the fix** of the tests the learner keeps: see below | `levels.aiAssistant` `chooseTests`, `check`, `decide`, `fix`, `finish`; `nepoTest.ai` `runTests`, `resultText`, `fix` |
+| **The states:** idle, thinking (from Play, with the seconds since), the offer (the guess, an optional sentence of at most 200 characters, "Write tests", "Not now", "Don't ask on this level"), the guess alone, nothing new to test (`ask` false), writing, the review list (all ticked; untick any), checking (test i of n runs), the results (each test: passed, failed with its failed checks and why, the program's blocks as chips; the questions), fixing, done ("Open Tests tab"; the tests don't run there by themselves), no new tests, discarded, no suggestions on this level ("Suggest tests again"), an error ("Try again"). Answers that come after the AI was switched off, or after a newer run began, are dropped | `levels.aiAssistant` `render` |
 | **After "Not now":** every changed run still gets a guess (with the declined one); the offer comes back only when the model says it means something new (`same_as_declined` false) and at least 3 changed runs have passed | `DECLINED_RUNS` |
 | **The notes**, saved with the program as one more instance (`nepoAi_notes`, as the level progress): the learner's sentences word for word (`{text, time, level, answer: write, not_now or never_here}`, sent as `said` with later calls), the guess declined and the changed runs since, the levels it doesn't ask on, the ids of the tests it added | `nepoTest.suite` `setAiNotes`, `loadExtras`; `NepoTestSuitePersistenceTest`, `NepoTest/tests/test_blocks.py` |
-| the added tests: `tests.controller` `addAiTests` (one undo step), with their provenance (the call that wrote them) | `levels.aiAssistant` `addTests` |
+| the added tests: `tests.controller` `addAiTests` (one undo step), with their provenance (the call that wrote them, and how they ran: `checked`) | `levels.aiAssistant` `finish` |
+
+## Checking the chosen tests, and fixing those that fail
+
+"Add n tests" in the review list doesn't add them at once: the ticked tests **run on the simulator first**, for the
+program as it is in the Program tab, each in its own world (`nepoTest.ai` `runTests`: NepoTest's translator, then
+`nepoTest.simRun`, as the Tests tab runs them, offscreen). The panel says which test runs. Then:
+
+- **All pass:** they are added ("They passed on your program").
+- **Some fail:** the results list each test (passed; failed, with its failed checks and why, as in the Tests tab, the
+  program's blocks as chips that select them) and asks: *Should I try to fix the failed tests, or discard them?*
+  ("The tests that passed are added either way").
+  - **Fix:** the model gets the failed tests as it wrote them, how each ran, and the names of the tests that passed
+    (the task fix, `/rest/ai/fix`). For each failed test it decides whether **the test is wrong** (its world, start,
+    set-up or timing don't make its scenario happen, or it checks more than the intent) and fixes it, keeping its name
+    and scenario; or whether **the program is wrong** (the test makes its scenario happen, and the program doesn't do
+    what the learner said): then it leaves the test as it is and says why, for the learner (`program_wrong`), because
+    a test changed until a wrong program passes it would hide the mistake. The answer is checked and repaired as a
+    generate answer; also: `program_wrong` names failed tests, each once, none also fixed; a fixed test is one of the
+    failed tests. The fixed tests run again.
+  - **Discard:** they aren't added.
+- **The program is wrong** (a test the model left as it is): the results show its reason and ask *Add it anyway? A
+  test that fails shows what your program doesn't do yet.* "Add anyway" or "Discard".
+- **At most 2 fixes** (`FIXES`): a test that still fails after the second is shown as given up and isn't added; "Add
+  the others" (or "OK") goes on.
+- **Left out by a fix:** a fixed test that has problems after the repairs, that the model left out, or that checks
+  the same as another test (`dropDuplicates`), with the reason.
+- **Nothing is added until every failed test is decided**; then the tests to keep are added in one undo step. A test
+  that fails and was added anyway, and one fixed, keep that in their provenance (`checked: {passed, fixes}`).
+- If the tests can't run at all (the runner failed): "Try again", or "Add them without running" (`passed: null`). If
+  a fix call fails: "Try again", or "Discard them".
+- While tests are checked, fixed or decided, a run doesn't interrupt (as while they are written or reviewed). Switching
+  the AI off or loading another program stops a check that runs and drops the batch.
+
+**What the model reads of a run** (`resultText`, one item per failed test): why the run ended and when, where the
+robot started and ended and how far it drove, where it was over time (at most 12 times; one entry while it stays at
+the same place), how often it bumped, each check (passed, failed, not checked) with what happened, and for a failed
+check of what the robot does: why (the verdict) and the facts of the second before it (sensed, ran, remembered,
+did; `nepoTest.simProgram` `factLines`). The program's blocks are written as their labels in brackets
+("[steer forwards speed % left 40 speed % right 10]"). The facts aren't shown to learners (GitHub issue #9), but the
+model gets them. The context pack teaches the task in `tasks.md` ("Task: fix"), `schemas/fix.schema.json` and
+`examples/4-fix-failed-tests.md` (one test wrong: too little time; one finding a mistake: no obstacle stop), whose
+run texts were written by the browser.
 
 ## The study's telemetry
 
@@ -67,7 +112,10 @@ off. The learner's sentences are kept word for word.
 | `ai_offer_shown` | `level`, `intent`, `guessCall` (the `callId` of the guess) |
 | `ai_offer_answered` | `answer` (`write`, `not_now`, `never_here`, `ignored`), `reason` (what replaced an ignored offer: `new_run`, `switched_off`, `level_changed`, `program_loaded`), `sentence` (word for word, or null; for an ignored offer what was typed), `intent` (the guess answered), `guessCall`, `msToAnswer` |
 | `ai_tests_generated` | `intent`, `sentence`, `guessCall`, `ok`, `error`, `message`, `stale`, `count`, `tests` (the tests offered, as test JSON), `repairs`, `leftOut` (the problems of the tests left out), `duplicates`, `calls` (each call's meta), `latencyMs` (all of it), `tokens` (summed) |
-| `ai_tests_added` | `call`, `discarded` (none added), `added` ([{id, name}]: the ticked ones), `unticked` ([{name, world}]), `worlds` ([{name, existing, tests}]) |
+| `ai_tests_checked` | a run of the chosen tests (`fix` 0) or of the tests a fix fixed (`fix` 1, 2): `call` (the generate call), `ok` (false: the runner failed, `error`), `passed`, `failed`, `latencyMs`, `tests` ([{name, world, outcome, fixes, failed: the failed checks' texts, why: their verdicts' kinds}]) |
+| `ai_failed_answered` | `group` (`failed`: the tests that failed; `flagged`: those the model thinks right), `answer` (`fix` or `discard`; `add` or `discard`), `fix` (the fixes before), `tests` ([{name, world}]) |
+| `ai_tests_fixed` | `call`, `fix` (1, 2), `failed` (the tests sent), `ok`, `error`, `message`, `stale`, `count`, `tests` (the fixed tests, as test JSON), `programWrong` ([{test, world, reason}]), `repairs`, `leftOut`, `duplicates`, `calls`, `latencyMs`, `tokens` |
+| `ai_tests_added` | `call`, `discarded` (none added), `added` ([{id, name, passed (true, false: added anyway, null: added without running), fixes}]), `unticked` ([{name, world}]), `failed` (the failed tests not added: [{name, world, fixes, how: `discarded`, `left_out` or `gave_up`, reason}]), `leftOut`, `fixes`, `worlds` ([{name, existing, tests}]) |
 | `ai_ask_again` | `level`: "Suggest tests again" |
 | `ai_call` | the server's, see above |
 
@@ -108,9 +156,10 @@ its world: start, set-up, checks, the world's things) differs from the one recor
 | the calls and the checks of an answer: format, then NepoTest's translator in the worker (a start outside the floor or on an obstacle, …), then at most 2 repairs, then duplicates out | `nepotest/nepoTest.ai.ts` (`infer`, `generate`, `check`) |
 | what an answer is checked against: the learner's tests, the program's variables, the names taken | `tests.controller` `aiContext`, `aiTests`, `aiProgramXml` |
 
-**Provenance:** an AI test's block keeps `{ai: {call, block, scenario, generated, added}}` in its `data` (`provenanceOf`):
-the call's id (`callId` of its `ai_call`), the block's id when it was added (a copy has another id), the scenario and
-the test as the model wrote it. The world's data stays the drawn world, so editing the world keeps the provenance.
+**Provenance:** an AI test's block keeps `{ai: {call, block, scenario, generated, added, asAdded, checked}}` in its
+`data` (`provenanceOf`): the call's id (`callId` of its `ai_call`: generate, or the fix that fixed it), the block's id
+when it was added (a copy has another id), the scenario, the test as the model wrote it, and how it ran before it was
+added (`checked: {passed, fixes}`). The world's data stays the drawn world, so editing the world keeps the provenance.
 
 ## Checked (2026-11-03)
 
@@ -160,6 +209,26 @@ said false. The new kinds were all there:
 Of the two AI tests added, one was edited and one deleted. The next `attempt_ended` counted 1 AI test, 1 edited and 1
 deleted. The Test runner's `test_run` said that 1 AI test ran (edited) and passed.
 
+**The check and the fix in headless Chrome (2026-11-03, the line follower without an obstacle stop, level "Test"):**
+- **With faked answers** (every way through, no call reached DeepSeek): 1 of 2 passed, the failed one was fixed and
+  passed, the model's "the program is wrong" was added anyway or discarded; a test still failing after 2 fixes was
+  given up and none added; the runner failing ("Add them without running": `passed: null`); a failed test discarded.
+  The provenance of the added tests says how they ran; the Tests tab ran none of them. The telemetry had every new
+  event, each with `ai`.
+- **Live:** with the sentence "This program should follow a black line and stop if it senses an obstacle", 3 tests came
+  in 12 s; 2 passed, "Stops before the box on the line" failed. "Fix it": in 2.9 s the model left it as it is, because
+  the program is wrong ("Your program only reads the line tracker, never the obstacle sensor, so it cannot stop at
+  obstacles - but you said it should."). "Add anyway" added all 3.
+- **Live, tests that are wrong** (faked generate, real fix): of "Quickly along the line" (3 s) and "From B on the line"
+  (B 20 cm beside the line), the model gave the first 60 s, which made it the same as a test that had passed (left
+  out, with the reason), and moved B; that still failed, and the second fix drew a straight line with B on it, which
+  passed. 32 s and 18 s; about 14,000 tokens in, 12,700 of them cached.
+- **Live, with example 4 in the pack:** "drive forward" in a loop, the sentence "The robot should drive forward and stop
+  in front of a wall": 3 tests in 18 s, 1 passed. In 2 s the fix left both stop tests as they are ("your program only
+  drives forward and never reads the obstacle sensor, but you said it should stop in front of a wall"); "Add anyway"
+  added all 3, 2 of them with `passed: false`. (Without the loop, the program ends at once and the robot never moves,
+  so "stops before the wall" passes: a run ends with the program.)
+
 ## Open points
 
 - **Earlier sentences pin the guess.** The model takes the intent from the learner's words first, so a sentence about
@@ -168,5 +237,7 @@ deleted. The Test runner's `test_run` said that 1 AI test ran (edited) and passe
 
 - The model takes the worked examples as models: given the same sentence as example 1, it drew nearly the same
   worlds. Keep the examples varied.
-- Whether a start really is on the line a scenario means can't be checked; the review list (phase 3) and the learner
-  catch that.
+- Whether a start really is on the line a scenario means can't be checked; the review list (phase 3), the check run
+  and the learner catch that.
+- **A fix can only judge from the learner's words.** Without a sentence, "the program is wrong" rests on the guess. A
+  fix may also make a test weaker than its scenario; the learner sees the fixed test only by its name.

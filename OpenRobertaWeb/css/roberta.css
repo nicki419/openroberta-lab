@@ -847,6 +847,86 @@ body.blocklyMinimalBody * {
     color: #666;
 }
 
+/* the tests the learner chose, run on the program: how each ran (levels.aiAssistant renderResults) */
+.aiProgressSteps i {
+    animation: none;
+    transition: width 0.3s ease-out;
+}
+
+.aiResults {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.aiRun {
+    display: grid;
+    grid-template-columns: 1.2em 1fr;
+    align-items: start;
+    gap: 6px;
+}
+
+.aiRunIcon {
+    font-weight: bold;
+    text-align: center;
+    color: #E2001A;
+}
+
+.aiRun_passed .aiRunIcon {
+    color: #1f8f3a;
+}
+
+.aiRun_discarded,
+.aiRun_leftOut,
+.aiRun_gaveUp {
+    color: #888;
+}
+
+.aiRun_discarded .aiRunIcon,
+.aiRun_leftOut .aiRunIcon {
+    color: #888;
+}
+
+.aiRunName,
+.aiRunState {
+    display: block;
+}
+
+.aiRunState {
+    color: #666;
+}
+
+.aiRunDetails {
+    margin: 4px 0 0;
+    padding-left: 1.1em;
+    font-size: 12px;
+    color: #333;
+}
+
+.aiRunDetails li {
+    margin-bottom: 3px;
+}
+
+.aiRunDetails .nepoWhy {
+    margin: 2px 0 0;
+}
+
+.aiReason {
+    margin-top: 4px;
+    padding: 6px 8px;
+    border-radius: 6px;
+    background: #fff4e0;
+    font-size: 13px;
+}
+
+.aiBody p.aiQuestion {
+    margin-top: 4px;
+    font-weight: bold;
+}
+
 .nepoSimNone {
     color: #777;
     padding: 12px 2px;

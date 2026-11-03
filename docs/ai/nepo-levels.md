@@ -132,7 +132,7 @@ The server adds `serverTime`, `userId`, `account` and `session`.
 | `attempt_ended` | `level`, `set`, `attempt`, `outcome`, `simTime` (s), `item` (the obstacle hit), `activeMs`, `tests`, `testsAdded` (how many), `aiTestsAdded`, and the AI tests' counts |
 | `level_beaten` | `level`, `set`, `attempts`, `winningAttempt`, `activeMs`, `wallMs` (since first opened), `testsAtStart`, `tests`, `testsAdded` ([{id, name, ai, copy, edited}]), `testRuns`, `aiTestRuns` (runs with AI tests), and the AI tests' counts |
 | `test_run` | `level`, `set`, `from` (runner or simulation), `passed`, `failed`, `error`, `skipped`, `tests`, `outcomes` ([{id, outcome, ai}]), `aiTestsRun`, `aiTestsEditedRun`, `aiPassed`, `aiFailed`, `aiError`, `aiSkipped`, and the AI tests' counts |
-| the AI test assistant's events | `ai_switched`, `ai_inferred`, `ai_offer_shown`, `ai_offer_answered`, `ai_tests_generated`, `ai_tests_added`, `ai_ask_again`, and the server's `ai_call`: `docs/ai/nepo-ai-tests.md` |
+| the AI test assistant's events | `ai_switched`, `ai_inferred`, `ai_offer_shown`, `ai_offer_answered`, `ai_tests_generated`, `ai_tests_checked`, `ai_failed_answered`, `ai_tests_fixed`, `ai_tests_added`, `ai_ask_again`, and the server's `ai_call`: `docs/ai/nepo-ai-tests.md` |
 
 **The AI tests' counts** (tests the AI test assistant wrote, told apart from the learner's own): `aiTests` (how many there
 are now, copies included), `aiTestsEdited` (changed since they were added: name, run length, switch, start, set-up,

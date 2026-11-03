@@ -125,13 +125,16 @@ Read it before changing the simulator's level hooks, the level format or the tel
 designers' guide.
 
 **`docs/ai/nepo-ai-tests.md`** documents the **AI test assistant**. DeepSeek, called through the Lab server
-(`/rest/ai/infer`, `/rest/ai/generate`; the API key stays on the server and is never logged), guesses what a program is
-meant to do and writes scenario tests for it. The model gets the program, the learner's sentences and their tests,
-**never the level** (no title, instructions or world): it draws each test's world itself. Its prompt is the context
-pack in `OpenRobertaServer/src/main/resources/ai/`. Its test JSON becomes Tests-tab blocks through
+(`/rest/ai/infer`, `/rest/ai/generate`, `/rest/ai/fix`; the API key stays on the server and is never logged), guesses
+what a program is meant to do and writes scenario tests for it. The model gets the program, the learner's sentences and
+their tests, **never the level** (no title, instructions or world): it draws each test's world itself. Its prompt is the
+context pack in `OpenRobertaServer/src/main/resources/ai/`. Its test JSON becomes Tests-tab blocks through
 `nepoTest.aiFormat.ts`, checked and repaired by `nepoTest.ai.ts`. The assistant's panel sits to the right of the levels'
-simulator (`levels.aiAssistant.ts`): a run of a changed program brings a guess and an offer, the learner reviews the tests
-before they are added, and they don't run. It is switched on and off in the Edit menu, per test subject on the server
+simulator (`levels.aiAssistant.ts`): a run of a changed program brings a guess and an offer, and the learner reviews the
+tests. The tests they keep run on the simulator before they are added (`nepoTest.ai` `runTests`). For those that fail,
+the learner chooses: the model gets how they ran and fixes them, or says the program is wrong (`fix`; the learner then
+adds such a test anyway or discards it), or they are discarded. Nothing is added until every failed test is decided, and
+in the Tests tab the added tests don't run by themselves. It is switched on and off in the Edit menu, per test subject on the server
 (`/rest/ai/switch`). The learner's sentences are saved with the program (`nepoAi_notes`). Its events go into the study's
 telemetry, and every telemetry event says whether the AI was on (`ai`). Read it before changing the prompt, the test
 JSON, the calls, the panel or its events.
