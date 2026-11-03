@@ -205,6 +205,7 @@ public class AiServiceTest {
 
         JSONObject event = outcome.event;
         Assert.assertEquals("ai_call", event.getString("kind"));
+        Assert.assertTrue(event.getBoolean("ai"));
         Assert.assertEquals("infer", event.getString("call"));
         Assert.assertEquals("ok", event.getString("status"));
         Assert.assertEquals("01-first-steps/04-follow", event.getString("level"));

@@ -54,6 +54,7 @@ export interface LevelStats {
     firstOpened?: number; // when (ms since 1970)
     testsAtStart?: string[]; // the ids of the tests then
     testRuns?: number;
+    aiTestRuns?: number; // runs with tests of the AI test assistant
 }
 
 interface Attempt {

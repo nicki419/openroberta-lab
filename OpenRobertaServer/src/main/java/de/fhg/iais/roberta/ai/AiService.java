@@ -103,6 +103,7 @@ public class AiService {
     public Outcome call(String kind, long session, JSONObject data) {
         Outcome outcome = new Outcome();
         JSONObject event = new JSONObject().put("kind", "ai_call").put("call", kind).put("callId", UUID.randomUUID().toString());
+        event.put("ai", true); // as every event of the study's telemetry: the AI was on (the browser calls only then)
         outcome.event = event;
         event.put("level", data == null ? JSONObject.NULL : data.opt("levelId")); // logged only: the model never gets the level
         event.put("fingerprint", data == null ? JSONObject.NULL : data.opt("fingerprint"));

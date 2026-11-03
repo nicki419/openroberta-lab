@@ -15,8 +15,17 @@
  *   DECLINED_RUNS changed runs have passed), nothing new to test, writing, the review list (all ticked), done, no new tests, discarded, no
  *   suggestions on this level, an error. An answer that comes after the AI was switched off, or after a newer run began, is dropped.
  * - Its notes are saved with the program (nepoTest.suite): the learner's sentences word for word (sent with later calls), the guess declined
- *   and the changed runs since, the levels it doesn't ask on.
+ *   and the changed runs since, the levels it doesn't ask on, the tests it added (so the telemetry can tell which were deleted).
  * The EdPy of a run is the one the telemetry asks for (levels.telemetry attemptSource): one request serves both.
+ *
+ * The study's telemetry (levels.telemetry record; every event also says whether the AI was on):
+ * - ai_switched: on or off, and why (menu: the Edit menu; account: the account's switch after a login; default: an account never switched)
+ * - ai_inferred: a guess (its call, the fingerprint, the answer, what was shown; stale: it came too late and was dropped)
+ * - ai_offer_shown; ai_offer_answered: write, not_now, never_here or ignored (the offer was replaced: why), the sentence word for word (also
+ *   one typed but not sent), the guess answered, the time to answer
+ * - ai_tests_generated: the tests offered (JSON), the repairs, what was left out and why, the duplicates, the calls, the time, the tokens
+ * - ai_tests_added: the tests added (ticked) and those unticked, their worlds; discarded: none added
+ * - ai_ask_again: "Suggest tests again" on a level
  */
 import * as GUISTATE_C from 'guiState.controller';
 import * as COMM from 'comm';
@@ -42,6 +51,7 @@ export interface Notes {
     said: { text: string; time: string; level: string; answer: string }[]; // word for word; answer: write | not_now
     declined: { intent: string; runs: number } | null; // the guess declined ("Not now") and the changed runs since
     quiet: string[]; // the levels it doesn't ask on ("Don't ask on this level")
+    added: string[]; // the ids of the test blocks it added
 }
 
 interface View {
@@ -67,6 +77,8 @@ let guess: any = null; // its answer {intent, confidence, ask, same_as_declined,
 let generated: AI.Generated = null;
 let ticked: boolean[][] = [];
 let notes: Notes = newNotes();
+let guessCall: any = null; // the meta of the guess's call
+let offer: { intent: string; call: string; shownAt: number } = null; // the offer shown and not answered yet
 const ui: { [name: string]: any } = {};
 
 const TEXT: { [key: string]: string } = {
@@ -146,7 +158,17 @@ function html(tag: string, cls: string, parent: Element, content?: string): any 
 }
 
 function newNotes(): Notes {
-    return { version: 1, said: [], declined: null, quiet: [] };
+    return { version: 1, said: [], declined: null, quiet: [], added: [] };
+}
+
+/** an event for the study's telemetry */
+function record(kind: string, data: any): void {
+    TELEMETRY.record(Object.assign({ kind: kind }, data));
+}
+
+/** the fields of a call's meta the telemetry keeps */
+function callOf(meta: any): any {
+    return meta ? { callId: meta.callId, model: meta.model, promptVersion: meta.promptVersion, latencyMs: meta.latencyMs, attempts: meta.attempts, tokens: meta.tokens } : null;
 }
 
 // ------------------------------------------------------------------------------------------------ setup
@@ -156,11 +178,12 @@ export function init(): void {
     available = !!server.available;
     on = available && !!server.default;
     SUITE.setAiNotes(serializeNotes, loadNotes);
+    TELEMETRY.setAi({ isOn: () => on, addedTests: () => notes.added.slice() });
     PLAYER.onEvent(levelEvent);
     build();
     $('#menuAiTests').on('click', function (e: Event) {
         e.preventDefault();
-        !$(this).parent().hasClass('disabled') && switchTo(!on, true);
+        !$(this).parent().hasClass('disabled') && switchTo(!on, 'menu');
     });
     setInterval(tick, TICK_MS);
     tick();
@@ -173,7 +196,7 @@ export function isOn(): boolean {
 
 /** the notes to save with the program (JSON), once there is something in them (else null: the program stays as it is) */
 function serializeNotes(): string {
-    return notes.said.length || notes.declined || notes.quiet.length ? JSON.stringify(notes) : null;
+    return notes.said.length || notes.declined || notes.quiet.length || notes.added.length ? JSON.stringify(notes) : null;
 }
 
 /** the notes of a loaded program (null: none); the assistant starts anew with the program */
@@ -185,11 +208,13 @@ function loadNotes(json: string): void {
             loaded.said = Array.isArray(n.said) ? n.said.filter((s: any) => s && typeof s.text === 'string') : [];
             loaded.declined = n.declined && typeof n.declined.intent === 'string' ? { intent: n.declined.intent, runs: Number(n.declined.runs) || 0 } : null;
             loaded.quiet = Array.isArray(n.quiet) ? n.quiet.filter((q: any) => typeof q === 'string') : [];
+            loaded.added = Array.isArray(n.added) ? n.added.filter((a: any) => typeof a === 'string') : [];
         }
     } catch (e) {
         console.warn("the AI test assistant's notes are not readable: it starts anew", e);
         loaded = newNotes();
     }
+    closeOffer('program_loaded');
     notes = loaded;
     lastFingerprint = null;
     token++;
@@ -231,30 +256,32 @@ function accountChanged(): void {
             return;
         }
         if (answer.on === true || answer.on === false) {
-            answer.on !== on && switchTo(answer.on, false);
+            answer.on !== on && switchTo(answer.on, 'account');
         } else if (switchedByHand) {
             askServer({ on: on });
         } else {
             const byDefault = available && !!GUISTATE_C.getServerAi().default;
-            byDefault !== on && switchTo(byDefault, false);
+            byDefault !== on && switchTo(byDefault, 'default');
         }
     });
 }
 
-/** the AI on or off (byHand: the Edit menu's switch: kept for the account) */
-function switchTo(value: boolean, byHand: boolean): void {
+/** the AI on or off (cause: menu, the Edit menu's switch: kept for the account; account: the account's switch; default: never switched) */
+function switchTo(value: boolean, cause: string): void {
     if (value && !available) {
         return;
     }
+    !value && closeOffer('switched_off');
     on = value;
     token++; // an answer on its way is dropped
     if (on) {
         lastFingerprint = null; // the next run is looked at
         show({ state: isQuiet() ? 'quiet' : 'idle' });
     }
-    if (byHand) {
+    if (cause === 'menu') {
         account ? askServer({ on: on }) : (switchedByHand = true);
     }
+    record('ai_switched', { on: on, cause: cause, stored: cause === 'menu' ? !!account : cause === 'account' });
     renderMenu();
     renderVisibility();
 }
@@ -293,6 +320,7 @@ function levelEvent(kind: string, data: any): void {
         on && attemptStarted(data);
     } else if (kind === 'level_opened' && !busy()) {
         if (notes.quiet.indexOf(data.level) >= 0) {
+            closeOffer('level_changed');
             token++;
             show({ state: 'quiet' });
         } else if (view.state === 'quiet') {
@@ -309,6 +337,7 @@ function attemptStarted(data: any): void {
         return;
     }
     lastFingerprint = print;
+    closeOffer('new_run');
     if (notes.declined) {
         notes.declined.runs++;
         notesChanged();
@@ -335,17 +364,25 @@ async function think(level: string, run: { program: string; edpy: Promise<{ edpy
         said: notes.said.map((s) => s.text),
         fingerprint: print,
     };
-    const result = await AI.infer(request, notes.declined ? notes.declined.intent : null);
+    const declined = notes.declined ? notes.declined.intent : null;
+    const result = await AI.infer(request, declined);
+    const event: any = Object.assign({ level: level, fingerprint: print, edpyError: source.error || null, declined: declined, ok: result.ok, error: result.error }, callOf(result.meta));
+    result.ok && Object.assign(event, result.answer);
     if (mine !== token || !on) {
+        record('ai_inferred', Object.assign(event, { stale: true, shown: null }));
         return; // a newer run, or switched off meanwhile: dropped
     }
     if (!result.ok) {
+        record('ai_inferred', Object.assign(event, { shown: 'error' }));
         show(errorView('infer', result, () => think(level, run, print)));
         return;
     }
     guess = result.answer;
+    guessCall = result.meta;
     const held = !!notes.declined && (guess.same_as_declined || notes.declined.runs < DECLINED_RUNS);
-    show({ state: held ? 'guess' : guess.ask ? 'offer' : 'nothing', intent: guess.intent });
+    const state: State = held ? 'guess' : guess.ask ? 'offer' : 'nothing';
+    record('ai_inferred', Object.assign(event, { shown: state, declinedRuns: notes.declined ? notes.declined.runs : null }));
+    show({ state: state, intent: guess.intent });
 }
 
 /**
@@ -357,8 +394,11 @@ async function write(intent: string, sentence: string, before: string[]): Promis
     const mine = ++token;
     show({ state: 'writing', since: Date.now(), for: sentence || intent, intent: intent });
     const data = Object.assign({}, request, { tests: TESTS_C.aiTests(), said: before });
+    const started = Date.now();
     const result = await AI.generate(data, intent, sentence, TESTS_C.aiContext(), request.program.nepo);
-    if (mine !== token || !on) {
+    const stale = mine !== token || !on;
+    recordGenerated(intent, sentence, result, Date.now() - started, stale);
+    if (stale) {
         return;
     }
     if (!result.ok) {
@@ -368,6 +408,47 @@ async function write(intent: string, sentence: string, before: string[]): Promis
     generated = result;
     ticked = result.worlds.map((w) => w.tests.map(() => true));
     show({ state: result.worlds.some((w) => w.tests.length) ? 'review' : 'empty', intent: intent });
+}
+
+/** ai_tests_generated: the tests offered, the repairs, what was left out, the calls */
+function recordGenerated(intent: string, sentence: string, result: AI.Generated, ms: number, stale: boolean): void {
+    const tokens: any = {};
+    result.calls.forEach((m) => Object.keys((m && m.tokens) || {}).forEach((k) => (tokens[k] = (tokens[k] || 0) + (Number(m.tokens[k]) || 0))));
+    record('ai_tests_generated', {
+        intent: intent,
+        sentence: sentence || null,
+        guessCall: guessCall ? guessCall.callId : null,
+        ok: result.ok,
+        error: result.error,
+        message: result.message || null,
+        stale: stale,
+        count: result.worlds.reduce((n, w) => n + w.tests.length, 0),
+        tests: { worlds: result.worlds.map((w) => (w.existing ? { name: w.name, base: 'existing', tests: w.tests } : { name: w.name, world: w.data.world, tests: w.tests })) },
+        repairs: result.repairs,
+        leftOut: result.dropped.map(AI.problemText),
+        duplicates: result.duplicates,
+        calls: result.calls.map(callOf),
+        latencyMs: ms,
+        tokens: tokens,
+    });
+}
+
+/** the offer shown is answered (write, not_now, never_here) or, replaced by something else, ignored (reason: what replaced it) */
+function closeOffer(answer: string, sentence?: string): void {
+    if (!offer) {
+        return;
+    }
+    const typed = ui.sentence ? String(ui.sentence.value).trim().substring(0, MAX_SENTENCE) : '';
+    const ignored = ['write', 'not_now', 'never_here'].indexOf(answer) < 0;
+    record('ai_offer_answered', {
+        answer: ignored ? 'ignored' : answer,
+        reason: ignored ? answer : null,
+        sentence: (ignored ? typed : sentence) || null,
+        intent: offer.intent,
+        guessCall: offer.call,
+        msToAnswer: Date.now() - offer.shownAt,
+    });
+    offer = null;
 }
 
 function errorView(kind: string, result: { error: string; message: string }, retry: () => void): View {
@@ -399,6 +480,7 @@ function said(answer: string): string {
 function writeTests(): void {
     const before = notes.said.map((s) => s.text);
     const sentence = said('write');
+    closeOffer('write', sentence);
     if (notes.declined) {
         notes.declined = null;
         notesChanged();
@@ -407,13 +489,14 @@ function writeTests(): void {
 }
 
 function notNow(): void {
-    said('not_now');
+    closeOffer('not_now', said('not_now'));
     notes.declined = { intent: guess.intent, runs: 0 };
     notesChanged();
     show({ state: 'guess', intent: guess.intent });
 }
 
 function dontAskHere(): void {
+    closeOffer('never_here', said('never_here'));
     const level = levelNow();
     if (level && notes.quiet.indexOf(level) < 0) {
         notes.quiet.push(level);
@@ -425,6 +508,7 @@ function dontAskHere(): void {
 
 function askHereAgain(): void {
     const level = levelNow();
+    record('ai_ask_again', { level: level });
     notes.quiet = notes.quiet.filter((q) => q !== level);
     notesChanged();
     lastFingerprint = null; // the next run is looked at
@@ -443,10 +527,29 @@ function addTests(): void {
         generated: test,
         added: new Date().toISOString(),
     }));
+    notes.added = notes.added.concat(ids);
+    notesChanged();
+    const names = TESTS_C.testInventory().filter((x) => ids.indexOf(x.id) >= 0);
+    record('ai_tests_added', {
+        call: meta.callId || null,
+        discarded: false,
+        added: names.map((x) => ({ id: x.id, name: x.name })),
+        unticked: unticked(),
+        worlds: worlds.map((w) => ({ name: w.name, existing: w.existing, tests: w.tests.map((x) => x.name) })),
+    });
     show({ state: 'done', added: { tests: ids.length, worlds: worlds } });
 }
 
+/** the tests of the review list the learner unticked: their names and worlds */
+function unticked(all?: boolean): { name: string; world: string }[] {
+    const out: { name: string; world: string }[] = [];
+    generated.worlds.forEach((w, i) => w.tests.forEach((x, j) => (all || !ticked[i][j]) && out.push({ name: x.name, world: w.name })));
+    return out;
+}
+
 function discard(): void {
+    const meta = generated.calls[generated.calls.length - 1] || {};
+    record('ai_tests_added', { call: meta.callId || null, discarded: true, added: [], unticked: unticked(true), worlds: [] });
     show({ state: 'discarded' });
 }
 
@@ -531,8 +634,13 @@ function renderVisibility(): void {
 }
 
 function show(next: View): void {
+    next.state !== 'offer' && closeOffer(next.state); // replaced: ignored
     view = next;
     render();
+    if (next.state === 'offer') {
+        offer = { intent: next.intent, call: guessCall ? guessCall.callId : null, shownAt: Date.now() };
+        record('ai_offer_shown', { intent: next.intent, guessCall: offer.call });
+    }
 }
 
 function render(): void {

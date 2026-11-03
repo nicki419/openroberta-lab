@@ -117,8 +117,8 @@ latched sensors from EdPy's library. The document also lists which behaviour is 
   a red obstacle, or running out of time. Nothing in the scene can be moved, and beating a level unlocks the next.
 - **The Level designer tab:** switched on by `LEVEL_DESIGNER=true` in `.env`; it draws levels and downloads them as files.
 - **Progress:** saved inside the program XML, with autosave once the program has been saved by hand.
-- **Study telemetry:** attempts with NEPO and EdPy snapshots, time and tests per level, appended to a `.jsonl` file per
-  participant.
+- **Study telemetry:** attempts with NEPO and EdPy snapshots, time and tests per level (the AI's tests counted apart),
+  appended to a `.jsonl` file per participant. Every event says whether the AI test assistant was on.
 
 Read it before changing the simulator's level hooks, the level format or the telemetry. `levels/README.md` is the
 designers' guide.
@@ -131,8 +131,9 @@ pack in `OpenRobertaServer/src/main/resources/ai/`. Its test JSON becomes Tests-
 `nepoTest.aiFormat.ts`, checked and repaired by `nepoTest.ai.ts`. The assistant's panel sits to the right of the levels'
 simulator (`levels.aiAssistant.ts`): a run of a changed program brings a guess and an offer, the learner reviews the tests
 before they are added, and they don't run. It is switched on and off in the Edit menu, per test subject on the server
-(`/rest/ai/switch`). The learner's sentences are saved with the program (`nepoAi_notes`). Read it before changing the
-prompt, the test JSON, the calls or the panel.
+(`/rest/ai/switch`). The learner's sentences are saved with the program (`nepoAi_notes`). Its events go into the study's
+telemetry, and every telemetry event says whether the AI was on (`ai`). Read it before changing the prompt, the test
+JSON, the calls, the panel or its events.
 
 ## Where the Edison V2 code lives (short map)
 

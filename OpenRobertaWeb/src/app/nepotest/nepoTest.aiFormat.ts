@@ -98,6 +98,7 @@ export interface Provenance {
     scenario: string;
     generated: AiTest; // the test as the model wrote it
     added?: string; // ISO time
+    asAdded?: string; // the test when it was added (signatureOf): it was edited if it differs now
 }
 
 const NS = 'http://de.fhg.iais.roberta.blockly';
@@ -226,6 +227,25 @@ export function provenanceOf(block: any): Provenance {
     } catch (e) {
         return null;
     }
+}
+
+/**
+ * a test block as the learner can change it: its name, run length, switch and meaning (meaningOf, in its world). An AI test whose signature differs
+ * from the one it had when it was added (Provenance.asAdded) was edited; one outside a world has none of a world.
+ */
+export function signatureOf(block: any): string {
+    let world = block.getSurroundParent();
+    while (world && world.type !== BLOCKS.WORLD) {
+        world = world.getSurroundParent();
+    }
+    const test = testOfBlock(block);
+    return canonical({ name: test.name, max_time_ms: test.max_time_ms, skip: !!test.skip, meaning: world ? meaningOf(test, SIM.parseData(world.data).world) : null });
+}
+
+/** was an AI test edited since it was added? null: a test of the learner's, or one added before this was recorded */
+export function isEdited(block: any): boolean {
+    const p = provenanceOf(block);
+    return p && p.asAdded ? signatureOf(block) !== p.asAdded : null;
 }
 
 function chain(block: any, input: string): any[] {
@@ -727,7 +747,7 @@ function literalXml(value: Value, id: () => string): string {
 /**
  * adds the worlds' tests to a Tests workspace, as one undo step: a new world goes to the right of the blocks there, with a run block under the start
  * block; the tests of a learner's world go after its tests (and a run block for it, if none runs it or one of its tests). Each test's block gets
- * its provenance (with its id). Returns the ids of the test blocks added.
+ * its provenance (with its id and its signature). Returns the ids of the test blocks added.
  */
 export function addToWorkspace(workspace: any, worlds: Resolved[], prefix: string, provenance: (world: Resolved, test: AiTest) => Provenance): string[] {
     const added: string[] = [];
@@ -765,7 +785,11 @@ export function addToWorkspace(workspace: any, worlds: Resolved[], prefix: strin
             }
             tests.forEach((t) => {
                 const p = provenanceOf(t);
-                p && ((p.block = t.id), (t.data = JSON.stringify({ ai: p }))); // its id, also if Blockly gave it another one
+                if (p) {
+                    p.block = t.id; // its id, also if Blockly gave it another one
+                    p.asAdded = signatureOf(t);
+                    t.data = JSON.stringify({ ai: p });
+                }
                 added.push(t.id);
             });
             if (runName && suite) {

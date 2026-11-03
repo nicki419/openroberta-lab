@@ -3,8 +3,8 @@
 When a learner runs a changed program on a level, the assistant guesses what the program is meant to do and offers
 to write **scenario-based simulation tests** for it. The learner can say in one sentence what the program should do.
 The tests become ordinary blocks in the Tests tab. This document covers what is built so far: the calls through the
-Lab server (phase 1), the test JSON both ways (phase 2) and the assistant beside the simulator with its switch
-(phase 3). Its telemetry events (phase 4) come later.
+Lab server (phase 1), the test JSON both ways (phase 2), the assistant beside the simulator with its switch
+(phase 3) and its events in the study's telemetry (phase 4).
 
 ## What the model gets, and what it doesn't
 
@@ -31,7 +31,7 @@ Lab server (phase 1), the test JSON both ways (phase 2) and the assistant beside
 | the browser learns `server.ai = {available, default}` | `ClientInit` |
 
 Every call, failed or not, is a line `kind: "ai_call"` in the participant's telemetry file (`LevelsController.writeTelemetry`):
-`callId`, `call`, `level` (the id; logged only), `fingerprint`, `model`, `effort`, `promptVersion`, `status`, `error`,
+`callId`, `call`, `ai` (always true: the browser calls only while the AI is on), `level` (the id; logged only), `fingerprint`, `model`, `effort`, `promptVersion`, `status`, `error`,
 `httpStatus`, `attempts`, `latencyMs`, `tokens` (`in`, `cached`, `out`, `reasoning`), `finishReason`, `prompt` (the
 per-call message), `repair` (the problems sent back, if any), `answer` (the raw answer) and `reasoning` (the model's,
 at most 20,000 characters).
@@ -50,8 +50,33 @@ on): infer 3 to 5 s; generate 7 to 18 s at effort low, 71 s at high; a repair 4 
 | one EdPy request per attempt, shared with the telemetry | `levels.telemetry` `attemptSource` |
 | **The states:** idle, thinking (from Play, with the seconds since), the offer (the guess, an optional sentence of at most 200 characters, "Write tests", "Not now", "Don't ask on this level"), the guess alone, nothing new to test (`ask` false), writing, the review list (all ticked; untick any), done ("Open Tests tab"; the tests don't run), no new tests, discarded, no suggestions on this level ("Suggest tests again"), an error ("Try again"). Answers that come after the AI was switched off, or after a newer run began, are dropped | `levels.aiAssistant` `render` |
 | **After "Not now":** every changed run still gets a guess (with the declined one); the offer comes back only when the model says it means something new (`same_as_declined` false) and at least 3 changed runs have passed | `DECLINED_RUNS` |
-| **The notes**, saved with the program as one more instance (`nepoAi_notes`, as the level progress): the learner's sentences word for word (`{text, time, level, answer: write or not_now}`, sent as `said` with later calls), the guess declined and the changed runs since, the levels it doesn't ask on | `nepoTest.suite` `setAiNotes`, `loadExtras`; `NepoTestSuitePersistenceTest`, `NepoTest/tests/test_blocks.py` |
+| **The notes**, saved with the program as one more instance (`nepoAi_notes`, as the level progress): the learner's sentences word for word (`{text, time, level, answer: write, not_now or never_here}`, sent as `said` with later calls), the guess declined and the changed runs since, the levels it doesn't ask on, the ids of the tests it added | `nepoTest.suite` `setAiNotes`, `loadExtras`; `NepoTestSuitePersistenceTest`, `NepoTest/tests/test_blocks.py` |
 | the added tests: `tests.controller` `addAiTests` (one undo step), with their provenance (the call that wrote them) | `levels.aiAssistant` `addTests` |
+
+## The study's telemetry
+
+The assistant's events go into the participant's `.jsonl` file as the level events do (`levels.telemetry` `record`;
+the fields of every event there: `docs/ai/nepo-levels.md`, "Telemetry"). **Every event says whether the AI was on**
+(`ai`), the level events too, so each measure can be split by condition: each test subject works with the AI both on and
+off. The learner's sentences are kept word for word.
+
+| kind | fields |
+|---|---|
+| `ai_switched` | `on`, `cause` (`menu`: the Edit menu; `account`: the account's switch after a login; `default`: an account never switched), `stored` (kept for the account). The switches in order give each test subject's order of the conditions |
+| `ai_inferred` | `level`, `fingerprint`, `ok`, `error`, the answer (`intent`, `confidence`, `ask`, `same_as_declined`, `not_covered`), `declined` (the declined guess sent) and `declinedRuns`, `shown` (`offer`, `guess`, `nothing`, `error`), `stale` (the answer came after a newer run or the switch-off: dropped), `edpyError`, the call (`callId`, `model`, `promptVersion`, `latencyMs`, `attempts`, `tokens`: `in`, `cached`, `out`, `reasoning`) |
+| `ai_offer_shown` | `level`, `intent`, `guessCall` (the `callId` of the guess) |
+| `ai_offer_answered` | `answer` (`write`, `not_now`, `never_here`, `ignored`), `reason` (what replaced an ignored offer: `new_run`, `switched_off`, `level_changed`, `program_loaded`), `sentence` (word for word, or null; for an ignored offer what was typed), `intent` (the guess answered), `guessCall`, `msToAnswer` |
+| `ai_tests_generated` | `intent`, `sentence`, `guessCall`, `ok`, `error`, `message`, `stale`, `count`, `tests` (the tests offered, as test JSON), `repairs`, `leftOut` (the problems of the tests left out), `duplicates`, `calls` (each call's meta), `latencyMs` (all of it), `tokens` (summed) |
+| `ai_tests_added` | `call`, `discarded` (none added), `added` ([{id, name}]: the ticked ones), `unticked` ([{name, world}]), `worlds` ([{name, existing, tests}]) |
+| `ai_ask_again` | `level`: "Suggest tests again" |
+| `ai_call` | the server's, see above |
+
+**AI tests apart from the learner's own** (`attempt_ended`, `level_beaten`, `test_run`): how many there are, how many the
+learner edited, copied or deleted, and how many ran and how. An AI test is a test block with provenance
+(`nepoTest.aiFormat` `provenanceOf`). It was **edited** if its signature (name, run length, switch, and its meaning in
+its world: start, set-up, checks, the world's things) differs from the one recorded when it was added
+(`Provenance.asAdded`, `signatureOf`, `isEdited`); a test added before that was recorded says `null`. It was
+**deleted** if its id is among the tests the assistant added to the program (its notes: `added`) and its block is gone.
 
 ## The test JSON (`OpenRobertaServer/src/main/resources/ai/tests.md`, `schemas/generate.schema.json`)
 
@@ -119,6 +144,21 @@ goal"):**
   guess.
 - **The other states:** switching off during a guess dropped its answer; a (faked) timeout showed "Try again", which
   worked; "Don't ask on this level" stopped the calls on the level, and "Suggest tests again" brought them back.
+
+**Phase 4 in headless Chrome (2026-11-03):** one session of the test account wrote 41 events of 13 kinds. Every one
+of them had `ai`: `level_opened` before the login said false; after the account's switch came in, every event said
+true; after "AI test assistant" was switched off, `ai_switched` and the run's `attempt_started` and `attempt_ended`
+said false. The new kinds were all there:
+- `ai_switched` twice: from the account at the login, and from the menu;
+- `ai_inferred` five times, with tokens and latency;
+- `ai_offer_shown` and `ai_offer_answered`, with all four answers: ignored (replaced by a changed run, with the
+  sentence typed but not sent), write, never_here and not_now;
+- `ai_tests_generated` (3 tests in 27 s) and `ai_tests_added` (2 ticked, 1 unticked);
+- `ai_ask_again`;
+- `ai_call` six times, with `ai` true.
+
+Of the two AI tests added, one was edited and one deleted. The next `attempt_ended` counted 1 AI test, 1 edited and 1
+deleted. The Test runner's `test_run` said that 1 AI test ran (edited) and passed.
 
 ## Open points
 

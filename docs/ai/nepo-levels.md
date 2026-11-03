@@ -121,22 +121,29 @@ The server adds `serverTime`, `userId`, `account` and `session`.
 - `id`: the page's id and a number. An event can be sent twice (on a timeout, or when the page is left), so deduplicate
   by `id`.
 - `time` (the client's), `program` (its name), `robot`, `clientAccount`, `kind`, plus the fields per kind below.
+- `ai`: whether the AI test assistant was on when it happened (`docs/ai/nepo-ai-tests.md`; for `attempt_started`, at
+  Play). Any measure can be split by condition without reconstructing it from the switches.
 
 | kind | fields |
 |---|---|
 | `level_opened` | `level`, `set`, `index`, `attempts`, `activeMs` |
 | `set_selected` | `set` |
 | `attempt_started` | `level`, `set`, `attempt`, `tests` (how many), `nepo` (the program XML with its tests and the progress), `edpy` (from `/projectWorkflow/source`; `edpyError` if none) |
-| `attempt_ended` | `level`, `set`, `attempt`, `outcome`, `simTime` (s), `item` (the obstacle hit), `activeMs`, `tests`, `testsAdded` (how many) |
-| `level_beaten` | `level`, `set`, `attempts`, `winningAttempt`, `activeMs`, `wallMs` (since first opened), `testsAtStart`, `tests`, `testsAdded` ([{id, name}]), `testRuns` |
-| `test_run` | `level`, `set`, `from` (runner or simulation), `passed`, `failed`, `error`, `skipped`, `tests` |
+| `attempt_ended` | `level`, `set`, `attempt`, `outcome`, `simTime` (s), `item` (the obstacle hit), `activeMs`, `tests`, `testsAdded` (how many), `aiTestsAdded`, and the AI tests' counts |
+| `level_beaten` | `level`, `set`, `attempts`, `winningAttempt`, `activeMs`, `wallMs` (since first opened), `testsAtStart`, `tests`, `testsAdded` ([{id, name, ai, copy, edited}]), `testRuns`, `aiTestRuns` (runs with AI tests), and the AI tests' counts |
+| `test_run` | `level`, `set`, `from` (runner or simulation), `passed`, `failed`, `error`, `skipped`, `tests`, `outcomes` ([{id, outcome, ai}]), `aiTestsRun`, `aiTestsEditedRun`, `aiPassed`, `aiFailed`, `aiError`, `aiSkipped`, and the AI tests' counts |
+| the AI test assistant's events | `ai_switched`, `ai_inferred`, `ai_offer_shown`, `ai_offer_answered`, `ai_tests_generated`, `ai_tests_added`, `ai_ask_again`, and the server's `ai_call`: `docs/ai/nepo-ai-tests.md` |
+
+**The AI tests' counts** (tests the AI test assistant wrote, told apart from the learner's own): `aiTests` (how many there
+are now, copies included), `aiTestsEdited` (changed since they were added: name, run length, switch, start, set-up,
+checks or their world), `aiTestsCopied`, `aiTestsDeleted` (added to this program and gone).
 
 **How the numbers are counted:**
 - **Active time** counts while the level is current, the page is visible and the robot is the Edison. A gap of more
   than 5 s (a sleeping computer) counts as 5 s.
-- **Tests** are the Tests tab's test blocks and simulation tests (`tests.controller` `testInventory()`). The tests
-  "added" are those whose block ids weren't there when the level was first opened. Runs are reported by
-  `tests.controller` `onRunFinished`.
+- **Tests** are the Tests tab's test blocks and simulation tests (`tests.controller` `testInventory()`, which also says
+  which the AI wrote: `ai`, `copy`, `edited`). The tests "added" are those whose block ids weren't there when the level
+  was first opened. Runs are reported by `tests.controller` `onRunFinished`, with each test's outcome.
 
 **When events are sent:** the queue goes every 5 s, and an attempt at once (it is big). When the page is hidden or left,
 the queue goes with `navigator.sendBeacon`, carrying the init token from `COMM.getInitToken()`.

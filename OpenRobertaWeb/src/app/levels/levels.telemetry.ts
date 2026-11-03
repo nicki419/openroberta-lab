@@ -8,6 +8,11 @@
  *   time), the active time on the level so far, the tests
  * - level_beaten: the attempts, the active time, the time since the level was first opened, the tests added since then, the test runs
  * - test_run: a run of tests (the Test runner, or the Simulation panel of the Tests tab) while a level is played
+ * - the AI test assistant's events (levels.aiAssistant, through record): ai_switched, ai_inferred, ai_offer_shown, ai_offer_answered,
+ *   ai_tests_generated, ai_tests_added, ai_ask_again; the server writes ai_call
+ * Every event says whether the AI test assistant was on when it happened (ai), so any measure can be split by condition. attempt_ended,
+ * level_beaten and test_run count the AI tests apart from the learner's own: how many there are, how many the learner edited or deleted, how
+ * many ran and how.
  * Per level, in the progress (saved with the program, levels.player): the active time (the level the current one and the page visible), when
  * it was first opened and the tests there were then, the test runs. Each event has an id (the page's and a number: a resent one can be told),
  * the client's time, the program's name, the robot and the account; the server adds its time, the user and the session.
@@ -40,6 +45,18 @@ let sendingSince = 0;
 let lastTick = Date.now();
 let source: { key: string; program: string; edpy: Promise<{ edpy: string; error: string }> } = null; // the last attempt's program
 
+/** what the AI test assistant tells the telemetry (it registers itself: setAi; no import of it here, so no import cycle) */
+export interface AiState {
+    isOn(): boolean;
+    addedTests(): string[]; // the ids of the test blocks it added to this program
+}
+
+let ai: AiState = { isOn: () => false, addedTests: () => [] };
+
+export function setAi(state: AiState): void {
+    ai = state;
+}
+
 export function init(): void {
     PLAYER.onEvent(levelEvent);
     TESTS_C.onRunFinished(testRun);
@@ -67,10 +84,23 @@ function testIds(): string[] {
     return TESTS_C.testInventory().map((t) => t.id);
 }
 
-/** the tests now that weren't there when the level was first opened */
-function testsAdded(level: string): { id: string; name: string }[] {
+/** the tests now that weren't there when the level was first opened (each says whether the AI test assistant wrote it) */
+function testsAdded(level: string): TESTS_C.TestEntry[] {
     const before = PLAYER.levelStats(level).testsAtStart || [];
     return TESTS_C.testInventory().filter((t) => before.indexOf(t.id) < 0);
+}
+
+/** the AI tests apart from the learner's own: how many there are (copies of them too), how many the learner edited, how many were deleted */
+function aiTestCounts(): { aiTests: number; aiTestsEdited: number; aiTestsCopied: number; aiTestsDeleted: number } {
+    const tests = TESTS_C.testInventory();
+    const ids = tests.map((t) => t.id);
+    const mine = tests.filter((t) => t.ai);
+    return {
+        aiTests: mine.length,
+        aiTestsEdited: mine.filter((t) => t.edited).length,
+        aiTestsCopied: mine.filter((t) => t.copy).length,
+        aiTestsDeleted: ai.addedTests().filter((id) => ids.indexOf(id) < 0).length,
+    };
 }
 
 function levelEvent(kind: string, data: any): void {
@@ -88,32 +118,44 @@ function levelEvent(kind: string, data: any): void {
     } else if (kind === 'attempt_ended') {
         const stats = PLAYER.levelStats(data.level);
         const added = testsAdded(data.level);
-        send({
-            kind: kind,
-            level: data.level,
-            set: data.set,
-            attempt: data.attempt,
-            outcome: data.outcome,
-            simTime: Math.round(data.t * 1000) / 1000,
-            item: data.item,
-            activeMs: stats.activeMs || 0,
-            tests: TESTS_C.testInventory().length,
-            testsAdded: added.length,
-        });
+        send(
+            Object.assign(
+                {
+                    kind: kind,
+                    level: data.level,
+                    set: data.set,
+                    attempt: data.attempt,
+                    outcome: data.outcome,
+                    simTime: Math.round(data.t * 1000) / 1000,
+                    item: data.item,
+                    activeMs: stats.activeMs || 0,
+                    tests: TESTS_C.testInventory().length,
+                    testsAdded: added.length,
+                    aiTestsAdded: added.filter((t) => t.ai).length,
+                },
+                aiTestCounts()
+            )
+        );
         if (data.outcome === 'win' || data.outcome === 'win_soft') {
-            send({
-                kind: 'level_beaten',
-                level: data.level,
-                set: data.set,
-                attempts: stats.attempts,
-                winningAttempt: data.attempt,
-                activeMs: stats.activeMs || 0,
-                wallMs: stats.firstOpened ? Date.now() - stats.firstOpened : null,
-                testsAtStart: (stats.testsAtStart || []).length,
-                tests: TESTS_C.testInventory().length,
-                testsAdded: added,
-                testRuns: stats.testRuns || 0,
-            });
+            send(
+                Object.assign(
+                    {
+                        kind: 'level_beaten',
+                        level: data.level,
+                        set: data.set,
+                        attempts: stats.attempts,
+                        winningAttempt: data.attempt,
+                        activeMs: stats.activeMs || 0,
+                        wallMs: stats.firstOpened ? Date.now() - stats.firstOpened : null,
+                        testsAtStart: (stats.testsAtStart || []).length,
+                        tests: TESTS_C.testInventory().length,
+                        testsAdded: added,
+                        testRuns: stats.testRuns || 0,
+                        aiTestRuns: stats.aiTestRuns || 0,
+                    },
+                    aiTestCounts()
+                )
+            );
         }
     }
 }
@@ -129,6 +171,7 @@ function attemptStarted(data: any): void {
         tests: TESTS_C.testInventory().length,
         nepo: SUITE.merge(run.program),
         edpy: null,
+        ai: ai.isOn(), // now: the event is sent once the EdPy is there
     };
     run.edpy.then(function (result) {
         event.edpy = result.edpy;
@@ -167,14 +210,49 @@ export function attemptSource(level: string, attempt: number): { program: string
     return source;
 }
 
-function testRun(run: any): void {
+function testRun(run: TESTS_C.TestRun): void {
     const level = PLAYER.currentLevel();
     if (!level || GUISTATE_C.getRobotGroup() !== GROUP) {
         return;
     }
     const stats = PLAYER.levelStats(level.id);
     stats.testRuns = (stats.testRuns || 0) + 1;
-    send({ kind: 'test_run', level: level.id, set: level.set, from: run.from, passed: run.passed, failed: run.failed, error: run.error, skipped: run.skipped, tests: TESTS_C.testInventory().length });
+    const inventory = TESTS_C.testInventory();
+    const entry = (id: string) => inventory.filter((t) => t.id === id)[0];
+    const aiRun = (run.tests || []).filter((r) => entry(r.id) && entry(r.id).ai);
+    const count = (outcome: string) => aiRun.filter((r) => r.outcome === outcome).length;
+    aiRun.length && (stats.aiTestRuns = (stats.aiTestRuns || 0) + 1);
+    send(
+        Object.assign(
+            {
+                kind: 'test_run',
+                level: level.id,
+                set: level.set,
+                from: run.from,
+                passed: run.passed,
+                failed: run.failed,
+                error: run.error,
+                skipped: run.skipped,
+                tests: inventory.length,
+                aiTestsRun: aiRun.length,
+                aiTestsEditedRun: aiRun.filter((r) => entry(r.id).edited).length,
+                aiPassed: count('passed'),
+                aiFailed: count('failed'),
+                aiError: count('error'),
+                aiSkipped: count('skipped'),
+                outcomes: (run.tests || []).map((r) => ({ id: r.id, outcome: r.outcome, ai: !!entry(r.id) && entry(r.id).ai })),
+            },
+            aiTestCounts()
+        )
+    );
+}
+
+/** an event of the AI test assistant (kind ai_...): sent as the levels' events are, with the level played */
+export function record(event: any): void {
+    const level = PLAYER.currentLevel();
+    event.level === undefined && (event.level = level ? level.id : null);
+    event.set === undefined && (event.set = level ? level.set : null);
+    send(event);
 }
 
 // ------------------------------------------------------------------------------------------------ sending
@@ -186,6 +264,7 @@ function send(event: any): void {
     event.program = GUISTATE_C.getProgramName();
     event.robot = GUISTATE_C.getRobot();
     event.clientAccount = GUISTATE_C.isUserLoggedIn() ? GUISTATE_C.getUserAccountName() : null;
+    event.ai === undefined && (event.ai = ai.isOn());
     queue.push(event);
     event.kind === 'attempt_started' && flush(); // it is big: not left for the page's end
 }
