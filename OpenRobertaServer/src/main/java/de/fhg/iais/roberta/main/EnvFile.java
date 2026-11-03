@@ -14,6 +14,9 @@ import java.util.Map;
  * the settings of a ".env" file and of environment variables with the same names, as server properties. The file is read from the working directory (the
  * repository's root for "ora.sh start-from-git"). Only the names in {@link #PROPERTIES} are used. A line is KEY=VALUE, the value may be quoted, a line
  * starting with # is a comment. An environment variable overrides the file; a -d define on the command line overrides both (it comes later).
+ * <p>
+ * Secrets ({@link #DEEPSEEK_API_KEY}) are no server properties: the server logs every define (Util.loadAndMergeOpenRobertaServerProperties). They are
+ * read with {@link #secret} by the code that needs them.
  */
 public final class EnvFile {
     public static final String FILE_NAME = ".env";
@@ -28,8 +31,19 @@ public final class EnvFile {
         properties.put("LEVEL_DESIGNER", "levels.designer"); // true: the Level designer tab is shown
         properties.put("LEVELS_DIR", "levels.dir"); // the folder of the level sets (a folder per set, a file per level)
         properties.put("LEVEL_TELEMETRY_DIR", "levels.telemetry.dir"); // the folder of the study's telemetry (a file per participant)
+        properties.put("DEEPSEEK_URL", "ai.deepseek.url"); // the address of DeepSeek's API (AI test assistant)
+        properties.put("DEEPSEEK_MODEL", "ai.deepseek.model"); // the model of the AI test assistant
+        properties.put("AI_TESTS_DEFAULT", "ai.tests.default"); // true: the AI test assistant is on for a learner who was never switched
+        properties.put("AI_PACK_DIR", "ai.pack.dir"); // the folder of the AI's context pack, read at every call (none: the server's resources)
+        properties.put("AI_EFFORT_INFER", "ai.effort.infer"); // the model's reasoning effort for a guess (low, high, max)
+        properties.put("AI_EFFORT_GENERATE", "ai.effort.generate"); // … for writing tests
         PROPERTIES = Collections.unmodifiableMap(properties);
     }
+
+    /**
+     * the name of DeepSeek's API key in .env and in the environment: a secret, see {@link #secret}
+     */
+    public static final String DEEPSEEK_API_KEY = "DEEPSEEK_API_KEY";
 
     private EnvFile() {
         // only static methods
@@ -60,6 +74,22 @@ public final class EnvFile {
             settings.put(line.substring(0, eq).trim(), value);
         }
         return settings;
+    }
+
+    /**
+     * a secret: never a server property and never logged
+     *
+     * @param file the .env file
+     * @param environment the environment variables (they override the file)
+     * @param name the secret's name, e.g. {@link #DEEPSEEK_API_KEY}
+     * @return its value, trimmed, or null if it isn't set or is empty
+     */
+    public static String secret(File file, Map<String, String> environment, String name) throws IOException {
+        String value = environment.get(name);
+        if ( value == null || value.trim().isEmpty() ) {
+            value = read(file).get(name);
+        }
+        return value == null || value.trim().isEmpty() ? null : value.trim();
     }
 
     /**

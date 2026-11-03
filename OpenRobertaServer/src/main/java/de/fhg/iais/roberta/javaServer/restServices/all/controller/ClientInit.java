@@ -28,6 +28,7 @@ import org.slf4j.MDC;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 
+import de.fhg.iais.roberta.ai.AiService;
 import de.fhg.iais.roberta.factory.RobotFactory;
 import de.fhg.iais.roberta.generated.restEntities.InitRequest;
 import de.fhg.iais.roberta.generated.restEntities.InitResponse;
@@ -52,18 +53,21 @@ public class ClientInit {
     private final RobotCommunicator brickCommunicator;
     private final ServerProperties serverProperties;
     private final IIpToCountry ipToCountry;
+    private final AiService aiService;
 
     @Inject
     public ClientInit(
         @Named("robotPluginMap") Map<String, RobotFactory> robotPluginMap,
         RobotCommunicator brickCommunicator,
         ServerProperties serverProperties,
-        IIpToCountry ipToCountry) //
+        IIpToCountry ipToCountry,
+        AiService aiService) //
     {
         this.robotPluginMap = robotPluginMap;
         this.brickCommunicator = brickCommunicator;
         this.serverProperties = serverProperties;
         this.ipToCountry = ipToCountry;
+        this.aiService = aiService;
     }
 
     @POST
@@ -134,6 +138,7 @@ public class ClientInit {
             String theme = this.serverProperties.getStringProperty("server.theme");
             server.put("theme", theme);
             server.put("levels", new JSONObject().put("designer", this.serverProperties.getBooleanProperty("levels.designer"))); // the Level designer tab
+            server.put("ai", this.aiService.getSettings().clientInfo()); // the AI test assistant: {available, default}, never the key
             response.setServer(server);
             UtilForREST.addSuccessInfo(response, Key.INIT_SUCCESS);
             return UtilForREST.responseWithFrontendInfo(response, httpSessionState, this.brickCommunicator);

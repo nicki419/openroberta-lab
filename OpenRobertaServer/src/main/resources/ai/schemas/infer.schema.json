@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "The answer of the task infer",
+  "type": "object",
+  "required": ["intent", "confidence", "ask", "same_as_declined", "not_covered"],
+  "additionalProperties": false,
+  "properties": {
+    "intent": {"type": "string", "minLength": 1, "maxLength": 200},
+    "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+    "ask": {"type": "boolean"},
+    "same_as_declined": {"type": "boolean"},
+    "not_covered": {"type": ["string", "null"], "maxLength": 300}
+  }
+}

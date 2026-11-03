@@ -1,0 +1,13 @@
+# The context pack: the files of the system prompt, in this order (paths relative to this folder). Every call sends
+# the same system prompt first, so DeepSeek can cache it; its hash is the promptVersion of each logged call.
+# A line starting with # is a comment.
+system.md
+nepo-edison.md
+simulator.md
+tests.md
+tasks.md
+schemas/infer.schema.json
+schemas/generate.schema.json
+examples/1-follow-the-line.md
+examples/2-around-the-red-area.md
+examples/3-park-in-the-box.md
