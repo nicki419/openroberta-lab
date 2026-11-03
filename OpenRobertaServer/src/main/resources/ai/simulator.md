@@ -1,9 +1,9 @@
-# The simulator and the levels
+# The simulator
 
 ## The floor and its coordinates
 
-- The floor is plain light peach, 300 × 200 cm unless the level gives `size: {w, h}` (cm). Its edge is like a wall:
-  the robot bumps into it, and the obstacle sensors see it.
+- The floor (`background: "peach"`) is plain light peach, 300 × 200 cm unless the world gives `size: {w, h}` (cm,
+  50 to 600). Its edge is like a wall: the robot bumps into it, and the obstacle sensors see it.
 - **Coordinates are cm from the floor's top left corner: x to the right, y down** (as on a screen). Angles are degrees,
   **counterclockwise as seen from above, 0 pointing right**: 90 points up (towards y = 0), -90 or 270 down, 180 left.
 - A start (`starts`: `{id, name, x, y, heading}`) is the robot's pose: the centre of its wheel axle and where it
@@ -25,13 +25,10 @@ Their `role`:
   white.
 - `obstacle`: a block the robot bumps into and its obstacle sensors see. A `line` with role `obstacle` is a **wall**
   of that shape, `width` cm thick (default 1.5), not drawn on the floor.
-- `goal`, `fail`: **areas** that only the referee and the tests see. The robot's sensors don't see them, and the
-  robot drives over them. Goal areas have names ("Goal 1"); fail areas usually don't.
+- `goal`, `fail`: **areas** that only the tests see. The robot's sensors don't see them, and the robot drives over
+  them. Goal areas have names ("Goal 1"); fail areas usually don't.
 - `color`: a coloured patch on the floor the sensors see (older worlds only).
 - `name`: what the Lab shows ("Goal 1", "Obstacle 1"); `id`: what tests refer to.
-
-Two fields exist only in levels: a goal with `soft: {still: s}` (a soft goal: touching it wins only once the robot has
-stood still on it for s seconds) and an obstacle or wall with `failOnHit: true` (bumping into it loses the level).
 
 ## The robot
 
@@ -60,16 +57,3 @@ stood still on it for s seconds) and an obstacle or wall with `failOnHit: true` 
   other blocks take no time. A program that only sets the motors (drive, curve, turn without a distance) keeps the
   robot moving while it goes on.
 - When the program ends, the robot stops.
-
-## A level
-
-A level is a world with exactly one start (A), a title and instructions for the learner, and an optional time limit
-(`timeLimit`, s). While the program runs, the referee decides, in this order:
-
-1. the robot touches a fail area: **lost**;
-2. it bumps into an obstacle or wall with `failOnHit`: **lost**;
-3. it touches a goal area: **won** (a soft goal: once it has stood still on it for `still` s, or when the program
-   ends while the robot is on it);
-4. the time limit is up: **lost**.
-
-The level only needs the robot to get there; the learner's program can do more (the learner's sentence says what).

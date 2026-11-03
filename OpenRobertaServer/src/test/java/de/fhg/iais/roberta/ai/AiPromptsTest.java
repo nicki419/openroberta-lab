@@ -95,7 +95,6 @@ public class AiPromptsTest {
     public void theExamplesUseTheMessagesFormat() throws Exception {
         String text = ContextPack.fromResources().getText();
         for ( String heading : new String[] {
-            "The level",
             "The program",
             "The learner's tests",
             "What the learner said before",
@@ -104,7 +103,8 @@ public class AiPromptsTest {
         } ) {
             Assert.assertTrue(heading, text.contains("\n### " + heading + "\n\n"));
         }
-        Assert.assertTrue(text.contains("Time limit: none\nWorld:\n```json\n{\"background\":\"peach\""));
+        Assert.assertFalse("the model is told nothing of levels", Pattern.compile("(?i)\\blevels?\\b").matcher(text).find()); // Ed.ReadLeftLightLevel is EdPy
+        Assert.assertTrue("the guard works", Pattern.compile("(?i)\\blevels?\\b").matcher("the Level designer").find());
         Assert.assertTrue(text.contains("NEPO:\n```xml\n<block_set robottype=\"edison\">\n <instance>\n"));
         Assert.assertTrue(text.contains("EdPy:\n```python\nwhile True:\n"));
         Assert.assertTrue(text.contains("The guess the learner declined: none."));

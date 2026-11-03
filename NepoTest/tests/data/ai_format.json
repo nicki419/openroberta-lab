@@ -1,0 +1,796 @@
+{
+ "about": "Answers in the AI test JSON (OpenRobertaServer/src/main/resources/ai/tests.md), the worlds nepoTest.aiFormat.checkAnswer made of them and the Tests-tab blocks nepoTest.aiFormat.suiteXml made of them, in the browser. Regenerate when aiFormat changes (docs/ai/nepo-ai-tests.md).",
+ "cases": [
+  {
+   "name": "1-follow-the-line",
+   "variables": [],
+   "answer": {
+    "worlds": [
+     {
+      "name": "A line to a goal",
+      "world": {
+       "background": "peach",
+       "starts": [
+        {
+         "id": "A",
+         "name": "A",
+         "x": 30,
+         "y": 140,
+         "heading": 0
+        },
+        {
+         "id": "B",
+         "name": "B",
+         "x": 30,
+         "y": 132,
+         "heading": 0
+        }
+       ],
+       "items": [
+        {
+         "id": "t1",
+         "kind": "line",
+         "points": [
+          [
+           20,
+           140
+          ],
+          [
+           100,
+           140
+          ],
+          [
+           160,
+           90
+          ],
+          [
+           250,
+           90
+          ]
+         ],
+         "smooth": true,
+         "width": 1.48
+        },
+        {
+         "id": "t2",
+         "name": "Goal 1",
+         "kind": "rect",
+         "role": "goal",
+         "x": 225,
+         "y": 75,
+         "w": 30,
+         "h": 30
+        }
+       ]
+      },
+      "tests": [
+       {
+        "name": "On the line, it follows it to the goal",
+        "scenario": "Given the robot starts on the line at A, when the program runs, then it follows the line and reaches Goal 1 at its end without bumping into anything.",
+        "start": "A",
+        "until": "t2",
+        "max_time_ms": 60000,
+        "world": [],
+        "globals": {},
+        "checks": [
+         {
+          "check": "reaches",
+          "item": "t2"
+         },
+         {
+          "check": "never_bumps"
+         }
+        ]
+       },
+       {
+        "name": "Started beside the line, it finds it",
+        "scenario": "Given the robot starts at B, 8 cm beside the line, when the program runs, then it finds the line and still reaches Goal 1.",
+        "start": "B",
+        "until": "t2",
+        "max_time_ms": 60000,
+        "world": [],
+        "globals": {},
+        "checks": [
+         {
+          "check": "reaches",
+          "item": "t2"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "name": "A box on the line",
+      "world": {
+       "background": "peach",
+       "starts": [
+        {
+         "id": "A",
+         "name": "A",
+         "x": 30,
+         "y": 100,
+         "heading": 0
+        }
+       ],
+       "items": [
+        {
+         "id": "t1",
+         "kind": "line",
+         "points": [
+          [
+           20,
+           100
+          ],
+          [
+           155,
+           100
+          ],
+          [
+           260,
+           100
+          ]
+         ],
+         "width": 1.48
+        },
+        {
+         "id": "t2",
+         "name": "Box",
+         "kind": "rect",
+         "role": "obstacle",
+         "x": 150,
+         "y": 95,
+         "w": 10,
+         "h": 10
+        }
+       ]
+      },
+      "tests": [
+       {
+        "name": "Stops before the box on the line",
+        "scenario": "Given a box on the line, when the program runs for 40 s, then the robot stops in front of the box without bumping into it, and stays there.",
+        "start": "A",
+        "until": null,
+        "max_time_ms": 40000,
+        "world": [],
+        "globals": {},
+        "checks": [
+         {
+          "check": "never_bumps",
+          "item": "t2"
+         },
+         {
+          "check": "whenever",
+          "when": "obstacle_ahead",
+          "after_ms": 200,
+          "does": "stands_still"
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   "problems": [],
+   "worlds": [
+    {
+     "name": "A line to a goal",
+     "data": {
+      "version": 3,
+      "world": {
+       "background": "peach",
+       "starts": [
+        {
+         "id": "A",
+         "name": "A",
+         "x": 30,
+         "y": 140,
+         "heading": 0
+        },
+        {
+         "id": "B",
+         "name": "B",
+         "x": 30,
+         "y": 132,
+         "heading": 0
+        }
+       ],
+       "items": [
+        {
+         "id": "t1",
+         "kind": "line",
+         "points": [
+          [
+           20,
+           140
+          ],
+          [
+           100,
+           140
+          ],
+          [
+           160,
+           90
+          ],
+          [
+           250,
+           90
+          ]
+         ],
+         "smooth": true,
+         "width": 1.48
+        },
+        {
+         "id": "t2",
+         "kind": "rect",
+         "name": "Goal 1",
+         "role": "goal",
+         "x": 225,
+         "y": 75,
+         "w": 30,
+         "h": 30
+        }
+       ]
+      },
+      "view": {
+       "x": 150,
+       "y": 100,
+       "scale": 3
+      }
+     }
+    },
+    {
+     "name": "A box on the line",
+     "data": {
+      "version": 3,
+      "world": {
+       "background": "peach",
+       "starts": [
+        {
+         "id": "A",
+         "name": "A",
+         "x": 30,
+         "y": 100,
+         "heading": 0
+        }
+       ],
+       "items": [
+        {
+         "id": "t1",
+         "kind": "line",
+         "points": [
+          [
+           20,
+           100
+          ],
+          [
+           155,
+           100
+          ],
+          [
+           260,
+           100
+          ]
+         ],
+         "width": 1.48
+        },
+        {
+         "id": "t2",
+         "kind": "rect",
+         "name": "Box",
+         "role": "obstacle",
+         "x": 150,
+         "y": 95,
+         "w": 10,
+         "h": 10
+        }
+       ]
+      },
+      "view": {
+       "x": 150,
+       "y": 100,
+       "scale": 3
+      }
+     }
+    }
+   ],
+   "xml": "<block_set xmlns=\"http://de.fhg.iais.roberta.blockly\" robottype=\"edison\" xmlversion=\"3.1\" description=\"\" tags=\"\"><instance x=\"40\" y=\"40\"><block type=\"nepoTest_suite\" id=\"fx-suite\"></block><block type=\"nepoTest_run\" id=\"fx-1-run\"><field name=\"NAME\">A line to a goal</field></block><block type=\"nepoTest_run\" id=\"fx-2-run\"><field name=\"NAME\">A box on the line</field></block></instance><instance x=\"40\" y=\"200\"><block type=\"nepoTest_world\" id=\"fx-1\"><field name=\"NAME\">A line to a goal</field><data>{&quot;version&quot;:3,&quot;world&quot;:{&quot;background&quot;:&quot;peach&quot;,&quot;starts&quot;:[{&quot;id&quot;:&quot;A&quot;,&quot;name&quot;:&quot;A&quot;,&quot;x&quot;:30,&quot;y&quot;:140,&quot;heading&quot;:0},{&quot;id&quot;:&quot;B&quot;,&quot;name&quot;:&quot;B&quot;,&quot;x&quot;:30,&quot;y&quot;:132,&quot;heading&quot;:0}],&quot;items&quot;:[{&quot;id&quot;:&quot;t1&quot;,&quot;kind&quot;:&quot;line&quot;,&quot;points&quot;:[[20,140],[100,140],[160,90],[250,90]],&quot;smooth&quot;:true,&quot;width&quot;:1.48},{&quot;id&quot;:&quot;t2&quot;,&quot;kind&quot;:&quot;rect&quot;,&quot;name&quot;:&quot;Goal 1&quot;,&quot;role&quot;:&quot;goal&quot;,&quot;x&quot;:225,&quot;y&quot;:75,&quot;w&quot;:30,&quot;h&quot;:30}]},&quot;view&quot;:{&quot;x&quot;:150,&quot;y&quot;:100,&quot;scale&quot;:3}}</data><statement name=\"TESTS\"><block type=\"nepoTest_simcase\" id=\"fx-1-1\"><field name=\"ACTIVE\">TRUE</field><field name=\"NAME\">On the line, it follows it to the goal</field><field name=\"START\">A</field><field name=\"MODE\">until</field><field name=\"UNTIL\">t2</field><field name=\"SECONDS\">60</field><data>{&quot;ai&quot;:{&quot;call&quot;:&quot;fixture&quot;,&quot;scenario&quot;:&quot;Given the robot starts on the line at A, when the program runs, then it follows the line and reaches Goal 1 at its end without bumping into anything.&quot;,&quot;generated&quot;:{&quot;name&quot;:&quot;On the line, it follows it to the goal&quot;,&quot;scenario&quot;:&quot;Given the robot starts on the line at A, when the program runs, then it follows the line and reaches Goal 1 at its end without bumping into anything.&quot;,&quot;start&quot;:&quot;A&quot;,&quot;until&quot;:&quot;t2&quot;,&quot;max_time_ms&quot;:60000,&quot;world&quot;:[],&quot;globals&quot;:{},&quot;checks&quot;:[{&quot;check&quot;:&quot;reaches&quot;,&quot;item&quot;:&quot;t2&quot;},{&quot;check&quot;:&quot;never_bumps&quot;}]}}}</data><statement name=\"CHECKS\"><block type=\"nepoTest_check_reaches\" id=\"fx-1-1-1\"><field name=\"AREA\">t2</field></block><block type=\"nepoTest_check_never_bumps\" id=\"fx-1-1-2\"><field name=\"OBSTACLE\">ANY</field></block></statement></block><block type=\"nepoTest_simcase\" id=\"fx-1-2\"><field name=\"ACTIVE\">TRUE</field><field name=\"NAME\">Started beside the line, it finds it</field><field name=\"START\">B</field><field name=\"MODE\">until</field><field name=\"UNTIL\">t2</field><field name=\"SECONDS\">60</field><data>{&quot;ai&quot;:{&quot;call&quot;:&quot;fixture&quot;,&quot;scenario&quot;:&quot;Given the robot starts at B, 8 cm beside the line, when the program runs, then it finds the line and still reaches Goal 1.&quot;,&quot;generated&quot;:{&quot;name&quot;:&quot;Started beside the line, it finds it&quot;,&quot;scenario&quot;:&quot;Given the robot starts at B, 8 cm beside the line, when the program runs, then it finds the line and still reaches Goal 1.&quot;,&quot;start&quot;:&quot;B&quot;,&quot;until&quot;:&quot;t2&quot;,&quot;max_time_ms&quot;:60000,&quot;world&quot;:[],&quot;globals&quot;:{},&quot;checks&quot;:[{&quot;check&quot;:&quot;reaches&quot;,&quot;item&quot;:&quot;t2&quot;}]}}}</data><statement name=\"CHECKS\"><block type=\"nepoTest_check_reaches\" id=\"fx-1-2-1\"><field name=\"AREA\">t2</field></block></statement></block></statement></block></instance><instance x=\"40\" y=\"600\"><block type=\"nepoTest_world\" id=\"fx-2\"><field name=\"NAME\">A box on the line</field><data>{&quot;version&quot;:3,&quot;world&quot;:{&quot;background&quot;:&quot;peach&quot;,&quot;starts&quot;:[{&quot;id&quot;:&quot;A&quot;,&quot;name&quot;:&quot;A&quot;,&quot;x&quot;:30,&quot;y&quot;:100,&quot;heading&quot;:0}],&quot;items&quot;:[{&quot;id&quot;:&quot;t1&quot;,&quot;kind&quot;:&quot;line&quot;,&quot;points&quot;:[[20,100],[155,100],[260,100]],&quot;width&quot;:1.48},{&quot;id&quot;:&quot;t2&quot;,&quot;kind&quot;:&quot;rect&quot;,&quot;name&quot;:&quot;Box&quot;,&quot;role&quot;:&quot;obstacle&quot;,&quot;x&quot;:150,&quot;y&quot;:95,&quot;w&quot;:10,&quot;h&quot;:10}]},&quot;view&quot;:{&quot;x&quot;:150,&quot;y&quot;:100,&quot;scale&quot;:3}}</data><statement name=\"TESTS\"><block type=\"nepoTest_simcase\" id=\"fx-2-1\"><field name=\"ACTIVE\">TRUE</field><field name=\"NAME\">Stops before the box on the line</field><field name=\"START\">A</field><field name=\"MODE\">for</field><field name=\"SECONDS\">40</field><data>{&quot;ai&quot;:{&quot;call&quot;:&quot;fixture&quot;,&quot;scenario&quot;:&quot;Given a box on the line, when the program runs for 40 s, then the robot stops in front of the box without bumping into it, and stays there.&quot;,&quot;generated&quot;:{&quot;name&quot;:&quot;Stops before the box on the line&quot;,&quot;scenario&quot;:&quot;Given a box on the line, when the program runs for 40 s, then the robot stops in front of the box without bumping into it, and stays there.&quot;,&quot;start&quot;:&quot;A&quot;,&quot;until&quot;:null,&quot;max_time_ms&quot;:40000,&quot;world&quot;:[],&quot;globals&quot;:{},&quot;checks&quot;:[{&quot;check&quot;:&quot;never_bumps&quot;,&quot;item&quot;:&quot;t2&quot;},{&quot;check&quot;:&quot;whenever&quot;,&quot;when&quot;:&quot;obstacle_ahead&quot;,&quot;does&quot;:&quot;stands_still&quot;,&quot;after_ms&quot;:200}]}}}</data><statement name=\"CHECKS\"><block type=\"nepoTest_check_never_bumps\" id=\"fx-2-1-1\"><field name=\"OBSTACLE\">t2</field></block><block type=\"nepoTest_check_whenever\" id=\"fx-2-1-2\"><field name=\"WHEN\">obstacle_ahead</field><field name=\"PERCENT\">50</field><field name=\"DOES\">stands_still</field><field name=\"AFTER\">200</field></block></statement></block></statement></block></instance></block_set>"
+  },
+  {
+   "name": "3-park-in-the-box",
+   "variables": [],
+   "answer": {
+    "worlds": [
+     {
+      "name": "Park in a box",
+      "world": {
+       "background": "peach",
+       "starts": [
+        {
+         "id": "A",
+         "name": "A",
+         "x": 40,
+         "y": 100,
+         "heading": 0
+        }
+       ],
+       "items": [
+        {
+         "id": "t1",
+         "name": "Box",
+         "kind": "rect",
+         "role": "goal",
+         "x": 140,
+         "y": 85,
+         "w": 30,
+         "h": 30
+        }
+       ]
+      },
+      "tests": [
+       {
+        "name": "After PLAY, it parks in the box",
+        "scenario": "Given PLAY is pressed after 0.5 s, when the program runs, then the robot drives into the box and stops completely inside it.",
+        "start": "A",
+        "until": null,
+        "max_time_ms": 15000,
+        "world": [
+         {
+          "event": "key",
+          "port": "PLAY",
+          "at": 500
+         }
+        ],
+        "globals": {},
+        "checks": [
+         {
+          "check": "ends_in",
+          "item": "t1"
+         },
+         {
+          "check": "never_bumps"
+         }
+        ]
+       },
+       {
+        "name": "Without PLAY, it waits",
+        "scenario": "Given nobody presses PLAY, when the program runs for 5 s, then the robot stays where it is.",
+        "start": "A",
+        "until": null,
+        "max_time_ms": 5000,
+        "world": [],
+        "globals": {},
+        "checks": [
+         {
+          "check": "does",
+          "does": "stands_still",
+          "after_ms": 100
+         }
+        ]
+       },
+       {
+        "name": "PLAY pressed later, it still parks",
+        "scenario": "Given PLAY is pressed only after 3 s, when the program runs, then the robot still parks inside the box.",
+        "start": "A",
+        "until": null,
+        "max_time_ms": 20000,
+        "world": [
+         {
+          "event": "key",
+          "port": "PLAY",
+          "at": 3000
+         }
+        ],
+        "globals": {},
+        "checks": [
+         {
+          "check": "ends_in",
+          "item": "t1"
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   "problems": [],
+   "worlds": [
+    {
+     "name": "Park in a box",
+     "data": {
+      "version": 3,
+      "world": {
+       "background": "peach",
+       "starts": [
+        {
+         "id": "A",
+         "name": "A",
+         "x": 40,
+         "y": 100,
+         "heading": 0
+        }
+       ],
+       "items": [
+        {
+         "id": "t1",
+         "kind": "rect",
+         "name": "Box",
+         "role": "goal",
+         "x": 140,
+         "y": 85,
+         "w": 30,
+         "h": 30
+        }
+       ]
+      },
+      "view": {
+       "x": 150,
+       "y": 100,
+       "scale": 3
+      }
+     }
+    }
+   ],
+   "xml": "<block_set xmlns=\"http://de.fhg.iais.roberta.blockly\" robottype=\"edison\" xmlversion=\"3.1\" description=\"\" tags=\"\"><instance x=\"40\" y=\"40\"><block type=\"nepoTest_suite\" id=\"fx-suite\"></block><block type=\"nepoTest_run\" id=\"fx-1-run\"><field name=\"NAME\">Park in a box</field></block></instance><instance x=\"40\" y=\"200\"><block type=\"nepoTest_world\" id=\"fx-1\"><field name=\"NAME\">Park in a box</field><data>{&quot;version&quot;:3,&quot;world&quot;:{&quot;background&quot;:&quot;peach&quot;,&quot;starts&quot;:[{&quot;id&quot;:&quot;A&quot;,&quot;name&quot;:&quot;A&quot;,&quot;x&quot;:40,&quot;y&quot;:100,&quot;heading&quot;:0}],&quot;items&quot;:[{&quot;id&quot;:&quot;t1&quot;,&quot;kind&quot;:&quot;rect&quot;,&quot;name&quot;:&quot;Box&quot;,&quot;role&quot;:&quot;goal&quot;,&quot;x&quot;:140,&quot;y&quot;:85,&quot;w&quot;:30,&quot;h&quot;:30}]},&quot;view&quot;:{&quot;x&quot;:150,&quot;y&quot;:100,&quot;scale&quot;:3}}</data><statement name=\"TESTS\"><block type=\"nepoTest_simcase\" id=\"fx-1-1\"><field name=\"ACTIVE\">TRUE</field><field name=\"NAME\">After PLAY, it parks in the box</field><field name=\"START\">A</field><field name=\"MODE\">for</field><field name=\"SECONDS\">15</field><data>{&quot;ai&quot;:{&quot;call&quot;:&quot;fixture&quot;,&quot;scenario&quot;:&quot;Given PLAY is pressed after 0.5 s, when the program runs, then the robot drives into the box and stops completely inside it.&quot;,&quot;generated&quot;:{&quot;name&quot;:&quot;After PLAY, it parks in the box&quot;,&quot;scenario&quot;:&quot;Given PLAY is pressed after 0.5 s, when the program runs, then the robot drives into the box and stops completely inside it.&quot;,&quot;start&quot;:&quot;A&quot;,&quot;until&quot;:null,&quot;max_time_ms&quot;:15000,&quot;world&quot;:[{&quot;event&quot;:&quot;key&quot;,&quot;port&quot;:&quot;PLAY&quot;,&quot;at&quot;:500}],&quot;globals&quot;:{},&quot;checks&quot;:[{&quot;check&quot;:&quot;ends_in&quot;,&quot;item&quot;:&quot;t1&quot;},{&quot;check&quot;:&quot;never_bumps&quot;}]}}}</data><statement name=\"SETUP\"><block type=\"nepoTest_given_key\" id=\"fx-1-1-1\"><field name=\"AT\">500</field><field name=\"PORT\">PLAY</field></block></statement><statement name=\"CHECKS\"><block type=\"nepoTest_check_ends_in\" id=\"fx-1-1-2\"><field name=\"AREA\">t1</field></block><block type=\"nepoTest_check_never_bumps\" id=\"fx-1-1-3\"><field name=\"OBSTACLE\">ANY</field></block></statement></block><block type=\"nepoTest_simcase\" id=\"fx-1-2\"><field name=\"ACTIVE\">TRUE</field><field name=\"NAME\">Without PLAY, it waits</field><field name=\"START\">A</field><field name=\"MODE\">for</field><field name=\"SECONDS\">5</field><data>{&quot;ai&quot;:{&quot;call&quot;:&quot;fixture&quot;,&quot;scenario&quot;:&quot;Given nobody presses PLAY, when the program runs for 5 s, then the robot stays where it is.&quot;,&quot;generated&quot;:{&quot;name&quot;:&quot;Without PLAY, it waits&quot;,&quot;scenario&quot;:&quot;Given nobody presses PLAY, when the program runs for 5 s, then the robot stays where it is.&quot;,&quot;start&quot;:&quot;A&quot;,&quot;until&quot;:null,&quot;max_time_ms&quot;:5000,&quot;world&quot;:[],&quot;globals&quot;:{},&quot;checks&quot;:[{&quot;check&quot;:&quot;does&quot;,&quot;does&quot;:&quot;stands_still&quot;,&quot;after_ms&quot;:100}]}}}</data><statement name=\"CHECKS\"><block type=\"nepoTest_check_does\" id=\"fx-1-2-1\"><field name=\"AFTER\">100</field><field name=\"DOES\">stands_still</field></block></statement></block><block type=\"nepoTest_simcase\" id=\"fx-1-3\"><field name=\"ACTIVE\">TRUE</field><field name=\"NAME\">PLAY pressed later, it still parks</field><field name=\"START\">A</field><field name=\"MODE\">for</field><field name=\"SECONDS\">20</field><data>{&quot;ai&quot;:{&quot;call&quot;:&quot;fixture&quot;,&quot;scenario&quot;:&quot;Given PLAY is pressed only after 3 s, when the program runs, then the robot still parks inside the box.&quot;,&quot;generated&quot;:{&quot;name&quot;:&quot;PLAY pressed later, it still parks&quot;,&quot;scenario&quot;:&quot;Given PLAY is pressed only after 3 s, when the program runs, then the robot still parks inside the box.&quot;,&quot;start&quot;:&quot;A&quot;,&quot;until&quot;:null,&quot;max_time_ms&quot;:20000,&quot;world&quot;:[{&quot;event&quot;:&quot;key&quot;,&quot;port&quot;:&quot;PLAY&quot;,&quot;at&quot;:3000}],&quot;globals&quot;:{},&quot;checks&quot;:[{&quot;check&quot;:&quot;ends_in&quot;,&quot;item&quot;:&quot;t1&quot;}]}}}</data><statement name=\"SETUP\"><block type=\"nepoTest_given_key\" id=\"fx-1-3-1\"><field name=\"AT\">3000</field><field name=\"PORT\">PLAY</field></block></statement><statement name=\"CHECKS\"><block type=\"nepoTest_check_ends_in\" id=\"fx-1-3-2\"><field name=\"AREA\">t1</field></block></statement></block></statement></block></instance></block_set>"
+  },
+  {
+   "name": "synthetic",
+   "variables": [
+    "claps",
+    "goal",
+    "fast",
+    "speeds"
+   ],
+   "answer": {
+    "worlds": [
+     {
+      "name": "Claps and keys",
+      "world": {
+       "background": "peach",
+       "size": {
+        "w": 200,
+        "h": 150
+       },
+       "starts": [
+        {
+         "id": "A",
+         "name": "A",
+         "x": 30,
+         "y": 75,
+         "heading": 0
+        },
+        {
+         "id": "B",
+         "name": "B",
+         "x": 40,
+         "y": 100,
+         "heading": 90
+        }
+       ],
+       "items": [
+        {
+         "id": "t1",
+         "name": "Wall",
+         "kind": "line",
+         "role": "obstacle",
+         "points": [
+          [
+           180,
+           20
+          ],
+          [
+           180,
+           130
+          ]
+         ],
+         "width": 1.5
+        },
+        {
+         "id": "t2",
+         "name": "Goal 1",
+         "kind": "circle",
+         "role": "goal",
+         "x": 150,
+         "y": 75,
+         "r": 10
+        },
+        {
+         "id": "t3",
+         "name": "Ramp",
+         "kind": "triangle",
+         "role": "obstacle",
+         "points": [
+          [
+           60,
+           120
+          ],
+          [
+           80,
+           140
+          ],
+          [
+           60,
+           140
+          ]
+         ]
+        },
+        {
+         "id": "t4",
+         "kind": "line",
+         "points": [
+          [
+           30,
+           100
+          ],
+          [
+           100,
+           110
+          ],
+          [
+           160,
+           90
+          ]
+         ],
+         "smooth": true,
+         "width": 1.48
+        },
+        {
+         "id": "t5",
+         "kind": "rect",
+         "role": "fail",
+         "x": 90,
+         "y": 10,
+         "w": 20,
+         "h": 20
+        }
+       ]
+      },
+      "tests": [
+       {
+        "name": "Counts three claps",
+        "scenario": "Given three claps, when the program runs, then claps is 3 and the LEDs go on after each.",
+        "start": "A",
+        "until": null,
+        "max_time_ms": 8000,
+        "world": [
+         {
+          "event": "clap",
+          "at": 1000
+         },
+         {
+          "event": "clap",
+          "at": 2000
+         },
+         {
+          "event": "clap",
+          "at": 3000
+         }
+        ],
+        "globals": {
+         "goal": 3,
+         "fast": true,
+         "speeds": [
+          10,
+          20,
+          30
+         ]
+        },
+        "checks": [
+         {
+          "check": "variable",
+          "variable": "claps",
+          "op": "EQ",
+          "value": 3
+         },
+         {
+          "check": "variable",
+          "variable": "speeds",
+          "op": "EQ",
+          "value": [
+           10,
+           20,
+           30
+          ]
+         },
+         {
+          "check": "variable",
+          "variable": "goal",
+          "op": "GTE",
+          "value": 2
+         },
+         {
+          "check": "variable",
+          "variable": "fast",
+          "op": "NEQ",
+          "value": false
+         },
+         {
+          "check": "after",
+          "event": "clap",
+          "within_ms": 400,
+          "does": "leds_on"
+         },
+         {
+          "check": "never_bumps",
+          "item": "t1"
+         },
+         {
+          "check": "never_touches"
+         }
+        ]
+       },
+       {
+        "name": "REC starts it from B",
+        "scenario": "Given REC is pressed at 0.5 s at start B, when the program runs until Goal 1, then it reaches it and turns when it is dark.",
+        "start": "B",
+        "until": "t2",
+        "max_time_ms": 30000,
+        "world": [
+         {
+          "event": "key",
+          "port": "REC",
+          "at": 500
+         }
+        ],
+        "checks": [
+         {
+          "check": "reaches",
+          "item": "t2"
+         },
+         {
+          "check": "reaches"
+         },
+         {
+          "check": "ends_in",
+          "item": "t2"
+         },
+         {
+          "check": "whenever",
+          "when": "left_light_below",
+          "percent": 30,
+          "does": "turns_left",
+          "after_ms": 100
+         },
+         {
+          "check": "whenever",
+          "when": "no_line",
+          "does": "drives_forward",
+          "after_ms": 0
+         },
+         {
+          "check": "after",
+          "event": "key",
+          "within_ms": 1000,
+          "does": "drives_forward"
+         },
+         {
+          "check": "does",
+          "does": "silent",
+          "after_ms": 100
+         },
+         {
+          "check": "never_bumps"
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   "problems": [],
+   "worlds": [
+    {
+     "name": "Claps and keys",
+     "data": {
+      "version": 3,
+      "world": {
+       "background": "peach",
+       "starts": [
+        {
+         "id": "A",
+         "name": "A",
+         "x": 30,
+         "y": 75,
+         "heading": 0
+        },
+        {
+         "id": "B",
+         "name": "B",
+         "x": 40,
+         "y": 100,
+         "heading": 90
+        }
+       ],
+       "items": [
+        {
+         "id": "t1",
+         "kind": "line",
+         "name": "Wall",
+         "role": "obstacle",
+         "points": [
+          [
+           180,
+           20
+          ],
+          [
+           180,
+           130
+          ]
+         ],
+         "width": 1.5
+        },
+        {
+         "id": "t2",
+         "kind": "circle",
+         "name": "Goal 1",
+         "role": "goal",
+         "x": 150,
+         "y": 75,
+         "r": 10
+        },
+        {
+         "id": "t3",
+         "kind": "triangle",
+         "name": "Ramp",
+         "role": "obstacle",
+         "points": [
+          [
+           60,
+           120
+          ],
+          [
+           80,
+           140
+          ],
+          [
+           60,
+           140
+          ]
+         ]
+        },
+        {
+         "id": "t4",
+         "kind": "line",
+         "points": [
+          [
+           30,
+           100
+          ],
+          [
+           100,
+           110
+          ],
+          [
+           160,
+           90
+          ]
+         ],
+         "smooth": true,
+         "width": 1.48
+        },
+        {
+         "id": "t5",
+         "kind": "rect",
+         "role": "fail",
+         "x": 90,
+         "y": 10,
+         "w": 20,
+         "h": 20
+        }
+       ],
+       "size": {
+        "w": 200,
+        "h": 150
+       }
+      },
+      "view": {
+       "x": 100,
+       "y": 75,
+       "scale": 3
+      }
+     }
+    }
+   ],
+   "xml": "<block_set xmlns=\"http://de.fhg.iais.roberta.blockly\" robottype=\"edison\" xmlversion=\"3.1\" description=\"\" tags=\"\"><instance x=\"40\" y=\"40\"><block type=\"nepoTest_suite\" id=\"fx-suite\"></block><block type=\"nepoTest_run\" id=\"fx-1-run\"><field name=\"NAME\">Claps and keys</field></block></instance><instance x=\"40\" y=\"200\"><block type=\"nepoTest_world\" id=\"fx-1\"><field name=\"NAME\">Claps and keys</field><data>{&quot;version&quot;:3,&quot;world&quot;:{&quot;background&quot;:&quot;peach&quot;,&quot;starts&quot;:[{&quot;id&quot;:&quot;A&quot;,&quot;name&quot;:&quot;A&quot;,&quot;x&quot;:30,&quot;y&quot;:75,&quot;heading&quot;:0},{&quot;id&quot;:&quot;B&quot;,&quot;name&quot;:&quot;B&quot;,&quot;x&quot;:40,&quot;y&quot;:100,&quot;heading&quot;:90}],&quot;items&quot;:[{&quot;id&quot;:&quot;t1&quot;,&quot;kind&quot;:&quot;line&quot;,&quot;name&quot;:&quot;Wall&quot;,&quot;role&quot;:&quot;obstacle&quot;,&quot;points&quot;:[[180,20],[180,130]],&quot;width&quot;:1.5},{&quot;id&quot;:&quot;t2&quot;,&quot;kind&quot;:&quot;circle&quot;,&quot;name&quot;:&quot;Goal 1&quot;,&quot;role&quot;:&quot;goal&quot;,&quot;x&quot;:150,&quot;y&quot;:75,&quot;r&quot;:10},{&quot;id&quot;:&quot;t3&quot;,&quot;kind&quot;:&quot;triangle&quot;,&quot;name&quot;:&quot;Ramp&quot;,&quot;role&quot;:&quot;obstacle&quot;,&quot;points&quot;:[[60,120],[80,140],[60,140]]},{&quot;id&quot;:&quot;t4&quot;,&quot;kind&quot;:&quot;line&quot;,&quot;points&quot;:[[30,100],[100,110],[160,90]],&quot;smooth&quot;:true,&quot;width&quot;:1.48},{&quot;id&quot;:&quot;t5&quot;,&quot;kind&quot;:&quot;rect&quot;,&quot;role&quot;:&quot;fail&quot;,&quot;x&quot;:90,&quot;y&quot;:10,&quot;w&quot;:20,&quot;h&quot;:20}],&quot;size&quot;:{&quot;w&quot;:200,&quot;h&quot;:150}},&quot;view&quot;:{&quot;x&quot;:100,&quot;y&quot;:75,&quot;scale&quot;:3}}</data><statement name=\"TESTS\"><block type=\"nepoTest_simcase\" id=\"fx-1-1\"><field name=\"ACTIVE\">TRUE</field><field name=\"NAME\">Counts three claps</field><field name=\"START\">A</field><field name=\"MODE\">for</field><field name=\"SECONDS\">8</field><data>{&quot;ai&quot;:{&quot;call&quot;:&quot;fixture&quot;,&quot;scenario&quot;:&quot;Given three claps, when the program runs, then claps is 3 and the LEDs go on after each.&quot;,&quot;generated&quot;:{&quot;name&quot;:&quot;Counts three claps&quot;,&quot;scenario&quot;:&quot;Given three claps, when the program runs, then claps is 3 and the LEDs go on after each.&quot;,&quot;start&quot;:&quot;A&quot;,&quot;until&quot;:null,&quot;max_time_ms&quot;:8000,&quot;world&quot;:[{&quot;event&quot;:&quot;clap&quot;,&quot;at&quot;:1000},{&quot;event&quot;:&quot;clap&quot;,&quot;at&quot;:2000},{&quot;event&quot;:&quot;clap&quot;,&quot;at&quot;:3000}],&quot;globals&quot;:{&quot;goal&quot;:3,&quot;fast&quot;:true,&quot;speeds&quot;:[10,20,30]},&quot;checks&quot;:[{&quot;check&quot;:&quot;variable&quot;,&quot;variable&quot;:&quot;claps&quot;,&quot;op&quot;:&quot;EQ&quot;,&quot;value&quot;:3},{&quot;check&quot;:&quot;variable&quot;,&quot;variable&quot;:&quot;speeds&quot;,&quot;op&quot;:&quot;EQ&quot;,&quot;value&quot;:[10,20,30]},{&quot;check&quot;:&quot;variable&quot;,&quot;variable&quot;:&quot;goal&quot;,&quot;op&quot;:&quot;GTE&quot;,&quot;value&quot;:2},{&quot;check&quot;:&quot;variable&quot;,&quot;variable&quot;:&quot;fast&quot;,&quot;op&quot;:&quot;NEQ&quot;,&quot;value&quot;:false},{&quot;check&quot;:&quot;after&quot;,&quot;event&quot;:&quot;clap&quot;,&quot;within_ms&quot;:400,&quot;does&quot;:&quot;leds_on&quot;},{&quot;check&quot;:&quot;never_bumps&quot;,&quot;item&quot;:&quot;t1&quot;},{&quot;check&quot;:&quot;never_touches&quot;}]}}}</data><statement name=\"SETUP\"><block type=\"nepoTest_given_clap\" id=\"fx-1-1-1\"><field name=\"AT\">1000</field></block><block type=\"nepoTest_given_clap\" id=\"fx-1-1-2\"><field name=\"AT\">2000</field></block><block type=\"nepoTest_given_clap\" id=\"fx-1-1-3\"><field name=\"AT\">3000</field></block><block type=\"nepoTest_given_variable\" id=\"fx-1-1-4\"><field name=\"VAR\">goal</field><value name=\"VALUE\"><block type=\"math_number\" id=\"fx-1-1-5\"><field name=\"NUM\">3</field></block></value></block><block type=\"nepoTest_given_variable\" id=\"fx-1-1-6\"><field name=\"VAR\">fast</field><value name=\"VALUE\"><block type=\"logic_boolean\" id=\"fx-1-1-7\"><field name=\"BOOL\">TRUE</field></block></value></block><block type=\"nepoTest_given_variable\" id=\"fx-1-1-8\"><field name=\"VAR\">speeds</field><value name=\"VALUE\"><block type=\"robLists_create_with\" id=\"fx-1-1-9\"><mutation items=\"3\" list_type=\"Number\"></mutation><field name=\"LIST_TYPE\">Number</field><value name=\"ADD0\"><block type=\"math_number\" id=\"fx-1-1-10\"><field name=\"NUM\">10</field></block></value><value name=\"ADD1\"><block type=\"math_number\" id=\"fx-1-1-11\"><field name=\"NUM\">20</field></block></value><value name=\"ADD2\"><block type=\"math_number\" id=\"fx-1-1-12\"><field name=\"NUM\">30</field></block></value></block></value></block></statement><statement name=\"CHECKS\"><block type=\"nepoTest_check_variable\" id=\"fx-1-1-14\"><field name=\"VAR\">claps</field><field name=\"OP\">EQ</field><value name=\"VALUE\"><block type=\"math_number\" id=\"fx-1-1-13\"><field name=\"NUM\">3</field></block></value></block><block type=\"nepoTest_check_variable\" id=\"fx-1-1-19\"><field name=\"VAR\">speeds</field><field name=\"OP\">EQ</field><value name=\"VALUE\"><block type=\"robLists_create_with\" id=\"fx-1-1-15\"><mutation items=\"3\" list_type=\"Number\"></mutation><field name=\"LIST_TYPE\">Number</field><value name=\"ADD0\"><block type=\"math_number\" id=\"fx-1-1-16\"><field name=\"NUM\">10</field></block></value><value name=\"ADD1\"><block type=\"math_number\" id=\"fx-1-1-17\"><field name=\"NUM\">20</field></block></value><value name=\"ADD2\"><block type=\"math_number\" id=\"fx-1-1-18\"><field name=\"NUM\">30</field></block></value></block></value></block><block type=\"nepoTest_check_variable\" id=\"fx-1-1-21\"><field name=\"VAR\">goal</field><field name=\"OP\">GTE</field><value name=\"VALUE\"><block type=\"math_number\" id=\"fx-1-1-20\"><field name=\"NUM\">2</field></block></value></block><block type=\"nepoTest_check_variable\" id=\"fx-1-1-23\"><field name=\"VAR\">fast</field><field name=\"OP\">NEQ</field><value name=\"VALUE\"><block type=\"logic_boolean\" id=\"fx-1-1-22\"><field name=\"BOOL\">FALSE</field></block></value></block><block type=\"nepoTest_check_after\" id=\"fx-1-1-24\"><field name=\"WITHIN\">400</field><field name=\"EVENT\">clap</field><field name=\"DOES\">leds_on</field></block><block type=\"nepoTest_check_never_bumps\" id=\"fx-1-1-25\"><field name=\"OBSTACLE\">t1</field></block><block type=\"nepoTest_check_never_touches\" id=\"fx-1-1-26\"></block></statement></block><block type=\"nepoTest_simcase\" id=\"fx-1-2\"><field name=\"ACTIVE\">TRUE</field><field name=\"NAME\">REC starts it from B</field><field name=\"START\">B</field><field name=\"MODE\">until</field><field name=\"UNTIL\">t2</field><field name=\"SECONDS\">30</field><data>{&quot;ai&quot;:{&quot;call&quot;:&quot;fixture&quot;,&quot;scenario&quot;:&quot;Given REC is pressed at 0.5 s at start B, when the program runs until Goal 1, then it reaches it and turns when it is dark.&quot;,&quot;generated&quot;:{&quot;name&quot;:&quot;REC starts it from B&quot;,&quot;scenario&quot;:&quot;Given REC is pressed at 0.5 s at start B, when the program runs until Goal 1, then it reaches it and turns when it is dark.&quot;,&quot;start&quot;:&quot;B&quot;,&quot;until&quot;:&quot;t2&quot;,&quot;max_time_ms&quot;:30000,&quot;world&quot;:[{&quot;event&quot;:&quot;key&quot;,&quot;port&quot;:&quot;REC&quot;,&quot;at&quot;:500}],&quot;globals&quot;:{},&quot;checks&quot;:[{&quot;check&quot;:&quot;reaches&quot;,&quot;item&quot;:&quot;t2&quot;},{&quot;check&quot;:&quot;reaches&quot;},{&quot;check&quot;:&quot;ends_in&quot;,&quot;item&quot;:&quot;t2&quot;},{&quot;check&quot;:&quot;whenever&quot;,&quot;when&quot;:&quot;left_light_below&quot;,&quot;percent&quot;:30,&quot;does&quot;:&quot;turns_left&quot;,&quot;after_ms&quot;:100},{&quot;check&quot;:&quot;whenever&quot;,&quot;when&quot;:&quot;no_line&quot;,&quot;does&quot;:&quot;drives_forward&quot;,&quot;after_ms&quot;:0},{&quot;check&quot;:&quot;after&quot;,&quot;event&quot;:&quot;key&quot;,&quot;within_ms&quot;:1000,&quot;does&quot;:&quot;drives_forward&quot;},{&quot;check&quot;:&quot;does&quot;,&quot;does&quot;:&quot;silent&quot;,&quot;after_ms&quot;:100},{&quot;check&quot;:&quot;never_bumps&quot;}]}}}</data><statement name=\"SETUP\"><block type=\"nepoTest_given_key\" id=\"fx-1-2-1\"><field name=\"AT\">500</field><field name=\"PORT\">REC</field></block></statement><statement name=\"CHECKS\"><block type=\"nepoTest_check_reaches\" id=\"fx-1-2-2\"><field name=\"AREA\">t2</field></block><block type=\"nepoTest_check_reaches\" id=\"fx-1-2-3\"><field name=\"AREA\">ANY</field></block><block type=\"nepoTest_check_ends_in\" id=\"fx-1-2-4\"><field name=\"AREA\">t2</field></block><block type=\"nepoTest_check_whenever\" id=\"fx-1-2-5\"><field name=\"WHEN\">left_light_below</field><field name=\"PERCENT\">30</field><field name=\"DOES\">turns_left</field><field name=\"AFTER\">100</field></block><block type=\"nepoTest_check_whenever\" id=\"fx-1-2-6\"><field name=\"WHEN\">no_line</field><field name=\"PERCENT\">50</field><field name=\"DOES\">drives_forward</field><field name=\"AFTER\">0</field></block><block type=\"nepoTest_check_after\" id=\"fx-1-2-7\"><field name=\"WITHIN\">1000</field><field name=\"EVENT\">key</field><field name=\"DOES\">drives_forward</field></block><block type=\"nepoTest_check_does\" id=\"fx-1-2-8\"><field name=\"AFTER\">100</field><field name=\"DOES\">silent</field></block><block type=\"nepoTest_check_never_bumps\" id=\"fx-1-2-9\"><field name=\"OBSTACLE\">ANY</field></block></statement></block></statement></block></instance></block_set>"
+  }
+ ]
+}

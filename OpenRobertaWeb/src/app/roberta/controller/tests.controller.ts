@@ -31,6 +31,7 @@ import * as SIMRUN from 'nepoTest.simRun';
 import * as SIMPROGRAM from 'nepoTest.simProgram';
 import * as VERDICT from 'nepoTest.simVerdict';
 import { SimEditor, SimTest } from 'nepoTest.simEditor';
+import * as AIFORMAT from 'nepoTest.aiFormat';
 
 const SUPPORTED_GROUPS = ['edison'];
 
@@ -1140,6 +1141,44 @@ function runFinished(from: string, counts: { passed: number; failed: number; err
             console.error(e);
         }
     });
+}
+
+// ------------------------------------------------------------------------------------------------ for the AI test assistant (nepoTest.ai)
+
+/** what a generated answer is checked against: the learner's tests, the program's global variables, the names taken */
+export function aiContext(): AIFORMAT.Context {
+    return {
+        existing: workspace ? AIFORMAT.suiteToJson(workspace) : { worlds: [] },
+        variables: programInfo().variables.slice(),
+        names: workspace
+            ? workspace
+                  .getAllBlocks()
+                  .filter((b) => BLOCKS.isTestBlock(b))
+                  .map((b) => b.getFieldValue('NAME'))
+            : [],
+    };
+}
+
+/** the learner's tests as the AI reads them */
+export function aiTests(): AIFORMAT.AiTests {
+    return workspace ? AIFORMAT.suiteToJson(workspace) : { worlds: [] };
+}
+
+/** the program of the Program tab (XML) */
+export function aiProgramXml(): string {
+    return programXml();
+}
+
+/** adds generated tests to the suite (one undo step; they don't run): the ids of their blocks */
+export function addAiTests(worlds: AIFORMAT.Resolved[], prefix: string, provenance: (world: AIFORMAT.Resolved, test: AIFORMAT.AiTest) => AIFORMAT.Provenance): string[] {
+    if (!workspace) {
+        return [];
+    }
+    const ids = AIFORMAT.addToWorkspace(workspace, worlds, prefix, provenance);
+    if (ids.length && GUISTATE_C.isProgramSaved()) {
+        GUISTATE_C.setProgramSaved(false);
+    }
+    return ids;
 }
 
 export { serializeSuite, loadSuite };

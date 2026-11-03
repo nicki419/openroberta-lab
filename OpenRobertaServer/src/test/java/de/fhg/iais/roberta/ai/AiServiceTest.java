@@ -154,17 +154,8 @@ public class AiServiceTest {
     }
 
     private static JSONObject data() {
-        JSONObject world =
-            new JSONObject()
-                .put("background", "peach")
-                .put("starts", new JSONArray().put(new JSONObject().put("id", "A").put("name", "A").put("x", 30).put("y", 140).put("heading", 0)))
-                .put(
-                    "items",
-                    new JSONArray().put(new JSONObject().put("id", "g1").put("name", "Goal 1").put("kind", "rect").put("role", "goal").put("x", 225).put("y", 75).put("w", 30).put("h", 30)));
         return new JSONObject()
-            .put(
-                "level",
-                new JSONObject().put("id", "01-first-steps/04-follow").put("title", "Follow the line").put("instructions", "Follow the line.").put("world", world))
+            .put("levelId", "01-first-steps/04-follow")
             .put(
                 "program",
                 new JSONObject()
@@ -202,8 +193,8 @@ public class AiServiceTest {
         Assert.assertEquals("system", messages.getJSONObject(0).getString("role"));
         Assert.assertEquals(service.pack().getText(), messages.getJSONObject(0).getString("content"));
         String prompt = messages.getJSONObject(1).getString("content");
-        Assert.assertTrue(prompt.startsWith("## The level\n\nTitle: Follow the line\n"));
-        Assert.assertTrue(prompt.contains("Time limit: none"));
+        Assert.assertTrue(prompt.startsWith("## The program\n\nNEPO:\n```xml\n<block_set robottype=\"edison\">"));
+        Assert.assertFalse(prompt.contains("01-first-steps"));
         Assert.assertTrue(prompt.contains("<block type=\"robActions_motorDiff_on\">"));
         Assert.assertFalse(prompt.contains("Pd2"));
         Assert.assertFalse(prompt.contains("robBrick_Edison-Brick"));
@@ -222,6 +213,31 @@ public class AiServiceTest {
         Assert.assertEquals(inferAnswer().toString(), event.getString("answer"));
         Assert.assertEquals("I think.", event.getString("reasoning"));
         Assert.assertEquals(outcome.meta.getString("callId"), event.getString("callId"));
+    }
+
+    @Test
+    public void theModelGetsNothingOfTheLevel() throws Exception {
+        script(200, completion(inferAnswer(), "stop"));
+        JSONObject level =
+            new JSONObject()
+                .put("id", "01-first-steps/02-around-the-red-area")
+                .put("title", "Around the red area")
+                .put("instructions", "Drive around it to the green area.")
+                .put("timeLimit", 15)
+                .put("world", new JSONObject().put("background", "peach").put("items", new JSONArray().put(new JSONObject().put("id", "secretGoal"))));
+        AiService.Outcome outcome = service(KEY).call(AiService.INFER, 1, data().put("level", level));
+        Assert.assertTrue(outcome.message, outcome.ok);
+        String body = this.requests.get(0).getString("body");
+        for ( String secret : new String[] {
+            "01-first-steps",
+            "Around the red area",
+            "Drive around it",
+            "secretGoal",
+            "Time limit"
+        } ) {
+            Assert.assertFalse(secret, body.contains(secret));
+        }
+        Assert.assertEquals("01-first-steps/04-follow", outcome.event.getString("level")); // logged: levelId
     }
 
     @Test

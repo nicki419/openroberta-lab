@@ -9,20 +9,21 @@ import org.json.JSONObject;
 /**
  * the per-call part of a prompt (the user message after the context pack) and the checks of the answers. The browser sends data, never prompt text:
  * <pre>
- * {level: {id, title, instructions, timeLimit, world},
- *  program: {nepo: the program XML, edpy: its EdPy},      at least one of them
+ * {program: {nepo: the program XML, edpy: its EdPy},      at least one of them
  *  tests: the learner's tests as test JSON (or null),
  *  said: [the learner's earlier sentences about this program],
- *  fingerprint: the program's fingerprint (only logged),
+ *  levelId, fingerprint: the level played and the program's fingerprint (only logged),
  *  infer:    declined: the guess the learner declined (or null)
  *  generate: intent: the guess, sentence: the learner's sentence (or null),
  *            repair: {answer: the answer with problems, problems: ["...", ...]} (or null)}
  * </pre>
- * The NEPO XML loses its block ids, positions and configuration ({@link #trimNepo}), the EdPy its helpers and fixed start-up ({@link #trimEdpy}). The
- * format of the message is the one of the examples in the context pack (ai/examples), so change both together.
+ * The model gets nothing of the level the learner plays (no title, instructions, time limit or world): tests made from the level would give its
+ * solution away and test the level instead of the learner's idea. So the message has the program, the learner's tests and the learner's words
+ * only, and nothing else of the data is read here. The NEPO XML loses its block ids, positions and configuration ({@link #trimNepo}), the EdPy its
+ * helpers and fixed start-up ({@link #trimEdpy}). The format of the message is the one of the examples in the context pack (ai/examples), so
+ * change both together.
  */
 public final class AiPrompts {
-    public static final int MAX_LEVEL = 30000;
     public static final int MAX_NEPO = 60000; // longer: left out (the EdPy says the same)
     public static final int MAX_EDPY = 30000;
     public static final int MAX_TESTS = 60000;
@@ -51,18 +52,6 @@ public final class AiPrompts {
      */
     public static String userMessage(String task, JSONObject data) {
         StringBuilder m = new StringBuilder();
-        JSONObject level = data.optJSONObject("level");
-        if ( level == null || level.optJSONObject("world") == null ) {
-            throw new AiException("bad_request", "the level and its world are missing");
-        }
-        String world = limited("the level's world", level.getJSONObject("world").toString(), MAX_LEVEL);
-        m.append("## The level\n\n");
-        m.append("Title: ").append(line(level.optString("title", ""), MAX_GUESS)).append('\n');
-        m.append("Instructions: ").append(line(level.optString("instructions", ""), MAX_LEVEL)).append('\n');
-        double timeLimit = level.optDouble("timeLimit", 0);
-        m.append("Time limit: ").append(timeLimit > 0 ? number(timeLimit) + " s" : "none").append('\n');
-        m.append("World:\n```json\n").append(world).append("\n```\n\n");
-
         JSONObject program = data.optJSONObject("program");
         String nepo = program == null ? "" : trimNepo(program.optString("nepo", ""));
         String edpy = program == null ? "" : trimEdpy(program.optString("edpy", ""));
@@ -283,10 +272,6 @@ public final class AiPrompts {
     private static String line(String text, int max) {
         String s = text.replaceAll("\\s+", " ").trim();
         return s.length() > max ? s.substring(0, max) : s;
-    }
-
-    private static String number(double value) {
-        return value == Math.rint(value) ? String.valueOf((long) value) : String.valueOf(value);
     }
 
     private static StringBuilder indent(StringBuilder out, int depth) {

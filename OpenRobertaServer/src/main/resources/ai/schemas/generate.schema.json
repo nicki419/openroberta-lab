@@ -10,15 +10,26 @@
   "$defs": {
     "world": {
       "type": "object",
-      "required": ["name", "base", "tests"],
+      "required": ["name", "tests"],
       "additionalProperties": false,
       "properties": {
         "name": {"type": "string", "minLength": 1, "maxLength": 80},
-        "base": {"enum": ["level", "existing"]},
-        "add": {"type": "array", "items": {"$ref": "#/$defs/item"}},
-        "remove": {"type": "array", "items": {"type": "string"}},
-        "starts": {"type": "array", "items": {"$ref": "#/$defs/start"}},
+        "world": {"$ref": "#/$defs/floor"},
+        "base": {"const": "existing"},
         "tests": {"type": "array", "minItems": 1, "maxItems": 5, "items": {"$ref": "#/$defs/test"}}
+      },
+      "oneOf": [{"required": ["world"]}, {"required": ["base"]}]
+    },
+    "floor": {
+      "type": "object",
+      "required": ["background", "starts", "items"],
+      "additionalProperties": false,
+      "properties": {
+        "background": {"const": "peach"},
+        "size": {"type": "object", "required": ["w", "h"], "additionalProperties": false,
+                 "properties": {"w": {"type": "integer", "minimum": 50, "maximum": 600}, "h": {"type": "integer", "minimum": 50, "maximum": 600}}},
+        "starts": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/start"}},
+        "items": {"type": "array", "items": {"$ref": "#/$defs/item"}}
       }
     },
     "start": {

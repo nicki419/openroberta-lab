@@ -146,6 +146,8 @@ require.config({
         'nepoTest.simProgram': 'js/app/nepotest/nepoTest.simProgram',
         'nepoTest.simBehaviour': 'js/app/nepotest/nepoTest.simBehaviour',
         'nepoTest.simVerdict': 'js/app/nepotest/nepoTest.simVerdict',
+        'nepoTest.aiFormat': 'js/app/nepotest/nepoTest.aiFormat',
+        'nepoTest.ai': 'js/app/nepotest/nepoTest.ai',
         'tests.controller': 'js/app/roberta/controller/tests.controller',
         'level.model': 'js/app/levels/level.model',
         'levels.player': 'js/app/levels/levels.player',

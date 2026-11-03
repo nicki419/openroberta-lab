@@ -7,35 +7,35 @@ if every one of its checks holds. A run never stops at a failed check.
 
 ## The test JSON
 
-You write worlds, each with its tests:
+You write worlds, each with the things on its floor and its tests:
 
 ```json
 {"worlds": [
-  {"name": "Drive to the goal: a box on the way",
-   "base": "level",
-   "add": [{"id": "t1", "name": "Box", "kind": "rect", "role": "obstacle", "x": 120, "y": 90, "w": 10, "h": 20}],
-   "remove": [],
-   "starts": [],
+  {"name": "A box on the line",
+   "world": {"background": "peach",
+             "starts": [{"id": "A", "name": "A", "x": 30, "y": 100, "heading": 0}],
+             "items": [{"id": "l1", "kind": "line", "points": [[20, 100], [260, 100]], "width": 1.48},
+                       {"id": "t1", "name": "Box", "kind": "rect", "role": "obstacle", "x": 150, "y": 95, "w": 10, "h": 10}]},
    "tests": [
      {"name": "Stops before the box",
-      "scenario": "Given a box between the start and Goal 1, when the program runs for 15 s, then the robot stops before the box without bumping into it.",
+      "scenario": "Given a box on the line, when the program runs for 30 s, then the robot stops in front of the box without bumping into it.",
       "start": "A",
       "until": null,
-      "max_time_ms": 15000,
+      "max_time_ms": 30000,
       "world": [],
       "globals": {},
       "checks": [{"check": "never_bumps", "item": "t1"},
-                 {"check": "after", "event": "obstacle", "within_ms": 500, "does": "stands_still"}]}]}]}
+                 {"check": "whenever", "when": "obstacle_ahead", "after_ms": 200, "does": "stands_still"}]}]}]}
 ```
 
 A world:
 
-- `name`: shown in the Tests tab; unique among the worlds and tests, and different from the learner's.
-- `base`: `"level"`: a copy of the level's world (its floor, its start A, its items with their ids). The copy is
-  exact, so write only what changes: `add` (new items), `remove` (ids of level items to leave out) and `starts` (new
-  starts; start A stays). `"existing"`: the learner's world with this `name`, unchanged (`add`, `remove` and `starts`
-  must then be empty): your tests are added to it.
-- New ids: items `t1`, `t2`, …; starts `B`, `C`, … with the same letter as `name`.
+- `name`: shown in the Tests tab; unique among the worlds and tests, and different from the learner's. Say what is
+  special about it ("A box on the line", "A gap in the line").
+- `world`: the floor and what is on it, see "The simulator": `background` (always `"peach"`), `size` (optional),
+  `starts` (at least one), `items`. Draw only what the scenarios of this world need.
+- Or, instead of `world`: `"base": "existing"`, to add tests to the learner's world with this `name` (its starts and
+  items are as the learner drew them; you can't change them).
 
 A test:
 
@@ -75,29 +75,40 @@ The run also ends when the program ends.
 - `event`: `clap`, `key` (from `world`), `line_start`, `line_end` (the line tracker begins or stops seeing black),
   `obstacle` (an obstacle sensor begins to see something).
 - A check with nothing to decide (the condition never held, no event happened) is "not checked": it doesn't fail the
-  test, but it doesn't help either.
+  test, but it doesn't help either. A robot stuck at an obstacle stands still too, so check `never_bumps` as well when
+  the robot should stop before something.
+
+## Drawing a world
+
+- Keep it plain: a line, a box, a goal area, a fail area, and only where the scenario needs them. Leave 10 cm or more
+  between things and the floor's edge, unless the edge is the point of the test.
+- **A line to follow**: points on the floor, `smooth: true` for curves, `width` 1.48. Bends need room: turn by at most
+  45° over 20 cm. A goal area over the end of the line, wide enough to cover it (for example 30 × 30 cm), lets a test
+  end there (`until`).
+- **A start on the line**: on one of the line's points that has at least 15 cm of line ahead, facing along the line
+  (the line tracker is 5 cm ahead of the start). A start "beside the line": 5 to 10 cm off it, facing along it.
+- **An obstacle on the line**: a box of 10 × 10 cm centred on one of the line's points, at least 40 cm along the line
+  from the start.
+- **Starts** must be on the floor, with the whole robot (8 × 7.5 cm, from 1.8 cm behind to 6.2 cm in front of the
+  start) clear of obstacles and walls, and not touching a goal or fail area.
+- New ids: items `t1`, `t2`, …; starts `A`, `B`, … with the same letter as `name`.
 
 ## What makes a good set of tests
 
 - **One scenario per test**: one situation and the behaviour expected in it. Vary what matters to the intent: another
-  start (beside the line instead of on it, facing another way), an obstacle added on the way, a key pressed later, a
-  clap at another moment, a variable's start value.
-- **Every test must pass for a program that does what the learner said** and the level asks. Leave margins: a
-  `max_time_ms` well above the time the robot needs at the program's speeds (or the level's time limit), and
-  `after_ms` well after the moment the robot should have arrived.
+  start (beside the line instead of on it, facing another way), an obstacle on the way, a key pressed later, a clap at
+  another moment, a variable's start value.
+- **Every test must pass for a program that does what the learner said.** Leave margins: a `max_time_ms` well above
+  the time the robot needs at the program's speeds, and `after_ms` well after the moment the robot should have
+  arrived.
 - **Check the intent, not the implementation**: "reaches Goal 1", "never bumps into the box", "stands still from
-  12 s on", "within 500 ms after the obstacle appears, it stands still". Not which wheel turns at which power, unless
-  the learner said so.
-- Use `until` to end a run at the goal when the test is about getting there. Don't use it when the test checks
+  12 s on", "whenever an obstacle is ahead, it stands still". Not which wheel turns at which power, unless the learner
+  said so.
+- Use `until` to end a run at a goal when the test is about getting there. Don't use it when the test checks
   something after the robot arrived.
 - **A run ends when the program ends.** If the program ends (it has no loop that runs forever), nothing after that
   moment can be checked: check where the robot ended (`ends_in`) and what it did on the way, not `does` from a time
   after the end.
-- Starts must be on the floor, with the whole robot (8 × 7.5 cm, from 1.8 cm behind to 6.2 cm in front of the start)
-  clear of obstacles and walls, and not touching a goal or fail area. A start "on the line" puts the point 5 cm ahead
-  of it on the line, facing along the line.
-- An added obstacle must not cover the start or a goal the test expects the robot to reach. To place it on a line,
-  centre it on one of the line's points.
 - 2 to 5 tests in total, in 1 or 2 worlds. Fewer good tests are better than many weak ones.
 - **No duplicates**: don't write a test that checks the same as one the learner already has (the same world, start,
   set-up and checks).
@@ -106,6 +117,5 @@ The run also ends when the program ends.
 
 ## The learner's tests
 
-The learner's existing tests come in the same format, except that each world is given in full, as `world` (`background`,
-`size`, `starts`, `items`) instead of `base`, `add`, `remove` and `starts`. A test may have `"skip": true` (switched off)
-and `"origin": "ai"` (written by you earlier).
+The learner's existing tests come in the same format, each world with its `world`. A test may have `"skip": true`
+(switched off) and `"origin": "ai"` (written by you earlier).

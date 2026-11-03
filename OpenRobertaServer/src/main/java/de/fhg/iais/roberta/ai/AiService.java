@@ -104,8 +104,7 @@ public class AiService {
         Outcome outcome = new Outcome();
         JSONObject event = new JSONObject().put("kind", "ai_call").put("call", kind).put("callId", UUID.randomUUID().toString());
         outcome.event = event;
-        JSONObject level = data == null ? null : data.optJSONObject("level");
-        event.put("level", level == null ? JSONObject.NULL : level.opt("id"));
+        event.put("level", data == null ? JSONObject.NULL : data.opt("levelId")); // logged only: the model never gets the level
         event.put("fingerprint", data == null ? JSONObject.NULL : data.opt("fingerprint"));
         event.put("model", this.settings.getModel());
         if ( !INFER.equals(kind) && !GENERATE.equals(kind) || data == null ) {

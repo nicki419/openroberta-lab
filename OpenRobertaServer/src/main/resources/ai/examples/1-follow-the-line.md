@@ -2,16 +2,6 @@
 
 ## The call (infer)
 
-### The level
-
-Title: Follow the line
-Instructions: Follow the black line to the green goal.
-Time limit: none
-World:
-```json
-{"background":"peach","starts":[{"id":"A","name":"A","x":30,"y":140,"heading":0}],"items":[{"id":"l1","kind":"line","points":[[20,140],[100,140],[160,90],[250,90]],"smooth":true,"width":1.48},{"id":"g1","name":"Goal 1","kind":"rect","role":"goal","x":225,"y":75,"w":30,"h":30}]}
-```
-
 ### The program
 
 NEPO:
@@ -111,7 +101,7 @@ The guess the learner declined: none.
 ## The answer (infer)
 
 ```json
-{"intent":"Follow the black line to Goal 1, and stop when something is in the way.","confidence":0.75,"ask":true,"same_as_declined":false,"not_covered":"There are no tests yet."}
+{"intent":"Follow the black line, and stop when something is in the way.","confidence":0.75,"ask":true,"same_as_declined":false,"not_covered":"There are no tests yet."}
 ```
 
 ## The call (generate)
@@ -120,28 +110,33 @@ The same parts, then:
 
 ### Task: generate
 
-The intent you guessed: "Follow the black line to Goal 1, and stop when something is in the way."
+The intent you guessed: "Follow the black line, and stop when something is in the way."
 The learner's sentence: "This program should follow a black line and stop if it senses an obstacle"
 
 ## The answer (generate)
 
-The level has no obstacle, so the stop is tested in a second world with a box on the line, centred on one of the
-line's points. Start B tests that the robot finds the line. The program never ends, so a run lasts until the robot
-touches the goal (`until`) or the time is up. No check says which wheel turns: a line follower of another kind
-passes too.
+Two worlds drawn for the sentence: a curved line with a goal area over its end, to see the robot follow it (from a
+start on the line, and from one 8 cm beside it), and a straight line with a box on it, centred on one of the line's
+points, for the stop. The program never ends, so a run lasts until the robot touches the goal (`until`) or the time is
+up. A robot stuck at the box stands still too, so `never_bumps` checks that it stopped in time. No check says which
+wheel turns: a line follower of another kind passes too.
 
 ```json
 {"worlds":[
- {"name":"Follow the line","base":"level","add":[],"remove":[],
-  "starts":[{"id":"B","name":"B","x":30,"y":132,"heading":0}],
+ {"name":"A line to a goal",
+  "world":{"background":"peach","starts":[{"id":"A","name":"A","x":30,"y":140,"heading":0},{"id":"B","name":"B","x":30,"y":132,"heading":0}],
+           "items":[{"id":"t1","kind":"line","points":[[20,140],[100,140],[160,90],[250,90]],"smooth":true,"width":1.48},
+                    {"id":"t2","name":"Goal 1","kind":"rect","role":"goal","x":225,"y":75,"w":30,"h":30}]},
   "tests":[
-   {"name":"From A, it follows the line to Goal 1","scenario":"Given the robot starts on the line at A, when the program runs, then it follows the line and reaches Goal 1 without bumping into anything.","start":"A","until":"g1","max_time_ms":60000,"world":[],"globals":{},
-    "checks":[{"check":"reaches","item":"g1"},{"check":"never_bumps"}]},
-   {"name":"Started beside the line, it finds it","scenario":"Given the robot starts at B, 8 cm beside the line, when the program runs, then it finds the line and still reaches Goal 1.","start":"B","until":"g1","max_time_ms":60000,"world":[],"globals":{},
-    "checks":[{"check":"reaches","item":"g1"}]}]},
- {"name":"Follow the line: a box on the line","base":"level",
-  "add":[{"id":"t1","name":"Box","kind":"rect","role":"obstacle","x":155,"y":85,"w":10,"h":10}],"remove":[],"starts":[],
+   {"name":"On the line, it follows it to the goal","scenario":"Given the robot starts on the line at A, when the program runs, then it follows the line and reaches Goal 1 at its end without bumping into anything.","start":"A","until":"t2","max_time_ms":60000,"world":[],"globals":{},
+    "checks":[{"check":"reaches","item":"t2"},{"check":"never_bumps"}]},
+   {"name":"Started beside the line, it finds it","scenario":"Given the robot starts at B, 8 cm beside the line, when the program runs, then it finds the line and still reaches Goal 1.","start":"B","until":"t2","max_time_ms":60000,"world":[],"globals":{},
+    "checks":[{"check":"reaches","item":"t2"}]}]},
+ {"name":"A box on the line",
+  "world":{"background":"peach","starts":[{"id":"A","name":"A","x":30,"y":100,"heading":0}],
+           "items":[{"id":"t1","kind":"line","points":[[20,100],[155,100],[260,100]],"width":1.48},
+                    {"id":"t2","name":"Box","kind":"rect","role":"obstacle","x":150,"y":95,"w":10,"h":10}]},
   "tests":[
-   {"name":"Stops before the box on the line","scenario":"Given a box on the line, when the program runs for 50 s, then the robot stops in front of the box without bumping into it, and stays there.","start":"A","until":null,"max_time_ms":50000,"world":[],"globals":{},
-    "checks":[{"check":"never_bumps","item":"t1"},{"check":"whenever","when":"obstacle_ahead","after_ms":200,"does":"stands_still"}]}]}]}
+   {"name":"Stops before the box on the line","scenario":"Given a box on the line, when the program runs for 40 s, then the robot stops in front of the box without bumping into it, and stays there.","start":"A","until":null,"max_time_ms":40000,"world":[],"globals":{},
+    "checks":[{"check":"never_bumps","item":"t2"},{"check":"whenever","when":"obstacle_ahead","after_ms":200,"does":"stands_still"}]}]}]}
 ```

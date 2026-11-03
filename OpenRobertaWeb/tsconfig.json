@@ -332,6 +332,12 @@
       "nepoTest.simVerdict": [
         "app/nepotest/nepoTest.simVerdict"
       ],
+      "nepoTest.aiFormat": [
+        "app/nepotest/nepoTest.aiFormat"
+      ],
+      "nepoTest.ai": [
+        "app/nepotest/nepoTest.ai"
+      ],
       "tests.controller": [
         "app/roberta/controller/tests.controller"
       ],

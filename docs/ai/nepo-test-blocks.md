@@ -754,9 +754,9 @@ outline (for its checks of the data, and its unused copy).
   - a translated "expected vs. got" view would help learners.
 - **Error links are live:** a link in the results points to a block id of the program as it was converted. If the
   learner changes the program meanwhile, the link may point to a deleted block.
-- **Suites are edited in the Tests tab only.** There's no test block inside the Program tab, and no generated tests
-  yet. The JSON format and `describe()` (`nepo-unit-testing.md` §7) are the entry points for AI-generated tests,
-  which the Tests tab can show once they are converted back to blocks, the inverse of `blocks.py` (not implemented).
+- **Suites are edited in the Tests tab only.** There's no test block inside the Program tab. Tests written by the AI
+  test assistant come as JSON and become blocks through `nepoTest.aiFormat.ts`, the inverse of `blocks.py` for the
+  tests of simulation worlds (`nepo-ai-tests.md`); given / when / then tests have no inverse.
 - **Two runtimes.** BDD tests run the EdPy on NepoTest's virtual robot (`edisonv2-nepo-to-edpy.md` §11), with the
   robot's semantics. Simulation tests run on the Lab's simulator, with the simulator's semantics: sensors are states,
   powers aren't in 10 % steps, drives are measured in cm (`nepo-unit-testing.md` §4.11). The same program can pass one
