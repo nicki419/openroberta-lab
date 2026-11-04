@@ -1,14 +1,23 @@
 /**
- * The AI test assistant's calls to the Lab server (AiController: /rest/ai/infer, /rest/ai/generate, /rest/ai/fix; the browser never talks to
- * DeepSeek). A generated answer is checked before anyone sees it:
- * 1. made whole and checked against the learner's tests and the program (nepoTest.aiFormat checkAnswer);
- * 2. translated, as a suite of its own, by NepoTest's translator in the worker (blocks.py, as the Tests tab does): starts outside the floor or on an
- *    obstacle, and the rest of its rules;
- * 3. if something is wrong, the problems go back to the model with its answer (a repair), at most REPAIRS times; what is still wrong after that is
- *    left out;
- * 4. tests that mean the same as one of the learner's, or as another one of the answer, are left out (nepoTest.aiFormat dropDuplicates).
- * The tests the learner chooses run on the Lab's simulator before they are added (runTests, as the Tests tab runs them). For those that failed, the
- * model gets how they ran (resultText) and fixes them, or says the program is wrong (fix: checked as above).
+ * The AI test assistant's calls to the Lab server (AiController: /rest/ai/infer, /rest/ai/analyze, /rest/ai/generate, /rest/ai/fix; the browser never
+ * talks to DeepSeek). Writing tests is a chain of two calls (docs/tests: AnalysisAgent, then TestGenerationAgent), each answer checked before the next
+ * step uses it:
+ * - analyze: the program's decisions (found in its blocks: nepoTest.aiStrategy indexOf), the paths that target their outcomes, the inputs of each path,
+ *   the scenarios; checked against the program's decisions and the learner's sentence (nepoTest.aiStrategy checkAnalysis), repaired at most REPAIRS
+ *   times; an analysis still wrong after that isn't used.
+ * - generate, from the checked analysis: an answer is checked before anyone sees it:
+ *   1. made whole and checked against the learner's tests and the program (nepoTest.aiFormat checkAnswer), and against the analysis and the testing
+ *      strategy (nepoTest.aiStrategy checkTests: paths, input classes and boundaries, expected results, postconditions, oracle, a positive check, the
+ *      coverage of every outcome, class and boundary side);
+ *   2. translated, as a suite of its own, by NepoTest's translator in the worker (blocks.py, as the Tests tab does): starts outside the floor or on an
+ *      obstacle, and the rest of its rules;
+ *   3. if something is wrong, the problems go back to the model with its answer (a repair), at most REPAIRS times; tests still wrong after that are
+ *      left out;
+ *   4. tests that mean the same as one of the learner's, or as another one of the answer, are left out (nepoTest.aiFormat dropDuplicates);
+ *   5. the coverage plan is computed from the tests that are left (nepoTest.aiStrategy planOf).
+ * The tests the learner chooses run on the Lab's simulator before they are added (runTests, as the Tests tab runs them). For those that failed or
+ * weren't checked, the model gets how they ran (resultText) and fixes their inputs, or says the program is wrong, or that a test may expect more than
+ * the learner said (fix: checked as above, and a fixed test must expect exactly what it did: nepoTest.aiStrategy frozenProblems).
  * Nothing is added to the Tests tab here: the caller adds what the learner chose (tests.controller addAiTests).
  */
 import * as COMM from 'comm';
@@ -19,6 +28,7 @@ import * as SIMRUN from 'nepoTest.simRun';
 import * as PROGRAM from 'nepoTest.simProgram';
 import * as VERDICT from 'nepoTest.simVerdict';
 import * as BLOCKS from 'nepoTest.blocks';
+import * as STRATEGY from 'nepoTest.aiStrategy';
 
 export const REPAIRS = 2;
 const PATH_POINTS = 12; // where the robot was, for the model: at most this many times
@@ -41,20 +51,44 @@ export interface Call {
     message: string;
 }
 
-/** a test the model left as it is (the task fix): it thinks the program is wrong */
+/** a test the model left as it is (the task fix): it thinks the program is wrong (program_wrong), or that the test may expect too much (doubtful) */
 export interface ProgramWrong {
     test: string;
     world: string;
     reason: string; // for the learner
 }
 
+/** what the tests are written from: the program's decisions and the checked analysis */
+export interface Strategy {
+    index: STRATEGY.Index;
+    analysis: any;
+}
+
+/** the analysis of the program (the task analyze), checked */
+export interface Analyzed {
+    ok: boolean;
+    analysis: any; // the checked answer (null if !ok)
+    insufficient: boolean; // analysis_status insufficient_evidence: nothing to test yet
+    problems: FORMAT.Problem[]; // still wrong after the repairs (then ok is false)
+    repairs: number;
+    calls: any[];
+    answers: any[];
+    error: string;
+    message: string;
+}
+
 /** the tests written for an intent (or fixed), checked; what was left out, and why */
 export interface Generated {
     ok: boolean;
     worlds: FORMAT.Resolved[]; // the tests to offer (none if !ok)
-    programWrong: ProgramWrong[]; // a fix: the failed tests it left as they are
+    programWrong: ProgramWrong[]; // a fix: the tests it left as they are, the program is wrong
+    doubtful: ProgramWrong[]; // a fix: the tests it left as they are, they may expect more than the learner said
     dropped: FORMAT.Problem[]; // the problems of the tests left out after the repairs
+    unresolved: FORMAT.Problem[]; // the answer's problems still there after the repairs (coverage, count): they leave no test out
     duplicates: { world: string; test: string; same: string }[];
+    plan: STRATEGY.Plan; // generate: the coverage plan of the tests that are left (null for a fix)
+    status: string; // generate: the answer's generation_status
+    warnings: string[]; // generate: the answer's warnings and consolidation_notes
     repairs: number;
     calls: any[]; // the meta of each call (the first, then the repairs)
     answers: any[]; // the model's answers, in their order
@@ -95,20 +129,63 @@ export function infer(request: Request, declined: string): Promise<Call> {
     return call('infer', Object.assign({}, request, { declined: declined || null }));
 }
 
+/** the program's decisions, the intent and the sentence: what analyze, generate and fix get besides the request */
+function strategyData(request: Request, intent: string, sentence: string, index: STRATEGY.Index, analysis: any): any {
+    const data: any = Object.assign({}, request, { intent: intent, sentence: sentence || null, decisions: STRATEGY.decisionsForModel(index) });
+    analysis && (data.analysis = analysis);
+    return data;
+}
+
 /**
- * scenario tests for the intent (and the learner's sentence, if they wrote one), checked and repaired
+ * the analysis of the program for the intent (and the learner's sentence): checked against the program's decisions, repaired at most REPAIRS times;
+ * not ok if it is still wrong after that
+ *
+ * @param index the program's decisions (nepoTest.aiStrategy indexOf of the program the request has)
+ */
+export async function analyze(request: Request, intent: string, sentence: string, index: STRATEGY.Index): Promise<Analyzed> {
+    const out: Analyzed = { ok: false, analysis: null, insufficient: false, problems: [], repairs: 0, calls: [], answers: [], error: null, message: '' };
+    const data = strategyData(request, intent, sentence, index, null);
+    let result = await call('analyze', data);
+    for (let round = 0; ; round++) {
+        result.meta && out.calls.push(result.meta);
+        if (!result.ok) {
+            out.error = result.error;
+            out.message = result.message;
+            return out;
+        }
+        out.answers.push(result.answer);
+        out.problems = STRATEGY.checkAnalysis(result.answer, index, sentence);
+        if (!out.problems.length) {
+            out.ok = true;
+            out.analysis = result.answer;
+            out.insufficient = result.answer.analysis_status === 'insufficient_evidence';
+            return out;
+        }
+        if (round >= REPAIRS) {
+            out.error = 'invalid_analysis';
+            out.message = out.problems.length + ' problems after ' + REPAIRS + ' repairs';
+            return out;
+        }
+        out.repairs++;
+        result = await call('analyze', Object.assign({}, data, { repair: { answer: result.answer, problems: out.problems.map(problemText) } }));
+    }
+}
+
+/**
+ * scenario tests for the intent (and the learner's sentence, if they wrote one), from the checked analysis: checked and repaired
  *
  * @param ctx what the answer is checked against (tests.controller aiContext)
  * @param programXml the program (for the translator's name checks)
  */
-export function generate(request: Request, intent: string, sentence: string, ctx: FORMAT.Context, programXml: string): Promise<Generated> {
-    return written('generate', Object.assign({}, request, { intent: intent, sentence: sentence || null }), ctx, programXml, null);
+export function generate(request: Request, intent: string, sentence: string, ctx: FORMAT.Context, programXml: string, strategy: Strategy): Promise<Generated> {
+    return written('generate', strategyData(request, intent, sentence, strategy.index, strategy.analysis), ctx, programXml, null, strategy, sentence);
 }
 
 /**
- * the failed tests fixed, or left as they are because the program is wrong (programWrong); checked and repaired as generate's
+ * the failed (or unchecked) tests fixed, or left as they are because the program is wrong (programWrong) or they may expect too much (doubtful);
+ * checked and repaired as generate's, and a fixed test must expect exactly what it did
  *
- * @param failed the tests that failed, with their runs
+ * @param failed the tests that failed or weren't checked, with their runs
  * @param kept the tests of the answer that passed (and those the learner keeps anyway)
  * @param ctx what the answer is checked against: the learner's tests, and the worlds of the answer as existing worlds (the fixed tests may keep
  *        theirs: base "existing"), with the tests kept in them
@@ -122,7 +199,8 @@ export function fix(
     kept: { test: string; world: string }[],
     ctx: FORMAT.Context,
     programXml: string,
-    label: (block: string) => string
+    label: (block: string) => string,
+    strategy: Strategy
 ): Promise<Generated> {
     const worlds: FORMAT.AiWorld[] = [];
     failed.forEach((r) => {
@@ -133,23 +211,39 @@ export function fix(
         }
         w.tests.push(r.test);
     });
-    const data = Object.assign({}, request, {
-        intent: intent,
-        sentence: sentence || null,
-        fix: { tests: { worlds: worlds }, results: failed.map((r) => resultText(r, label)), kept: kept },
+    const data = Object.assign(strategyData(request, intent, sentence, strategy.index, strategy.analysis), {
+        fix: { tests: { worlds: worlds }, results: failed.map((r) => resultText(r, label, strategy.index)), kept: kept },
     });
-    return written('fix', data, ctx, programXml, failed.map((r) => r.test.name));
+    return written('fix', data, ctx, programXml, failed, strategy, sentence);
 }
 
 /**
- * a call that writes tests (generate, fix), its answer checked, repaired at most REPAIRS times, the rest left out, the duplicates out
+ * a call that writes tests (generate, fix), its answer checked, repaired at most REPAIRS times, the rest left out, the duplicates out; generate's
+ * coverage plan computed from the tests that are left
  *
- * @param fixing the names of the failed tests (fix), else null
+ * @param fixing the failed tests and their runs (fix), else null
  */
-async function written(kind: string, data: any, ctx: FORMAT.Context, programXml: string, fixing: string[]): Promise<Generated> {
-    const out: Generated = { ok: false, worlds: [], programWrong: [], dropped: [], duplicates: [], repairs: 0, calls: [], answers: [], error: null, message: '' };
+async function written(kind: string, data: any, ctx: FORMAT.Context, programXml: string, fixing: Ran[], strategy: Strategy, sentence: string): Promise<Generated> {
+    const out: Generated = {
+        ok: false,
+        worlds: [],
+        programWrong: [],
+        doubtful: [],
+        dropped: [],
+        unresolved: [],
+        duplicates: [],
+        plan: null,
+        status: null,
+        warnings: [],
+        repairs: 0,
+        calls: [],
+        answers: [],
+        error: null,
+        message: '',
+    };
     let result = await call(kind, data);
-    let checked: { worlds: FORMAT.Resolved[]; problems: FORMAT.Problem[]; programWrong: ProgramWrong[] } = null;
+    let checked: { worlds: FORMAT.Resolved[]; problems: FORMAT.Problem[]; programWrong: ProgramWrong[]; doubtful: ProgramWrong[] } = null;
+    let answer: any = null;
     for (let round = 0; ; round++) {
         result.meta && out.calls.push(result.meta);
         if (!result.ok) {
@@ -160,8 +254,9 @@ async function written(kind: string, data: any, ctx: FORMAT.Context, programXml:
             }
             break; // a repair failed: the last answer, without what is wrong in it
         }
-        out.answers.push(result.answer);
-        checked = await checkWritten(result.answer, ctx, programXml, prefixOf(result.meta, round), fixing);
+        answer = result.answer;
+        out.answers.push(answer);
+        checked = await checkWritten(answer, ctx, programXml, prefixOf(result.meta, round), fixing, strategy, sentence);
         if (!checked.problems.length || round >= REPAIRS) {
             break;
         }
@@ -169,54 +264,79 @@ async function written(kind: string, data: any, ctx: FORMAT.Context, programXml:
         result = await call(kind, Object.assign({}, data, { repair: { answer: result.answer, problems: checked.problems.map(problemText) } }));
     }
     const good = FORMAT.without(checked.worlds, checked.problems);
-    out.dropped = checked.problems;
+    out.dropped = checked.problems.filter((p) => !STRATEGY.isAnswerWide(p));
+    out.unresolved = checked.problems.filter(STRATEGY.isAnswerWide);
     out.programWrong = checked.programWrong;
+    out.doubtful = checked.doubtful;
     const unique = FORMAT.dropDuplicates(good, ctx.existing);
     out.duplicates = unique.duplicates;
     out.worlds = unique.worlds;
+    if (!fixing) {
+        out.plan = STRATEGY.planOf(out.worlds, strategy.analysis, strategy.index, answer);
+        out.status = answer && answer.generation_status;
+        out.warnings = [].concat(Array.isArray(answer.warnings) ? answer.warnings : [], Array.isArray(answer.consolidation_notes) ? answer.consolidation_notes : []).filter((w) => typeof w === 'string');
+    }
     out.ok = true;
     return out;
 }
 
-/** an answer of generate or fix checked (check); a fix's program_wrong too: it names failed tests, each once, none of them also fixed */
+/**
+ * an answer of generate or fix checked (check, and the testing strategy: nepoTest.aiStrategy checkTests); a fix's program_wrong and doubtful too:
+ * they name failed tests, each once, none of them also fixed; and a fixed test expects what it did (frozenProblems)
+ */
 async function checkWritten(
     answer: any,
     ctx: FORMAT.Context,
     programXml: string,
     prefix: string,
-    fixing: string[]
-): Promise<{ worlds: FORMAT.Resolved[]; problems: FORMAT.Problem[]; programWrong: ProgramWrong[] }> {
+    fixing: Ran[],
+    strategy: Strategy,
+    sentence: string
+): Promise<{ worlds: FORMAT.Resolved[]; problems: FORMAT.Problem[]; programWrong: ProgramWrong[]; doubtful: ProgramWrong[] }> {
     if (!fixing) {
-        return Object.assign(await check(answer, ctx, programXml, prefix), { programWrong: [] });
+        const none = answer && answer.generation_status === 'no_valid_scenarios' && Array.isArray(answer.worlds) && !answer.worlds.length;
+        const checked = none ? { worlds: [] as FORMAT.Resolved[], problems: [] as FORMAT.Problem[] } : await check(answer, ctx, programXml, prefix);
+        const problems = checked.problems.concat(STRATEGY.checkTests(answer, checked.worlds, strategy.analysis, strategy.index, sentence, false));
+        return { worlds: checked.worlds, problems: problems, programWrong: [], doubtful: [] };
     }
-    const wrong: ProgramWrong[] = [];
+    const names = fixing.map((r) => r.test.name);
+    const lists: { [key: string]: ProgramWrong[] } = { program_wrong: [], doubtful: [] };
     const problems: FORMAT.Problem[] = [];
     const fixed: string[] = [];
     (answer.worlds || []).forEach((w: any) =>
         ((w && w.tests) || []).forEach((t: any) => {
             const test = String((t && t.name) || '').trim();
             fixed.push(test);
-            fixing.indexOf(test) < 0 && problems.push({ world: String(w.name || ''), test: test, message: 'it is not one of the failed tests: fix them under their names, and add no new tests' });
+            names.indexOf(test) < 0 && problems.push({ world: String(w.name || ''), test: test, message: 'it is not one of the tests to fix: fix them under their names, and add no new tests' });
         })
     );
-    (answer.program_wrong || []).forEach((p: any) => {
-        const test = String(p.test || '').trim();
-        const add = (message: string) => problems.push({ world: String(p.world || ''), test: test, message: 'program_wrong: ' + message });
-        if (fixing.indexOf(test) < 0) {
-            add('there is no failed test "' + test + '"');
-        } else if (wrong.some((x) => x.test === test)) {
-            add('the test is named twice');
-        } else if (fixed.indexOf(test) >= 0) {
-            add('the test is fixed too: either fix it or name it in program_wrong');
-        } else {
-            wrong.push({ test: test, world: String(p.world || ''), reason: String(p.reason || '').trim() });
-        }
-    });
+    ['program_wrong', 'doubtful'].forEach((key) =>
+        (answer[key] || []).forEach((p: any) => {
+            const test = String(p.test || '').trim();
+            const add = (message: string) => problems.push({ world: String(p.world || ''), test: test, message: key + ': ' + message });
+            if (names.indexOf(test) < 0) {
+                add('there is no test to fix named "' + test + '"');
+            } else if (lists.program_wrong.concat(lists.doubtful).some((x) => x.test === test)) {
+                add('the test is named twice');
+            } else if (fixed.indexOf(test) >= 0) {
+                add('the test is fixed too: either fix it or name it in ' + key);
+            } else {
+                lists[key].push({ test: test, world: String(p.world || ''), reason: String(p.reason || '').trim() });
+            }
+        })
+    );
     if (!fixed.length) {
-        return { worlds: [], problems: problems, programWrong: wrong };
+        return { worlds: [], problems: problems, programWrong: lists.program_wrong, doubtful: lists.doubtful };
     }
     const checked = await check(answer, ctx, programXml, prefix);
-    return { worlds: checked.worlds, problems: checked.problems.concat(problems), programWrong: wrong };
+    STRATEGY.checkTests(answer, checked.worlds, strategy.analysis, strategy.index, sentence, true).forEach((p) => problems.push(p));
+    checked.worlds.forEach((w) =>
+        w.tests.forEach((t) => {
+            const from = fixing.filter((r) => r.test.name === t.name)[0];
+            from && STRATEGY.frozenProblems(t, w, from.test, from.world).forEach((m) => problems.push({ world: w.name, test: t.name, message: m }));
+        })
+    );
+    return { worlds: checked.worlds, problems: checked.problems.concat(problems), programWrong: lists.program_wrong, doubtful: lists.doubtful };
 }
 
 /** an answer's problems: those of its format, then those NepoTest's translator finds in its tests (errors only) */
@@ -330,13 +450,18 @@ export function partsText(parts: PROGRAM.Part[], label: (block: string) => strin
 }
 
 /**
- * how a test ran, for the model (the task fix): the end of the run, the start, where the robot was over time, each check with what happened, why a
- * failed one failed and the facts of the second before it, a runtime error
+ * how a test ran, for the model (the task fix): the end of the run, the start, where the robot was over time, which planned outcomes of the
+ * program's decisions it took, each check with what happened, why a failed one failed and the facts of the second before it, a runtime error; a
+ * test that passed but wasn't checked says why
+ *
+ * @param index the program's decisions (for the planned outcomes), or null
  */
-export function resultText(ran: Ran, label: (block: string) => string): string {
+export function resultText(ran: Ran, label: (block: string) => string, index?: STRATEGY.Index): string {
     const report = ran.report || {};
     const world = ran.world.data.world;
-    const lines: string[] = ['test "' + ran.test.name + '" (world "' + ran.world.name + '"): ' + (report.outcome === 'error' ? 'it could not run' : report.outcome)];
+    const unchecked = index ? STRATEGY.notCheckedWhy(report, ran.test, index) : [];
+    const outcome = report.outcome === 'error' ? 'it could not run' : unchecked.length ? 'not checked (its checks passed, but ' + unchecked.map((u) => u.text).join('; ') + ')' : report.outcome;
+    const lines: string[] = ['test "' + ran.test.name + '" (world "' + ran.world.name + '"): ' + outcome];
     const sim = report.simulation;
     const s = (ms: number) => (Math.round(ms / 100) / 10).toFixed(1).replace(/\.0$/, '') + ' s';
     const pose = (x: number, y: number, h: number) => '(' + Math.round(x) + ', ' + Math.round(y) + ') facing ' + Math.round(h) + '°';
@@ -371,6 +496,8 @@ export function resultText(ran: Ran, label: (block: string) => string): string {
         }
         sim.bumps && lines.push('It bumped into something in ' + sim.bumps + ' frames (1/60 s each).');
     }
+    const planned = index ? STRATEGY.plannedText(report, ran.test, index) : null;
+    planned && lines.push('Planned outcomes of the decisions: ' + planned + '.');
     if (report.error) {
         const where = report.error.block_id ? ' in [' + label(report.error.block_id) + ']' : '';
         lines.push((report.error.kind === 'runtime_error' ? 'The program failed' + where + ': ' : 'It could not run: ') + report.error.message);

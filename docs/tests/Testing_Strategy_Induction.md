@@ -320,6 +320,15 @@ The exception separates a **test that is wrong** (its scenario never happened) f
 1. **Planned coverage is not achieved coverage.** The specification admits that branch targets are only *intended* unless the simulator exposes a trace (ORCH §6.3).
 
    WYSIWYT, by contrast, *measures* testedness (Slides L2 p.39). Until the coverage is measured, the adequacy claim can't be checked, and a report must not call it branch coverage achieved.
+
+   **How the implementation handles it (2026-11-04):**
+   - The Lab's simulator records every decision's outcomes, so the assistant now measures which outcomes each check run took, next to the planned ones: "Seen in the runs: n of m" (`docs/ai/nepo-ai-tests.md`, "The testing strategy").
+   - A test whose planned outcome never ran counts as *not checked*, not as passed.
+   - The decision inventory comes from the code, not from the model.
+
+   The report may therefore state planned *and* observed branch coverage per answer. Two limits remain:
+   - observed coverage only counts the runs of the tests the learner chose;
+   - conditional returns of functions (`robProcedures_ifreturn`) and counting loops (`repeat n times`) aren't counted as decisions.
 2. **Structural coverage can't find faults of omission.** If the learner says "stop before a wall" but the program has no obstacle decision, no branch of the code leads to that test.
 
    Only the specification-based oracle (E1, and the conflict rule) produces it. The two halves of the strategy are therefore *complementary*, not redundant; this is an argument for keeping both.

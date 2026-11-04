@@ -847,6 +847,70 @@ body.blocklyMinimalBody * {
     color: #666;
 }
 
+/* where a test's expectation comes from (levels.aiAssistant renderReview): the learner's words, a guess from the blocks, safety */
+.aiBasis {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 0 6px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-style: normal;
+    line-height: 16px;
+    vertical-align: 1px;
+    background: #e6e6e6;
+    color: #444;
+}
+
+.aiBasis_learner_description {
+    background: #e8f3ea;
+    color: #1b6e2f;
+}
+
+.aiBasis_inferred_from_program {
+    background: #fff4e0;
+    color: #7a5300;
+}
+
+.aiAssumptions,
+.aiMissing {
+    font-size: 12px;
+    color: #555;
+}
+
+.aiAssumptions summary,
+.aiMissing summary {
+    cursor: pointer;
+}
+
+.aiAssumptions ul,
+.aiMissing ul {
+    margin: 2px 0 0;
+    padding-left: 1.1em;
+}
+
+.aiMissing li {
+    margin-bottom: 3px;
+}
+
+/* the outcomes of the program's decisions the tests plan to try, or the runs took (coverageLine) */
+.aiCoverage {
+    padding: 6px 8px;
+    border-radius: 6px;
+    background: #f2f4f7;
+    font-size: 12px;
+}
+
+.aiBody .aiCoverage p {
+    margin: 0;
+    font-size: 12px;
+}
+
+.aiBody p.aiPhase {
+    margin: 0;
+    font-size: 13px;
+    color: #444;
+}
+
 /* the tests the learner chose, run on the program: how each ran (levels.aiAssistant renderResults) */
 .aiProgressSteps i {
     animation: none;

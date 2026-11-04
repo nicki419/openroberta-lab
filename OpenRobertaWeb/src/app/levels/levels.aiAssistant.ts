@@ -1,11 +1,17 @@
 /**
  * The AI test assistant beside the Program tab's simulator (Edison, while a level of the sets is played). When the learner runs a changed program, it
- * guesses what the program is meant to do (nepoTest.ai infer) and offers to write scenario tests for it (generate); the learner can say in one
- * sentence what the program should do. The tests the learner ticks first run on the simulator, for the program as it is (nepoTest.ai runTests).
- * Those that pass are added; for those that failed, the learner sees what went wrong and chooses: the assistant tries to fix them (nepoTest.ai fix:
- * the model gets how they ran), or they are discarded. A fix may also say that a test is right and the program is wrong: the learner then adds it
- * anyway or discards it. The fixed tests run again (at most FIXES fixes). Nothing is added until every failed test is decided; then the tests
- * become blocks in the Tests tab, in one undo step (tests.controller addAiTests), where they don't run by themselves.
+ * guesses what the program is meant to do (nepoTest.ai infer) and offers to write scenario tests for it; the learner can say in one sentence what the
+ * program should do. Writing them is the testing strategy of docs/tests (nepoTest.aiStrategy): the program is analysed first (analyze: its decisions,
+ * the paths that target their outcomes, the inputs of each path, the scenarios), then the tests are written from the analysis (generate). The review
+ * list says where each test's expectation comes from (the learner's words, a guess from the blocks, safety) and which outcomes of the program's
+ * decisions the tests plan to try. The tests the learner ticks first run on the simulator, for the program as it is (nepoTest.ai runTests); the runs
+ * show which outcomes really happened. Those that pass are added; a test whose check had nothing to decide, or whose planned outcome never
+ * happened, isn't checked and counts as not passed. For those that failed or weren't checked, the learner sees what went wrong and chooses: the
+ * assistant tries to fix them (nepoTest.ai fix: the model gets how they ran, and may change only their inputs), or they are discarded. A fix may also
+ * say that a test is right and the program is wrong, or that a test may expect more than the learner said: the learner then adds it anyway or
+ * discards it. The fixed tests run again (at most FIXES fixes). Nothing is added until every failed test is decided; then the tests become blocks in
+ * the Tests tab, in one undo step (tests.controller addAiTests), where they don't run by themselves. If the program changed between writing and
+ * checking, the learner chooses: write them again, or check them anyway.
  * The model never gets the level: only the program, the learner's sentences and their tests.
  *
  * - The switch: "AI test assistant" in the Edit menu. It is kept per test subject by the server (POST /rest/ai/switch, beside the telemetry), so it
@@ -28,10 +34,15 @@
  * - ai_inferred: a guess (its call, the fingerprint, the answer, what was shown; stale: it came too late and was dropped)
  * - ai_offer_shown; ai_offer_answered: write, not_now, never_here or ignored (the offer was replaced: why), the sentence word for word (also
  *   one typed but not sent), the guess answered, the time to answer
- * - ai_tests_generated: the tests offered (JSON), the repairs, what was left out and why, the duplicates, the calls, the time, the tokens
- * - ai_tests_checked: a run of the chosen (or fixed) tests on the program: each test's outcome, its failed checks and why
+ * - ai_analyzed: the analysis (the program's decisions, the answer), its repairs and what was still wrong, the calls, the time, the tokens
+ * - ai_tests_generated: the tests offered (JSON), the coverage plan, the repairs, what was left out and why, the duplicates, the calls, the time, the
+ *   tokens
+ * - ai_tests_checked: a run of the chosen (or fixed) tests on the program: each test's outcome, its failed checks and why, why it wasn't checked, the
+ *   outcomes of the program's decisions its run took; the coverage of all of them
  * - ai_failed_answered: the learner's choice for the failed tests (fix or discard), or for those the assistant thinks right (add or discard)
- * - ai_tests_fixed: a fix: the tests fixed (JSON), those it left as they are (the program is wrong) and why, the repairs, the calls, the tokens
+ * - ai_tests_fixed: a fix: the tests fixed (JSON), those it left as they are (the program is wrong; they may expect too much) and why, the repairs,
+ *   the calls, the tokens
+ * - ai_stale: the program changed between writing and checking the tests, and what the learner chose
  * - ai_tests_added: the tests added (ticked; whether each passed, how often it was fixed), those unticked, the failed ones not added, their worlds;
  *   discarded: none added
  * - ai_ask_again: "Suggest tests again" on a level
@@ -41,6 +52,7 @@ import * as COMM from 'comm';
 import * as $ from 'jquery';
 import * as AI from 'nepoTest.ai';
 import * as FORMAT from 'nepoTest.aiFormat';
+import * as STRATEGY from 'nepoTest.aiStrategy';
 import * as PLAYER from 'levels.player';
 import * as TELEMETRY from 'levels.telemetry';
 import * as SUITE from 'nepoTest.suite';
@@ -69,6 +81,7 @@ type State =
     | 'empty'
     | 'discarded'
     | 'quiet'
+    | 'stale'
     | 'error';
 
 /** what the learner told the assistant about the program: saved with it */
@@ -83,6 +96,7 @@ export interface Notes {
 interface View {
     state: State;
     since?: number; // thinking, writing, fixing: since when (ms)
+    phase?: string; // writing: analysing | writing
     intent?: string;
     for?: string; // writing: the sentence, or the guess
     progress?: { index: number; count: number; name: string }; // checking: the test that runs
@@ -96,7 +110,9 @@ interface View {
 
 /**
  * a test the learner chose, or one the assistant fixed: where it is, how it ran, what becomes of it. passed: it is added; failed: to be decided;
- * fix: to be fixed; flagged: the assistant thinks it is right and the program wrong (reason), to be decided; kept: failed, added anyway;
+ * notChecked: its checks passed, but one had nothing to decide or a planned outcome never happened (why), to be decided as a failed one;
+ * fix: to be fixed; flagged: the assistant thinks it is right and the program wrong, or that it may expect too much (flag, reason), to be decided;
+ * kept: failed, added anyway;
  * unchecked: added without a run (the runs failed); discarded; leftOut: the fix left it out (reason: why); gaveUp: it still failed after the last
  * fix (not added)
  */
@@ -106,8 +122,11 @@ interface Candidate {
     call: string; // the call that wrote it (generate or fix)
     fixes: number; // how often it was fixed
     ran: AI.Ran; // its last run
-    state: 'passed' | 'failed' | 'fix' | 'flagged' | 'kept' | 'unchecked' | 'discarded' | 'leftOut' | 'gaveUp';
-    reason?: string; // flagged: why the assistant thinks the program is wrong; leftOut: why the fix left it out
+    state: 'passed' | 'failed' | 'notChecked' | 'fix' | 'flagged' | 'kept' | 'unchecked' | 'discarded' | 'leftOut' | 'gaveUp';
+    reason?: string; // flagged: why the assistant thinks the program is wrong (or the test expects too much); leftOut: why the fix left it out
+    flag?: string; // flagged: program_wrong | doubtful
+    why?: { text: string; block: string }[]; // notChecked: what had nothing to decide, or didn't happen
+    seen?: { [outcome: string]: number }; // how often its last run took each outcome of the program's decisions
 }
 
 /** the tests the learner chose from the review list, until they are added */
@@ -122,6 +141,9 @@ interface Batch {
     fixes: number; // the fixes made
     leftOut: number; // tests a fix left out (it couldn't fix them, or they had problems)
     unticked: { name: string; world: string }[];
+    strategy: AI.Strategy; // the program's decisions and the analysis the tests were written from
+    plan: STRATEGY.Plan; // the coverage plan of the answer
+    stale: boolean; // the program changed between writing and checking, and the learner checked them anyway
 }
 
 let on = false;
@@ -135,7 +157,9 @@ let request: AI.Request = null; // the last guess's
 let guess: any = null; // its answer {intent, confidence, ask, same_as_declined, not_covered}
 let generated: AI.Generated = null;
 let ticked: boolean[][] = [];
-let writing: { intent: string; sentence: string; before: string[] } = null; // what the tests of the review list were written for
+let writing: { intent: string; sentence: string; before: string[]; strategy: AI.Strategy } = null; // what the tests of the review list were written for, and from
+let index: STRATEGY.Index = null; // the decisions of the program of the last guess (its blocks' short ids: the model's)
+let runProgram: string = null; // the program of the last guess, as the Program tab had it (its blocks' own ids)
 let batch: Batch = null;
 let notes: Notes = newNotes();
 let guessCall: any = null; // the meta of the guess's call
@@ -164,7 +188,26 @@ const TEXT: { [key: string]: string } = {
     nothing: "Your tests already check this. I'll look again after your next change.",
     writingHead: 'Writing tests',
     writingFor: 'For: ',
-    writingNote: 'Usually 10 to 20 s. You can keep working meanwhile.',
+    writingNote: 'Usually 30 s to 2 minutes. You can keep working meanwhile.',
+    fixingNote: 'Usually 10 to 20 s. You can keep working meanwhile.',
+    analysing: 'First I look at the decisions in your program, then I write the tests.',
+    writingTests: 'Now I write the tests.',
+    insufficientHead: 'Nothing to test yet',
+    insufficient: "Your program doesn't do enough to test yet.",
+    basis_learner_description: 'Based on your description',
+    basis_inferred_from_program: 'Suggested from your blocks',
+    basis_applicable_safety: 'A safety guess',
+    assumes: 'It assumes',
+    plans: 'Plans to try {0} of {1} outcomes of the decisions in your program.',
+    plansNone: 'Your program makes no decisions: the tests try its one way through.',
+    notPlanned: 'Not tried',
+    seen: 'Seen in the runs: {0} of {1} outcomes of the decisions in your program.',
+    notSeen: 'Not seen',
+    ranNotChecked: "not checked: it passed, but that doesn't show much",
+    staleHead: 'Your program changed',
+    stale: 'You changed your program after these tests were written. They may not fit it any more.',
+    writeAgain: 'Write them again',
+    checkAnyway: 'Check them anyway',
     scenarios: '{0} scenarios',
     scenario: '1 scenario',
     untick: "Untick any you don't want. The others run on your program before they are added.",
@@ -209,16 +252,17 @@ const TEXT: { [key: string]: string } = {
     ranBroken: 'left out: its fix had problems',
     ranNotFixed: "left out: I couldn't fix it",
     flagged: 'I think this test is right, and your program is wrong:',
-    askFix: 'Should I try to fix the failed tests, or discard them?',
-    askFixOne: 'Should I try to fix the failed test, or discard it?',
+    doubtful: 'This test may expect more than you said:',
+    askFix: "Should I try to fix the tests that failed or weren't checked, or discard them?",
+    askFixOne: 'Should I try to fix the test, or discard it?',
     askFixNote: 'The tests that passed are added either way.',
     fixThem: 'Fix them',
     fixIt: 'Fix it',
     discardThem: 'Discard them',
     discardIt: 'Discard it',
     fixChosen: "I'll fix them once you've decided about the others.",
-    askFlagged: "Add them anyway? A test that fails shows what your program doesn't do yet.",
-    askFlaggedOne: "Add it anyway? A test that fails shows what your program doesn't do yet.",
+    askFlagged: "Add them anyway? A test that fails shows what your program doesn't do yet, or what you didn't ask for.",
+    askFlaggedOne: "Add it anyway? A test that fails shows what your program doesn't do yet, or what you didn't ask for.",
     addAnyway: 'Add anyway',
     goOnAdd: 'Add the others',
     goOnNone: 'OK',
@@ -238,6 +282,7 @@ const TEXT: { [key: string]: string } = {
     errorHead: 'Something went wrong',
     noAnswerInfer: "The assistant didn't answer.",
     noAnswerGenerate: "The test writer didn't answer.",
+    badAnalysis: "I couldn't make sense of your program's decisions.",
     limit: "That's a lot of suggestions for one hour. Try again later.",
     busy: 'The assistant is still busy with an earlier request. Try again in a moment.',
     notConfigured: "The AI isn't set up on this Lab server.",
@@ -459,9 +504,11 @@ async function think(level: string, run: { program: string; edpy: Promise<{ edpy
     if (mine !== token) {
         return;
     }
+    index = STRATEGY.indexOf(run.program, TESTS_C.aiBlockLabel);
+    runProgram = run.program;
     request = {
         levelId: level,
-        program: { nepo: run.program, edpy: source.edpy || '' },
+        program: { nepo: index.nepo, edpy: source.edpy || '' }, // its blocks with short ids (b1, …): the analysis and the tests name them
         tests: TESTS_C.aiTests(),
         said: notes.said.map((s) => s.text),
         fingerprint: print,
@@ -494,11 +541,30 @@ async function think(level: string, run: { program: string; edpy: Promise<{ edpy
  */
 async function write(intent: string, sentence: string, before: string[]): Promise<void> {
     const mine = ++token;
-    show({ state: 'writing', since: Date.now(), for: sentence || intent, intent: intent });
+    show({ state: 'writing', since: Date.now(), for: sentence || intent, intent: intent, phase: 'analysing' });
     const data = Object.assign({}, request, { tests: TESTS_C.aiTests(), said: before });
-    const started = Date.now();
-    const result = await AI.generate(data, intent, sentence, TESTS_C.aiContext(), request.program.nepo);
-    const stale = mine !== token || !on;
+    const decisions = index;
+    let started = Date.now();
+    const analyzed = await AI.analyze(data, intent, sentence, decisions);
+    let stale = mine !== token || !on;
+    recordAnalyzed(intent, sentence, analyzed, decisions, Date.now() - started, stale);
+    if (stale) {
+        return;
+    }
+    if (!analyzed.ok) {
+        show(errorView('analyze', analyzed, () => write(intent, sentence, before)));
+        return;
+    }
+    if (analyzed.insufficient) {
+        const why = (analyzed.analysis.uncertainties || []).filter((u: any) => typeof u === 'string')[0];
+        show({ state: 'empty', intent: intent, phase: 'insufficient', message: why || text('insufficient') });
+        return;
+    }
+    show({ state: 'writing', since: view.since, for: sentence || intent, intent: intent, phase: 'writing' });
+    const strategy: AI.Strategy = { index: decisions, analysis: analyzed.analysis };
+    started = Date.now();
+    const result = await AI.generate(data, intent, sentence, TESTS_C.aiContext(), runProgram, strategy);
+    stale = mine !== token || !on;
     recordGenerated(intent, sentence, result, Date.now() - started, stale);
     if (stale) {
         return;
@@ -508,12 +574,49 @@ async function write(intent: string, sentence: string, before: string[]): Promis
         return;
     }
     generated = result;
-    writing = { intent: intent, sentence: sentence, before: before };
+    writing = { intent: intent, sentence: sentence, before: before, strategy: strategy };
     ticked = result.worlds.map((w) => w.tests.map(() => true));
     show({ state: result.worlds.some((w) => w.tests.length) ? 'review' : 'empty', intent: intent });
 }
 
-/** ai_tests_generated: the tests offered, the repairs, what was left out, the calls */
+/** ai_analyzed: the program's decisions, the analysis, its repairs and what was still wrong, the calls */
+function recordAnalyzed(intent: string, sentence: string, result: AI.Analyzed, decisions: STRATEGY.Index, ms: number, stale: boolean): void {
+    record('ai_analyzed', {
+        intent: intent,
+        sentence: sentence || null,
+        guessCall: guessCall ? guessCall.callId : null,
+        ok: result.ok,
+        error: result.error,
+        message: result.message || null,
+        stale: stale,
+        decisions: STRATEGY.decisionsForLog(decisions),
+        status: result.analysis ? result.analysis.analysis_status : null,
+        analysis: result.analysis || result.answers[result.answers.length - 1] || null,
+        problems: result.problems.map(AI.problemText),
+        repairs: result.repairs,
+        calls: result.calls.map(callOf),
+        latencyMs: ms,
+        tokens: tokensOf(result.calls),
+    });
+}
+
+/** the coverage plan for the telemetry: per outcome, the tests that plan it, why not, how often the runs took it */
+function planOfLog(plan: STRATEGY.Plan): any {
+    return plan
+        ? {
+              outcomes: plan.outcomes.map((o) => ({ id: o.id, block: o.block, planned: o.planned, deferred: o.deferred, seen: o.seen })),
+              target: plan.target,
+              planned: plan.planned,
+              deferred: plan.deferred,
+              lost: plan.lost,
+              deferredInputs: plan.deferredInputs,
+              deferredScenarios: plan.deferredScenarios,
+              corrected: plan.corrected,
+          }
+        : null;
+}
+
+/** ai_tests_generated: the tests offered, the coverage plan, the repairs, what was left out, the calls */
 function recordGenerated(intent: string, sentence: string, result: AI.Generated, ms: number, stale: boolean): void {
     record('ai_tests_generated', {
         intent: intent,
@@ -525,6 +628,10 @@ function recordGenerated(intent: string, sentence: string, result: AI.Generated,
         stale: stale,
         count: result.worlds.reduce((n, w) => n + w.tests.length, 0),
         tests: { worlds: result.worlds.map((w) => (w.existing ? { name: w.name, base: 'existing', tests: w.tests } : { name: w.name, world: w.data.world, tests: w.tests })) },
+        status: result.status,
+        plan: planOfLog(result.plan),
+        warnings: result.warnings,
+        unresolved: result.unresolved.map(AI.problemText),
         repairs: result.repairs,
         leftOut: result.dropped.map(AI.problemText),
         duplicates: result.duplicates,
@@ -564,6 +671,8 @@ function errorView(kind: string, result: { error: string; message: string }, ret
     const message =
         kind === 'check'
             ? text('runFailed', result.message)
+            : e === 'invalid_analysis'
+            ? text('badAnalysis')
             : e === 'timeout' || e === 'network' || e === 'unreachable' || e.indexOf('http_') === 0
             ? text(kind === 'infer' ? 'noAnswerInfer' : 'noAnswerGenerate')
             : e === 'limit'
@@ -625,8 +734,12 @@ function askHereAgain(): void {
     show({ state: 'idle' });
 }
 
-/** "Add n tests": the ticked ones run on the program first (checking) */
+/** "Add n tests": the ticked ones run on the program first (checking); if the program changed since they were written, the learner chooses first */
 function chooseTests(): void {
+    if (fingerprint(TESTS_C.aiProgramXml()) !== request.fingerprint && view.state !== 'stale') {
+        show({ state: 'stale' });
+        return;
+    }
     const meta = generated.calls[generated.calls.length - 1] || {};
     const chosen: Candidate[] = [];
     generated.worlds.forEach((w, i) =>
@@ -643,8 +756,29 @@ function chooseTests(): void {
         fixes: 0,
         leftOut: 0,
         unticked: unticked(),
+        strategy: writing.strategy,
+        plan: generated.plan,
+        stale: view.state === 'stale',
     };
     check(chosen);
+}
+
+/** the program changed between writing and checking: write the tests again (for the program as it is now), or check them anyway */
+function answerStale(answer: 'write_again' | 'check_anyway'): void {
+    record('ai_stale', { call: (generated.calls[generated.calls.length - 1] || {}).callId || null, answer: answer });
+    if (answer === 'check_anyway') {
+        chooseTests();
+        return;
+    }
+    const run = TELEMETRY.attemptSource(levelNow() || (request && request.levelId), 0);
+    const print = fingerprint(run.program);
+    run.edpy.then((source) => {
+        index = STRATEGY.indexOf(run.program, TESTS_C.aiBlockLabel);
+        runProgram = run.program;
+        request = Object.assign({}, request, { program: { nepo: index.nepo, edpy: source.edpy || '' }, fingerprint: print });
+        lastFingerprint = print;
+        write(writing.intent, writing.sentence, writing.before);
+    });
 }
 
 /** the tests in their worlds, as an answer has them (a world: the tests of the list that are in it) */
@@ -698,11 +832,15 @@ async function check(list: Candidate[]): Promise<void> {
     if (mine !== token) {
         return;
     }
+    const decisions = batch.strategy.index;
     runs.forEach((r) => {
         const c = list.filter((x) => x.test === r.test)[0];
         c.ran = r;
-        c.state = AI.passed(r) ? 'passed' : 'failed';
+        c.seen = STRATEGY.seenIn(r.report, decisions);
+        c.why = STRATEGY.notCheckedWhy(r.report, r.test, decisions);
+        c.state = !AI.passed(r) ? 'failed' : c.why.length ? 'notChecked' : 'passed';
     });
+    batch.plan = batch.plan && STRATEGY.withSeen(batch.plan, batch.candidates.filter((c) => c.seen).map((c) => c.seen));
     record('ai_tests_checked', {
         call: batch.call,
         fix: batch.fixes,
@@ -710,14 +848,20 @@ async function check(list: Candidate[]): Promise<void> {
         latencyMs: Date.now() - started,
         passed: list.filter((c) => c.state === 'passed').length,
         failed: list.filter((c) => c.state === 'failed').length,
+        notChecked: list.filter((c) => c.state === 'notChecked').length,
         tests: list.map((c) => ({
             name: c.test.name,
             world: c.world.name,
             outcome: c.ran.report.outcome,
+            state: c.state,
             fixes: c.fixes,
             failed: AI.failuresOf(c.ran).map((f) => f.text),
             why: AI.failuresOf(c.ran).map((f) => (f.why ? f.why.kind : null)),
+            notChecked: c.why.map((w) => w.text),
+            planned: c.test.planned_branch_ids || [],
+            seen: c.seen,
         })),
+        plan: planOfLog(batch.plan),
     });
     decide();
 }
@@ -727,9 +871,9 @@ async function check(list: Candidate[]): Promise<void> {
  * the tests are added
  */
 function decide(): void {
-    const gaveUp = batch.fixes >= FIXES ? batch.candidates.filter((c) => c.state === 'failed') : [];
+    const gaveUp = batch.fixes >= FIXES ? batch.candidates.filter((c) => c.state === 'failed' || c.state === 'notChecked') : [];
     gaveUp.forEach((c) => (c.state = 'gaveUp'));
-    if (gaveUp.length || batch.candidates.some((c) => c.state === 'failed' || c.state === 'flagged')) {
+    if (gaveUp.length || batch.candidates.some((c) => c.state === 'failed' || c.state === 'notChecked' || c.state === 'flagged')) {
         show({ state: 'results' });
         return;
     }
@@ -739,7 +883,7 @@ function decide(): void {
 
 /** the learner's choice for the failed tests (fix, discard) or for those the assistant thinks right (add, discard) */
 function answerFailed(group: 'failed' | 'flagged', answer: string): void {
-    const tests = batch.candidates.filter((c) => c.state === group);
+    const tests = batch.candidates.filter((c) => c.state === group || (group === 'failed' && c.state === 'notChecked'));
     tests.forEach((c) => (c.state = answer === 'fix' ? 'fix' : answer === 'add' ? 'kept' : 'discarded'));
     record('ai_failed_answered', { call: batch.call, group: group, answer: answer, fix: batch.fixes, tests: tests.map((c) => ({ name: c.test.name, world: c.world.name })) });
     decide();
@@ -775,6 +919,7 @@ function worldOfFix(w: FORMAT.Resolved): FORMAT.Resolved {
 async function fix(toFix: Candidate[]): Promise<void> {
     const mine = ++token;
     show({ state: 'fixing', since: Date.now(), count: toFix.length });
+    const strategy = batch.strategy;
     const kept = batch.candidates.filter((c) => c.state === 'passed' || c.state === 'kept' || c.state === 'unchecked');
     const data = Object.assign({}, request, { tests: TESTS_C.aiTests(), said: batch.before });
     const started = Date.now();
@@ -786,7 +931,8 @@ async function fix(toFix: Candidate[]): Promise<void> {
         kept.map((c) => ({ test: c.test.name, world: c.world.name })),
         fixContext(kept),
         TESTS_C.aiProgramXml(),
-        TESTS_C.aiBlockLabel
+        TESTS_C.aiBlockLabel,
+        strategy
     );
     const stale = mine !== token || !on;
     recordFixed(result, Date.now() - started, stale, toFix);
@@ -818,9 +964,11 @@ async function fix(toFix: Candidate[]): Promise<void> {
     );
     toFix.forEach((c) => {
         const wrong = result.programWrong.filter((p) => p.test === c.test.name)[0];
-        if (wrong) {
+        const doubtful = result.doubtful.filter((p) => p.test === c.test.name)[0];
+        if (wrong || doubtful) {
             c.state = 'flagged';
-            c.reason = wrong.reason;
+            c.flag = wrong ? 'program_wrong' : 'doubtful';
+            c.reason = (wrong || doubtful).reason;
         } else if (!fixed.some((f) => f.test.name === c.test.name)) {
             const same = result.duplicates.filter((d) => d.test === c.test.name)[0]; // fixed, it checks the same as another test
             const broken = result.dropped.some((p) => p.test === c.test.name);
@@ -837,7 +985,7 @@ function recordFixed(result: AI.Generated, ms: number, stale: boolean, toFix: Ca
     record('ai_tests_fixed', {
         call: batch.call,
         fix: batch.fixes + 1,
-        failed: toFix.map((c) => ({ name: c.test.name, world: c.world.name })),
+        failed: toFix.map((c) => ({ name: c.test.name, world: c.world.name, state: c.ran && c.why && c.why.length ? 'not_checked' : 'failed' })),
         ok: result.ok,
         error: result.error,
         message: result.message || null,
@@ -845,6 +993,7 @@ function recordFixed(result: AI.Generated, ms: number, stale: boolean, toFix: Ca
         count: result.worlds.reduce((n, w) => n + w.tests.length, 0),
         tests: { worlds: result.worlds.map((w) => (w.existing ? { name: w.name, base: 'existing', tests: w.tests } : { name: w.name, world: w.data.world, tests: w.tests })) },
         programWrong: result.programWrong,
+        doubtful: result.doubtful,
         repairs: result.repairs,
         leftOut: result.dropped.map(AI.problemText),
         duplicates: result.duplicates,
@@ -869,7 +1018,19 @@ function finish(): void {
     const passedOf = (c: Candidate) => (c.state === 'unchecked' ? null : c.state === 'passed');
     const ids = TESTS_C.addAiTests(worlds, batch.prefix, (w, test) => {
         const c = keep.filter((x) => x.test === test)[0];
-        return { call: c.call, scenario: test.scenario || '', generated: test, added: added, checked: { passed: passedOf(c), fixes: c.fixes } };
+        const decisions = batch.strategy.index;
+        const planned = (test.planned_branch_ids || []).filter((b) => decisions.outcome[b]).map((b) => ({ outcome: b, block: decisions.outcome[b].decision.block, words: decisions.outcome[b].outcome.outcome }));
+        const notChecked = c.why && c.why.length ? c.why.map((w) => w.text) : undefined;
+        return {
+            call: c.call,
+            scenario: test.scenario || '',
+            generated: test,
+            added: added,
+            checked: { passed: passedOf(c), fixes: c.fixes, notChecked: notChecked },
+            coverage: { planned: planned, seen: c.seen || {} },
+            basis: test.oracle ? test.oracle.basis : undefined,
+            stale: batch.stale || undefined,
+        };
     });
     notes.added = notes.added.concat(ids);
     notesChanged();
@@ -879,13 +1040,15 @@ function finish(): void {
         discarded: false,
         added: names.map((x) => {
             const c = keep.filter((k) => k.test.name === x.name)[0];
-            return { id: x.id, name: x.name, passed: c ? passedOf(c) : null, fixes: c ? c.fixes : 0 };
+            return { id: x.id, name: x.name, passed: c ? passedOf(c) : null, fixes: c ? c.fixes : 0, basis: c && c.test.oracle ? c.test.oracle.basis : null };
         }),
         unticked: batch.unticked,
         failed: notAdded.map(failedOf),
         leftOut: batch.leftOut,
         fixes: batch.fixes,
         worlds: worlds.map((w) => ({ name: w.name, existing: w.existing, tests: w.tests.map((x) => x.name) })),
+        stale: batch.stale,
+        plan: planOfLog(batch.plan),
     });
     const counts = {
         tests: ids.length,
@@ -900,7 +1063,14 @@ function finish(): void {
 
 /** a failed test that wasn't added: discarded by the learner, left out by a fix, or still failing after the last fix */
 function failedOf(c: Candidate): any {
-    return { name: c.test.name, world: c.world.name, fixes: c.fixes, how: c.state === 'gaveUp' ? 'gave_up' : c.state === 'leftOut' ? 'left_out' : 'discarded', reason: c.reason || null };
+    return {
+        name: c.test.name,
+        world: c.world.name,
+        fixes: c.fixes,
+        how: c.state === 'gaveUp' ? 'gave_up' : c.state === 'leftOut' ? 'left_out' : 'discarded',
+        reason: c.reason || null,
+        notChecked: c.why && c.why.length ? c.why.map((w) => w.text) : null,
+    };
 }
 
 /** the tests of the review list the learner unticked: their names and worlds */
@@ -1075,6 +1245,7 @@ function render(): void {
             head('writingHead');
             const p = html('p', '', body, text('writingFor'));
             html('strong', '', p, '“' + view.for + '”');
+            html('p', 'aiPhase', body, view.phase === 'writing' ? text('writingTests') : text('analysing'));
             progress();
             note(text('writingNote'));
             break;
@@ -1097,7 +1268,7 @@ function render(): void {
             head('fixingHead');
             html('p', '', body, view.count === 1 ? text('fixingOne') : text('fixing', view.count));
             progress();
-            note(text('writingNote'));
+            note(text('fixingNote'));
             break;
         case 'done': {
             head('doneHead');
@@ -1117,10 +1288,18 @@ function render(): void {
             break;
         }
         case 'empty':
-            head('emptyHead');
-            html('p', '', body, text('empty'));
+            head(view.phase === 'insufficient' ? 'insufficientHead' : 'emptyHead');
+            html('p', '', body, view.phase === 'insufficient' ? view.message : text('empty'));
             note(text('again'));
             break;
+        case 'stale': {
+            head('staleHead');
+            html('p', '', body, text('stale'));
+            const row = buttons();
+            button(row, text('writeAgain'), 'btn-primary aiWriteAgain', () => answerStale('write_again'));
+            button(row, text('checkAnyway'), 'btn-default aiCheckAnyway', () => answerStale('check_anyway'));
+            break;
+        }
         case 'discarded':
             head('discardedHead');
             view.message && html('p', '', body, view.message);
@@ -1162,14 +1341,16 @@ function renderResults(body: Element, head: (key: string) => any, note: (s: stri
     shown.forEach((c) => {
         const state = c.state;
         const li = html('li', 'aiRun aiRun_' + state, list);
-        html('span', 'aiRunIcon', li, state === 'passed' ? '✓' : state === 'discarded' || state === 'leftOut' ? '–' : '✗').setAttribute('aria-hidden', 'true');
+        const unchecked = state === 'notChecked' || (state === 'flagged' && c.ran && c.ran.report.outcome === 'passed');
+        html('span', 'aiRunIcon', li, state === 'passed' ? '✓' : state === 'discarded' || state === 'leftOut' ? '–' : unchecked ? '?' : '✗').setAttribute('aria-hidden', 'true');
         const main = html('div', 'aiRunMain', li);
         html('span', 'aiRunName', main, c.test.name);
         const label: { [s: string]: string } = {
             passed: c.fixes ? text('ranPassedFixed') : text('ranPassed'),
             failed: text('ranFailed'),
             fix: text('ranFix'),
-            flagged: text('ranFailed'),
+            flagged: c.ran && c.ran.report.outcome === 'passed' ? text('ranNotChecked') : text('ranFailed'),
+            notChecked: text('ranNotChecked'),
             kept: text('ranKept'),
             discarded: text('ranDiscarded'),
             leftOut: c.reason,
@@ -1182,14 +1363,20 @@ function renderResults(body: Element, head: (key: string) => any, note: (s: stri
                 const item = html('li', '', details, f.text);
                 f.why && item.appendChild(VERDICT.explanationElement(f.why, 'nepoWhy', chip));
             });
+            (c.why || []).forEach((w) => {
+                const item = html('li', 'aiNotChecked', details);
+                w.block && item.appendChild(chip(w.block));
+                item.appendChild(document.createTextNode((w.block ? ' ' : '') + w.text));
+            });
         }
         if (state === 'flagged' && c.reason) {
             const box = html('div', 'aiReason', main);
-            html('b', '', box, text('flagged') + ' ');
+            html('b', '', box, text(c.flag === 'doubtful' ? 'doubtful' : 'flagged') + ' ');
             box.appendChild(document.createTextNode(c.reason));
         }
     });
-    const failed = batch.candidates.filter((c) => c.state === 'failed');
+    batch.plan && coverageLine(body, batch.plan, true);
+    const failed = batch.candidates.filter((c) => c.state === 'failed' || c.state === 'notChecked');
     const flagged = batch.candidates.filter((c) => c.state === 'flagged');
     if (failed.length) {
         const one = failed.length === 1;
@@ -1238,14 +1425,50 @@ function renderReview(body: Element, head: (key: string) => any, note: (s: strin
                 add.disabled = n === 0;
             });
             const span = html('span', '', label, t.name);
+            t.oracle && TEXT['basis_' + t.oracle.basis] && html('em', 'aiBasis aiBasis_' + t.oracle.basis, span, text('basis_' + t.oracle.basis));
             t.scenario && html('small', '', span, t.scenario);
+            const assumptions = (t.oracle && Array.isArray(t.oracle.assumptions) ? t.oracle.assumptions : []).filter((a: any) => typeof a === 'string' && a.trim());
+            if (assumptions.length) {
+                const details = html('details', 'aiAssumptions', span);
+                html('summary', '', details, text('assumes'));
+                const ul = html('ul', '', details);
+                assumptions.forEach((a: string) => html('li', '', ul, a));
+            }
         });
     });
+    generated.plan && coverageLine(body, generated.plan, false);
     const left = generated.dropped.length + generated.duplicates.length;
     left && note(text('leftOut', left));
     const row = buttons();
     const add = button(row, total === 1 ? text('addOne') : text('add', total), 'btn-primary aiAdd', chooseTests);
     button(row, text('discard'), 'btn-default aiDiscard', discard);
+}
+
+/**
+ * one line of coverage: the outcomes of the program's decisions the tests plan to try (review), or that the runs took (results), and those they
+ * don't, as chips with their words (and why not: deferred, unsupported, left out)
+ */
+function coverageLine(body: Element, plan: STRATEGY.Plan, seen: boolean): void {
+    const total = plan.outcomes.length;
+    const box = html('div', 'aiCoverage', body);
+    if (!total) {
+        html('p', '', box, text('plansNone'));
+        return;
+    }
+    const hit = plan.outcomes.filter((o) => (seen ? o.seen > 0 : o.planned.length > 0));
+    html('p', '', box, seen ? text('seen', hit.length, total) : text('plans', plan.outcomes.filter((o) => o.planned.length).length, total));
+    const missing = plan.outcomes.filter((o) => hit.indexOf(o) < 0);
+    if (!missing.length) {
+        return;
+    }
+    const details = html('details', 'aiMissing', box);
+    html('summary', '', details, (seen ? text('notSeen') : text('notPlanned')) + ' (' + missing.length + ')');
+    const ul = html('ul', '', details);
+    missing.forEach((o) => {
+        const li = html('li', '', ul);
+        li.appendChild(chip(o.block));
+        li.appendChild(document.createTextNode(' ' + o.words + (!seen && o.deferred ? ': ' + o.deferred : seen && o.planned.length ? ': planned, but it didn\'t happen' : '')));
+    });
 }
 
 /** "in a new world: “A”", "in 2 new worlds: “A” and “B”", "in your world “C”", "in the worlds “A” and “C”" */

@@ -4,7 +4,9 @@
 
 Each call gives the learner's program twice:
 
-- **NEPO**: the Blockly XML of the program, without block ids and positions. The first `<instance>` starts with
+- **NEPO**: the Blockly XML of the program, without positions; every block has a short id (`id="b7"`), by which
+  the analysis and the tests name it (`source_block_ids`) and by which "The program's decisions" say where each
+  decision is. The first `<instance>` starts with
   `robControls_start` (the start block: its statements run first, top to bottom; with `<mutation declare="true">` it
   declares global variables, `robGlobalVariables_declare`). More `<instance>`s are functions
   (`robProcedures_defnoreturn`, `robProcedures_defreturn`). Blocks that follow each other run one after the other;

@@ -2,16 +2,34 @@
 
 When a learner runs a changed program on a level, the assistant guesses what the program is meant to do and offers
 to write **scenario-based simulation tests** for it. The learner can say in one sentence what the program should do.
-The tests the learner keeps run on the simulator first; the model fixes those that fail, or says the program is wrong.
-Then they become ordinary blocks in the Tests tab. This document covers what is built so far: the calls through the
-Lab server (phase 1), the test JSON both ways (phase 2), the assistant beside the simulator with its switch
-(phase 3), its events in the study's telemetry (phase 4), and the check and fix of the chosen tests (2026-11-03).
+The tests are chosen by the testing strategy of `docs/tests/*_v3.md` (see "The testing strategy" below):
+1. the program is analysed first: its decisions and their outcomes, the paths that target them (branch coverage), the
+   inputs of each path (equivalence classes and boundaries);
+2. the tests are written from that analysis, each a complete case: path, inputs, expected results, postconditions,
+   and where its expectation comes from.
+
+The tests the learner keeps run on the simulator first, which shows which outcomes really happened. For those that
+fail or aren't checked, the model fixes their inputs, or says the program is wrong. Then they become ordinary blocks
+in the Tests tab.
+
+This document covers:
+- the calls through the Lab server (phase 1);
+- the test JSON both ways (phase 2);
+- the assistant beside the simulator, with its switch (phase 3);
+- its events in the study's telemetry (phase 4);
+- the check and fix of the chosen tests (2026-11-03);
+- the testing strategy (2026-11-04).
 
 ## What the model gets, and what it doesn't
 
-- **It gets** the learner's program (its NEPO XML and its EdPy), the learner's tests (as test JSON), the learner's
-  earlier sentences about the program, and the task (infer, generate or fix, with the guess and the learner's sentence;
-  a fix also gets its own failed tests and how they ran on the simulator, in the tests' own worlds).
+- **It gets:**
+  - the learner's program: its NEPO XML, its blocks with short ids `b1`, `b2`, … in document order, and its EdPy;
+  - for analyze, generate and fix: the program's decisions, which the browser finds in the blocks;
+  - the learner's tests, as test JSON;
+  - the learner's earlier sentences about the program;
+  - the task (infer, analyze, generate or fix), with the guess and the learner's sentence. Generate and fix also get
+    the checked analysis; a fix also gets the tests that failed or weren't checked, and how they ran on the simulator,
+    in the tests' own worlds.
 - **It never gets the level** the learner plays: no title, instructions, time limit or world (lines, areas, obstacles,
   starts). Tests made from the level would give its solution away and test the level instead of the learner's idea.
   The model draws the world of each test itself, or adds tests to one of the learner's worlds. The level's id goes
@@ -23,10 +41,10 @@ Lab server (phase 1), the test JSON both ways (phase 2), the assistant beside th
 
 | What | Where |
 |---|---|
-| REST: `POST /rest/ai/infer`, `POST /rest/ai/generate`, `POST /rest/ai/fix` (the usual request envelope; the response has `answer`, `meta`, or `aiError` and `aiMessage`) | `javaServer/restServices/all/controller/AiController`, `AiResponse` |
-| the calls: limits per session (one of each kind at a time; 60 infers, 30 generates, 30 fixes per hour), the context pack first, the answer checked for its shape, the `ai_call` event; a fix as generate (its effort, 90 s, repairs) | `ai/AiService` |
-| the per-call message (`## The program`, `## The learner's tests`, `## What the learner said before`, `## Task: …`), the trimming of NEPO XML and EdPy, the answer checks (`checkFix`: `worlds` and `program_wrong`, not both empty) | `ai/AiPrompts` |
-| DeepSeek's chat API: JSON mode, reasoning effort, timeouts (infer 20 s, generate 90 s), one more try after 429, 5xx or no connection | `ai/DeepSeekClient` |
+| REST: `POST /rest/ai/infer`, `POST /rest/ai/analyze`, `POST /rest/ai/generate`, `POST /rest/ai/fix` (the usual request envelope; the response has `answer`, `meta`, or `aiError` and `aiMessage`) | `javaServer/restServices/all/controller/AiController`, `AiResponse` |
+| the calls: limits per session (one of each kind at a time; 60 infers, 30 analyses, 30 generates, 30 fixes per hour), the context pack first, the answer checked for its shape, the `ai_call` event; analyze and fix as generate (its effort, 180 s, at most 32,000 tokens with the reasoning, repairs); every call's meta has `contract` (`AiService.CONTRACT`, 1.1) | `ai/AiService` |
+| the per-call message (`## The program`, `## The program's decisions` (not for infer), `## The learner's tests`, `## What the learner said before`, `## The analysis` (generate, fix), `## Task: …`), the trimming of NEPO XML (positions, configuration and the start block's `<data>` go; the block ids stay) and EdPy, the answer checks (`checkAnalyze`: status, intent, arrays; `checkGenerate`: no worlds only with `generation_status` `no_valid_scenarios`; `checkFix`: `worlds`, `program_wrong` and `doubtful`, not all empty) | `ai/AiPrompts` |
+| DeepSeek's chat API: JSON mode, reasoning effort, timeouts (infer 20 s; analyze, generate and fix 180 s), one more try after 429, 5xx or no connection | `ai/DeepSeekClient` |
 | the context pack: the system prompt, its `promptVersion` (hash) | `ai/ContextPack`, `src/main/resources/ai/` (`pack.txt` lists the files) |
 | `.env`: `DEEPSEEK_URL`, `DEEPSEEK_MODEL` (`deepseek-flash`), `AI_TESTS_DEFAULT`, `AI_PACK_DIR` (read at every call: change the prompt without a rebuild), `AI_EFFORT_INFER`, `AI_EFFORT_GENERATE` (default low) | `main/EnvFile`, `ai/AiSettings`, `openRoberta.properties` |
 | the API key `DEEPSEEK_API_KEY`: read on its own (`EnvFile.secret`), never a server property (those are logged), never logged, never sent to the browser | `ai/AiSettings`; `AiServiceTest theKeyIsNeverLoggedAndNeverLeavesTheServer` |
@@ -63,20 +81,39 @@ program as it is in the Program tab, each in its own world (`nepoTest.ai` `runTe
 `nepoTest.simRun`, as the Tests tab runs them, offscreen). The panel says which test runs. Then:
 
 - **All pass:** they are added ("They passed on your program").
-- **Some fail:** the results list each test (passed; failed, with its failed checks and why, as in the Tests tab, the
-  program's blocks as chips that select them) and asks: *Should I try to fix the failed tests, or discard them?*
-  ("The tests that passed are added either way").
-  - **Fix:** the model gets the failed tests as it wrote them, how each ran, and the names of the tests that passed
-    (the task fix, `/rest/ai/fix`). For each failed test it decides whether **the test is wrong** (its world, start,
-    set-up or timing don't make its scenario happen, or it checks more than the intent) and fixes it, keeping its name
-    and scenario; or whether **the program is wrong** (the test makes its scenario happen, and the program doesn't do
-    what the learner said): then it leaves the test as it is and says why, for the learner (`program_wrong`), because
-    a test changed until a wrong program passes it would hide the mistake. The answer is checked and repaired as a
-    generate answer; also: `program_wrong` names failed tests, each once, none also fixed; a fixed test is one of the
-    failed tests. The fixed tests run again.
+- **Not checked:** a test whose checks all passed is still **not checked** when one check had nothing to decide
+  (`passed: null`), or when an outcome its run should take (`planned_branch_ids`) never happened
+  (`nepoTest.aiStrategy` `notCheckedWhy`, from the run's `trace`). Its scenario didn't happen, so it counts as not
+  passed. It is shown with "?", "not checked: it passed, but that doesn't show much", and what didn't happen, with the
+  decision's block as a chip. It is decided as a failed test.
+- **Some fail or aren't checked:** the results list each test (passed; failed, with its failed checks and why, as in
+  the Tests tab, the program's blocks as chips that select them; not checked, with why) and ask: *Should I try to fix
+  the tests that failed or weren't checked, or discard them?* ("The tests that passed are added either way").
+  - **Fix:** the model gets the tests as it wrote them, how each ran (and which planned outcomes it took), and the
+    names of the tests that passed (the task fix, `/rest/ai/fix`). For each test it decides one of three things:
+    - **The test is wrong:** its world, start, set-up or timing don't make its scenario happen. It fixes **only the
+      test's inputs**: the world, start, `until`, `max_time_ms`, the set-up and the realizations of its classes and
+      boundaries.
+    - **The program is wrong:** the test makes its scenario happen, and the program doesn't do what the learner said.
+      It leaves the test as it is and says why, for the learner (`program_wrong`), because a test changed until a
+      wrong program passes it would hide the mistake.
+    - **The test may expect more than the learner said:** it leaves the test as it is and says why (`doubtful`), and
+      the learner decides.
+
+    A fixed test must expect exactly what it did: its checks (with their times, the things they name compared by
+    their role), expectations, postconditions, oracle, planned outcomes and classes are compared with the test it
+    fixes (`nepoTest.aiStrategy` `frozenProblems`). A fix that changes them is sent back for a repair, so a fix never
+    makes a test weaker.
+
+    The answer is checked and repaired as a generate answer. Also: `program_wrong` and `doubtful` name the tests to
+    fix, each once, none also fixed; a fixed test is one of the tests to fix. The fixed tests run again.
   - **Discard:** they aren't added.
-- **The program is wrong** (a test the model left as it is): the results show its reason and ask *Add it anyway? A
-  test that fails shows what your program doesn't do yet.* "Add anyway" or "Discard".
+- **The program is wrong** or **it may expect too much** (a test the model left as it is): the results show the reason
+  ("I think this test is right, and your program is wrong:" or "This test may expect more than you said:") and ask
+  *Add it anyway?* "Add anyway" or "Discard".
+- **The program changed** between writing the tests and choosing them (its fingerprint differs): "Your program
+  changed", with "Write them again" (analyse and write anew, for the program as it is) or "Check them anyway" (their
+  provenance then says `stale`).
 - **At most 2 fixes** (`FIXES`): a test that still fails after the second is shown as given up and isn't added; "Add
   the others" (or "OK") goes on.
 - **Left out by a fix:** a fixed test that has problems after the repairs, that the model left out, or that checks
@@ -88,15 +125,63 @@ program as it is in the Program tab, each in its own world (`nepoTest.ai` `runTe
 - While tests are checked, fixed or decided, a run doesn't interrupt (as while they are written or reviewed). Switching
   the AI off or loading another program stops a check that runs and drops the batch.
 
-**What the model reads of a run** (`resultText`, one item per failed test): why the run ended and when, where the
-robot started and ended and how far it drove, where it was over time (at most 12 times; one entry while it stays at
-the same place), how often it bumped, each check (passed, failed, not checked) with what happened, and for a failed
+**What the model reads of a run** (`resultText`, one item per failed or unchecked test): why the run ended and when
+(or that it passed but wasn't checked, and why), where the robot started and ended and how far it drove, where it was
+over time (at most 12 times; one entry while it stays at the same place), how often it bumped, the planned outcomes
+of the program's decisions and how often the run took them ("Planned outcomes of the decisions: D1.1 (the condition
+holds): taken 247×; …"), each check (passed, failed, not checked) with what happened, and for a failed
 check of what the robot does: why (the verdict) and the facts of the second before it (sensed, ran, remembered,
 did; `nepoTest.simProgram` `factLines`). The program's blocks are written as their labels in brackets
 ("[steer forwards speed % left 40 speed % right 10]"). The facts aren't shown to learners (GitHub issue #9), but the
 model gets them. The context pack teaches the task in `tasks.md` ("Task: fix"), `schemas/fix.schema.json` and
 `examples/4-fix-failed-tests.md` (one test wrong: too little time; one finding a mistake: no obstacle stop), whose
 run texts were written by the browser.
+
+## The testing strategy (`docs/tests/*_v3.md`, 2026-11-04)
+
+The specification by the project group (`AI_Test_Generation_Orchestration_v3.md` = ORCH, `AnalysisAgent_v3.md` = AA,
+`TestGenerationAgent_v3.md` = TGA) asks for four steps in this order (ORCH §6.3). Each is either done by code, or done
+by the model and checked by code:
+
+| Step | Technique | Model | Code (`OpenRobertaWeb/src/app/nepotest/nepoTest.aiStrategy.ts`) |
+|---|---|---|---|
+| 1 | Decisions and paths: **branch coverage** | analyze: what each decision means, whether the simulator can make each outcome happen (`feasibility`), a small set of paths that target every supported outcome, the scenarios (AA §A1–A6) | `indexOf`: the program's decisions (every if / else if / else, wait until, repeat while / until in a running instance), their outcomes with ids (`D1.1`, `D1.else`, `D1.waits`, `D1.repeats`, `D1.ends`), the blocks' short ids. `checkAnalysis`: every decision with exactly its outcomes, every supported outcome on a path, paths and scenarios naming each other, real blocks, `basis` matching the sentence, the enums |
+| 2 | Inputs: **equivalence partitioning** and **boundary value analysis** | analyze: each path's input dimensions with classes and boundary candidates (only from numbers in the program and the simulator's "Where readings change", `simulator.md`); generate: each test's `input_selection`, what of the test realizes it | `checkTests`: every class and boundary word for word from the test's paths, `side` (below, at, above, inside, outside), `realized_by` naming the test's own start, things, events or variables |
+| 3 | A complete test: **path + inputs + expected results + postconditions** | generate: `scenario_id`, `path_ids`, `planned_branch_ids`, `expected_results`, `postconditions` (with `check_indices`), `oracle` (`basis`, `confidence`, `assumptions`, `review_required`) | `checkTests`: everything resolves to the analysis, the indices to real checks, `learner_description` only with a sentence, a scenario with an `unknown` oracle gets no test, at least one positive check (anti-triviality) |
+| 4 | **Consolidation** keeping unique coverage | generate: merges and leaves out, `coverage_plan`, `consolidation_notes`, `deferred_scenarios` | `checkTests`: at most 8 tests (`MAX_TESTS`); every target outcome planned or deferred with a reason; every class tested or deferred; every boundary tested on two sides, or the missing side deferred; every scenario tested or deferred. `planOf`: the coverage plan computed from the tests that are left (after repairs, left-out tests and duplicates), never taken from the model (`corrected` says whether the model's differed) |
+
+**The semantics of a run:**
+- **Planned is not happened:** after the check run, `seenIn` counts each outcome from the run report's `trace`, where
+  the simulator's record counts every decision's yes and no.
+- **"Not checked" is not passed:** see `notCheckedWhy`.
+- **A fix never makes a test expect less:** see `frozenProblems`.
+- **The learner decides** about tests the model says are right (`program_wrong`) or may expect too much (`doubtful`).
+
+**What the learner sees (the panel):**
+- **The review list:**
+  - each test's label: "Based on your description" (`learner_description`), "Suggested from your blocks"
+    (`inferred_from_program`), "A safety guess" (`applicable_safety`);
+  - its assumptions, in a fold-out;
+  - one coverage line: "Plans to try 3 of 3 outcomes of the decisions in your program", with a fold-out "Not tried
+    (n)", whose chips select the decision's block, with why.
+- **The results:** "Seen in the runs: n of m", with "Not seen (n)".
+- Everything else (classes, boundaries, postconditions) is in the telemetry and the tests' provenance.
+
+**Deliberate deviations from the specification:**
+- **The UX:** the spec's popup becomes the panel beside the simulator, with the guess first. The review and the check
+  happen there, not in the Tests tab (decided 2026-11-03).
+- **No level:** the model never gets the level.
+- **The sentence is kept** with the program, for the study (the spec: not by default).
+- **The fix:** learner-initiated, inputs only, at most 2 fixes. This is the bounded correction of an invalid or
+  untriggered scenario that TGA §8 allows.
+- **Decision ids come from the code:** they aren't made up by the model, so they are real by construction.
+- **No hash or agent echo:** the answers don't echo `schema_version`, `agent`, `robot` or `source_hash`. The browser
+  binds every answer to its call (the fingerprint, the stale check before choosing), and the server adds `contract`
+  to the meta.
+- **The test's inputs:** a test's executable fields are its `specific_inputs`. The `realized_by` of each class and
+  boundary links them.
+- **Not tested:** whether the tests find seeded faults (ORCH phase 5, mutation tests). That is phase 5 of the plan,
+  parked until it is discussed.
 
 ## The study's telemetry
 
@@ -111,11 +196,13 @@ off. The learner's sentences are kept word for word.
 | `ai_inferred` | `level`, `fingerprint`, `ok`, `error`, the answer (`intent`, `confidence`, `ask`, `same_as_declined`, `not_covered`), `declined` (the declined guess sent) and `declinedRuns`, `shown` (`offer`, `guess`, `nothing`, `error`), `stale` (the answer came after a newer run or the switch-off: dropped), `edpyError`, the call (`callId`, `model`, `promptVersion`, `latencyMs`, `attempts`, `tokens`: `in`, `cached`, `out`, `reasoning`) |
 | `ai_offer_shown` | `level`, `intent`, `guessCall` (the `callId` of the guess) |
 | `ai_offer_answered` | `answer` (`write`, `not_now`, `never_here`, `ignored`), `reason` (what replaced an ignored offer: `new_run`, `switched_off`, `level_changed`, `program_loaded`), `sentence` (word for word, or null; for an ignored offer what was typed), `intent` (the guess answered), `guessCall`, `msToAnswer` |
-| `ai_tests_generated` | `intent`, `sentence`, `guessCall`, `ok`, `error`, `message`, `stale`, `count`, `tests` (the tests offered, as test JSON), `repairs`, `leftOut` (the problems of the tests left out), `duplicates`, `calls` (each call's meta), `latencyMs` (all of it), `tokens` (summed) |
-| `ai_tests_checked` | a run of the chosen tests (`fix` 0) or of the tests a fix fixed (`fix` 1, 2): `call` (the generate call), `ok` (false: the runner failed, `error`), `passed`, `failed`, `latencyMs`, `tests` ([{name, world, outcome, fixes, failed: the failed checks' texts, why: their verdicts' kinds}]) |
-| `ai_failed_answered` | `group` (`failed`: the tests that failed; `flagged`: those the model thinks right), `answer` (`fix` or `discard`; `add` or `discard`), `fix` (the fixes before), `tests` ([{name, world}]) |
-| `ai_tests_fixed` | `call`, `fix` (1, 2), `failed` (the tests sent), `ok`, `error`, `message`, `stale`, `count`, `tests` (the fixed tests, as test JSON), `programWrong` ([{test, world, reason}]), `repairs`, `leftOut`, `duplicates`, `calls`, `latencyMs`, `tokens` |
-| `ai_tests_added` | `call`, `discarded` (none added), `added` ([{id, name, passed (true, false: added anyway, null: added without running), fixes}]), `unticked` ([{name, world}]), `failed` (the failed tests not added: [{name, world, fixes, how: `discarded`, `left_out` or `gave_up`, reason}]), `leftOut`, `fixes`, `worlds` ([{name, existing, tests}]) |
+| `ai_analyzed` | the analysis before the tests: `intent`, `sentence`, `guessCall`, `ok`, `error` (`invalid_analysis`: still wrong after the repairs), `message`, `stale`, `decisions` (the program's: [{id, block, short, kind, outcomes}]), `status` (`ok`, `insufficient_evidence`), `analysis` (the answer), `problems` (those left after the repairs), `repairs`, `calls`, `latencyMs`, `tokens` |
+| `ai_tests_generated` | `intent`, `sentence`, `guessCall`, `ok`, `error`, `message`, `stale`, `count`, `tests` (the tests offered, as test JSON, with what each is for), `status` (`generation_status`), `plan` (the coverage plan computed from the tests offered: per outcome the tests that plan it and why not; `target`, `planned`, `deferred`, `lost`, `deferredInputs`, `deferredScenarios`, `corrected`), `warnings` (the answer's warnings and consolidation notes), `unresolved` (the answer's problems left after the repairs), `repairs`, `leftOut` (the problems of the tests left out), `duplicates`, `calls` (each call's meta), `latencyMs` (all of it), `tokens` (summed) |
+| `ai_tests_checked` | a run of the chosen tests (`fix` 0) or of the tests a fix fixed (`fix` 1, 2): `call` (the generate call), `ok` (false: the runner failed, `error`), `passed`, `failed`, `notChecked`, `latencyMs`, `tests` ([{name, world, outcome, state (passed, failed, notChecked), fixes, failed: the failed checks' texts, why: their verdicts' kinds, notChecked: why not checked, planned, seen: how often the run took each outcome}]), `plan` (with `seen`: all runs of the batch) |
+| `ai_failed_answered` | `group` (`failed`: the tests that failed or weren't checked; `flagged`: those the model thinks right or doubtful), `answer` (`fix` or `discard`; `add` or `discard`), `fix` (the fixes before), `tests` ([{name, world}]) |
+| `ai_tests_fixed` | `call`, `fix` (1, 2), `failed` (the tests sent: [{name, world, state: failed or not_checked}]), `ok`, `error`, `message`, `stale`, `count`, `tests` (the fixed tests, as test JSON), `programWrong` ([{test, world, reason}]), `doubtful` ([{test, world, reason}]), `repairs`, `leftOut`, `duplicates`, `calls`, `latencyMs`, `tokens` |
+| `ai_stale` | `call`, `answer` (`write_again`, `check_anyway`): the program changed between writing and choosing the tests |
+| `ai_tests_added` | `call`, `discarded` (none added), `added` ([{id, name, passed (true, false: added anyway, null: added without running), fixes, basis}]), `unticked` ([{name, world}]), `failed` (the failed tests not added: [{name, world, fixes, how: `discarded`, `left_out` or `gave_up`, reason, notChecked}]), `leftOut`, `fixes`, `worlds` ([{name, existing, tests}]), `stale`, `plan` |
 | `ai_ask_again` | `level`: "Suggest tests again" |
 | `ai_call` | the server's, see above |
 
@@ -141,7 +228,12 @@ its world: start, set-up, checks, the world's things) differs from the one recor
 - A world is the Tests tab's world (`nepoTest.sim.ts`), drawn by the model, or `"base": "existing"` (a world of the
   learner's, by its name; its tests are added to it).
 - A test is a test of a world (`nepoTest_simcase`): its fields are NepoTest's (`nepo-unit-testing.md` §4.11), flat
-  (`start`, `until`, `checks` without `simulation`), plus `scenario`.
+  (`start`, `until`, `checks` without `simulation`), plus `scenario`, plus what it is for (TGA §5): `scenario_id`,
+  `path_ids`, `planned_branch_ids`, `input_selection`, `expected_results`, `postconditions`, `oracle`,
+  `source_block_ids`, `reason` (`nepoTest.aiFormat` `STRATEGY_FIELDS`: kept as the model wrote them, checked by
+  `nepoTest.aiStrategy`; the blocks don't have them, they are in the test's provenance).
+- The answer around the worlds: `generation_status`, `coverage_plan`, `consolidation_notes`, `deferred_scenarios`,
+  `warnings` (`tests.md`, `schemas/generate.schema.json`). The analysis: `schemas/analyze.schema.json`.
 - The learner's tests go to the model in the same format, each world with its `world`; a test may have `skip` and
   `origin: "ai"`.
 
@@ -153,13 +245,22 @@ its world: start, set-up, checks, the world's things) differs from the one recor
 | an answer made whole and checked (`checkAnswer`): its structure, every item and start of a drawn world (on the floor, kinds, roles, sizes), names (not taken), ids, roles of the items the checks name, the program's variables; `without` leaves out what has problems | `nepoTest.aiFormat.ts` |
 | duplicates (`meaningOf`, `dropDuplicates`): the same floor and things (without ids and names), start pose, set-up, end of the run and checks | `nepoTest.aiFormat.ts` |
 | JSON → blocks (`suiteXml`, `worldXml`, `testXml`; `addToWorkspace`: one undo step, new worlds to the right, tests of a learner's world after its tests; every ticked test runs, so no run blocks) | `nepoTest.aiFormat.ts`; `tests.controller` `addAiTests` |
-| the calls and the checks of an answer: format, then NepoTest's translator in the worker (a start outside the floor or on an obstacle, …), then at most 2 repairs, then duplicates out | `nepotest/nepoTest.ai.ts` (`infer`, `generate`, `check`) |
+| the calls and the checks of an answer: format, then NepoTest's translator in the worker (a start outside the floor or on an obstacle, …), then the testing strategy, then at most 2 repairs, then duplicates out, then the coverage plan | `nepotest/nepoTest.ai.ts` (`infer`, `analyze`, `generate`, `fix`, `check`) |
+| the testing strategy: the program's decisions and the short ids of its blocks, the checks of an analysis and of the tests, the coverage plan and what the runs took, "not checked", what a fix may not change | `nepotest/nepoTest.aiStrategy.ts` (`indexOf`, `checkAnalysis`, `checkTests`, `planOf`, `seenIn`, `notCheckedWhy`, `frozenProblems`) |
 | what an answer is checked against: the learner's tests, the program's variables, the names taken | `tests.controller` `aiContext`, `aiTests`, `aiProgramXml` |
 
-**Provenance:** an AI test's block keeps `{ai: {call, block, scenario, generated, added, asAdded, checked}}` in its
-`data` (`provenanceOf`): the call's id (`callId` of its `ai_call`: generate, or the fix that fixed it), the block's id
-when it was added (a copy has another id), the scenario, the test as the model wrote it, and how it ran before it was
-added (`checked: {passed, fixes}`). The world's data stays the drawn world, so editing the world keeps the provenance.
+**Provenance:** an AI test's block keeps `{ai: {...}}` in its `data` (`provenanceOf`). The world's data stays the
+drawn world, so editing the world keeps the provenance. It holds:
+- `call`: the call's id (`callId` of its `ai_call`: generate, or the fix that fixed it);
+- `block`: the block's id when it was added (a copy has another id);
+- `scenario`;
+- `generated`: the test as the model wrote it, with what it is for;
+- `added`, `asAdded`;
+- `checked: {passed, fixes, notChecked}`: how it ran before it was added;
+- `coverage: {planned: [{outcome, block, words}], seen: {outcome: times}}`: the outcomes of the program's decisions its
+  run should take, with their blocks' own ids, and how often its check run took each;
+- `basis`: where its expectation comes from;
+- `stale`: it was checked anyway after the program changed.
 
 ## Checked (2026-11-03)
 
@@ -229,6 +330,66 @@ deleted. The Test runner's `test_run` said that 1 AI test ran (edited) and passe
   added all 3, 2 of them with `passed: false`. (Without the loop, the program ends at once and the robot never moves,
   so "stops before the wall" passes: a run ends with the program.)
 
+**The testing strategy (2026-11-04):**
+- **Server:** `AiPromptsTest` (8) and `AiServiceTest` (14), which now include analyze, the decisions, the analysis in
+  generate, `doubtful`, `no_valid_scenarios`, the start block's data left out and the block ids kept.
+- **NepoTest:** 153 tests, with the fixture made again from the new examples.
+- **The context pack's examples** were made by scripts from one source and checked in the browser:
+  - no problems from `checkAnalysis`, `checkAnswer`, the translator or `checkTests`;
+  - all their tests pass on the simulator, and every run takes the outcomes its test plans;
+  - example 4's run texts were written by `resultText`, with the planned outcomes.
+- **Headless Chrome, faked answers** (strict: a call with no faked answer fails, none reached DeepSeek):
+  1. **The happy path:**
+     - the review shows the labels, the assumptions and "Plans to try 3 of 3 outcomes";
+     - the model got the decisions and the short ids, generate got the analysis;
+     - all 7 tests passed and were added, their provenance with the planned outcomes (the blocks' own ids) and those
+       seen.
+  2. **Repairs:**
+     - an analysis missing an outcome and naming `D7.1` was repaired;
+     - an answer was repaired too, with these problems: a check index that doesn't exist, a negative-only test, a
+       class that isn't the analysis', a class not tested, a boundary with no side tested.
+  3. **Not checked:**
+     - a test that passed in a world without an obstacle was shown as not checked, with "?", "nothing to decide for …"
+       and "[if …] condition 1 holds: never happened", and "Seen in the runs: 2 of 3";
+     - the fix that dropped its `whenever` was sent back (it "changed postconditions, checks");
+     - the fix that drew a box passed and was added.
+  4. **Doubtful:** "This test may expect more than you said: …", then "Add anyway": added with `passed: false`.
+  5. **Stale:** the program was changed in the review. "Your program changed", then "Check them anyway" added them
+     with `stale`; "Write them again" analysed the changed program anew.
+  6. **Insufficient evidence:** "Nothing to test yet" with the analysis' reason.
+  7. **Nine tests:** "at most 8" sent back.
+- **Live (DeepSeek, effort low):**
+  - **Example 1's line follower, with example 1's sentence:** 7 tests in 26.5 s for analyze and generate, all passed,
+    every planned outcome seen. The model copied example 1's answer.
+  - **The same program without a sentence:** again example 1's tests, now all labelled "Suggested from your blocks"
+    (`inferred_from_program`).
+  - **A new program, drive forward and turn right 90° at a wall** ("The robot drives forward and turns right when it
+    gets to a wall."): 4 tests in 48 s:
+    - the nominal case;
+    - the class "nothing in the way";
+    - the obstacle sensors' range just inside (8 cm) and just outside (10 cm);
+    - all passed, with 2 of 2 outcomes planned and seen.
+  - **The clap counter** (`NepoTest/examples/clap_counter.xml`, "After I clap three times, the robot drives
+    forward."):
+    - The first try was cut off: analyze spent all 16,000 tokens reasoning. Since then analyze, generate and fix get
+      32,000 tokens and 180 s, and analyze leaves the checks to generate.
+    - Then 4 tests in 145 s:
+      - no claps (it waits);
+      - the whole-number boundary: 2 claps (it still waits), 3 (it drives to the goal) and 4;
+      - 4 of 4 outcomes planned and seen.
+    - "After two claps, it still waits" failed. The fix kept it as `program_wrong`: in the simulator one clap is heard
+      for a moment and counted more than once, so two claps reach the count of three.
+    - The first analysis listed a loop's outcomes once per round and was repaired. `tasks.md` now says each outcome
+      once.
+    - The next run (107 s, no repair) had only 2 tests: it deferred two claps "because one clap reaches three". That is
+      weakening at generation time: two claps can be set up; it is the program that would fail.
+      `tests.md` and `tasks.md` now say to defer only what can't be set up or decided, never because the program
+      would fail.
+    - The run after that (123 s) gave 4 tests:
+      - 2, 3 and 4 claps;
+      - a timing boundary: three claps 0.2 s apart, while a clap is heard for 0.3 s;
+      - "Two claps are not enough" failed, and the fix kept it as `program_wrong`, for the same reason as above.
+
 ## Open points
 
 - **Earlier sentences pin the guess.** The model takes the intent from the learner's words first, so a sentence about
@@ -239,5 +400,15 @@ deleted. The Test runner's `test_run` said that 1 AI test ran (edited) and passe
   worlds. Keep the examples varied.
 - Whether a start really is on the line a scenario means can't be checked; the review list (phase 3), the check run
   and the learner catch that.
-- **A fix can only judge from the learner's words.** Without a sentence, "the program is wrong" rests on the guess. A
-  fix may also make a test weaker than its scenario; the learner sees the fixed test only by its name.
+- **A fix can only judge from the learner's words.** Without a sentence, "the program is wrong" rests on the guess. (A
+  fix can no longer make a test weaker: since 2026-11-04 it may change only the test's inputs.)
+- **Coverage counts the decisions the simulator instruments:** if / else if / else, wait until, repeat while / until.
+  Not counted: a function's conditional return (`robProcedures_ifreturn`), counting loops (`repeat n times`), and the
+  parts of a condition (`and`, `or`: branch, not condition coverage). The coverage seen counts only the runs of the
+  tests the learner chose.
+- **Writing takes two calls:** analyze, then generate. At effort low that is 26 s to 2 minutes; it was 7 to 18 s for
+  generate alone. The answers are long, 9,000 to 13,000 output tokens each for a program with a loop and a function,
+  because every test says what it is for. The panel says "Usually 30 s to 2 minutes".
+- **A deferral is judged only by its reason:** the code checks that every outcome, class and boundary side is tested
+  or deferred with a reason, but not whether the reason is sound. The rule against deferring what the program would
+  fail is in the prompt only.

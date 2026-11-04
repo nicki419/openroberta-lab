@@ -23,13 +23,17 @@ import de.fhg.iais.roberta.util.ServerProperties;
  * describes the call as an event for the participant's telemetry file (kind ai_call).
  * <ul>
  * <li>infer: what is the program meant to do? {intent, confidence, ask, same_as_declined, not_covered}; short, 20 s.</li>
- * <li>generate: scenario tests for the intent, as test JSON {worlds: [...]}; 90 s; with a repair: the earlier answer and its problems follow, as a
- * conversation.</li>
- * <li>fix: the tests of an answer that failed when they ran on the learner's program, with how they ran: {worlds: [the fixed tests],
- * program_wrong: [{test, world, reason}: the tests left as they are, because the program is wrong]}; as generate (its effort, 90 s, repairs).</li>
+ * <li>analyze (the AnalysisAgent of docs/tests): the program's decisions and their outcomes, the paths that target them (branch coverage), the
+ * input classes and boundaries of each path, the scenarios and where their expected behaviour comes from; 180 s; repairs as generate.</li>
+ * <li>generate (the TestGenerationAgent): scenario tests for the intent and the analysis, as test JSON {worlds: [...], coverage_plan, ...}; 180 s;
+ * with a repair: the earlier answer and its problems follow, as a conversation.</li>
+ * <li>fix: the tests of an answer that failed (or weren't checked) when they ran on the learner's program, with how they ran: {worlds: [the fixed
+ * tests: only their inputs changed], program_wrong: [{test, world, reason}: the program is wrong], doubtful: [{test, world, reason}: the test may
+ * expect more than the learner said]}; as generate (its effort, 180 s, repairs).</li>
  * </ul>
- * The reasoning effort of each is a setting (AI_EFFORT_INFER, AI_EFFORT_GENERATE, also for fix; default low). Measured on 2026-11-03 with deepseek-flash and a
- * 12,700-token prompt: infer about 4 s; generate about 16 s at low (2,400 reasoning tokens), 71 s at high (11,300).
+ * The reasoning effort of each is a setting (AI_EFFORT_INFER; AI_EFFORT_GENERATE, also for analyze and fix; default low). Measured on 2026-11-03 with
+ * deepseek-flash and a 12,700-token prompt: infer about 4 s; generate about 16 s at low (2,400 reasoning tokens), 71 s at high (11,300).
+ * Every call's meta has the contract version of the answers ({@link #CONTRACT}).
  * <p>
  * One instance serves the whole server (the limits per session are here).
  */
@@ -39,6 +43,9 @@ public class AiService {
     public static final String INFER = "infer";
     public static final String GENERATE = "generate";
     public static final String FIX = "fix";
+    public static final String ANALYZE = "analyze";
+    /** the version of the answers' contracts (docs/tests: AnalysisAgent and TestGenerationAgent 1.1; the fix's own) */
+    public static final String CONTRACT = "1.1";
     private static final int MAX_REASONING = 20000; // characters of the reasoning kept in the telemetry
 
     private final AiSettings settings;
@@ -46,7 +53,8 @@ public class AiService {
     private final AiLimits limits;
     private ContextPack resourcePack; // the pack in the resources, loaded once
     private int inferTimeoutMs = 20000;
-    private int generateTimeoutMs = 90000;
+    private int generateTimeoutMs = 180000;
+    public static final int MAX_TOKENS = 32000; // analyze, generate, fix: the reasoning counts (a hard program took 16,000 reasoning tokens, 87 s)
 
     @Inject
     public AiService(ServerProperties serverProperties) {
@@ -64,6 +72,7 @@ public class AiService {
         perHour.put(INFER, 60);
         perHour.put(GENERATE, 30);
         perHour.put(FIX, 30);
+        perHour.put(ANALYZE, 30);
         this.limits = new AiLimits(perHour, System::currentTimeMillis);
     }
 
@@ -73,7 +82,7 @@ public class AiService {
 
     /**
      * @param inferMs how long to wait for DeepSeek's answer to infer (default 20 s)
-     * @param generateMs … to generate (default 90 s)
+     * @param generateMs … to analyze, generate and fix (default 180 s)
      */
     public void setTimeouts(int inferMs, int generateMs) {
         this.inferTimeoutMs = inferMs;
@@ -100,7 +109,7 @@ public class AiService {
     /**
      * a call of the assistant. Never throws.
      *
-     * @param kind {@link #INFER}, {@link #GENERATE} or {@link #FIX}
+     * @param kind {@link #INFER}, {@link #ANALYZE}, {@link #GENERATE} or {@link #FIX}
      * @param session the session's number (the limits are per session)
      * @param data the browser's data (see {@link AiPrompts})
      */
@@ -112,7 +121,8 @@ public class AiService {
         event.put("level", data == null ? JSONObject.NULL : data.opt("levelId")); // logged only: the model never gets the level
         event.put("fingerprint", data == null ? JSONObject.NULL : data.opt("fingerprint"));
         event.put("model", this.settings.getModel());
-        if ( !INFER.equals(kind) && !GENERATE.equals(kind) && !FIX.equals(kind) || data == null ) {
+        event.put("contract", CONTRACT);
+        if ( !INFER.equals(kind) && !ANALYZE.equals(kind) && !GENERATE.equals(kind) && !FIX.equals(kind) || data == null ) {
             return outcome.fail("bad_request", "unknown call " + kind);
         }
         if ( !this.settings.isAvailable() ) {
@@ -138,12 +148,13 @@ public class AiService {
                     event.put("repair", repair[1]);
                 }
             }
-            DeepSeekClient.Result result = this.client.chat(messages, infer ? 4000 : 16000, effort, infer ? this.inferTimeoutMs : this.generateTimeoutMs);
+            DeepSeekClient.Result result = this.client.chat(messages, infer ? 4000 : MAX_TOKENS, effort, infer ? this.inferTimeoutMs : this.generateTimeoutMs);
             outcome.meta =
                 new JSONObject()
                     .put("callId", event.getString("callId"))
                     .put("model", result.model == null ? this.settings.getModel() : result.model)
                     .put("promptVersion", pack.getVersion())
+                    .put("contract", CONTRACT)
                     .put("latencyMs", result.latencyMs)
                     .put("attempts", result.attempts)
                     .put(
@@ -167,7 +178,12 @@ public class AiService {
             if ( "length".equals(result.finishReason) ) {
                 return outcome.fail("cut_off", "the answer was cut off (too long)");
             }
-            outcome.answer = infer ? AiPrompts.checkInfer(result.content) : FIX.equals(kind) ? AiPrompts.checkFix(result.content) : AiPrompts.checkGenerate(result.content);
+            outcome.answer =
+                infer
+                    ? AiPrompts.checkInfer(result.content)
+                    : FIX.equals(kind)
+                        ? AiPrompts.checkFix(result.content)
+                        : ANALYZE.equals(kind) ? AiPrompts.checkAnalyze(result.content) : AiPrompts.checkGenerate(result.content);
             outcome.ok = true;
             event.put("status", "ok").put("error", JSONObject.NULL);
             return outcome;

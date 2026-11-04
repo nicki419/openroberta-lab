@@ -9,21 +9,23 @@ import org.json.JSONObject;
 /**
  * the per-call part of a prompt (the user message after the context pack) and the checks of the answers. The browser sends data, never prompt text:
  * <pre>
- * {program: {nepo: the program XML, edpy: its EdPy},      at least one of them
+ * {program: {nepo: the program XML (its blocks with short ids b1, b2, ...), edpy: its EdPy},      at least one of them
  *  tests: the learner's tests as test JSON (or null),
  *  said: [the learner's earlier sentences about this program],
  *  levelId, fingerprint: the level played and the program's fingerprint (only logged),
  *  infer:    declined: the guess the learner declined (or null)
- *  generate: intent: the guess, sentence: the learner's sentence (or null),
+ *  analyze:  decisions: [{id: D1, block: b7, kind: if | wait | while, label, outcomes: [{id: D1.1, outcome}, ...]}] (the browser finds them in
+ *            the program's blocks: nepoTest.aiStrategy decisionIndex), intent: the guess, sentence: the learner's sentence (or null),
  *            repair: {answer: the answer with problems, problems: ["...", ...]} (or null)
+ *  generate: as analyze, and analysis: the checked answer of analyze
  *  fix:      as generate, and fix: {tests: the failed tests as test JSON, each world in full,
  *                                   results: ["how a failed test ran", ...] (the browser writes them from the runs),
  *                                   kept: [{test, world}: the tests of the answer that passed]}}
  * </pre>
  * The model gets nothing of the level the learner plays (no title, instructions, time limit or world): tests made from the level would give its
  * solution away and test the level instead of the learner's idea. So the message has the program, the learner's tests and the learner's words
- * only, and nothing else of the data is read here. The NEPO XML loses its block ids, positions and configuration ({@link #trimNepo}), the EdPy its
- * helpers and fixed start-up ({@link #trimEdpy}). The format of the message is the one of the examples in the context pack (ai/examples), so
+ * only, and nothing else of the data is read here. The NEPO XML loses its positions and configuration ({@link #trimNepo}; its block ids stay:
+ * the analysis and the tests name blocks by them), the EdPy its helpers and fixed start-up ({@link #trimEdpy}). The format of the message is the one of the examples in the context pack (ai/examples), so
  * change both together.
  */
 public final class AiPrompts {
@@ -40,19 +42,27 @@ public final class AiPrompts {
     public static final int MAX_RESULT = 4000;
     public static final int MAX_KEPT = 30;
     public static final int MAX_REASON = 300;
+    public static final int MAX_DECISIONS = 60;
+    public static final int MAX_OUTCOMES = 12; // of one decision
+    public static final int MAX_LABEL = 200;
+    public static final int MAX_ANALYSIS = 60000;
 
     private static final String FIXED_START_END = "Ed.TimeWait(250, Ed.TIME_MILLISECONDS)";
     private static final Pattern CONFIG = Pattern.compile("<config>.*?</config>", Pattern.DOTALL);
-    private static final Pattern NOISE = Pattern.compile("\\s(id|x|y|intask|deletable|xmlns|xmlversion|description|tags)=\"[^\"]*\"");
+    private static final Pattern DATA = Pattern.compile("<data>.*?</data>", Pattern.DOTALL); // the start block's neural network settings: noise for the model
+    private static final Pattern NOISE = Pattern.compile("\\s(x|y|intask|deletable|xmlns|xmlversion|description|tags)=\"[^\"]*\"");
     private static final Pattern WRAPPERS = Pattern.compile("</?(export|program)\\s*>");
     private static final Pattern BETWEEN_TAGS = Pattern.compile(">\\s*<");
+    private static final Pattern DECISION_ID = Pattern.compile("D\\d{1,3}");
+    private static final Pattern OUTCOME_ID = Pattern.compile("D\\d{1,3}\\.(\\d{1,2}|else|waits|repeats|ends)");
+    private static final Pattern BLOCK_ID = Pattern.compile("b\\d{1,4}");
 
     private AiPrompts() {
         // only static methods
     }
 
     /**
-     * @param task {@link AiService#INFER}, {@link AiService#GENERATE} or {@link AiService#FIX}
+     * @param task {@link AiService#INFER}, {@link AiService#ANALYZE}, {@link AiService#GENERATE} or {@link AiService#FIX}
      * @param data the browser's data (see the class comment)
      * @return the user message
      * @throws AiException bad_request (something required is missing) or too_large
@@ -75,6 +85,10 @@ public final class AiPrompts {
             m.append("NEPO:\n```xml\n").append(nepo).append("\n```\n\n");
         }
         m.append(edpy.isEmpty() ? "EdPy: (not available)\n\n" : "EdPy:\n```python\n" + edpy + "\n```\n\n");
+        boolean infer = AiService.INFER.equals(task);
+        if ( !infer ) {
+            appendDecisions(m, data.opt("decisions"));
+        }
 
         m.append("## The learner's tests\n\n");
         Object tests = data.opt("tests");
@@ -95,7 +109,13 @@ public final class AiPrompts {
             m.append('\n');
         }
 
-        if ( AiService.INFER.equals(task) ) {
+        if ( !infer && !AiService.ANALYZE.equals(task) ) {
+            m.append("## The analysis\n\n");
+            JSONObject analysis = data.optJSONObject("analysis");
+            m.append(analysis == null ? "None.\n\n" : "```json\n" + limited("the analysis", analysis.toString(), MAX_ANALYSIS) + "\n```\n\n");
+        }
+
+        if ( infer ) {
             String declined = optText(data, "declined");
             m.append("## Task: infer\n\n");
             m.append("The guess the learner declined: ").append(declined == null ? "none." : quote(limited("the declined guess", declined, MAX_GUESS))).append('\n');
@@ -106,7 +126,7 @@ public final class AiPrompts {
             }
             String sentence = optText(data, "sentence");
             boolean fix = AiService.FIX.equals(task);
-            m.append(fix ? "## Task: fix\n\n" : "## Task: generate\n\n");
+            m.append(fix ? "## Task: fix\n\n" : AiService.ANALYZE.equals(task) ? "## Task: analyze\n\n" : "## Task: generate\n\n");
             m.append("The intent you guessed: ").append(quote(limited("the intent", intent, MAX_GUESS))).append('\n');
             m.append(sentence == null ? "The learner wrote no sentence.\n" : "The learner's sentence: " + quote(limited("the sentence", sentence, MAX_SENTENCE)) + "\n");
             if ( fix ) {
@@ -114,6 +134,50 @@ public final class AiPrompts {
             }
         }
         return m.toString();
+    }
+
+    /**
+     * the program's decisions, as the browser found them in its blocks (every if, wait until and repeat while / until), with the ids of their
+     * outcomes: the analysis and the tests name them
+     */
+    private static void appendDecisions(StringBuilder m, Object value) {
+        m.append("## The program's decisions\n\n");
+        if ( !(value instanceof JSONArray) ) {
+            m.append("Not available.\n\n");
+            return;
+        }
+        JSONArray decisions = (JSONArray) value;
+        if ( decisions.length() > MAX_DECISIONS ) {
+            throw new AiException("too_large", "at most " + MAX_DECISIONS + " decisions");
+        }
+        if ( decisions.length() == 0 ) {
+            m.append("None: the program has no if, no wait until and no repeat while or until.\n\n");
+            return;
+        }
+        for ( int i = 0; i < decisions.length(); i++ ) {
+            JSONObject d = decisions.optJSONObject(i);
+            String id = d == null ? null : optText(d, "id");
+            String block = d == null ? null : optText(d, "block");
+            JSONArray outcomes = d == null ? null : d.optJSONArray("outcomes");
+            if ( id == null || !DECISION_ID.matcher(id).matches() || block == null || !BLOCK_ID.matcher(block).matches() || outcomes == null || outcomes.length() == 0 ) {
+                throw new AiException("bad_request", "decision " + (i + 1) + " needs an id D<n>, a block b<n> and outcomes");
+            }
+            if ( outcomes.length() > MAX_OUTCOMES ) {
+                throw new AiException("too_large", "decision " + id + " has more than " + MAX_OUTCOMES + " outcomes");
+            }
+            String label = optText(d, "label");
+            m.append("- ").append(id).append(": block ").append(block).append(", ").append(line(d.optString("kind", ""), 20));
+            m.append(label == null ? "" : " " + quote(line(label, MAX_LABEL))).append('\n');
+            for ( int j = 0; j < outcomes.length(); j++ ) {
+                JSONObject o = outcomes.optJSONObject(j);
+                String oid = o == null ? null : optText(o, "id");
+                if ( oid == null || !OUTCOME_ID.matcher(oid).matches() || !oid.startsWith(id + ".") ) {
+                    throw new AiException("bad_request", "an outcome of " + id + " needs an id " + id + ".<outcome>");
+                }
+                m.append("  - ").append(oid).append(": ").append(line(o.optString("outcome", ""), MAX_LABEL)).append('\n');
+            }
+        }
+        m.append('\n');
     }
 
     /** the task fix: the failed tests, how they ran (one item each, its lines indented), the tests that passed */
@@ -173,7 +237,7 @@ public final class AiPrompts {
         for ( int i = 0; i < problems.length(); i++ ) {
             m.append("- ").append(line(limited("a problem", problems.optString(i, ""), MAX_PROBLEM), MAX_PROBLEM)).append('\n');
         }
-        m.append("\nAnswer again with the whole corrected test JSON.\n");
+        m.append("\nAnswer again with the whole corrected answer.\n");
         return new String[] {
             limited("the answer to repair", answer.toString(), MAX_ANSWER),
             m.toString()
@@ -182,13 +246,15 @@ public final class AiPrompts {
 
     /**
      * @param xml the program's XML (export or program block set)
-     * @return the XML without block ids, positions, configuration and namespaces, one tag per line, indented by one space per level
+     * @return the XML without positions, configuration, the blocks' data and namespaces (the block ids stay), one tag per line, indented by one space
+     *         per level
      */
     public static String trimNepo(String xml) {
         if ( xml == null || xml.trim().isEmpty() ) {
             return "";
         }
         String s = CONFIG.matcher(xml).replaceAll("");
+        s = DATA.matcher(s).replaceAll("");
         s = NOISE.matcher(s).replaceAll("");
         s = WRAPPERS.matcher(s).replaceAll("");
         s = BETWEEN_TAGS.matcher(s.trim()).replaceAll(">\n<");
@@ -255,14 +321,19 @@ public final class AiPrompts {
 
     /**
      * @param content the model's answer to generate
-     * @return the answer: an object with an array of worlds, each with an array of tests (the browser checks the rest)
+     * @return the answer: an object with an array of worlds, each with an array of tests; no worlds only with generation_status no_valid_scenarios
+     *         (the browser checks the rest)
      * @throws AiException bad_answer
      */
     public static JSONObject checkGenerate(String content) {
         JSONObject answer = parse(content);
         JSONArray worlds = answer.optJSONArray("worlds");
-        if ( worlds == null || worlds.length() == 0 ) {
+        boolean none = "no_valid_scenarios".equals(answer.optString("generation_status", ""));
+        if ( worlds == null || worlds.length() == 0 && !none ) {
             throw new AiException("bad_answer", "the answer has no worlds");
+        }
+        if ( worlds.length() > 0 && none ) {
+            throw new AiException("bad_answer", "the answer has worlds, but its generation_status is no_valid_scenarios");
         }
         for ( int i = 0; i < worlds.length(); i++ ) {
             JSONObject world = worlds.optJSONObject(i);
@@ -276,7 +347,7 @@ public final class AiPrompts {
     /**
      * @param content the model's answer to fix
      * @return the answer: {worlds: the fixed tests (each world with an array of tests; may be empty), program_wrong: [{test, world, reason}] (may be
-     *         empty)}, not both empty (the browser checks the rest)
+     *         empty), doubtful: [{test, world, reason}] (may be empty)}, not all of them empty (the browser checks the rest)
      * @throws AiException bad_answer
      */
     public static JSONObject checkFix(String content) {
@@ -288,19 +359,58 @@ public final class AiPrompts {
                 throw new AiException("bad_answer", "world " + (i + 1) + " of the answer has no tests");
             }
         }
-        JSONArray wrong = optArray(answer, "program_wrong");
-        for ( int i = 0; i < wrong.length(); i++ ) {
-            JSONObject entry = wrong.optJSONObject(i);
+        JSONArray wrong = reasons(answer, "program_wrong");
+        JSONArray doubtful = reasons(answer, "doubtful");
+        if ( worlds.length() == 0 && wrong.length() == 0 && doubtful.length() == 0 ) {
+            throw new AiException("bad_answer", "the answer fixes no test, and says of none that the program is wrong or that it expects too much");
+        }
+        return answer.put("worlds", worlds).put("program_wrong", wrong).put("doubtful", doubtful);
+    }
+
+    /** program_wrong or doubtful of a fix: [{test, world, reason}], each with a test and a reason (cut to MAX_REASON) */
+    private static JSONArray reasons(JSONObject answer, String key) {
+        JSONArray list = optArray(answer, key);
+        for ( int i = 0; i < list.length(); i++ ) {
+            JSONObject entry = list.optJSONObject(i);
             if ( entry == null || optText(entry, "test") == null || optText(entry, "reason") == null ) {
-                throw new AiException("bad_answer", "program_wrong " + (i + 1) + " of the answer has no test or no reason");
+                throw new AiException("bad_answer", key + " " + (i + 1) + " of the answer has no test or no reason");
             }
             String reason = optText(entry, "reason");
             entry.put("reason", reason.length() > MAX_REASON ? reason.substring(0, MAX_REASON) : reason);
         }
-        if ( worlds.length() == 0 && wrong.length() == 0 ) {
-            throw new AiException("bad_answer", "the answer fixes no test, and says of none that the program is wrong");
+        return list;
+    }
+
+    /**
+     * @param content the model's answer to analyze
+     * @return the answer: analysis_status ok or insufficient_evidence, likely_intent with a description, and the arrays decision_points,
+     *         scenario_paths, scenarios, uncertainties and unsupported_features (empty if missing or null); the browser checks the rest against the
+     *         program's decisions
+     * @throws AiException bad_answer
+     */
+    public static JSONObject checkAnalyze(String content) {
+        JSONObject answer = parse(content);
+        String status = answer.optString("analysis_status", "");
+        if ( !"ok".equals(status) && !"insufficient_evidence".equals(status) ) {
+            throw new AiException("bad_answer", "the answer's analysis_status is not ok or insufficient_evidence");
         }
-        return answer.put("worlds", worlds).put("program_wrong", wrong);
+        JSONObject intent = answer.optJSONObject("likely_intent");
+        if ( intent == null || optText(intent, "description") == null ) {
+            throw new AiException("bad_answer", "the answer has no likely_intent with a description");
+        }
+        for ( String key : new String[] {
+            "decision_points",
+            "scenario_paths",
+            "scenarios",
+            "uncertainties",
+            "unsupported_features"
+        } ) {
+            answer.put(key, optArray(answer, key));
+        }
+        if ( "ok".equals(status) && answer.getJSONArray("scenarios").length() == 0 ) {
+            throw new AiException("bad_answer", "the analysis is ok but has no scenarios: give them, or say insufficient_evidence");
+        }
+        return answer;
     }
 
     /** an array of the answer: missing or null is empty */

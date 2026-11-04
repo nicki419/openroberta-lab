@@ -1,11 +1,24 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "The answer of the task generate: simulation worlds with scenario tests",
+  "title": "The answer of the task generate: simulation worlds with scenario tests, each with its path, inputs, expected results and postconditions; the coverage plan",
   "type": "object",
-  "required": ["worlds"],
+  "required": ["generation_status", "worlds", "coverage_plan", "consolidation_notes", "deferred_scenarios", "warnings"],
   "additionalProperties": false,
   "properties": {
-    "worlds": {"type": "array", "minItems": 1, "maxItems": 3, "items": {"$ref": "#/$defs/world"}}
+    "generation_status": {"enum": ["ready_for_review", "partial", "no_valid_scenarios"]},
+    "worlds": {"type": "array", "maxItems": 3, "items": {"$ref": "#/$defs/world"}},
+    "coverage_plan": {"$ref": "#/$defs/coverage_plan"},
+    "consolidation_notes": {"type": "array", "items": {"type": "string"}},
+    "deferred_scenarios": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["scenario_id", "reason"],
+        "additionalProperties": false,
+        "properties": {"scenario_id": {"type": "string"}, "reason": {"type": "string", "minLength": 1}}
+      }
+    },
+    "warnings": {"type": "array", "items": {"type": "string"}}
   },
   "$defs": {
     "world": {
@@ -16,7 +29,7 @@
         "name": {"type": "string", "minLength": 1, "maxLength": 80},
         "world": {"$ref": "#/$defs/floor"},
         "base": {"const": "existing"},
-        "tests": {"type": "array", "minItems": 1, "maxItems": 5, "items": {"$ref": "#/$defs/test"}}
+        "tests": {"type": "array", "minItems": 1, "maxItems": 8, "items": {"$ref": "#/$defs/test"}}
       },
       "oneOf": [{"required": ["world"]}, {"required": ["base"]}]
     },
@@ -26,8 +39,12 @@
       "additionalProperties": false,
       "properties": {
         "background": {"const": "peach"},
-        "size": {"type": "object", "required": ["w", "h"], "additionalProperties": false,
-                 "properties": {"w": {"type": "integer", "minimum": 50, "maximum": 600}, "h": {"type": "integer", "minimum": 50, "maximum": 600}}},
+        "size": {
+          "type": "object",
+          "required": ["w", "h"],
+          "additionalProperties": false,
+          "properties": {"w": {"type": "integer", "minimum": 50, "maximum": 600}, "h": {"type": "integer", "minimum": 50, "maximum": 600}}
+        },
         "starts": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/start"}},
         "items": {"type": "array", "items": {"$ref": "#/$defs/item"}}
       }
@@ -37,8 +54,11 @@
       "required": ["id", "name", "x", "y", "heading"],
       "additionalProperties": false,
       "properties": {
-        "id": {"type": "string"}, "name": {"type": "string"},
-        "x": {"type": "number"}, "y": {"type": "number"}, "heading": {"type": "number"}
+        "id": {"type": "string"},
+        "name": {"type": "string"},
+        "x": {"type": "number"},
+        "y": {"type": "number"},
+        "heading": {"type": "number"}
       }
     },
     "item": {
@@ -50,17 +70,35 @@
         "name": {"type": "string"},
         "kind": {"enum": ["rect", "circle", "triangle", "line", "tunnel"]},
         "role": {"enum": ["obstacle", "goal", "fail"]},
-        "x": {"type": "number"}, "y": {"type": "number"},
-        "w": {"type": "number", "exclusiveMinimum": 0}, "h": {"type": "number", "exclusiveMinimum": 0},
+        "x": {"type": "number"},
+        "y": {"type": "number"},
+        "w": {"type": "number", "exclusiveMinimum": 0},
+        "h": {"type": "number", "exclusiveMinimum": 0},
         "r": {"type": "number", "exclusiveMinimum": 0},
         "points": {"type": "array", "items": {"type": "array", "items": {"type": "number"}, "minItems": 2, "maxItems": 2}},
-        "smooth": {"type": "boolean"}, "closed": {"type": "boolean"},
+        "smooth": {"type": "boolean"},
+        "closed": {"type": "boolean"},
         "width": {"type": "number", "exclusiveMinimum": 0}
       }
     },
     "test": {
       "type": "object",
-      "required": ["name", "scenario", "start", "max_time_ms", "checks"],
+      "required": [
+        "name",
+        "scenario",
+        "start",
+        "max_time_ms",
+        "checks",
+        "scenario_id",
+        "path_ids",
+        "planned_branch_ids",
+        "input_selection",
+        "expected_results",
+        "postconditions",
+        "oracle",
+        "source_block_ids",
+        "reason"
+      ],
       "additionalProperties": false,
       "properties": {
         "name": {"type": "string", "minLength": 1, "maxLength": 80},
@@ -70,49 +108,225 @@
         "max_time_ms": {"type": "integer", "minimum": 100, "maximum": 120000, "multipleOf": 100},
         "world": {"type": "array", "items": {"$ref": "#/$defs/event"}},
         "globals": {"type": "object", "additionalProperties": {"$ref": "#/$defs/value"}},
-        "checks": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/check"}}
+        "checks": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/check"}},
+        "scenario_id": {"type": "string", "pattern": "^S[0-9]+$"},
+        "path_ids": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+        "planned_branch_ids": {"type": "array", "items": {"type": "string"}},
+        "input_selection": {"$ref": "#/$defs/input_selection"},
+        "expected_results": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+        "postconditions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["description", "check_indices"],
+            "additionalProperties": false,
+            "properties": {
+              "description": {"type": "string", "minLength": 1},
+              "check_indices": {"type": "array", "minItems": 1, "items": {"type": "integer", "minimum": 0}}
+            }
+          }
+        },
+        "oracle": {
+          "type": "object",
+          "required": ["basis", "confidence", "assumptions", "review_required"],
+          "additionalProperties": false,
+          "properties": {
+            "basis": {"enum": ["learner_description", "inferred_from_program", "applicable_safety"]},
+            "confidence": {"enum": ["low", "medium", "high"]},
+            "assumptions": {"type": "array", "items": {"type": "string"}},
+            "review_required": {"type": "boolean"}
+          }
+        },
+        "source_block_ids": {"type": "array", "items": {"type": "string", "pattern": "^b[0-9]+$"}},
+        "reason": {"type": "string", "minLength": 1}
+      }
+    },
+    "input_selection": {
+      "type": "object",
+      "required": ["equivalence_partitions", "boundary_values"],
+      "additionalProperties": false,
+      "properties": {
+        "equivalence_partitions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["dimension", "class", "selected_realization", "realized_by"],
+            "additionalProperties": false,
+            "properties": {
+              "dimension": {"type": "string"},
+              "class": {"type": "string"},
+              "selected_realization": {"type": "string", "minLength": 1},
+              "realized_by": {"$ref": "#/$defs/realized_by"}
+            }
+          }
+        },
+        "boundary_values": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["dimension", "boundary", "side", "selected_realization", "realized_by", "rationale"],
+            "additionalProperties": false,
+            "properties": {
+              "dimension": {"type": "string"},
+              "boundary": {"type": "string"},
+              "side": {"enum": ["below", "at", "above", "inside", "outside"]},
+              "selected_realization": {"type": "string", "minLength": 1},
+              "realized_by": {"$ref": "#/$defs/realized_by"},
+              "rationale": {"type": "string", "minLength": 1}
+            }
+          }
+        }
+      }
+    },
+    "realized_by": {
+      "type": "object",
+      "additionalProperties": false,
+      "minProperties": 1,
+      "properties": {
+        "start": {"type": "string"},
+        "items": {"type": "array", "items": {"type": "string"}},
+        "events": {"type": "array", "items": {"type": "integer", "minimum": 0}},
+        "globals": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "coverage_plan": {
+      "type": "object",
+      "required": ["target_branch_ids", "planned_covered_branch_ids", "deferred_branch_ids", "deferred_inputs"],
+      "additionalProperties": false,
+      "properties": {
+        "target_branch_ids": {"type": "array", "items": {"type": "string"}},
+        "planned_covered_branch_ids": {"type": "array", "items": {"type": "string"}},
+        "deferred_branch_ids": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["branch_id", "reason"],
+            "additionalProperties": false,
+            "properties": {"branch_id": {"type": "string"}, "reason": {"type": "string", "minLength": 1}}
+          }
+        },
+        "deferred_inputs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["dimension", "value", "reason"],
+            "additionalProperties": false,
+            "properties": {"dimension": {"type": "string"}, "value": {"type": "string"}, "reason": {"type": "string", "minLength": 1}}
+          }
+        }
       }
     },
     "event": {
       "oneOf": [
-        {"type": "object", "required": ["event", "at"], "additionalProperties": false,
-         "properties": {"event": {"const": "clap"}, "at": {"type": "integer", "minimum": 0}}},
-        {"type": "object", "required": ["event", "port", "at"], "additionalProperties": false,
-         "properties": {"event": {"const": "key"}, "port": {"enum": ["PLAY", "REC"]}, "at": {"type": "integer", "minimum": 0}}}
+        {
+          "type": "object",
+          "required": ["event", "at"],
+          "additionalProperties": false,
+          "properties": {"event": {"const": "clap"}, "at": {"type": "integer", "minimum": 0}}
+        },
+        {
+          "type": "object",
+          "required": ["event", "port", "at"],
+          "additionalProperties": false,
+          "properties": {"event": {"const": "key"}, "port": {"enum": ["PLAY", "REC"]}, "at": {"type": "integer", "minimum": 0}}
+        }
       ]
     },
-    "value": {
-      "oneOf": [{"type": "integer"}, {"type": "boolean"}, {"type": "array", "items": {"type": "integer"}}]
-    },
+    "value": {"oneOf": [{"type": "integer"}, {"type": "boolean"}, {"type": "array", "items": {"type": "integer"}}]},
     "does": {
-      "enum": ["drives_forward", "drives_backward", "turns_left", "turns_right", "stands_still", "left_led_on", "left_led_off",
-               "right_led_on", "right_led_off", "leds_on", "leds_off", "plays_sound", "silent"]
+      "enum": [
+        "drives_forward",
+        "drives_backward",
+        "turns_left",
+        "turns_right",
+        "stands_still",
+        "left_led_on",
+        "left_led_off",
+        "right_led_on",
+        "right_led_off",
+        "leds_on",
+        "leds_off",
+        "plays_sound",
+        "silent"
+      ]
     },
     "check": {
       "oneOf": [
-        {"type": "object", "required": ["check"], "additionalProperties": false,
-         "properties": {"check": {"const": "reaches"}, "item": {"type": "string"}}},
-        {"type": "object", "required": ["check"], "additionalProperties": false,
-         "properties": {"check": {"const": "never_touches"}}},
-        {"type": "object", "required": ["check", "item"], "additionalProperties": false,
-         "properties": {"check": {"const": "ends_in"}, "item": {"type": "string"}}},
-        {"type": "object", "required": ["check"], "additionalProperties": false,
-         "properties": {"check": {"const": "never_bumps"}, "item": {"type": "string"}}},
-        {"type": "object", "required": ["check", "does"], "additionalProperties": false,
-         "properties": {"check": {"const": "does"}, "does": {"$ref": "#/$defs/does"}, "after_ms": {"type": "integer", "minimum": 0}}},
-        {"type": "object", "required": ["check", "when", "does"], "additionalProperties": false,
-         "properties": {"check": {"const": "whenever"},
-                        "when": {"enum": ["line", "no_line", "obstacle_ahead", "obstacle_left", "obstacle_right", "no_obstacle",
-                                          "left_light_below", "left_light_above", "right_light_below", "right_light_above",
-                                          "sound", "play_key", "rec_key"]},
-                        "percent": {"type": "integer", "minimum": 0, "maximum": 100},
-                        "does": {"$ref": "#/$defs/does"}, "after_ms": {"type": "integer", "minimum": 0}}},
-        {"type": "object", "required": ["check", "event", "within_ms", "does"], "additionalProperties": false,
-         "properties": {"check": {"const": "after"}, "event": {"enum": ["clap", "key", "line_start", "line_end", "obstacle"]},
-                        "within_ms": {"type": "integer", "minimum": 1}, "does": {"$ref": "#/$defs/does"}}},
-        {"type": "object", "required": ["check", "variable", "op", "value"], "additionalProperties": false,
-         "properties": {"check": {"const": "variable"}, "variable": {"type": "string"},
-                        "op": {"enum": ["EQ", "NEQ", "LT", "LTE", "GT", "GTE"]}, "value": {"$ref": "#/$defs/value"}}}
+        {
+          "type": "object",
+          "required": ["check"],
+          "additionalProperties": false,
+          "properties": {"check": {"const": "reaches"}, "item": {"type": "string"}}
+        },
+        {"type": "object", "required": ["check"], "additionalProperties": false, "properties": {"check": {"const": "never_touches"}}},
+        {
+          "type": "object",
+          "required": ["check", "item"],
+          "additionalProperties": false,
+          "properties": {"check": {"const": "ends_in"}, "item": {"type": "string"}}
+        },
+        {
+          "type": "object",
+          "required": ["check"],
+          "additionalProperties": false,
+          "properties": {"check": {"const": "never_bumps"}, "item": {"type": "string"}}
+        },
+        {
+          "type": "object",
+          "required": ["check", "does"],
+          "additionalProperties": false,
+          "properties": {"check": {"const": "does"}, "does": {"$ref": "#/$defs/does"}, "after_ms": {"type": "integer", "minimum": 0}}
+        },
+        {
+          "type": "object",
+          "required": ["check", "when", "does"],
+          "additionalProperties": false,
+          "properties": {
+            "check": {"const": "whenever"},
+            "when": {
+              "enum": [
+                "line",
+                "no_line",
+                "obstacle_ahead",
+                "obstacle_left",
+                "obstacle_right",
+                "no_obstacle",
+                "left_light_below",
+                "left_light_above",
+                "right_light_below",
+                "right_light_above",
+                "sound",
+                "play_key",
+                "rec_key"
+              ]
+            },
+            "percent": {"type": "integer", "minimum": 0, "maximum": 100},
+            "does": {"$ref": "#/$defs/does"},
+            "after_ms": {"type": "integer", "minimum": 0}
+          }
+        },
+        {
+          "type": "object",
+          "required": ["check", "event", "within_ms", "does"],
+          "additionalProperties": false,
+          "properties": {
+            "check": {"const": "after"},
+            "event": {"enum": ["clap", "key", "line_start", "line_end", "obstacle"]},
+            "within_ms": {"type": "integer", "minimum": 1},
+            "does": {"$ref": "#/$defs/does"}
+          }
+        },
+        {
+          "type": "object",
+          "required": ["check", "variable", "op", "value"],
+          "additionalProperties": false,
+          "properties": {
+            "check": {"const": "variable"},
+            "variable": {"type": "string"},
+            "op": {"enum": ["EQ", "NEQ", "LT", "LTE", "GT", "GTE"]},
+            "value": {"$ref": "#/$defs/value"}
+          }
+        }
       ]
     }
   }

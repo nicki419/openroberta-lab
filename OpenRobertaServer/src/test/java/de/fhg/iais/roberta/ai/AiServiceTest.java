@@ -195,8 +195,9 @@ public class AiServiceTest {
         String prompt = messages.getJSONObject(1).getString("content");
         Assert.assertTrue(prompt.startsWith("## The program\n\nNEPO:\n```xml\n<block_set robottype=\"edison\">"));
         Assert.assertFalse(prompt.contains("01-first-steps"));
-        Assert.assertTrue(prompt.contains("<block type=\"robActions_motorDiff_on\">"));
-        Assert.assertFalse(prompt.contains("Pd2"));
+        Assert.assertTrue(prompt.contains("<block type=\"robActions_motorDiff_on\" id=\"Pd2\">")); // the ids stay: the analysis names blocks by them
+        Assert.assertFalse(prompt.contains("## The program's decisions")); // only for analyze, generate and fix
+        Assert.assertFalse(prompt.contains("## The analysis"));
         Assert.assertFalse(prompt.contains("robBrick_Edison-Brick"));
         Assert.assertTrue(prompt.contains("EdPy:\n```python\nwhile True:\n    _diffDrive(Ed.FORWARD, 40, Ed.DISTANCE_UNLIMITED)\n```"));
         Assert.assertFalse(prompt.contains("_shorten"));
@@ -267,6 +268,74 @@ public class AiServiceTest {
         Assert.assertEquals(generateAnswer().toString(), messages.getJSONObject(2).getString("content"));
         Assert.assertTrue(messages.getJSONObject(3).getString("content").contains("- test \"From A\": start C is not in the world\n"));
         Assert.assertTrue(outcome.event.getString("repair").startsWith("These problems were found"));
+        Assert.assertTrue(messages.getJSONObject(3).getString("content").endsWith("Answer again with the whole corrected answer.\n"));
+        Assert.assertTrue(prompt.contains("## The program's decisions\n\nNot available.\n\n"));
+        Assert.assertTrue(prompt.contains("## The analysis\n\nNone.\n\n## Task: generate"));
+        Assert.assertEquals(AiService.CONTRACT, outcome.meta.getString("contract"));
+    }
+
+    private static JSONArray decisions() {
+        return new JSONArray()
+            .put(
+                new JSONObject()
+                    .put("id", "D1")
+                    .put("block", "b3")
+                    .put("kind", "if")
+                    .put("label", "if get line light senso...")
+                    .put(
+                        "outcomes",
+                        new JSONArray()
+                            .put(new JSONObject().put("id", "D1.1").put("outcome", "the condition holds"))
+                            .put(new JSONObject().put("id", "D1.else").put("outcome", "the condition doesn't hold: the else part runs"))));
+    }
+
+    private static JSONObject analyzeAnswer() {
+        return new JSONObject()
+            .put("analysis_status", "ok")
+            .put("likely_intent", new JSONObject().put("description", "Follow the line.").put("confidence", "high").put("basis", "inferred_from_program"))
+            .put("program_facts", new JSONObject())
+            .put("decision_points", new JSONArray())
+            .put("scenario_paths", new JSONArray())
+            .put("scenarios", new JSONArray().put(new JSONObject().put("id", "S1")));
+    }
+
+    @Test
+    public void analyzeSendsTheProgramsDecisions() throws Exception {
+        script(200, completion(analyzeAnswer(), "stop"));
+        AiService service = service(KEY);
+        JSONObject data = data().put("intent", "Follow the black line.").put("sentence", JSONObject.NULL).put("decisions", decisions());
+        AiService.Outcome outcome = service.call(AiService.ANALYZE, 7, data);
+        Assert.assertTrue(outcome.message, outcome.ok);
+        Assert.assertEquals("analyze", outcome.event.getString("call"));
+        Assert.assertEquals(0, outcome.answer.getJSONArray("uncertainties").length()); // missing: empty
+        JSONObject body = new JSONObject(this.requests.get(0).getString("body"));
+        Assert.assertEquals("high", body.getString("reasoning_effort")); // as generate
+        String prompt = body.getJSONArray("messages").getJSONObject(1).getString("content");
+        Assert
+            .assertTrue(
+                prompt,
+                prompt
+                    .contains(
+                        "\n\n## The program's decisions\n\n- D1: block b3, if \"if get line light senso...\"\n  - D1.1: the condition holds\n  - D1.else: the condition doesn't hold: the else part runs\n\n## The learner's tests"));
+        Assert.assertFalse(prompt.contains("## The analysis"));
+        Assert.assertTrue(prompt, prompt.endsWith("## Task: analyze\n\nThe intent you guessed: \"Follow the black line.\"\nThe learner wrote no sentence.\n"));
+
+        script(200, completion(analyzeAnswer().put("scenarios", new JSONArray()), "stop"));
+        Assert.assertEquals("bad_answer", service.call(AiService.ANALYZE, 7, data).error); // ok, but no scenarios
+        script(200, completion(analyzeAnswer().put("analysis_status", "maybe"), "stop"));
+        Assert.assertEquals("bad_answer", service.call(AiService.ANALYZE, 7, data).error);
+        script(200, completion(analyzeAnswer().put("analysis_status", "insufficient_evidence").put("scenarios", new JSONArray()), "stop"));
+        Assert.assertTrue(service.call(AiService.ANALYZE, 7, data).ok);
+        JSONArray bad = decisions();
+        bad.getJSONObject(0).getJSONArray("outcomes").getJSONObject(1).put("id", "D2.else");
+        Assert.assertEquals("bad_request", service.call(AiService.ANALYZE, 7, data().put("intent", "Drive.").put("decisions", bad)).error); // not an outcome of D1
+        Assert.assertEquals(4, this.requests.size());
+
+        script(200, completion(generateAnswer(), "stop"));
+        JSONObject generate = data().put("intent", "Follow the black line.").put("decisions", decisions()).put("analysis", analyzeAnswer());
+        Assert.assertTrue(service.call(AiService.GENERATE, 7, generate).ok);
+        String prompt2 = new JSONObject(this.requests.get(4).getString("body")).getJSONArray("messages").getJSONObject(1).getString("content");
+        Assert.assertTrue(prompt2, prompt2.contains("## The analysis\n\n```json\n" + analyzeAnswer() + "\n```\n\n## Task: generate"));
     }
 
     @Test
@@ -309,6 +378,7 @@ public class AiServiceTest {
         AiService.Outcome fixed = service.call(AiService.FIX, 7, data);
         Assert.assertTrue(fixed.message, fixed.ok);
         Assert.assertEquals(0, fixed.answer.getJSONArray("program_wrong").length()); // missing: none
+        Assert.assertEquals(0, fixed.answer.getJSONArray("doubtful").length());
         Assert.assertEquals("bad_request", service.call(AiService.FIX, 7, data().put("intent", "Drive.")).error); // no failed tests
         Assert.assertEquals(3, this.requests.size());
     }

@@ -1,0 +1,146 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "The answer of the task analyze: the program's decisions, the paths that target their outcomes, the inputs of each path, the scenarios",
+  "type": "object",
+  "required": [
+    "analysis_status",
+    "likely_intent",
+    "program_facts",
+    "decision_points",
+    "scenario_paths",
+    "scenarios",
+    "uncertainties",
+    "unsupported_features"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "analysis_status": {"enum": ["ok", "insufficient_evidence"]},
+    "likely_intent": {
+      "type": "object",
+      "required": ["description", "confidence", "basis"],
+      "additionalProperties": false,
+      "properties": {
+        "description": {"type": "string", "minLength": 1, "maxLength": 200},
+        "confidence": {"$ref": "#/$defs/confidence"},
+        "basis": {"enum": ["learner_description", "inferred_from_program"]}
+      }
+    },
+    "program_facts": {
+      "type": "object",
+      "required": ["sensors", "actions", "control_flow", "variables", "functions"],
+      "additionalProperties": false,
+      "properties": {
+        "sensors": {"type": "array", "items": {"$ref": "#/$defs/fact"}},
+        "actions": {"type": "array", "items": {"$ref": "#/$defs/fact"}},
+        "control_flow": {"type": "array", "items": {"type": "string"}},
+        "variables": {"type": "array", "items": {"type": "string"}},
+        "functions": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "decision_points": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "condition", "source_block_ids", "branches"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {"type": "string", "pattern": "^D[0-9]+$"},
+          "condition": {"type": "string", "minLength": 1},
+          "source_block_ids": {"$ref": "#/$defs/blocks"},
+          "branches": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": ["id", "outcome", "feasibility", "reason"],
+              "additionalProperties": false,
+              "properties": {
+                "id": {"type": "string"},
+                "outcome": {"type": "string", "minLength": 1},
+                "feasibility": {"$ref": "#/$defs/testability"},
+                "reason": {"type": ["string", "null"]}
+              }
+            }
+          }
+        }
+      }
+    },
+    "scenario_paths": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "scenario_id", "branch_ids", "input_dimensions", "testability"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {"type": "string", "pattern": "^P[0-9]+$"},
+          "scenario_id": {"type": "string"},
+          "branch_ids": {"type": "array", "items": {"type": "string"}},
+          "input_dimensions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["dimension", "equivalence_classes", "boundary_candidates"],
+              "additionalProperties": false,
+              "properties": {
+                "dimension": {"type": "string", "minLength": 1},
+                "equivalence_classes": {"type": "array", "items": {"type": "string", "minLength": 1}},
+                "boundary_candidates": {"type": "array", "items": {"type": "string", "minLength": 1}}
+              }
+            }
+          },
+          "testability": {"$ref": "#/$defs/testability"}
+        }
+      }
+    },
+    "scenarios": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "path_ids",
+          "title",
+          "category",
+          "initial_condition",
+          "trigger",
+          "coded_response",
+          "expected_response_hypothesis",
+          "oracle_basis",
+          "assumptions",
+          "source_block_ids",
+          "testability",
+          "confidence"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {"type": "string", "pattern": "^S[0-9]+$"},
+          "path_ids": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+          "title": {"type": "string", "minLength": 1, "maxLength": 80},
+          "category": {"enum": ["nominal", "alternative", "boundary", "adverse", "recovery", "timing", "safety"]},
+          "initial_condition": {"type": "string"},
+          "trigger": {"type": "string"},
+          "coded_response": {"type": "string"},
+          "expected_response_hypothesis": {"type": ["string", "null"]},
+          "oracle_basis": {"enum": ["learner_description", "inferred", "applicable_safety", "unknown"]},
+          "assumptions": {"type": "array", "items": {"type": "string"}},
+          "source_block_ids": {"$ref": "#/$defs/blocks"},
+          "testability": {"$ref": "#/$defs/testability"},
+          "confidence": {"$ref": "#/$defs/confidence"}
+        }
+      }
+    },
+    "uncertainties": {"type": "array", "items": {"type": "string"}},
+    "unsupported_features": {"type": "array", "items": {"type": "string"}}
+  },
+  "$defs": {
+    "confidence": {"enum": ["low", "medium", "high"]},
+    "testability": {"enum": ["supported", "uncertain", "unsupported"]},
+    "blocks": {"type": "array", "items": {"type": "string", "pattern": "^b[0-9]+$"}},
+    "fact": {
+      "type": "object",
+      "required": ["name", "source_block_ids"],
+      "additionalProperties": false,
+      "properties": {"name": {"type": "string"}, "source_block_ids": {"$ref": "#/$defs/blocks"}}
+    }
+  }
+}

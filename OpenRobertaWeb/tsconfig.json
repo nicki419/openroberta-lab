@@ -338,6 +338,9 @@
       "nepoTest.ai": [
         "app/nepotest/nepoTest.ai"
       ],
+      "nepoTest.aiStrategy": [
+        "app/nepotest/nepoTest.aiStrategy"
+      ],
       "tests.controller": [
         "app/roberta/controller/tests.controller"
       ],

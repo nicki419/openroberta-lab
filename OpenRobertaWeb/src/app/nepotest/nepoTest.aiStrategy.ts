@@ -1,0 +1,650 @@
+/**
+ * The testing strategy of the AI test assistant (docs/tests: AI_Test_Generation_Orchestration_v3 §6.3, AnalysisAgent_v3, TestGenerationAgent_v3),
+ * where code and not the model decides:
+ *
+ * 1. branch coverage: the program's decisions and their outcomes are found here, in its blocks (indexOf: every if, wait until and repeat while /
+ *    until, the decisions nepoTest.simProgram scanDecisions instruments), with ids (D1, D1.1, D1.else, …) the model must use. The analysis (task
+ *    analyze) says which outcomes the simulator can make happen and plans paths that target them (checkAnalysis). The runs show which outcomes really
+ *    happened (seenIn: the run report's trace counts each decision's outcomes): planned is never taken for happened;
+ * 2. equivalence partitioning and boundary value analysis: every test names the input class and the boundary side it stands for, word for word from
+ *    the analysis, and what of the test realizes it (checkTests);
+ * 3. a complete test: its path, its inputs, its expected results, its postconditions (with the checks that decide them), where its expectation
+ *    comes from (oracle), and at least one positive check (anti-triviality);
+ * 4. consolidation: every outcome, class and boundary side of the analysis is tested or deferred with a reason (checkTests); the coverage plan is
+ *    computed from the tests that are left (planOf), never taken from the model.
+ *
+ * And the semantics of a run: a test that passed but had a check with nothing to decide, or whose planned outcome never happened, is not checked
+ * (notCheckedWhy); a fix may change only a test's inputs, never what it expects (frozenProblems).
+ *
+ * The model sees the program's blocks with short ids (b1, b2, … in document order: shortIds); the index maps them back to the blocks' ids.
+ */
+import * as FORMAT from 'nepoTest.aiFormat';
+
+export const MAX_TESTS = 8;
+
+const IFS = ['robControls_if', 'robControls_ifElse', 'controls_if'];
+const WAITS = ['robControls_wait_for', 'robControls_wait'];
+const WHILES = ['controls_whileUntil'];
+const RUNS = ['robControls_start', 'robProcedures_defnoreturn', 'robProcedures_defreturn']; // the instances that run (others are left lying)
+const POSITIVE = ['reaches', 'ends_in', 'does', 'whenever', 'after', 'variable']; // the others (never_bumps, never_touches) hold for a robot that never moves
+const TESTABILITY = ['supported', 'uncertain', 'unsupported'];
+const CONFIDENCE = ['low', 'medium', 'high'];
+const CATEGORIES = ['nominal', 'alternative', 'boundary', 'adverse', 'recovery', 'timing', 'safety'];
+const SCENARIO_BASES = ['learner_description', 'inferred', 'applicable_safety', 'unknown'];
+const ORACLE_BASES = ['learner_description', 'inferred_from_program', 'applicable_safety'];
+const SIDES = ['below', 'at', 'above', 'inside', 'outside'];
+const STATUSES = ['ready_for_review', 'partial', 'no_valid_scenarios'];
+
+export interface Outcome {
+    id: string; // D1.1, D1.else, D1.waits, D1.repeats, D1.ends
+    outcome: string; // in words
+    count: (c: { [k: number]: number[] }) => number; // how often it happened, from the decision's counts per condition k: [yes, no]
+}
+
+export interface Decision {
+    id: string; // D1
+    block: string; // the block's id
+    short: string; // its short id (b7)
+    kind: string; // if | wait | while
+    label: string;
+    outcomes: Outcome[];
+}
+
+export interface Index {
+    decisions: Decision[];
+    outcome: { [id: string]: { decision: Decision; outcome: Outcome } };
+    nepo: string; // the program's XML with the short ids
+    toShort: { [block: string]: string };
+    toReal: { [short: string]: string };
+}
+
+/** an outcome of the program's decisions and what became of it: planned by a test, deferred (why), and how often the runs took it */
+export interface OutcomePlan {
+    id: string;
+    decision: string;
+    block: string; // the block's id (for a chip)
+    words: string;
+    planned: string[]; // the names of the tests that plan it
+    deferred: string; // why no test plans it (the model's reason, the analysis' feasibility, or: lost when tests were left out), or null
+    seen: number; // after the runs: how often it happened in them (null before)
+}
+
+export interface Plan {
+    outcomes: OutcomePlan[];
+    target: string[]; // the outcomes on the analysis' paths
+    planned: string[];
+    deferred: { branch_id: string; reason: string }[];
+    lost: string[]; // targets neither planned nor deferred (tests were left out)
+    deferredInputs: { dimension: string; value: string; reason: string }[];
+    deferredScenarios: { scenario_id: string; reason: string }[];
+    corrected: boolean; // the model's planned_covered_branch_ids differed from what its tests plan
+}
+
+// ------------------------------------------------------------------------------------------------ the program's decisions
+
+/**
+ * the program's decisions, from its XML (as the Program tab has it), with their outcomes and the short ids of its blocks
+ *
+ * @param label the label of a block (for the model and the panel), by its id
+ */
+export function indexOf(programXml: string, label?: (block: string) => string): Index {
+    const index: Index = { decisions: [], outcome: {}, nepo: programXml || '', toShort: {}, toReal: {} };
+    const doc = new DOMParser().parseFromString(programXml || '', 'text/xml');
+    if (!doc.documentElement || doc.getElementsByTagName('parsererror').length) {
+        return index;
+    }
+    const blocks = Array.prototype.slice.call(doc.getElementsByTagName('block')) as Element[];
+    blocks.forEach((b, i) => {
+        const real = b.getAttribute('id') || 'n' + i;
+        const short = 'b' + (i + 1);
+        index.toShort[real] = short;
+        index.toReal[short] = real;
+    });
+    for (const b of blocks) {
+        const type = b.getAttribute('type');
+        const kind = IFS.indexOf(type) >= 0 ? 'if' : WAITS.indexOf(type) >= 0 ? 'wait' : WHILES.indexOf(type) >= 0 ? 'while' : null;
+        if (!kind || !runs(b)) {
+            continue;
+        }
+        const real = b.getAttribute('id');
+        const d: Decision = { id: 'D' + (index.decisions.length + 1), block: real, short: index.toShort[real], kind: kind, label: '', outcomes: [] };
+        d.label = (label && real && label(real)) || type;
+        d.outcomes = outcomesOf(d.id, kind, b);
+        index.decisions.push(d);
+        d.outcomes.forEach((o) => (index.outcome[o.id] = { decision: d, outcome: o }));
+    }
+    blocks.forEach((b) => b.setAttribute('id', index.toShort[b.getAttribute('id')] || b.getAttribute('id')));
+    index.nepo = new XMLSerializer().serializeToString(doc);
+    return index;
+}
+
+/** does a block run: is it in an instance that begins with the start block or a function's definition? */
+function runs(block: Element): boolean {
+    let e: Element = block;
+    while (e.parentElement && e.parentElement.localName !== 'instance') {
+        e = e.parentElement;
+    }
+    const instance = e.parentElement;
+    const first = instance ? Array.prototype.filter.call(instance.children, (c: Element) => c.localName === 'block')[0] : null;
+    return !instance || (first && RUNS.indexOf(first.getAttribute('type')) >= 0);
+}
+
+/** the inputs of a block itself (its value and statement elements, also inside repetitions), not those of the blocks in them */
+function ownInputs(block: Element, tag: string): Element[] {
+    const out: Element[] = [];
+    for (let c = block.firstElementChild; c; c = c.nextElementSibling) {
+        if (c.localName === tag) {
+            out.push(c);
+        } else if (c.localName === 'repetitions') {
+            out.push(...ownInputs(c, tag));
+        }
+    }
+    return out;
+}
+
+function mutation(block: Element, name: string): number {
+    const m = Array.prototype.filter.call(block.children, (c: Element) => c.localName === 'mutation')[0] as Element;
+    const v = m ? parseInt(m.getAttribute(name), 10) : NaN;
+    return isNaN(v) ? 0 : v;
+}
+
+/**
+ * the outcomes of a decision, and how to count them from the record (nepoTest.simProgram Recorder: for condition k of an if or a wait, how often it
+ * held and how often not; for a while loop, k 0: repeated or ended). A later condition is only asked when the ones before it didn't hold.
+ */
+function outcomesOf(id: string, kind: string, block: Element): Outcome[] {
+    const yes = (k: number) => (c: { [k: number]: number[] }) => (c[k] ? c[k][0] : 0);
+    const no = (k: number) => (c: { [k: number]: number[] }) => (c[k] ? c[k][1] : 0);
+    if (kind === 'while') {
+        return [
+            { id: id + '.repeats', outcome: 'the loop runs (again)', count: yes(0) },
+            { id: id + '.ends', outcome: 'the loop ends', count: no(0) },
+        ];
+    }
+    const names = ownInputs(block, 'value')
+        .map((v) => v.getAttribute('name') || '')
+        .filter((n) => (kind === 'if' ? /^IF\d+$/ : /^WAIT\d+$/).test(n));
+    const n = Math.max(1, kind === 'if' ? 1 + mutation(block, 'elseif') : 1 + mutation(block, 'wait'), names.length);
+    const out: Outcome[] = [];
+    for (let k = 0; k < n; k++) {
+        const which = n === 1 ? 'the condition holds' : 'condition ' + (k + 1) + ' holds' + (k ? ' (the ones before it don\'t)' : '');
+        out.push({ id: id + '.' + (k + 1), outcome: kind === 'wait' ? which + ': it goes on' : which, count: yes(k) });
+    }
+    if (kind === 'wait') {
+        out.push({ id: id + '.waits', outcome: (n === 1 ? "the condition doesn't hold yet" : 'no condition holds yet') + ': it waits', count: no(n - 1) });
+    } else {
+        const hasElse = block.getAttribute('type') === 'robControls_ifElse' || mutation(block, 'else') === 1;
+        const none = n === 1 ? "the condition doesn't hold" : 'no condition holds';
+        out.push({ id: id + '.else', outcome: none + (hasElse ? ': the else part runs' : ': nothing of it runs'), count: no(n - 1) });
+    }
+    return out;
+}
+
+/** the decisions as the model gets them (OpenRobertaServer AiPrompts: "The program's decisions") */
+export function decisionsForModel(index: Index): any[] {
+    return index.decisions.map((d) => ({ id: d.id, block: d.short, kind: d.kind, label: d.label, outcomes: d.outcomes.map((o) => ({ id: o.id, outcome: o.outcome })) }));
+}
+
+/** the decisions for the telemetry */
+export function decisionsForLog(index: Index): any[] {
+    return index.decisions.map((d) => ({ id: d.id, block: d.block, short: d.short, kind: d.kind, outcomes: d.outcomes.map((o) => o.id) }));
+}
+
+/** how often each outcome of the program's decisions happened in a run (from its report's trace); {} if the run has no trace */
+export function seenIn(report: any, index: Index): { [outcome: string]: number } {
+    const counts: { [block: string]: { [k: number]: number[] } } = {};
+    for (const step of (report && report.trace) || []) {
+        Object.keys(step.decisions || {}).forEach((key) => {
+            const at = key.lastIndexOf(':');
+            const block = key.substring(0, at);
+            const k = Number(key.substring(at + 1));
+            const c = (counts[block] = counts[block] || {});
+            const s = (c[k] = c[k] || [0, 0]);
+            s[0] += step.decisions[key][0];
+            s[1] += step.decisions[key][1];
+        });
+    }
+    const out: { [outcome: string]: number } = {};
+    index.decisions.forEach((d) => d.outcomes.forEach((o) => (out[o.id] = o.count(counts[d.block] || {}))));
+    return out;
+}
+
+// ------------------------------------------------------------------------------------------------ the analysis
+
+function problem(list: FORMAT.Problem[], message: string, world = '', test: string = null): void {
+    list.push({ world: world, test: test, message: message });
+}
+
+function isText(v: any): boolean {
+    return typeof v === 'string' && v.trim().length > 0;
+}
+
+function arrayOf(v: any): any[] {
+    return Array.isArray(v) ? v : [];
+}
+
+/** the analysis' paths that aren't unsupported, and the outcomes on them (the targets of branch coverage) */
+export function targetsOf(analysis: any): string[] {
+    const out: string[] = [];
+    arrayOf(analysis && analysis.scenario_paths)
+        .filter((p: any) => p && p.testability !== 'unsupported')
+        .forEach((p: any) => arrayOf(p.branch_ids).forEach((b: string) => out.indexOf(b) < 0 && out.push(b)));
+    return out;
+}
+
+/**
+ * the problems of an answer of analyze, checked against the program's decisions and the learner's sentence (AnalysisAgent_v3 §7): every decision
+ * with exactly its outcomes, every supported outcome on a path, paths and scenarios naming each other, the blocks real, the enums
+ */
+export function checkAnalysis(answer: any, index: Index, sentence: string): FORMAT.Problem[] {
+    const problems: FORMAT.Problem[] = [];
+    const add = (message: string) => problem(problems, message);
+    const blocksOk = (ids: any, where: string) =>
+        arrayOf(ids).forEach((b: any) => index.toReal[b] === undefined && add(where + ': there is no block "' + b + '" in the program (its blocks are b1 to b' + Object.keys(index.toReal).length + ')'));
+    if (!answer || typeof answer !== 'object') {
+        add('the answer is not an object');
+        return problems;
+    }
+    const basis = sentence ? 'learner_description' : 'inferred_from_program';
+    const intent = answer.likely_intent || {};
+    intent.basis !== basis && add('likely_intent.basis must be "' + basis + '": the learner ' + (sentence ? 'wrote a sentence' : 'wrote no sentence'));
+    CONFIDENCE.indexOf(intent.confidence) < 0 && add('likely_intent.confidence must be low, medium or high');
+    const facts = answer.program_facts || {};
+    arrayOf(facts.sensors).concat(arrayOf(facts.actions)).forEach((f: any) => blocksOk(f && f.source_block_ids, 'program_facts "' + (f && f.name) + '"'));
+
+    // the decisions: every one of the program, with exactly its outcomes
+    const listed: string[] = [];
+    for (const d of arrayOf(answer.decision_points)) {
+        const known = index.decisions.filter((x) => x && d && x.id === d.id)[0];
+        if (!known) {
+            add('decision_points: there is no decision "' + (d && d.id) + '" (the program\'s decisions: ' + (index.decisions.map((x) => x.id).join(', ') || 'none') + ')');
+            continue;
+        }
+        if (listed.indexOf(d.id) >= 0) {
+            add('decision_points: ' + d.id + ' is listed twice');
+            continue;
+        }
+        listed.push(d.id);
+        isText(d.condition) || add('decision ' + d.id + ' needs its condition in words');
+        blocksOk(d.source_block_ids, 'decision ' + d.id);
+        const ids = arrayOf(d.branches).map((b: any) => b && b.id);
+        const want = known.outcomes.map((o) => o.id);
+        const same = ids.length === want.length && want.every((w) => ids.indexOf(w) >= 0);
+        same || add('decision ' + d.id + ': its branches must be exactly ' + want.join(', ') + ' (they are ' + (ids.join(', ') || 'none') + ')');
+        for (const b of arrayOf(d.branches)) {
+            if (!b || want.indexOf(b.id) < 0) {
+                continue;
+            }
+            isText(b.outcome) || add('branch ' + b.id + ' needs its outcome in words');
+            TESTABILITY.indexOf(b.feasibility) < 0 && add('branch ' + b.id + ': feasibility must be supported, uncertain or unsupported');
+            b.feasibility !== 'supported' && !isText(b.reason) && add('branch ' + b.id + ' is ' + b.feasibility + ': say why (reason)');
+        }
+    }
+    index.decisions.filter((x) => listed.indexOf(x.id) < 0).forEach((x) => add('decision_points: decision ' + x.id + ' (block ' + x.short + ') is missing: list every decision of the program'));
+
+    // the paths and the scenarios: they name each other
+    const scenarios: { [id: string]: any } = {};
+    for (const s of arrayOf(answer.scenarios)) {
+        if (!s || !/^S\d+$/.test(String(s.id))) {
+            add('a scenario needs an id S1, S2, …');
+        } else if (scenarios[s.id]) {
+            add('scenario ' + s.id + ' is there twice');
+        } else {
+            scenarios[s.id] = s;
+        }
+    }
+    const paths: { [id: string]: any } = {};
+    for (const p of arrayOf(answer.scenario_paths)) {
+        if (!p || !/^P\d+$/.test(String(p.id))) {
+            add('a path needs an id P1, P2, …');
+            continue;
+        }
+        if (paths[p.id]) {
+            add('path ' + p.id + ' is there twice');
+            continue;
+        }
+        paths[p.id] = p;
+        const s = scenarios[p.scenario_id];
+        !s ? add('path ' + p.id + ': there is no scenario "' + p.scenario_id + '"') : arrayOf(s.path_ids).indexOf(p.id) < 0 && add('path ' + p.id + ' belongs to ' + p.scenario_id + ', but ' + p.scenario_id + "'s path_ids don't name it");
+        const seen: string[] = [];
+        for (const b of arrayOf(p.branch_ids)) {
+            !index.outcome[b] ? add('path ' + p.id + ': there is no outcome "' + b + '" of the program\'s decisions') : seen.indexOf(b) >= 0 ? add('path ' + p.id + ' names ' + b + ' twice') : seen.push(b);
+        }
+        TESTABILITY.indexOf(p.testability) < 0 && add('path ' + p.id + ': testability must be supported, uncertain or unsupported');
+        for (const dim of arrayOf(p.input_dimensions)) {
+            if (!dim || !isText(dim.dimension)) {
+                add('path ' + p.id + ': an input dimension needs its name (dimension)');
+            } else if (!Array.isArray(dim.equivalence_classes) || !Array.isArray(dim.boundary_candidates)) {
+                add('path ' + p.id + ', dimension "' + dim.dimension + '": it needs equivalence_classes and boundary_candidates (lists; may be empty)');
+            }
+        }
+    }
+    for (const id of Object.keys(scenarios)) {
+        const s = scenarios[id];
+        const ps = arrayOf(s.path_ids);
+        ps.length || add('scenario ' + id + ' needs its paths (path_ids)');
+        ps.forEach((p: string) => (!paths[p] ? add('scenario ' + id + ': there is no path "' + p + '"') : paths[p].scenario_id !== id && add('scenario ' + id + ' names path ' + p + ', which belongs to ' + paths[p].scenario_id)));
+        CATEGORIES.indexOf(s.category) < 0 && add('scenario ' + id + ': category must be one of ' + CATEGORIES.join(', '));
+        SCENARIO_BASES.indexOf(s.oracle_basis) < 0 && add('scenario ' + id + ': oracle_basis must be one of ' + SCENARIO_BASES.join(', '));
+        s.oracle_basis === 'learner_description' && !sentence && add('scenario ' + id + ': oracle_basis can\'t be learner_description: the learner wrote no sentence');
+        const none = s.expected_response_hypothesis === null || s.expected_response_hypothesis === undefined || s.expected_response_hypothesis === '';
+        none && s.oracle_basis !== 'unknown' && add('scenario ' + id + ': without an expected_response_hypothesis its oracle_basis is unknown');
+        !none && s.oracle_basis === 'unknown' && add('scenario ' + id + ': with an expected_response_hypothesis its oracle_basis isn\'t unknown');
+        TESTABILITY.indexOf(s.testability) < 0 && add('scenario ' + id + ': testability must be supported, uncertain or unsupported');
+        CONFIDENCE.indexOf(s.confidence) < 0 && add('scenario ' + id + ': confidence must be low, medium or high');
+        blocksOk(s.source_block_ids, 'scenario ' + id);
+    }
+
+    // branch coverage: every outcome the simulator can make happen is on a path that isn't unsupported
+    const targets = targetsOf(answer);
+    for (const d of arrayOf(answer.decision_points)) {
+        for (const b of arrayOf(d && d.branches)) {
+            b && b.feasibility === 'supported' && index.outcome[b.id] && targets.indexOf(b.id) < 0 && add('branch ' + b.id + ' is supported, but no path targets it: add it to a path, or say why it is uncertain or unsupported');
+        }
+    }
+    answer.analysis_status === 'ok' && !Object.keys(scenarios).length && add('the analysis is ok but has no scenarios');
+    return problems;
+}
+
+// ------------------------------------------------------------------------------------------------ the tests
+
+/** the analysis' paths of a test, with their dimensions */
+function pathsOf(test: any, analysis: any): any[] {
+    const ids = arrayOf(test.path_ids);
+    return arrayOf(analysis.scenario_paths).filter((p: any) => p && ids.indexOf(p.id) >= 0);
+}
+
+/** the input classes and boundaries of the analysis (of the paths that aren't unsupported): {dimension → {classes, boundaries}} */
+function inputsOf(analysis: any): { [dimension: string]: { classes: string[]; boundaries: string[] } } {
+    const out: { [dimension: string]: { classes: string[]; boundaries: string[] } } = {};
+    arrayOf(analysis.scenario_paths)
+        .filter((p: any) => p && p.testability !== 'unsupported')
+        .forEach((p: any) =>
+            arrayOf(p.input_dimensions).forEach((d: any) => {
+                if (!d || !isText(d.dimension)) {
+                    return;
+                }
+                const e = (out[d.dimension] = out[d.dimension] || { classes: [], boundaries: [] });
+                arrayOf(d.equivalence_classes).forEach((c: string) => isText(c) && e.classes.indexOf(c) < 0 && e.classes.push(c));
+                arrayOf(d.boundary_candidates).forEach((b: string) => isText(b) && e.boundaries.indexOf(b) < 0 && e.boundaries.push(b));
+            })
+        );
+    return out;
+}
+
+/** a realization's parts that aren't in the test: problems */
+function realizationProblems(r: any, test: FORMAT.AiTest, world: FORMAT.Resolved): string[] {
+    const out: string[] = [];
+    if (!r || typeof r !== 'object' || !Object.keys(r).length) {
+        return ['realized_by needs what of the test realizes it: start, items, events or globals'];
+    }
+    r.start !== undefined && r.start !== test.start && out.push('realized_by.start "' + r.start + '" is not the test\'s start ("' + test.start + '")');
+    const items = world.data.world.items.map((i) => i.id);
+    arrayOf(r.items).forEach((i: string) => items.indexOf(i) < 0 && out.push('realized_by.items: the world has no thing "' + i + '"'));
+    arrayOf(r.events).forEach((e: number) => !(e >= 0 && e < (test.world || []).length) && out.push('realized_by.events: the set-up has no event ' + e + ' (it has ' + (test.world || []).length + ', counted from 0)'));
+    arrayOf(r.globals).forEach((g: string) => !(test.globals && g in test.globals) && out.push('realized_by.globals: the test sets no variable "' + g + '"'));
+    return out;
+}
+
+/**
+ * the problems of an answer's tests (generate, or the tests of a fix), checked against the analysis (TestGenerationAgent_v3 §8): each test's
+ * scenario, paths, planned outcomes, input classes and boundaries (and what realizes them), expected results, postconditions, oracle, a positive
+ * check, its blocks; then, for generate (not a fix), the answer: at most MAX_TESTS tests, every target outcome planned or deferred, every class and
+ * both sides of every boundary tested or deferred, every scenario tested or deferred, the status.
+ */
+export function checkTests(answer: any, worlds: FORMAT.Resolved[], analysis: any, index: Index, sentence: string, fix: boolean): FORMAT.Problem[] {
+    const problems: FORMAT.Problem[] = [];
+    analysis = analysis || {};
+    const scenarios: { [id: string]: any } = {};
+    arrayOf(analysis.scenarios).forEach((s: any) => s && (scenarios[s.id] = s));
+    const dims = inputsOf(analysis);
+    let count = 0;
+    for (const w of worlds) {
+        for (const t of w.tests) {
+            count++;
+            const add = (message: string) => problem(problems, message, w.name, t.name);
+            const s = scenarios[t.scenario_id];
+            if (!s) {
+                add('scenario_id: there is no scenario "' + t.scenario_id + '" in the analysis');
+            } else if (s.oracle_basis === 'unknown') {
+                add('scenario ' + s.id + ' has no defensible expected behaviour (oracle_basis unknown): leave the test out and defer the scenario');
+            }
+            const own = s ? arrayOf(s.path_ids) : [];
+            const ps = arrayOf(t.path_ids);
+            ps.length || add('path_ids: name the paths of ' + (t.scenario_id || 'its scenario') + ' it follows');
+            ps.forEach((p: string) => own.indexOf(p) < 0 && add('path_ids: "' + p + '" is not a path of scenario ' + t.scenario_id + ' (its paths: ' + (own.join(', ') || 'none') + ')'));
+            const paths = pathsOf(t, analysis);
+            const onPaths: string[] = [];
+            paths.forEach((p: any) => arrayOf(p.branch_ids).forEach((b: string) => onPaths.push(b)));
+            Array.isArray(t.planned_branch_ids) || add('planned_branch_ids: the outcomes its run should take (a list, empty for a path without decisions)');
+            arrayOf(t.planned_branch_ids).forEach((b: string) => onPaths.indexOf(b) < 0 && add('planned_branch_ids: "' + b + '" is not on its paths (' + (onPaths.join(', ') || 'no outcomes') + ')'));
+            const sel = t.input_selection;
+            if (!sel || !Array.isArray(sel.equivalence_partitions) || !Array.isArray(sel.boundary_values)) {
+                add('input_selection needs equivalence_partitions and boundary_values (lists; may be empty)');
+            } else {
+                const ownDims: { [d: string]: { classes: string[]; boundaries: string[] } } = {};
+                paths.forEach((p: any) =>
+                    arrayOf(p.input_dimensions).forEach((d: any) => {
+                        if (d && isText(d.dimension)) {
+                            const e = (ownDims[d.dimension] = ownDims[d.dimension] || { classes: [], boundaries: [] });
+                            e.classes.push(...arrayOf(d.equivalence_classes));
+                            e.boundaries.push(...arrayOf(d.boundary_candidates));
+                        }
+                    })
+                );
+                const where = (d: string) => (ownDims[d] ? '' : 'dimension "' + d + '" is not one of its paths\' (' + (Object.keys(ownDims).map((x) => '"' + x + '"').join(', ') || 'none') + ')');
+                for (const e of sel.equivalence_partitions) {
+                    const bad = !e ? 'an empty class' : where(e.dimension) || (ownDims[e.dimension].classes.indexOf(e.class) < 0 ? 'class "' + e.class + '" is not one of "' + e.dimension + '" (' + ownDims[e.dimension].classes.map((c) => '"' + c + '"').join(', ') + ')' : '');
+                    bad && add('input_selection: ' + bad);
+                    e && !isText(e.selected_realization) && add('input_selection: class "' + e.class + '" needs its selected_realization');
+                    e && realizationProblems(e.realized_by, t, w).forEach((m) => add('input_selection, class "' + e.class + '": ' + m));
+                }
+                for (const b of sel.boundary_values) {
+                    const bad = !b ? 'an empty boundary' : where(b.dimension) || (ownDims[b.dimension].boundaries.indexOf(b.boundary) < 0 ? 'boundary "' + b.boundary + '" is not one of "' + b.dimension + '" (' + ownDims[b.dimension].boundaries.map((c) => '"' + c + '"').join(', ') + ')' : '');
+                    bad && add('input_selection: ' + bad);
+                    b && SIDES.indexOf(b.side) < 0 && add('input_selection: boundary "' + b.boundary + '": side must be one of ' + SIDES.join(', '));
+                    b && (!isText(b.selected_realization) || !isText(b.rationale)) && add('input_selection: boundary "' + b.boundary + '" needs its selected_realization and rationale');
+                    b && realizationProblems(b.realized_by, t, w).forEach((m) => add('input_selection, boundary "' + b.boundary + '": ' + m));
+                }
+            }
+            arrayOf(t.expected_results).filter(isText).length || add('expected_results: say what the robot should observably do (at least one)');
+            Array.isArray(t.postconditions) || add('postconditions: a list (may be empty if nothing holds at the end)');
+            arrayOf(t.postconditions).forEach((p: any, i: number) => {
+                !p || !isText(p.description) ? add('postcondition ' + i + ' needs a description') : null;
+                const ci = arrayOf(p && p.check_indices);
+                ci.length || add('postcondition ' + i + ' needs the check_indices of the checks that decide it');
+                ci.forEach((c: number) => !(Number.isInteger(c) && c >= 0 && c < t.checks.length) && add('postcondition ' + i + ': there is no check ' + c + ' (the test has ' + t.checks.length + ', counted from 0)'));
+            });
+            const o = t.oracle;
+            if (!o || ORACLE_BASES.indexOf(o.basis) < 0) {
+                add('oracle.basis must be one of ' + ORACLE_BASES.join(', '));
+            } else {
+                o.basis === 'learner_description' && !sentence && add("oracle.basis can't be learner_description: the learner wrote no sentence");
+                CONFIDENCE.indexOf(o.confidence) < 0 && add('oracle.confidence must be low, medium or high');
+                Array.isArray(o.assumptions) || add('oracle.assumptions: a list (may be empty)');
+                typeof o.review_required !== 'boolean' && add('oracle.review_required must be true or false');
+            }
+            t.checks.some((c) => POSITIVE.indexOf(c.check) >= 0) ||
+                add('it has only never_bumps / never_touches, which hold for a robot that never moves: add a check that shows its scenario happened (reaches, ends_in, does, whenever, after, variable)');
+            arrayOf(t.source_block_ids).forEach((b: string) => index.toReal[b] === undefined && add('source_block_ids: there is no block "' + b + '"'));
+            isText(t.reason) || add('reason: one sentence, why this test is in the set');
+        }
+    }
+    if (fix) {
+        return problems;
+    }
+    const add = (message: string) => problem(problems, message);
+    count > MAX_TESTS && add('the answer has ' + count + ' tests, at most ' + MAX_TESTS + ': leave out those that test the same as another (consolidate), and defer what doesn\'t fit');
+    STATUSES.indexOf(answer && answer.generation_status) < 0 && add('generation_status must be one of ' + STATUSES.join(', '));
+    const tests: FORMAT.AiTest[] = [];
+    worlds.forEach((w) => tests.push(...w.tests));
+    const plan = (answer && answer.coverage_plan) || {};
+    if (!plan || !Array.isArray(plan.deferred_branch_ids) || !Array.isArray(plan.deferred_inputs)) {
+        add('coverage_plan needs target_branch_ids, planned_covered_branch_ids, deferred_branch_ids and deferred_inputs');
+    }
+    const deferredBranches = arrayOf(plan.deferred_branch_ids).filter((d: any) => d && isText(d.reason)).map((d: any) => d.branch_id);
+    const planned: string[] = [];
+    tests.forEach((t) => arrayOf(t.planned_branch_ids).forEach((b: string) => planned.push(b)));
+    targetsOf(analysis).forEach(
+        (b) => planned.indexOf(b) < 0 && deferredBranches.indexOf(b) < 0 && add('outcome ' + b + ' is on a path of the analysis, but no test plans it: write a test whose run takes it, or defer it (coverage_plan.deferred_branch_ids, with the reason)')
+    );
+    const deferredInputs = arrayOf(plan.deferred_inputs).filter((d: any) => d && isText(d.reason));
+    const isDeferred = (dimension: string, value: string) => deferredInputs.some((d: any) => d.dimension === dimension && (d.value === value || String(d.value).indexOf(value + ':') === 0));
+    Object.keys(dims).forEach((dimension) => {
+        const classes = dims[dimension].classes;
+        classes.forEach((c) => {
+            const tested = tests.some((t) => arrayOf(t.input_selection && t.input_selection.equivalence_partitions).some((e: any) => e && e.dimension === dimension && e.class === c));
+            tested || isDeferred(dimension, c) || add('input class "' + c + '" of "' + dimension + '": no test stands for it: write one, or defer it (coverage_plan.deferred_inputs, with the reason)');
+        });
+        dims[dimension].boundaries.forEach((b) => {
+            const sides: string[] = [];
+            tests.forEach((t) => arrayOf(t.input_selection && t.input_selection.boundary_values).forEach((v: any) => v && v.dimension === dimension && v.boundary === b && sides.indexOf(v.side) < 0 && sides.push(v.side)));
+            sides.length >= 2 ||
+                isDeferred(dimension, b) ||
+                add(
+                    'boundary "' + b + '" of "' + dimension + '": ' + (sides.length ? 'only the side ' + sides[0] + ' is tested' : 'no test is close to it') + ': test both sides, or defer the missing side (coverage_plan.deferred_inputs: value "' + b + ': <side>", with the reason)'
+                );
+        });
+    });
+    const deferredScenarios = arrayOf(answer && answer.deferred_scenarios).filter((d: any) => d && isText(d.reason)).map((d: any) => d.scenario_id);
+    Object.keys(scenarios).forEach((id) => {
+        const s = scenarios[id];
+        const due = s.testability !== 'unsupported' && s.oracle_basis !== 'unknown';
+        due && !tests.some((t) => t.scenario_id === id) && deferredScenarios.indexOf(id) < 0 && add('scenario ' + id + ' ("' + s.title + '") has no test: write one, or defer it (deferred_scenarios, with the reason)');
+    });
+    const none = answer && answer.generation_status === 'no_valid_scenarios';
+    none && count && add('generation_status is no_valid_scenarios, but the answer has tests');
+    !none && !count && add('the answer has no tests: write them, or say generation_status no_valid_scenarios');
+    return problems;
+}
+
+/** the answer-wide problems (no world, no test): they don't leave a test out */
+export function isAnswerWide(p: FORMAT.Problem): boolean {
+    return !p.world && p.test === null;
+}
+
+/**
+ * the coverage plan of the tests that are left (after the repairs, the tests left out and the duplicates), computed here (the model's isn't trusted):
+ * every outcome of the program's decisions, the tests that plan it, why it isn't planned (deferred by the model, unsupported in the analysis, or
+ * lost: its test was left out)
+ */
+export function planOf(worlds: FORMAT.Resolved[], analysis: any, index: Index, answer: any): Plan {
+    const plan = (answer && answer.coverage_plan) || {};
+    const target = targetsOf(analysis);
+    const planned: string[] = [];
+    const by: { [outcome: string]: string[] } = {};
+    worlds.forEach((w) =>
+        w.tests.forEach((t) =>
+            arrayOf(t.planned_branch_ids).forEach((b: string) => {
+                index.outcome[b] && planned.indexOf(b) < 0 && planned.push(b);
+                (by[b] = by[b] || []).push(t.name);
+            })
+        )
+    );
+    const deferred = arrayOf(plan.deferred_branch_ids).filter((d: any) => d && index.outcome[d.branch_id] && planned.indexOf(d.branch_id) < 0 && isText(d.reason));
+    const feasibility: { [outcome: string]: any } = {};
+    arrayOf(analysis && analysis.decision_points).forEach((d: any) => arrayOf(d && d.branches).forEach((b: any) => b && (feasibility[b.id] = b)));
+    const lost = target.filter((b) => planned.indexOf(b) < 0 && !deferred.some((d: any) => d.branch_id === b));
+    const outcomes: OutcomePlan[] = [];
+    index.decisions.forEach((d) =>
+        d.outcomes.forEach((o) => {
+            const def = deferred.filter((x: any) => x.branch_id === o.id)[0];
+            const f = feasibility[o.id];
+            const why = planned.indexOf(o.id) >= 0 ? null : def ? def.reason : lost.indexOf(o.id) >= 0 ? 'its test was left out' : f && f.feasibility !== 'supported' ? f.reason || f.feasibility : 'no path of the analysis takes it';
+            outcomes.push({ id: o.id, decision: d.id, block: d.block, words: o.outcome, planned: by[o.id] || [], deferred: why, seen: null });
+        })
+    );
+    const said = arrayOf(plan.planned_covered_branch_ids).slice().sort().join();
+    return {
+        outcomes: outcomes,
+        target: target,
+        planned: planned,
+        deferred: deferred,
+        lost: lost,
+        deferredInputs: arrayOf(plan.deferred_inputs).filter((d: any) => d && isText(d.reason)),
+        deferredScenarios: arrayOf(answer && answer.deferred_scenarios).filter((d: any) => d && isText(d.reason)),
+        corrected: said !== planned.slice().sort().join(),
+    };
+}
+
+/** the plan with how often the runs took each outcome (the runs of the chosen tests, summed) */
+export function withSeen(plan: Plan, seen: { [outcome: string]: number }[]): Plan {
+    const out: Plan = JSON.parse(JSON.stringify(plan));
+    out.outcomes.forEach((o) => (o.seen = seen.reduce((n, s) => n + (s[o.id] || 0), 0)));
+    return out;
+}
+
+// ------------------------------------------------------------------------------------------------ the semantics of a run
+
+/**
+ * why a test that passed is not checked (TestGenerationAgent_v3 G5, §8): a check had nothing to decide, or an outcome its run should have taken never
+ * happened; [] if neither (a test that failed is failed, not unchecked)
+ *
+ * @param label the label of a block (for the words)
+ */
+export function notCheckedWhy(report: any, test: FORMAT.AiTest, index: Index, label?: (block: string) => string): { text: string; block: string }[] {
+    if (!report || report.outcome !== 'passed') {
+        return [];
+    }
+    const out: { text: string; block: string }[] = [];
+    (report.checks || []).filter((c: any) => c.passed === null).forEach((c: any) => out.push({ text: 'nothing to decide for “' + (c.text || c.check) + '”', block: null }));
+    const seen = seenIn(report, index);
+    arrayOf(test.planned_branch_ids).forEach((b: string) => {
+        const o = index.outcome[b];
+        o && !seen[b] && out.push({ text: o.outcome.outcome.replace(/: .*$/, '') + ': never happened', block: o.decision.block });
+    });
+    return out;
+}
+
+/** the planned outcomes of a test and how often its run took them, for the model (the task fix): "D1.1 (…): taken 34×; D2.else (…): never taken" */
+export function plannedText(report: any, test: FORMAT.AiTest, index: Index): string {
+    const planned = arrayOf(test.planned_branch_ids).filter((b: string) => index.outcome[b]);
+    if (!planned.length) {
+        return null;
+    }
+    const seen = seenIn(report, index);
+    return planned.map((b: string) => b + ' (' + index.outcome[b].outcome.outcome + '): ' + (seen[b] ? 'taken ' + seen[b] + '×' : 'never taken')).join('; ');
+}
+
+// what a fix may not change (tasks.md, "Task: fix"): all but the world, start, until, max_time_ms, set-up and the realizations
+const FROZEN = ['scenario', 'scenario_id', 'path_ids', 'planned_branch_ids', 'expected_results', 'postconditions', 'oracle', 'source_block_ids', 'reason'];
+
+/** a value with sorted keys, for comparing */
+function canonical(value: any): string {
+    if (Array.isArray(value)) {
+        return '[' + value.map(canonical).join(',') + ']';
+    }
+    if (value && typeof value === 'object') {
+        return '{' + Object.keys(value).filter((k) => value[k] !== undefined).sort().map((k) => JSON.stringify(k) + ':' + canonical(value[k])).join(',') + '}';
+    }
+    return JSON.stringify(value === undefined ? null : value);
+}
+
+/** a test's checks with the things they are about as their roles (a fix may draw the world anew, with other ids) */
+function checksOf(test: FORMAT.AiTest, world: FORMAT.Resolved): string {
+    const role = (id: string) => {
+        const item = world.data.world.items.filter((i) => i.id === id)[0];
+        return item ? 'a ' + (item.role || item.kind) : id;
+    };
+    return canonical(test.checks.map((c) => Object.assign({}, c, { item: c.item ? role(c.item) : undefined })));
+}
+
+function selectionOf(test: FORMAT.AiTest): string {
+    const sel = test.input_selection || {};
+    return canonical({
+        classes: arrayOf(sel.equivalence_partitions).map((e: any) => e && [e.dimension, e.class]),
+        boundaries: arrayOf(sel.boundary_values).map((b: any) => b && [b.dimension, b.boundary, b.side]),
+    });
+}
+
+/**
+ * the problems of a fixed test: what it may not change (its expectation, its checks, what it is for) differs from the test it fixes (TestGenerationAgent
+ * §8: only an invalid or untriggered scenario may be corrected; a failed test is never made to expect less)
+ */
+export function frozenProblems(fixed: FORMAT.AiTest, fixedWorld: FORMAT.Resolved, original: FORMAT.AiTest, originalWorld: FORMAT.Resolved): string[] {
+    const out: string[] = [];
+    FROZEN.forEach((k) => canonical((fixed as any)[k]) !== canonical((original as any)[k]) && out.push(k));
+    checksOf(fixed, fixedWorld) !== checksOf(original, originalWorld) && out.push('checks');
+    selectionOf(fixed) !== selectionOf(original) && out.push('the classes and boundaries of input_selection');
+    return out.length ? ['a fix may change only the world, start, until, max_time_ms, the set-up (world, globals) and the realizations of its inputs; it changed ' + out.join(', ') + ': keep them as they were'] : [];
+}

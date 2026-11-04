@@ -62,3 +62,24 @@ Their `role`:
   other blocks take no time. A program that only sets the motors (drive, curve, turn without a distance) keeps the
   robot moving while it goes on.
 - When the program ends, the robot stops.
+
+## Where readings change (the boundaries the simulator has)
+
+The simulator is exact and the same in every run, so a test close to one of these places runs the same way each time.
+
+- **The line's edge**: the line tracker sees black while it is over the line's black core, which is 1.48 cm wide:
+  up to about 0.7 cm from the line's middle. Just inside: about 0.3 cm off the middle; just outside: about 1.5 to 2 cm
+  off the middle, on the white band (the line tracker then reads about 100 %, the peach floor about 83 %). A start
+  facing along a straight line puts the line tracker as far off the line as the start is.
+- **The obstacle sensors' range**: an obstacle is seen while it is less than 3 cm ahead of the sensors, which are 6 cm
+  ahead of the axle: an obstacle 8 cm ahead of a start is seen at once (just inside), one 10 cm ahead isn't (just
+  outside). The robot's front is 6.2 cm ahead of the axle.
+- **Light under a tunnel's roof**: the light sensors read 100 % at an opening and 40 % from 15 cm inside on, linear in
+  between (measured from the nearer opening, at the sensors, 5.5 cm ahead of the axle): a reading of p % is at
+  (100 − p) / 4 cm inside. A program that compares the light with 70 % changes at 7.5 cm inside.
+- **Claps and keys over time**: a clap is heard from its `at` for about 0.3 s, a key is held from its `at` for
+  0.2 s. A "wait until" that begins later than that misses it, so the boundary of "before the wait begins" lies 0.3 s
+  (clap) or 0.2 s (key) before the moment the program reaches the wait. That moment follows from the blocks before it:
+  a drive of d cm at p % takes about d / (0.35 × p) s, a wait t ms.
+- **Numbers the program compares with**: a count, a variable, a light %, a repeat count are whole numbers: below, at
+  and above are exact (2, 3 and 4 claps for "3 claps").

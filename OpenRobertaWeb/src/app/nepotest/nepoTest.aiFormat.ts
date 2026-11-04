@@ -3,7 +3,12 @@
  * OpenRobertaServer/src/main/resources/ai/tests.md, its schema is ai/schemas/generate.schema.json:
  *
  *   {worlds: [{name, world: {background: 'peach', size, starts, items} | base: 'existing',
- *              tests: [{name, scenario, start, until, max_time_ms, world: [{event: 'clap' | 'key', port, at}], globals: {name: value}, checks: [...]}]}]}
+ *              tests: [{name, scenario, start, until, max_time_ms, world: [{event: 'clap' | 'key', port, at}], globals: {name: value}, checks: [...],
+ *                       and what the test is for: STRATEGY_FIELDS (scenario_id, path_ids, planned_branch_ids, input_selection, ...)}]}],
+ *    generation_status, coverage_plan, consolidation_notes, deferred_scenarios, warnings}
+ *
+ * The fields of what a test is for are kept as the model wrote them and checked by nepoTest.aiStrategy (against the analysis); the blocks don't have
+ * them (they are in the test's provenance: generated).
  *
  * The model never gets the level the learner plays: it draws the world of each test itself (or adds tests to a world of the learner's).
  * - suiteToJson: the simulation worlds of the Tests tab and their tests, as the model reads them, each world in full.
@@ -57,7 +62,20 @@ export interface AiTest {
     checks: AiCheck[];
     skip?: boolean; // the learner's tests: switched off
     origin?: string; // the learner's tests: 'ai' if the assistant wrote it
+    // what a generated test is for (the testing strategy: nepoTest.aiStrategy checks them against the analysis; the blocks don't have them)
+    scenario_id?: string;
+    path_ids?: string[];
+    planned_branch_ids?: string[];
+    input_selection?: any; // {equivalence_partitions: [{dimension, class, selected_realization, realized_by}], boundary_values: [... side, rationale]}
+    expected_results?: string[];
+    postconditions?: { description: string; check_indices: number[] }[];
+    oracle?: { basis: string; confidence: string; assumptions: string[]; review_required: boolean };
+    source_block_ids?: string[];
+    reason?: string;
 }
+
+/** the fields of a generated test that say what it is for: kept as the model wrote them (copies), checked by nepoTest.aiStrategy */
+export const STRATEGY_FIELDS = ['scenario_id', 'path_ids', 'planned_branch_ids', 'input_selection', 'expected_results', 'postconditions', 'oracle', 'source_block_ids', 'reason'];
 
 export interface AiWorld {
     name: string;
@@ -99,7 +117,11 @@ export interface Provenance {
     generated: AiTest; // the test as the model wrote it
     added?: string; // ISO time
     asAdded?: string; // the test when it was added (signatureOf): it was edited if it differs now
-    checked?: { passed: boolean; fixes: number }; // how it ran on the program before it was added (passed null: it couldn't run), how often it was fixed
+    checked?: { passed: boolean; fixes: number; notChecked?: string[] }; // how it ran on the program before it was added (passed null: it couldn't run), how often it was fixed, why it wasn't checked (added anyway)
+    // the outcomes of the program's decisions its run should take (planned) and how often its check run took them (seen); the oracle's basis
+    coverage?: { planned: { outcome: string; block: string; words: string }[]; seen: { [outcome: string]: number } };
+    basis?: string; // learner_description | inferred_from_program | applicable_safety
+    stale?: boolean; // the program changed between writing and checking it
 }
 
 const NS = 'http://de.fhg.iais.roberta.blockly';
@@ -494,6 +516,9 @@ function checkTest(raw: any, world: SIM.SimWorld, ctx: Context, generated: boole
     for (const c of Array.isArray(raw.checks) ? raw.checks : []) {
         const check = checkCheck(c, items, isGoal, test, ctx, problem);
         check && test.checks.push(check);
+    }
+    if (generated) {
+        STRATEGY_FIELDS.forEach((k) => raw[k] !== undefined && ((test as any)[k] = JSON.parse(JSON.stringify(raw[k]))));
     }
     return test;
 }

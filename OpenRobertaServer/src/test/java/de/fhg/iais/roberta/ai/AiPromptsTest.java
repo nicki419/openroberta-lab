@@ -14,23 +14,23 @@ import org.junit.Test;
  * the context pack and the parts of a prompt: the pack loads, its examples use the format of the per-call message and their answers pass the checks
  */
 public class AiPromptsTest {
-    private static final Pattern ANSWER = Pattern.compile("## The answer \\((infer|generate|fix)\\)\\n.*?```json\\n(.*?)\\n```", Pattern.DOTALL);
+    private static final Pattern ANSWER = Pattern.compile("## The answer \\((infer|analyze|generate|fix)\\)\\n.*?```json\\n(.*?)\\n```", Pattern.DOTALL);
 
     @Test
     public void trimNepo() {
         String xml =
             "<export xmlns=\"http://de.fhg.iais.roberta.blockly\"><program><block_set xmlns=\"http://de.fhg.iais.roberta.blockly\" robottype=\"edison\" xmlversion=\"3.1\" description=\"\" tags=\"\">\n"
-                + "  <instance x=\"10\" y=\"20\"><block type=\"robControls_start\" id=\"a\" intask=\"true\" deletable=\"false\"><mutation declare=\"false\"/></block>\n"
+                + "  <instance x=\"10\" y=\"20\"><block type=\"robControls_start\" id=\"a\" intask=\"true\" deletable=\"false\"><mutation declare=\"false\"/><data>{\"learningRate\":0.03}</data></block>\n"
                 + "  <block type=\"text_comment\" id=\"b\"><field name=\"TEXT\">drive &lt;fast&gt;</field></block></instance></block_set></program>"
                 + "<config><block_set robottype=\"edison\"><instance x=\"0\" y=\"0\"><block type=\"robBrick_Edison-Brick\" id=\"1\"/></instance></block_set></config></export>";
         Assert
             .assertEquals(
                 "<block_set robottype=\"edison\">\n"
                     + " <instance>\n"
-                    + "  <block type=\"robControls_start\">\n"
+                    + "  <block type=\"robControls_start\" id=\"a\">\n"
                     + "   <mutation declare=\"false\"/>\n"
                     + "  </block>\n"
-                    + "  <block type=\"text_comment\">\n"
+                    + "  <block type=\"text_comment\" id=\"b\">\n"
                     + "   <field name=\"TEXT\">drive &lt;fast&gt;</field>\n"
                     + "  </block>\n"
                     + " </instance>\n"
@@ -58,7 +58,7 @@ public class AiPromptsTest {
             Assert.assertEquals(pack.getVersion(), ContextPack.fromDirectory(folder).getVersion());
         }
         int size = pack.getText().length();
-        Assert.assertTrue("the pack has " + size + " characters", size > 20000 && size < 90000);
+        Assert.assertTrue("the pack has " + size + " characters", size > 20000 && size < 140000);
     }
 
     @Test
@@ -70,7 +70,7 @@ public class AiPromptsTest {
             Assert.assertTrue(schemas.group(1), new JSONObject(schemas.group(2)).has("$schema"));
             found++;
         }
-        Assert.assertEquals(3, found);
+        Assert.assertEquals(4, found);
     }
 
     @Test
@@ -95,6 +95,42 @@ public class AiPromptsTest {
     }
 
     @Test
+    public void checkAnalyzeAndGenerate() {
+        String ok = "{\"analysis_status\": \"ok\", \"likely_intent\": {\"description\": \"Drive.\"}, \"scenarios\": [{\"id\": \"S1\"}], \"decision_points\": null}";
+        JSONObject answer = AiPrompts.checkAnalyze(ok);
+        Assert.assertEquals(0, answer.getJSONArray("decision_points").length());
+        Assert.assertEquals(0, answer.getJSONArray("unsupported_features").length());
+        for ( String bad : new String[] {
+            "{}",
+            "{\"analysis_status\": \"ok\", \"likely_intent\": {\"description\": \"Drive.\"}}",
+            "{\"analysis_status\": \"ok\", \"scenarios\": [{\"id\": \"S1\"}]}",
+            "{\"analysis_status\": \"ok\", \"likely_intent\": {\"description\": \"Drive.\"}, \"scenarios\": {}}"
+        } ) {
+            try {
+                AiPrompts.checkAnalyze(bad);
+                Assert.fail(bad);
+            } catch ( AiException e ) {
+                Assert.assertEquals(bad, "bad_answer", e.getCode());
+            }
+        }
+        Assert.assertEquals(0, AiPrompts.checkGenerate("{\"generation_status\": \"no_valid_scenarios\", \"worlds\": []}").getJSONArray("worlds").length());
+        for ( String bad : new String[] {
+            "{\"worlds\": []}",
+            "{\"generation_status\": \"no_valid_scenarios\", \"worlds\": [{\"name\": \"W\", \"tests\": []}]}"
+        } ) {
+            try {
+                AiPrompts.checkGenerate(bad);
+                Assert.fail(bad);
+            } catch ( AiException e ) {
+                Assert.assertEquals(bad, "bad_answer", e.getCode());
+            }
+        }
+        JSONObject doubtful = AiPrompts.checkFix("{\"doubtful\": [{\"test\": \"A\", \"world\": \"W\", \"reason\": \"r\"}]}");
+        Assert.assertEquals(1, doubtful.getJSONArray("doubtful").length());
+        Assert.assertEquals(0, doubtful.getJSONArray("program_wrong").length());
+    }
+
+    @Test
     public void theExamplesAnswersPassTheChecks() throws Exception {
         ContextPack pack = ContextPack.fromResources();
         Matcher answers = ANSWER.matcher(pack.getText());
@@ -105,6 +141,9 @@ public class AiPromptsTest {
                 JSONObject answer = AiPrompts.checkInfer(answers.group(2));
                 Assert.assertEquals(new JSONObject(answers.group(2)).getString("intent"), answer.getString("intent"));
                 Assert.assertTrue(new JSONObject(answers.group(2)).keySet().equals(answer.keySet()));
+            } else if ( "analyze".equals(answers.group(1)) ) {
+                JSONObject answer = AiPrompts.checkAnalyze(answers.group(2));
+                Assert.assertTrue(answer.getJSONArray("decision_points").length() > 0);
             } else if ( "fix".equals(answers.group(1)) ) {
                 JSONObject answer = AiPrompts.checkFix(answers.group(2));
                 Assert.assertEquals(1, answer.getJSONArray("worlds").length());
@@ -113,7 +152,7 @@ public class AiPromptsTest {
                 AiPrompts.checkGenerate(answers.group(2));
             }
         }
-        Assert.assertEquals("[infer, generate, infer, generate, fix]", kinds.toString());
+        Assert.assertEquals("[infer, analyze, generate, infer, analyze, generate, fix]", kinds.toString());
     }
 
     @Test
@@ -123,7 +162,10 @@ public class AiPromptsTest {
             "The program",
             "The learner's tests",
             "What the learner said before",
+            "The program's decisions",
+            "The analysis",
             "Task: infer",
+            "Task: analyze",
             "Task: generate",
             "Task: fix"
         } ) {
@@ -131,7 +173,9 @@ public class AiPromptsTest {
         }
         Assert.assertFalse("the model is told nothing of levels", Pattern.compile("(?i)\\blevels?\\b").matcher(text).find()); // Ed.ReadLeftLightLevel is EdPy
         Assert.assertTrue("the guard works", Pattern.compile("(?i)\\blevels?\\b").matcher("the Level designer").find());
-        Assert.assertTrue(text.contains("NEPO:\n```xml\n<block_set robottype=\"edison\">\n <instance>\n"));
+        Assert.assertTrue(text.contains("NEPO:\n```xml\n<block_set robottype=\"edison\">\n <instance>\n  <block type=\"robControls_start\" id=\"b1\">\n"));
+        Assert.assertFalse("the start block's data is left out", text.contains("learningRate"));
+        Assert.assertTrue(text.contains("### The program's decisions\n\n- D1: block b3, if \""));
         Assert.assertTrue(text.contains("EdPy:\n```python\nwhile True:\n"));
         Assert.assertTrue(text.contains("The guess the learner declined: none."));
         Assert.assertTrue(text.contains("The learner's sentence: \"This program should follow a black line and stop if it senses an obstacle\""));
