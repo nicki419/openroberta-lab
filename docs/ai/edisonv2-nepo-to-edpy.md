@@ -341,7 +341,7 @@ The Blockly `sensorsAll.edison` is key, infrared, irseeker, light, sound. There'
 | `robSensors_key_getSample` | B+E | `sensor.generic.KeysSensor` | Ed | `(Ed.ReadKeypad() == Ed.KEYPAD_TRIANGLE)` for `PLAY`, `… KEYPAD_ROUND)` for `REC` | not collected; an unknown port gives an empty expression |
 | `robSensors_infrared_getSample` | B+E | `sensor.generic.InfraredSensor` | Ed | `_obstacleDetection(Ed.OBSTACLE_AHEAD\|OBSTACLE_LEFT\|OBSTACLE_RIGHT)` for `FRONT`/`LEFT`/`RIGHT` | `UsedSensor(port, INFRARED, OBSTACLE)`; helper switches the IR beam on |
 | `robSensors_irseeker_getSample` | B+E | `sensor.generic.IRSeekerSensor` | Ed | `_irSeek(1)` (RCCODE; legacy EDISON_CODE → `_irSeek(0)`) | sim error |
-| `robSensors_light_getSample` | B+E | `sensor.generic.LightSensor` | Ed | LIGHT: `Ed.ReadLeftLightLevel() / 10`, `Ed.ReadRightLightLevel() / 10`, `Ed.ReadLineTracker() / 10`. LINE (only `LINETRACKER`): `(Ed.ReadLineState() == Ed.LINE_ON_BLACK)` | simulated. LLIGHT/RLIGHT approximate ground brightness (§12.3). |
+| `robSensors_light_getSample` | B+E | `sensor.generic.LightSensor` | Ed | LIGHT: `Ed.ReadLeftLightLevel() / 10`, `Ed.ReadRightLightLevel() / 10`, `Ed.ReadLineTracker() / 10`. LINE (only `LINETRACKER`): `(Ed.ReadLineState() == Ed.LINE_ON_BLACK)` | simulated. LLIGHT/RLIGHT look up: the light from above (§12.3). |
 | `robSensors_sound_getSample` | B+E | `sensor.generic.SoundSensor` | Ed | `(Ed.ReadClapSensor() == Ed.CLAP_DETECTED)` | `UsedSensor(- EMPTY_PORT -, SOUND, SOUND)` |
 | `edisonSensors_sensor_reset` | B+E | `sensors.edison.ResetSensor` [RE] | Ed | a bare read to clear: `Ed.ReadObstacleDetection()`, `Ed.ReadKeypad()`, `Ed.ReadClapSensor()`, or `Ed.ReadRemote()` + `Ed.ReadIRData()` | sim warning |
 | `robSensors_getSample` (preset in `robControls_wait_for`) | B+E | `sensor.generic.GetSampleSensor` | Ed | `(` + sensor code + `)`; SENSORTYPE ∈ `KEY_PRESSED`, `INFRARED_OBSTACLE`, `IRSEEKER_RCCODE`, `LIGHT_LIGHT`, `LIGHT_LINE`, `SOUND_SOUND` | |
@@ -626,9 +626,11 @@ Block errors come back inside `progXML` (`<error>`/`<warning>`). Worker exceptio
   - `EdisonLeds`;
   - `EdisonInfraredSensors` (FRONT/LEFT/RIGHT, obstacle if the distance is under 3);
   - the line tracker `LineSensor` at (15, 0) (light 0–100, line if light < 50) → `values.infrared.light` / `.line`;
-  - the **left/right light sensors** `EdisonLightSensors` at the LEDs (16.5, ∓4.5). They report the **ground brightness**
-    below them (0–100 %) → `values.infrared.LLIGHT.light` / `values.infrared.RLIGHT.light`. That's an approximation:
-    the real sensors measure the light in front of the robot, but the simulated scene has no light sources.
+  - the **left/right light sensors** `EdisonLightSensors` at the LEDs (16.5, ∓4.5), **on top of the robot, looking
+    up** (since 2026-11-04; before, they read the ground). They report the light that falls on the robot (0–100 %)
+    → `values.infrared.LLIGHT.light` / `values.infrared.RLIGHT.light`: the robot's `ambientLight(x, y)` (units), set
+    by a level or a test's run to `nepoTest.sim lightAt`: 100 % in the open, less under a tunnel's roof (40 % from
+    15 cm inside). Without one: 100 %. They aren't drawn.
   - a clap sensor `SoundSensorBoolean` (microphone volume > 25);
   - buttons (play/rec).
 

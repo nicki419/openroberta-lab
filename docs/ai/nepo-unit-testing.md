@@ -615,6 +615,12 @@ striped wall).
   - A **wall** (`kind: "line"`, `role: "obstacle"`, `width` cm thick, default 1.5): an obstacle of the line's shape,
     not drawn on the floor. On the simulator it is two `TriangleSimulationObject`s around each straight piece of the
     line and a `CircleSimulationObject` at each point (`nepoTest.sim.ts wallPieces`, `simulation.py wall_pieces`).
+  - A **tunnel** (`kind: "tunnel"`, `role: "obstacle"`, `points`, `smooth`, `width`: inside, default 15): two walls
+    1.5 cm thick along its line, with a roof; the robot drives through it and bumps into its walls (its infrared sensors see them; *never bumps into* can
+    name it). Its roof covers walls and inside and is drawn **above the robot**, translucent, as dark as the light under
+    it. The light sensors LLIGHT/RLIGHT look up: they see 100 % in the open (`SIM.AMBIENT_LIGHT`), and under the roof the
+    light fades linearly from 100 % at an opening to 40 % (`TUNNEL_LIGHT`) 15 cm (`TUNNEL_FADE_CM`) inside, measured
+    along the tunnel from the nearer opening (`SIM.lightAt`, `tunnelLight`; `simulation.py light_at`).
   - Obstacles are always the simulator's teal; the Tests tab no longer draws coloured areas (older ones still work).
 - **The set-up:** a simulation test's `world` events may only be `clap` and `key` (the past, or events during the
   run). The drawn world gives the obstacles, the line and the light. The simulator has no IR remote control and no IR

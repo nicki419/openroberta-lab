@@ -1,15 +1,18 @@
 /**
  * The simulation window of the Tests tab: an editor for a simulation world (nepoTest.sim), its tests, and the replay of their runs. The world
- * and the robot look and behave as in the Lab's simulator: its backgrounds and wall, its obstacles (rectangles, circles, triangles and walls,
- * in its cyan), its robot image with the line tracker, the light sensors, the infrared rays and the LEDs.
+ * and the robot look and behave as in the Lab's simulator: its backgrounds and wall, its obstacles (rectangles, circles, triangles, walls and
+ * tunnels, in its cyan), its robot image with the line tracker, the infrared rays and the LEDs (the light sensors are on top and look up: not
+ * drawn; the readout below the picture shows what they see). The roofs of tunnels are drawn above the robots: translucent, as dark as the
+ * light under them.
  *
  * - The tools are in groups (TOOL_GROUPS); each tool makes one kind of thing, and a thing never turns into another kind (delete it and
  *   draw the other one). "Test markers": the starts (A, B, ...: a robot each, dragged to where it is and turned with its handle, in steps
  *   of 15 degrees; Shift: freely; the selected test's start is drawn solid, the others faded), goal areas and fail areas (rectangles).
  *   "World: paths": a line or a curve to follow, like the background's track. "World: obstacles": a rectangle, a circle (it stays round)
- *   and a triangle, and a wall, straight or curved: a line that is an obstacle. Lines and walls: click the points; a click on the last point
- *   again ends it, as does a double-click of any speed, a right click or Enter; a click on the first point closes it. The other shapes:
- *   drag, or click for the simulator's default size.
+ *   and a triangle, a wall, straight or curved: a line that is an obstacle, and a tunnel: two walls along a curved line, with a roof (its
+ *   width inside is in its properties). Lines, walls and tunnels: click the points; a click on the last point again ends it, as does a
+ *   double-click of any speed, a right click or Enter; a click on the first point closes a line or a wall. The other shapes: drag, or click
+ *   for the simulator's default size.
  * - Below the picture: the world's tests. One is selected (here, or by clicking its block): "Run test" runs it, and its run is replayed.
  *   "Run all" runs every test of the world.
  * - Select moves things; handles resize them and move the points of lines and triangles. Delete removes, Ctrl+Z / Ctrl+Y undo and redo.
@@ -86,18 +89,18 @@ const TOOL_GROUPS: { label: string; tools: string[] }[] = [
     { label: null, tools: ['select'] },
     { label: 'groupMarkers', tools: ['start', 'goal', 'fail'] },
     { label: 'groupPaths', tools: ['line', 'curve'] },
-    { label: 'groupObstacles', tools: ['rect', 'circle', 'triangle', 'wall', 'wallCurve'] },
+    { label: 'groupObstacles', tools: ['rect', 'circle', 'triangle', 'wall', 'wallCurve', 'tunnel'] },
 ];
 /** the tools of a level (the Level designer): its one start, goal areas, soft goal areas and fail areas; the world's things */
 const LEVEL_TOOL_GROUPS: { label: string; tools: string[] }[] = [
     { label: null, tools: ['select'] },
     { label: 'groupLevel', tools: ['start', 'goal', 'softGoal', 'fail'] },
     { label: 'groupPaths', tools: ['line', 'curve'] },
-    { label: 'groupObstacles', tools: ['rect', 'circle', 'triangle', 'wall', 'wallCurve'] },
+    { label: 'groupObstacles', tools: ['rect', 'circle', 'triangle', 'wall', 'wallCurve', 'tunnel'] },
 ];
 const TOOLS: string[] = [].concat(...LEVEL_TOOL_GROUPS.map((g) => g.tools)); // all tools (a mode has some of them)
 const WALL_TOOLS = ['wall', 'wallCurve'];
-const LINE_TOOLS = ['line', 'curve'].concat(WALL_TOOLS); // they draw a line: to follow, or a wall
+const LINE_TOOLS = ['line', 'curve', 'tunnel'].concat(WALL_TOOLS); // they draw a line: to follow, a wall, or a tunnel along it
 const SHAPE_TOOLS: { [tool: string]: [string, string] } = {
     goal: ['rect', 'goal'],
     softGoal: ['rect', 'goal'], // with soft: {still}
@@ -124,6 +127,7 @@ const TEXT: { [lang: string]: { [key: string]: string } } = {
         triangle: 'Obstacle: triangle',
         wall: 'Wall (an obstacle): click its points',
         wallCurve: 'Curved wall (an obstacle): click its points',
+        tunnel: 'Tunnel: click the points of its middle (the robot can drive through it; it is darker inside)',
         goal: 'Goal area: a rectangle (a test can check that the robot reaches it)',
         fail: 'Fail area: a rectangle (a test can check that the robot never touches it)',
         groupMarkers: 'Test markers',
@@ -148,6 +152,8 @@ const TEXT: { [lang: string]: { [key: string]: string } } = {
         hintWall: 'Click the points of the wall. To end it, click its last point again (or double-click, right-click, Enter); click the first point to close it. Esc cancels.',
         hintArea: 'Drag to draw the area (a rectangle), or click for one of the simulator\'s size.',
         hintShape: 'Drag to draw the obstacle, or click for one of the simulator\'s size.',
+        hintTunnel:
+            'Click the points of the middle of the tunnel. To end it, click its last point again (or double-click, right-click, Enter). Esc cancels. Its width is in its properties. 15 cm inside an opening and deeper, the light sensors see only 40 % of the light.',
         curved: 'curved',
         closed: 'closed',
         width: 'width',
@@ -195,6 +201,8 @@ const TEXT: { [lang: string]: { [key: string]: string } } = {
         kind_obstacle: 'Obstacle',
         kind_line: 'Line',
         kind_wall: 'Wall',
+        kind_tunnel: 'Tunnel',
+        tunnelWidth: 'width inside',
         titleLevel: 'Level',
         groupLevel: 'Start and areas',
         startLevel: 'Start: click where the robot starts (a level has one start)',
@@ -317,6 +325,11 @@ const ICONS: { [name: string]: string } = {
     triangle: '<polygon points="12,4 21,19 3,19" fill="' + SIM.OBSTACLE_COLOR + '" stroke="#1d7f8c" stroke-width="1" stroke-linejoin="round"/>',
     wall: '<polyline points="3,19 10,8 15,15 21,5" fill="none" stroke="' + SIM.OBSTACLE_COLOR + '" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>',
     wallCurve: '<path d="M3 18 C7 2, 13 24, 21 6" fill="none" stroke="' + SIM.OBSTACLE_COLOR + '" stroke-width="4" stroke-linecap="round"/>',
+    tunnel:
+        '<path d="M2 15 C8 15, 10 7, 22 7" fill="none" stroke="#3c4c58" stroke-opacity="0.5" stroke-width="7"/>' +
+        '<path d="M2 11 C8 11, 10 3, 22 3 M2 19 C8 19, 10 11, 22 11" fill="none" stroke="' +
+        SIM.OBSTACLE_COLOR +
+        '" stroke-width="2.4"/>',
     goal:
         '<rect x="4" y="4" width="16" height="16" fill="#cfe9d5" stroke="' +
         SIM.COLORS.goal +
@@ -752,16 +765,23 @@ export class SimEditor {
         }
     }
 
-    /** the light values (%) the robot's floor sensors see at a pose: [line tracker, LLIGHT, RLIGHT], unrounded; null while unknown */
+    /**
+     * the light values (%) the robot's sensors see at a pose: [line tracker, LLIGHT, RLIGHT], unrounded; null while unknown. The line tracker
+     * looks at the floor; the light sensors look up (the light is less under a tunnel's roof)
+     */
     private lightAt(x: number, y: number, heading: number): number[] {
         const f = this.floorSums;
         if (!f || f.key !== SIM.floorKey(this.data.world)) {
             return null;
         }
-        return [SIM.LINE_SENSOR, SIM.LIGHT_SENSORS[0], SIM.LIGHT_SENSORS[1]].map((p) => {
-            const q = SIM.robotPoint(x, y, heading, p);
-            return SIM.sampleFloor(f.sums, f.w, f.h, SIM.BORDER + q[0] * SIM.UNITS_PER_CM, SIM.BORDER + q[1] * SIM.UNITS_PER_CM);
-        });
+        const q = SIM.robotPoint(x, y, heading, SIM.LINE_SENSOR);
+        const tracker = SIM.sampleFloor(f.sums, f.w, f.h, SIM.BORDER + q[0] * SIM.UNITS_PER_CM, SIM.BORDER + q[1] * SIM.UNITS_PER_CM);
+        return [tracker].concat(
+            SIM.LIGHT_SENSORS.map((p) => {
+                const s = SIM.robotPoint(x, y, heading, p);
+                return SIM.lightAt(this.data.world, s[0], s[1]);
+            })
+        );
     }
 
     // -------------------------------------------------------------------------------------------- runs
@@ -1083,7 +1103,7 @@ export class SimEditor {
 
     private updateHint(): void {
         const key =
-            { select: 'hintSelect', start: 'hintStart', line: 'hintLine', curve: 'hintLine', wall: 'hintWall', wallCurve: 'hintWall', goal: 'hintArea', softGoal: 'hintArea', fail: 'hintArea' }[
+            { select: 'hintSelect', start: 'hintStart', line: 'hintLine', curve: 'hintLine', wall: 'hintWall', wallCurve: 'hintWall', tunnel: 'hintTunnel', goal: 'hintArea', softGoal: 'hintArea', fail: 'hintArea' }[
                 this.tool
             ] || 'hintShape';
         this.hint.textContent = this.modeText(key);
@@ -1092,7 +1112,8 @@ export class SimEditor {
     // -------------------------------------------------------------------------------------------- properties
 
     /**
-     * the name of the selected start or item (the tests' blocks show it; fail areas have none), and the look of a selected line or wall; in a
+     * the name of the selected start or item (the tests' blocks show it; fail areas have none), and the look of a selected line, wall or
+     * tunnel (a tunnel's width is its width inside); in a
      * level: whether an obstacle or a wall loses the level when the robot bumps into it, whether a goal area is soft and for how long the robot
      * must stand still on it
      */
@@ -1163,6 +1184,11 @@ export class SimEditor {
             if (item.soft) {
                 number(this.text('still'), this.text('seconds'), item.soft.still || DEFAULT_STILL_S, 0.5, 60, 0.5, (v) => (item.soft.still = v));
             }
+        }
+        if (SIM.isTunnel(item)) {
+            check(this.text('curved'), !!item.smooth, (on) => (item.smooth = on));
+            number(this.text('tunnelWidth'), this.text('cm'), SIM.tunnelWidth(item), SIM.TUNNEL_WIDTH_MIN_CM, SIM.TUNNEL_WIDTH_MAX_CM, 0.5, (v) => (item.width = v));
+            return;
         }
         if (item.kind !== 'line') {
             return;
@@ -1300,7 +1326,7 @@ export class SimEditor {
         this.svg = svg;
         svg.innerHTML = SIM.defs(this.prefix);
         el('rect', { x: -5000, y: -5000, width: 10000, height: 10000, fill: SIM.COLORS.outside }, svg);
-        ['ground', 'world', 'runPath', 'infrared', 'robot', 'replayRobot', 'overlay'].forEach(
+        ['ground', 'world', 'runPath', 'infrared', 'robot', 'replayRobot', 'roof', 'overlay'].forEach(
             (name) => (this.layers[name] = el('g', { class: 'nepoSim_' + name }, svg))
         );
         svg.addEventListener('pointerdown', (e: PointerEvent) => this.pointerDown(e));
@@ -1325,6 +1351,7 @@ export class SimEditor {
         }
         this.layers.ground.innerHTML = SIM.groundSvg(this.data.world, this.prefix);
         this.layers.world.innerHTML = SIM.worldSvg(this.data.world, this.prefix);
+        this.layers.roof.innerHTML = SIM.roofSvg(this.data.world, this.prefix);
         this.renderOverlay();
         this.renderProps();
         this.renderStatus();
@@ -1389,7 +1416,9 @@ export class SimEditor {
     /** an outline of a shape (selection, the area a run ended in, the obstacle or wall it bumped into) */
     private outline(g: any, item: SIM.SimItem, color: string, width: number): any {
         let e: any;
-        if (item.kind === 'line') {
+        if (SIM.isTunnel(item)) {
+            e = el('path', { d: SIM.tunnelOutlineD(item) }, g);
+        } else if (item.kind === 'line') {
             e = el('path', { d: SIM.linePathD(item) }, g);
         } else if (item.kind === 'rect') {
             e = el('rect', { x: item.x, y: item.y, width: item.w, height: item.h }, g);
@@ -1438,8 +1467,9 @@ export class SimEditor {
             el('polygon', { points: SIM.footprint(s.x, s.y, s.heading).map((p) => p.join(' ')).join(' '), class: 'nepoSimSelection', 'stroke-width': this.px(1.5) }, g);
         }
         const item = this.selectedItem();
-        if (item && item.kind === 'line') {
+        if (item && SIM.hasLinePoints(item)) {
             el('path', { d: SIM.linePathD(item), class: 'nepoSimSelection', 'stroke-width': this.px(1.5) }, g);
+            SIM.isTunnel(item) && (item.points || []).length >= 2 && el('path', { d: SIM.tunnelOutlineD(item), class: 'nepoSimSelection', 'stroke-width': this.px(1.5) }, g);
             (item.points || []).forEach((p, i) => handle(p[0], p[1], 'point:' + i, true));
         } else if (item) {
             this.outline(g, item, null, this.px(1.5));
@@ -1459,7 +1489,12 @@ export class SimEditor {
         const d = this.drawing;
         if (d) {
             const wall = SIM.isWall(d);
-            el('path', { d: SIM.linePathD(d), fill: 'none', stroke: wall ? SIM.OBSTACLE_COLOR : '#000000', 'stroke-width': d.width || SIM.LINE_WIDTH_CM, 'stroke-linecap': wall ? 'round' : 'butt', opacity: 0.6 }, g);
+            if (SIM.isTunnel(d)) {
+                const wide = SIM.tunnelWidth(d) + 2 * SIM.TUNNEL_WALL_CM;
+                el('path', { d: SIM.linePathD(d), fill: 'none', stroke: SIM.OBSTACLE_COLOR, 'stroke-width': wide, 'stroke-linejoin': 'round', opacity: 0.35 }, g);
+            } else {
+                el('path', { d: SIM.linePathD(d), fill: 'none', stroke: wall ? SIM.OBSTACLE_COLOR : '#000000', 'stroke-width': d.width || SIM.LINE_WIDTH_CM, 'stroke-linecap': wall ? 'round' : 'butt', opacity: 0.6 }, g);
+            }
             d.points.slice(0, -1).forEach((p, i) => handle(p[0], p[1], i === 0 ? 'first' : 'drawn', true));
         }
     }
@@ -1570,7 +1605,8 @@ export class SimEditor {
             }
         }
         const slack = this.px(3);
-        const order = (item: SIM.SimItem) => (item.role === 'goal' || item.role === 'fail' ? 3 : item.role === 'obstacle' ? 2 : item.kind === 'line' ? 1 : 0);
+        // a tunnel last: what lies in it can be picked through its roof
+        const order = (item: SIM.SimItem) => (SIM.isTunnel(item) ? -1 : item.role === 'goal' || item.role === 'fail' ? 3 : item.role === 'obstacle' ? 2 : item.kind === 'line' ? 1 : 0);
         const items = this.data.world.items
             .map((item, i) => ({ item: item, i: i }))
             .sort((a, b) => order(b.item) - order(a.item) || b.i - a.i)
@@ -1796,6 +1832,7 @@ export class SimEditor {
     /** a light re-render while dragging */
     private renderEdit(): void {
         this.layers.world.innerHTML = SIM.worldSvg(this.data.world, this.prefix);
+        this.layers.roof.innerHTML = SIM.roofSvg(this.data.world, this.prefix);
         this.renderSensorsOfRobots();
         this.renderOverlay();
     }
@@ -1852,7 +1889,7 @@ export class SimEditor {
         const target = e.target as Element;
         const h = target && target.getAttribute && target.getAttribute('data-handle');
         const item = this.selectedItem();
-        if (!item || item.kind !== 'line') {
+        if (!item || !SIM.hasLinePoints(item)) {
             return;
         }
         const before = this.snapshot();
@@ -1883,14 +1920,18 @@ export class SimEditor {
     private addLinePoint(p: number[]): void {
         const q = [round(p[0]), round(p[1])];
         if (!this.drawing) {
-            this.drawing = { id: newId('l'), kind: 'line', points: [q, q.slice()], smooth: this.tool === 'curve' || this.tool === 'wallCurve', closed: false };
-            WALL_TOOLS.indexOf(this.tool) >= 0 && Object.assign(this.drawing, { role: 'obstacle', width: SIM.WALL_WIDTH_CM }); // a wall: an obstacle
+            if (this.tool === 'tunnel') {
+                this.drawing = { id: newId('t'), kind: 'tunnel', role: 'obstacle', points: [q, q.slice()], smooth: true, width: SIM.TUNNEL_WIDTH_CM };
+            } else {
+                this.drawing = { id: newId('l'), kind: 'line', points: [q, q.slice()], smooth: this.tool === 'curve' || this.tool === 'wallCurve', closed: false };
+                WALL_TOOLS.indexOf(this.tool) >= 0 && Object.assign(this.drawing, { role: 'obstacle', width: SIM.WALL_WIDTH_CM }); // a wall: an obstacle
+            }
             this.renderOverlay();
             return;
         }
         const pts = this.drawing.points;
         const first = pts[0];
-        if (pts.length > 3 && Math.hypot(first[0] - p[0], first[1] - p[1]) <= this.px(10)) {
+        if (!SIM.isTunnel(this.drawing) && pts.length > 3 && Math.hypot(first[0] - p[0], first[1] - p[1]) <= this.px(10)) {
             pts.pop();
             this.drawing.closed = true;
             this.finishDrawing(true);
@@ -1924,7 +1965,7 @@ export class SimEditor {
             }
         });
         d.points = pts;
-        if (pts.length < 3) {
+        if (pts.length < 3 && !SIM.isTunnel(d)) {
             d.closed = false;
         }
         if (keep && pts.length >= 2) {

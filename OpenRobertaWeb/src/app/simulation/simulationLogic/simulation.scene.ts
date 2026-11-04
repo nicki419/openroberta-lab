@@ -56,6 +56,8 @@ export interface ILevelHost {
     restart(): void;
     /** the width (px) a panel beside the scene takes on its right (the scene is centred in the rest) */
     insetRight(): number;
+    /** draws what is above the robots (the roofs of a level's tunnels), on the robots' layer in the scene's units */
+    drawAbove(ctx: CanvasRenderingContext2D): void;
 }
 
 export class RcjScoringTool implements IObserver {
@@ -848,6 +850,7 @@ export class SimulationScene {
                 }
             }
         });
+        this.sim.level() && this.sim.level().drawAbove(this.rCtx);
         if (this.redrawColorAreas) {
             this.drawColorAreas();
             this.redrawColorAreas = false;

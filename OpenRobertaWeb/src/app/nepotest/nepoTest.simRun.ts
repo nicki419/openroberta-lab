@@ -62,7 +62,7 @@ const SAMPLE_CM = 0.5; // the path gets a new pose after this much movement (as 
 const SAMPLE_DEG = 3;
 const CHUNK_MS = 30; // the browser gets a chance to draw after this much computing
 const BUMP_MARGIN = 3; // units: the robot bumped into the obstacle that is at most this far from its outline (else into the wall)
-const KIND_WORDS: { [kind: string]: string } = { goal: 'Goal', fail: 'Fail area', color: 'Area', obstacle: 'Obstacle', line: 'Line', wall: 'Wall' }; // reports are in English
+const KIND_WORDS: { [kind: string]: string } = { goal: 'Goal', fail: 'Fail area', color: 'Area', obstacle: 'Obstacle', line: 'Line', wall: 'Wall', tunnel: 'Tunnel' }; // reports are in English
 
 function u(v: number): number {
     return SIM.BORDER + v * SIM.UNITS_PER_CM;
@@ -106,11 +106,11 @@ function isShape(item: SIM.SimItem): boolean {
 }
 
 /**
- * the simulator's obstacles of an item: one for a rect, circle or triangle; for a wall, two triangles per piece and a circle at each point. A
- * level (levels.player) gives the Program tab's scene and the obstacle's colour
+ * the simulator's obstacles of an item: one for a rect, circle or triangle; for a wall, two triangles per piece and a circle at each point;
+ * for a tunnel, two triangles per piece of each of its walls. A level (levels.player) gives the Program tab's scene and the obstacle's colour
  */
 export function obstaclesOf(item: SIM.SimItem, listener: SelectionListener, scene?: any, color?: string): any[] {
-    if (!SIM.isWall(item)) {
+    if (!SIM.isLineObstacle(item)) {
         return isShape(item) ? [simObject(item, SimObjectType.Obstacle, listener, scene, color)] : [];
     }
     if ((item.points || []).length < 2) {
@@ -327,7 +327,7 @@ export function bbox(points: number[][], margin = 0): number[] {
 }
 
 export function shapeOf(item: SIM.SimItem): Shape {
-    if (SIM.isWall(item)) {
+    if (SIM.isLineObstacle(item)) {
         const pieces = SIM.wallPieces(item);
         const parts = pieces.polygons
             .map((q) => shapeOf({ id: item.id, kind: 'triangle', points: q }))
@@ -556,7 +556,7 @@ class Run {
         const [bw, bh] = SIM.backgroundSize(world);
         this.ground = new Ground(10, 10, bw, bh);
         this.obstacles = [].concat(...world.items.filter((i) => i.role === 'obstacle').map((i) => obstaclesOf(i, this.listener)));
-        world.items.filter((i) => (i.kind !== 'line' && isShape(i)) || (SIM.isWall(i) && (i.points || []).length >= 2)).forEach((i) => (this.shapes[i.id] = shapeOf(i)));
+        world.items.filter((i) => isShape(i) || (SIM.isLineObstacle(i) && (i.points || []).length >= 2)).forEach((i) => (this.shapes[i.id] = shapeOf(i)));
         this.checks = (sim.checks || []).map((c: any) => this.checkState(c));
         this.until = sim.until ? this.shapes[sim.until] || null : null;
         const ud = document.createElement('canvas'); // the simulator's trail canvas: no trail is drawn
@@ -583,6 +583,7 @@ class Run {
         };
         this.recorder = new PROGRAM.Recorder(model, state, this.interpreter.getRobotBehaviour(), () => this.now);
         this.robot = createRobot(nextRobotId++, compiled.configuration, this.interpreter, this.listener);
+        this.robot.ambientLight = (x: number, y: number) => SIM.lightAt(world, cm(x), cm(y)); // the light sensors look up: tunnels are darker
         this.start = SIM.startOf(world, sim.start);
         const theta = (-this.start.heading * Math.PI) / 180;
         this.robot.pose = new Pose(u(this.start.x), u(this.start.y), theta);

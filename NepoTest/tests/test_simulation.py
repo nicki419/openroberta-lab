@@ -154,13 +154,14 @@ class FloorTest(unittest.TestCase):
 
     def test_the_sensors_read_the_floor_as_in_the_simulator(self):
         # values the Lab's simulator showed for the robot at (150, 40) units, turned 30 degrees, on the Edison track
-        # (read from its hardwareState in a browser): line tracker 87 %, LLIGHT 87 %, RLIGHT 76 %
+        # (read from its hardwareState in a browser): line tracker 87 %; the light sensors look up (since 2026-11-04):
+        # 100 % in the open
         sim = stored_floor('follows the track to the finish')
         robot = SIM.SimRobot(SIM.SimWorld(dict(sim['world'], start={'x': 46.67, 'y': 10, 'heading': -30}), sim['floor']))
         robot._sense(0, 0, 0)
-        self.assertEqual((SIM.js_round(robot.light['tracker']), SIM.js_round(robot.light['left']), SIM.js_round(robot.light['right'])), (87, 87, 76))
+        self.assertEqual((SIM.js_round(robot.light['tracker']), SIM.js_round(robot.light['left']), SIM.js_round(robot.light['right'])), (87, 100, 100))
         self.assertEqual(robot.ed_ReadLineState(), C['LINE_ON_WHITE'])
-        self.assertEqual((robot.ed_ReadLineTracker(), robot.ed_ReadLeftLightLevel(), robot.ed_ReadRightLightLevel()), (870, 870, 760))
+        self.assertEqual((robot.ed_ReadLineTracker(), robot.ed_ReadLeftLightLevel(), robot.ed_ReadRightLightLevel()), (870, 1000, 1000))
 
     def test_version_1_worlds(self):
         old = {'start': {'x': 1, 'y': 2, 'heading': 0}, 'items': [
@@ -550,6 +551,35 @@ class SimulationWorldTest(unittest.TestCase):
         on_start = dict(FAIL, x=150, y=100)  # start A is in the middle
         _, problems = translate(suite_of(world_xml(course(on_start), tests=tests)))
         self.assertIn('test "stays out": the robot starts on a fail area, which the test checks: move the start or the area', messages(problems, 'warning'))
+
+    def test_tunnels(self):
+        """a tunnel: two walls along its line and a roof; the light sensors, which look up, see less light under it"""
+        tunnel = {'id': 't1', 'kind': 'tunnel', 'role': 'obstacle', 'points': [[100, 100], [200, 100]], 'width': 15}
+        pieces = SIM.wall_pieces(tunnel)
+        self.assertEqual([p['kind'] for p in pieces], ['triangle'] * 4)  # straight: one piece per wall, two triangles each
+        self.assertEqual(sorted(set(round(q[1], 6) for p in pieces for q in p['points'])), [91.0, 92.5, 107.5, 109.0])
+        world = {'items': [tunnel]}
+        self.assertEqual(SIM.light_at(world, 50, 100), 100)  # in the open
+        self.assertEqual(SIM.light_at(world, 150, 112), 100)  # beside it
+        self.assertAlmostEqual(SIM.light_at(world, 107.5, 100), 70)  # halfway through the fade, from the opening ...
+        self.assertAlmostEqual(SIM.light_at(world, 192.5, 108.5), 70)  # ... at either end, also under the walls
+        self.assertEqual(SIM.light_at(world, 150, 105), 40)  # deep inside
+        curved = dict(tunnel, points=[[100, 100], [150, 60], [200, 100]], smooth=True)
+        self.assertEqual(SIM.light_at({'items': [curved]}, 150, 60), 40)
+        self.assertEqual(SIM.item_name(world, tunnel), 'Tunnel 1')
+        tests = case_xml('t1', 'through the tunnel', checks=check_xml('never_bumps', 'c1', 't1'))
+        spec, problems = translate(suite_of(world_xml(course(tunnel), tests=tests)))  # start A (150, 100) is inside it
+        self.assertEqual((problems, spec['tests'][0]['simulation']['checks']), ([], [{'check': 'never_bumps', 'block_id': 'c1', 'item': 't1'}]))
+        self.assertEqual(validate_spec(spec), [])
+        robot = SIM.SimRobot(SIM.SimWorld(course(tunnel)['world']))
+        robot._sense(0, 0, 0)
+        self.assertEqual((robot.light['left'], robot.light['right']), (40, 40))
+        on_wall = dict(tunnel, points=[[100, 108], [200, 108]])  # a wall through start A
+        _, problems = translate(suite_of(world_xml(course(on_wall), tests=tests)))
+        self.assertIn('test "through the tunnel": the robot starts on an obstacle: move the start or the obstacle', messages(problems, 'error'))
+        bad = SIM.default_world()
+        bad['items'] = [dict(tunnel, role='goal'), dict(tunnel, id='t2', width=0), dict(tunnel, id='t3', points=[[1, 1]])]
+        self.assertEqual(len(SIM.validate_world(bad, 'w')), 3)
 
     def test_walls(self):
         """a wall: a line with the role obstacle, an obstacle of its shape (the editor's wall tools)"""

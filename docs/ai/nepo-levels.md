@@ -45,7 +45,7 @@ Designers' guide: `levels/README.md`. Configuration: `.env.example`.
     smaller floor cuts off the right and the bottom.
 - **Two item fields the Tests tab doesn't make:**
   - a goal area with `soft: {still: s}` (drawn at 50 % opacity);
-  - an obstacle or wall with `failOnHit: true` (drawn red, `SIM.FAIL_OBSTACLE_COLOR`).
+  - an obstacle, wall or tunnel with `failOnHit: true` (drawn red, `SIM.FAIL_OBSTACLE_COLOR`).
 - **`parseLevel`** reads a level: peach floor (with its size), one start, a positive time limit or none.
 - **`levelProblems`** (shown by the designer) reports: no goal area; a start that is outside the floor, on a goal, on
   a fail area or on an obstacle; and something drawn that lies (partly) outside the floor.
@@ -62,7 +62,11 @@ robots every hook does nothing.
 - **Scene:**
   - The floor image is drawn into a canvas (peach plus the lines, `SIM.drawLines`) and turned into an `Image`, because
     the scene reads `backgroundImg.src`.
-  - Obstacles come from `nepoTest.simRun` `obstaclesOf(item, listener, scene, colour)`, walls included.
+  - Obstacles come from `nepoTest.simRun` `obstaclesOf(item, listener, scene, colour)`, walls and tunnels included.
+  - Tunnels: their roofs are one SVG picture (`SIM.roofImage`, the same drawing as the editor's `roofSvg`), drawn
+    above the robot by the hook `ILevelHost.drawAbove` (called by `SimulationScene.draw` after the robots). The
+    robot's `ambientLight` (set in `sceneReady` and `applyLevel`) gives its light sensors the light under them
+    (`SIM.lightAt`).
   - Goal, soft-goal and fail areas are one object in the scene's `rcjList`, drawn only on the visible `#rcjLayer`.
     The floor sensors (`uCtx`) never see the areas, as in the Tests tab.
   - The robot is placed at the start.

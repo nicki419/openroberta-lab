@@ -54,7 +54,8 @@ Tests tab
 **Simulation worlds** hold the second kind of test (§5). A *simulation world* block has a small picture of its world,
 and its **tests**. Clicking it opens the **Simulation** panel,
 which looks and behaves like the Lab's simulator. There the learner:
-- draws the world once: lines to follow, obstacles (rectangles, circles, triangles and walls), goal and fail areas;
+- draws the world once: lines to follow, obstacles (rectangles, circles, triangles, walls and tunnels), goal and fail
+  areas (a tunnel's roof is drawn above the robots);
 - places the robot's **starts** (A, B, …);
 - runs the world's tests and watches a run again.
 
@@ -600,6 +601,15 @@ chose what an object is and changed a selected one).
   that is an obstacle: the robot bumps into it, its infrared sensors see it, and *never bumps into* can name it. On the
   simulator, a wall is two triangles around each straight piece of its line (curves: 16 pieces per segment) and a
   circle at each point (`SIM.wallPieces`, `simulation.py wall_pieces`).
+- **Tunnels** (*World: obstacles*, 2026-11-04): click the points of its middle (curved by default; no closing). Two
+  walls 1.5 cm thick (`SIM.TUNNEL_WALL_CM`) along the line, *width inside* apart (5–60 cm, default 15, in its
+  properties); the robot drives through it and bumps into its walls (its infrared sensors see them; *never bumps into* can
+  name it). Its roof covers walls and inside and is drawn **above the robot**, translucent, as dark as the light under
+  it. The light sensors LLIGHT/RLIGHT look up: they see 100 % in the open (`SIM.AMBIENT_LIGHT`), and under the roof the
+  light fades linearly from 100 % at an opening to 40 % (`TUNNEL_LIGHT`) 15 cm (`TUNNEL_FADE_CM`) inside, measured
+  along the tunnel from the nearer opening (`SIM.lightAt`, `tunnelLight`; `simulation.py light_at`). On the simulator, each wall is two triangles per straight piece
+  (`SIM.tunnelGeometry`: the walls are the line's offsets, mitred, so the pieces join without gaps). Clicking inside a
+  tunnel picks what lies in it first (a line, a start), the tunnel last.
 - **Coloured areas** (the sensors see them) can no longer be drawn; those of older worlds stay, and can be moved and
   deleted.
 - **Background:** the choice is hidden (`BACKGROUND_CHOICE = false`; its code stays): a new world has the plain peach

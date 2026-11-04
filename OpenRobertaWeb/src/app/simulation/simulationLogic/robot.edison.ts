@@ -16,6 +16,8 @@ export default class RobotEdison extends RobotBaseMobile {
     private lightSensors: EdisonLightSensors;
     private soundSensor: SoundSensorBoolean;
     private leds: EdisonLeds;
+    /** the light (%) at a point of the scene (units), as the light sensors see it (they look up); null: the room's light everywhere */
+    ambientLight: (x: number, y: number) => number = null;
 
     constructor(id: number, configuration: object, interpreter: Interpreter, savedName: string, myListener: SelectionListener) {
         super(id, configuration, interpreter, savedName, myListener);
@@ -36,8 +38,8 @@ export default class RobotEdison extends RobotBaseMobile {
     protected configure(configuration: object): void {
         this.infraredSensors = new EdisonInfraredSensors();
         this.lightSensor = new LineSensor({ x: 15, y: 0 }, 3);
-        // left and right light sensors (LLIGHT, RLIGHT), located at the LEDs like on the real robot
-        this.lightSensors = new EdisonLightSensors({ x: 16.5, y: -4.5 }, { x: 16.5, y: 4.5 }, 3);
+        // left and right light sensors (LLIGHT, RLIGHT): on top of the robot at its front, next to the LEDs, looking up (not drawn)
+        this.lightSensors = new EdisonLightSensors({ x: 16.5, y: -4.5 }, { x: 16.5, y: 4.5 });
         this.soundSensor = new SoundSensorBoolean(this);
         this.leds = new EdisonLeds({ x: 16.5, y: 4.5 }, this.id, '#fa7000');
 

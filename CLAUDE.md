@@ -80,7 +80,7 @@ programs, which implements the project goal. It covers:
 - **simulation tests:** the robot drives through a **drawn world on the Lab's own simulator**: the program compiled
   for the simulator (`sourceSimulation`), run by the simulator's interpreter, Edison and objects, offscreen and in
   virtual time, in the Tests tab (`OpenRobertaWeb/src/app/nepotest/nepoTest.simRun.ts`). A **simulation world** (lines
-  to follow, obstacles and walls, goal and fail areas, named starts) holds many tests: each is set up (a start, the past: claps,
+  to follow, obstacles, walls and tunnels, goal and fail areas, named starts) holds many tests: each is set up (a start, the past: claps,
   keys, variables), runs the whole program (for N s, or until it touches an area) and checks where the robot goes
   (reaches, never touches, ends in, never bumps into), what it does
   (`nepoTest.simBehaviour.ts`: from a time on it always turns left; whenever it sees the line, it turns left; within

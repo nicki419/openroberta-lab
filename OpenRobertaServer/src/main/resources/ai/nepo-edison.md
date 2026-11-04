@@ -48,7 +48,7 @@ Sensors (values the program reads):
 | NEPO block (XML type, fields) | EdPy | In the simulator |
 |---|---|---|
 | line tracker sees black (`robSensors_light_getSample`, MODE `LINE`, port `LINETRACKER`) | `Ed.ReadLineState() == Ed.LINE_ON_BLACK` | true while the floor under the line tracker is dark (light below 50 %): a black line |
-| light LLIGHT / RLIGHT / LINETRACKER in % (`robSensors_light_getSample`, MODE `LIGHT`) | `Ed.ReadLeftLightLevel() / 10`, … | the brightness of the floor under that sensor, 0 (black) to 100 (white); the peach floor reads about 83 |
+| light LLIGHT / RLIGHT / LINETRACKER in % (`robSensors_light_getSample`, MODE `LIGHT`) | `Ed.ReadLeftLightLevel() / 10`, … | LLIGHT, RLIGHT: the light from above (they look up), 100 % in the open, down to 40 % inside a tunnel. LINETRACKER: the brightness of the floor under it, 0 (black) to 100 (white); the peach floor reads about 83 |
 | obstacle FRONT / LEFT / RIGHT (`robSensors_infrared_getSample`, MODE `OBSTACLE`; also `robSensors_getSample` `INFRARED_OBSTACLE`) | `_obstacleDetection(Ed.OBSTACLE_AHEAD)`, `…LEFT`, `…RIGHT` | true while an obstacle, a wall or the floor's edge is less than 3 cm in front of that sensor (all three look forward) |
 | key PLAY / REC pressed (`robSensors_key_getSample`; `robSensors_getSample` `KEY_PRESSED`) | `Ed.ReadKeypad() == Ed.KEYPAD_TRIANGLE` (PLAY), `KEYPAD_ROUND` (REC) | true while the key is held |
 | sound / clap (`robSensors_sound_getSample`; `robSensors_getSample` `SOUND_SOUND`) | `Ed.ReadClapSensor() == Ed.CLAP_DETECTED` | true while it is loud: a clap is loud for about 0.3 s |

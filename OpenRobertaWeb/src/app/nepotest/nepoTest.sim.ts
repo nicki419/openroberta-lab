@@ -12,7 +12,10 @@
  * The simulator works in units of 1/3 cm, with the background at (10, 10): u = 10 + 3 * cm.
  * starts: where the robot can start (a test of the world chooses one by its id; the name is what the blocks show, A, B, ...).
  * items: {id, name, kind: 'line', points: [[x, y], ...], smooth, closed, width} (the test's addition, drawn like the background's track),
- * the same with role 'obstacle' (a wall: an obstacle of that shape, width cm thick), {id, name, kind: 'rect', role, x, y, w, h} (top left
+ * the same with role 'obstacle' (a wall: an obstacle of that shape, width cm thick), {id, name, kind: 'tunnel', role: 'obstacle', points,
+ * smooth, width} (a tunnel along its line: width cm wide inside, between two walls TUNNEL_WALL_CM thick; its roof covers walls and inside:
+ * the robot drives through it, and its light sensors, which look up, see the light fade from AMBIENT_LIGHT at an opening to TUNNEL_LIGHT
+ * TUNNEL_FADE_CM inside; the picture shows the roof translucent, as dark as the light under it), {id, name, kind: 'rect', role, x, y, w, h} (top left
  * corner), {id, name, kind: 'circle', role, x, y, r}, {id, name, kind: 'triangle', role, points}; role obstacle | color (a coloured area, with
  * color: a hex colour; drawn before 2026-10-30, the editor no longer makes them) | goal | fail (fail areas have no names: a test checks
  * that the robot touches none of them). A level (the Program tab's simulator, levels/level.model) is a world with one start and two things
@@ -26,7 +29,7 @@
 export interface SimItem {
     id: string;
     name?: string;
-    kind: string; // line | rect | circle | triangle
+    kind: string; // line | tunnel | rect | circle | triangle
     role?: string; // obstacle | color | goal | fail
     color?: string;
     points?: number[][];
@@ -97,7 +100,7 @@ export const LINE_SENSOR = [15, 0];
 export const LIGHT_SENSORS = [
     [16.5, -4.5],
     [16.5, 4.5],
-]; // LLIGHT, RLIGHT
+]; // LLIGHT, RLIGHT: on top of the robot, looking up (EdisonLightSensors; not drawn)
 export const IR_SENSORS = [
     [17, -8],
     [18, 0],
@@ -115,6 +118,17 @@ export const COLOR_AREA_COLOR = '#FBED00';
 export const LINE_WIDTH_CM = 4.44 / UNITS_PER_CM; // the black core of simpleBackgroundEdison's track
 export const LINE_BAND = 16; // units: its white band
 export const WALL_WIDTH_CM = 1.5; // a new wall's thickness
+export const TUNNEL_WIDTH_CM = 15; // a new tunnel: its width inside, between its walls
+export const TUNNEL_WIDTH_MIN_CM = 5;
+export const TUNNEL_WIDTH_MAX_CM = 60;
+export const TUNNEL_WALL_CM = 1.5; // the thickness of a tunnel's walls
+// the light the light sensors see (they look up): the room's everywhere, but under a tunnel's roof it fades from the opening inwards
+export const AMBIENT_LIGHT = 100; // % (robot.sensors EdisonLightSensors: a robot without a light field)
+export const TUNNEL_LIGHT = 40; // % deep inside a tunnel ...
+export const TUNNEL_FADE_CM = 15; // ... from this far inside (measured along the tunnel from its nearer opening); linear in between
+const ROOF_GLASS = '#d6e6f2'; // the roof's look: a light glass ...
+const ROOF_GLASS_OPACITY = 0.25;
+const ROOF_EDGE = '#3c4c58'; // ... with dark edges along the walls
 
 export const COLORS = {
     outside: '#f4f4f4',
@@ -170,9 +184,24 @@ export function isPath(item: SimItem): boolean {
     return item.kind === 'line' && !isWall(item);
 }
 
-/** the kind of thing an item is, for its name: a line, a wall, or its role */
+/** a tunnel: two walls along its line, with a roof (an obstacle the robot can drive through) */
+export function isTunnel(item: SimItem): boolean {
+    return item.kind === 'tunnel';
+}
+
+/** an obstacle along a line: a wall or a tunnel (the simulator's objects: wallPieces) */
+export function isLineObstacle(item: SimItem): boolean {
+    return isWall(item) || isTunnel(item);
+}
+
+/** a thing drawn by its points (a line, a wall, a tunnel): its points can be moved, added and removed */
+export function hasLinePoints(item: SimItem): boolean {
+    return item.kind === 'line' || isTunnel(item);
+}
+
+/** the kind of thing an item is, for its name: a line, a wall, a tunnel, or its role */
 export function itemKind(item: SimItem): string {
-    return isWall(item) ? 'wall' : item.kind === 'line' ? 'line' : item.role;
+    return isWall(item) ? 'wall' : isTunnel(item) ? 'tunnel' : item.kind === 'line' ? 'line' : item.role;
 }
 
 /** an item's name; an item without one (from the simulator's scene, or older data) is called by its kind and number, "Goal 2". Fail areas have no names: "Fail area" */
@@ -214,7 +243,7 @@ export function obstacleColor(item: SimItem): string {
 }
 
 export function isArea(item: SimItem): boolean {
-    return item.kind !== 'line' && (item.role === 'goal' || item.role === 'fail' || item.role === 'color');
+    return !hasLinePoints(item) && (item.role === 'goal' || item.role === 'fail' || item.role === 'color');
 }
 
 /** the simulator's size of a new object (simulation.scene.ts: a ninth of the background's width), in cm */
@@ -402,8 +431,12 @@ export function linePolyline(item: SimItem): number[][] {
 /**
  * a wall as the simulator's objects (cm): a quadrilateral around each straight piece of its line (polygons: four corners; each is two of the
  * simulator's triangles), and a circle at each of its points ([x, y, r]: the round corners and ends). As simulation.py wall_pieces.
+ * A tunnel: the quadrilaterals of its two walls (they join without gaps and end flat at the openings: no circles).
  */
 export function wallPieces(item: SimItem): { polygons: number[][][]; circles: number[][] } {
+    if (isTunnel(item)) {
+        return { polygons: tunnelGeometry(item).walls, circles: [] };
+    }
     const half = (item.width || WALL_WIDTH_CM) / 2;
     const poly = linePolyline(item);
     const polygons: number[][][] = [];
@@ -424,6 +457,132 @@ export function wallPieces(item: SimItem): { polygons: number[][][]; circles: nu
     return { polygons: polygons, circles: (item.points || []).map((p) => [p[0], p[1], half]) };
 }
 
+// ------------------------------------------------------------------------------------------------ tunnels
+
+/** a tunnel's inside width (cm): its own, else a new tunnel's */
+export function tunnelWidth(item: SimItem): number {
+    const w = Number(item.width);
+    return isFinite(w) && w > 0 ? w : TUNNEL_WIDTH_CM;
+}
+
+interface TunnelGeometry {
+    center: number[][]; // its line, in straight pieces (curves: 16 per segment, as linePolyline)
+    at: number[]; // the length along the line at each of its points (cm)
+    length: number;
+    walls: number[][][]; // the quadrilaterals of its two walls, piece by piece
+    roof: number[][][]; // the quadrilaterals of the roof (walls and inside), piece by piece
+    edges: number[][][]; // the roof's two long edges (the outer sides of the walls)
+    box: number[]; // [minX, minY, maxX, maxY] of the roof
+    outer: number; // half the roof's width (cm): half the inside and a wall
+}
+
+const tunnelCache: { key: string; geometry: TunnelGeometry }[] = [];
+
+/**
+ * the points of a line moved sideways by `d` cm (to the left of its direction for d > 0, as the picture shows it: y points down); at a corner
+ * along the bisector, as far as both sides need (a mitre, at most 3 d long), so the pieces of a wall join without a gap
+ */
+function offsetLine(line: number[][], d: number): number[][] {
+    const normal = (a: number[], b: number[]) => {
+        const len = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1;
+        return [(b[1] - a[1]) / len, -(b[0] - a[0]) / len];
+    };
+    return line.map((p, i) => {
+        const n1 = i > 0 ? normal(line[i - 1], p) : normal(p, line[i + 1]);
+        const n2 = i < line.length - 1 ? normal(p, line[i + 1]) : n1;
+        let mx = n1[0] + n2[0];
+        let my = n1[1] + n2[1];
+        const len = Math.hypot(mx, my);
+        if (len < 1e-9) {
+            [mx, my] = n1; // the line turns back on itself
+        } else {
+            mx /= len;
+            my /= len;
+        }
+        const scale = 1 / Math.max(1 / 3, mx * n1[0] + my * n1[1]);
+        return [p[0] + mx * d * scale, p[1] + my * d * scale];
+    });
+}
+
+/** a tunnel's line, walls and roof (cm); the last few are kept (the light is asked for in every frame) */
+export function tunnelGeometry(item: SimItem): TunnelGeometry {
+    const key = JSON.stringify([item.points, !!item.smooth, tunnelWidth(item)]);
+    const known = tunnelCache.filter((c) => c.key === key)[0];
+    if (known) {
+        return known.geometry;
+    }
+    const center: number[][] = [];
+    linePolyline({ id: item.id, kind: 'line', points: item.points || [], smooth: !!item.smooth }).forEach((p) => {
+        const last = center[center.length - 1];
+        (!last || Math.hypot(p[0] - last[0], p[1] - last[1]) > 1e-6) && center.push(p);
+    });
+    const at = [0];
+    for (let i = 1; i < center.length; i++) {
+        at.push(at[i - 1] + Math.hypot(center[i][0] - center[i - 1][0], center[i][1] - center[i - 1][1]));
+    }
+    const half = tunnelWidth(item) / 2;
+    const outer = half + TUNNEL_WALL_CM;
+    const geometry: TunnelGeometry = { center: center, at: at, length: at[at.length - 1], walls: [], roof: [], edges: [], box: [0, 0, 0, 0], outer: outer };
+    if (center.length >= 2) {
+        const [leftIn, leftOut, rightIn, rightOut] = [half, outer, -half, -outer].map((d) => offsetLine(center, d));
+        for (let i = 1; i < center.length; i++) {
+            geometry.walls.push([leftIn[i - 1], leftIn[i], leftOut[i], leftOut[i - 1]], [rightIn[i - 1], rightIn[i], rightOut[i], rightOut[i - 1]]);
+            geometry.roof.push([leftOut[i - 1], leftOut[i], rightOut[i], rightOut[i - 1]]);
+        }
+        geometry.edges = [leftOut, rightOut];
+        const all = leftOut.concat(rightOut);
+        geometry.box = [Math.min(...all.map((p) => p[0])), Math.min(...all.map((p) => p[1])), Math.max(...all.map((p) => p[0])), Math.max(...all.map((p) => p[1]))];
+    }
+    tunnelCache.push({ key: key, geometry: geometry });
+    tunnelCache.length > 32 && tunnelCache.shift();
+    return geometry;
+}
+
+function inQuad(p: number[], q: number[][]): boolean {
+    return inTriangle(p, q[0], q[1], q[2]) || inTriangle(p, q[0], q[2], q[3]);
+}
+
+/** the light (%) under a tunnel's roof at a depth (cm along it from the nearer opening): AMBIENT_LIGHT at the opening, TUNNEL_LIGHT from TUNNEL_FADE_CM on */
+export function tunnelLightAtDepth(depth: number): number {
+    return AMBIENT_LIGHT - (AMBIENT_LIGHT - TUNNEL_LIGHT) * Math.max(0, Math.min(1, depth / TUNNEL_FADE_CM));
+}
+
+/** the light (%) at a point (cm) under a tunnel's roof; AMBIENT_LIGHT if the point isn't under it */
+export function tunnelLight(item: SimItem, x: number, y: number): number {
+    const g = tunnelGeometry(item);
+    const b = g.box;
+    if (g.center.length < 2 || x < b[0] || x > b[2] || y < b[1] || y > b[3] || !g.roof.some((q) => inQuad([x, y], q))) {
+        return AMBIENT_LIGHT;
+    }
+    // how far along the tunnel: at the nearest point of its line
+    let best = Infinity;
+    let along = 0;
+    for (let i = 1; i < g.center.length; i++) {
+        const [a, c] = [g.center[i - 1], g.center[i]];
+        const dx = c[0] - a[0];
+        const dy = c[1] - a[1];
+        const len2 = dx * dx + dy * dy;
+        const t = len2 === 0 ? 0 : Math.max(0, Math.min(1, ((x - a[0]) * dx + (y - a[1]) * dy) / len2));
+        const d = Math.hypot(x - (a[0] + t * dx), y - (a[1] + t * dy));
+        if (d < best) {
+            best = d;
+            along = g.at[i - 1] + t * (g.at[i] - g.at[i - 1]);
+        }
+    }
+    return tunnelLightAtDepth(Math.min(along, g.length - along));
+}
+
+/** the light (%) the light sensors see at a point (cm): the room's, or under a tunnel's roof less (the darkest, where tunnels overlap) */
+export function lightAt(world: SimWorld, x: number, y: number): number {
+    let light = AMBIENT_LIGHT;
+    for (const item of world.items) {
+        if (isTunnel(item) && (item.points || []).length >= 2) {
+            light = Math.min(light, tunnelLight(item, x, y));
+        }
+    }
+    return light;
+}
+
 function inTriangle(p: number[], a: number[], b: number[], c: number[]): boolean {
     const d1 = (p[0] - b[0]) * (a[1] - b[1]) - (a[0] - b[0]) * (p[1] - b[1]);
     const d2 = (p[0] - c[0]) * (b[1] - c[1]) - (b[0] - c[0]) * (p[1] - c[1]);
@@ -435,6 +594,16 @@ function inTriangle(p: number[], a: number[], b: number[], c: number[]): boolean
 
 /** is a world point on an item (within `slack` cm)? */
 export function hits(item: SimItem, x: number, y: number, slack: number): boolean {
+    if (isTunnel(item)) {
+        const poly = tunnelGeometry(item).center;
+        const half = tunnelWidth(item) / 2 + TUNNEL_WALL_CM + slack;
+        for (let i = 1; i < poly.length; i++) {
+            if (distanceToSegment(x, y, poly[i - 1], poly[i]) <= half) {
+                return true;
+            }
+        }
+        return false;
+    }
     if (item.kind === 'line') {
         const poly = linePolyline(item);
         const half = (isWall(item) ? item.width || WALL_WIDTH_CM : LINE_BAND / UNITS_PER_CM) / 2 + slack;
@@ -617,7 +786,10 @@ export function infrared(world: SimWorld, x: number, y: number, heading: number)
             lines.push([x0, y0, x0, y0 + h], [x0, y0, x0 + w, y0], [x0 + w, y0 + h, x0, y0 + h], [x0 + w, y0 + h, x0 + w, y0]);
         } else if (item.kind === 'circle') {
             circles.push([u(item.x), u(item.y), item.r * UNITS_PER_CM]);
-        } else if (isWall(item)) {
+        } else if (isLineObstacle(item)) {
+            if ((item.points || []).length < 2) {
+                continue;
+            }
             const pieces = wallPieces(item);
             pieces.polygons.forEach((poly) => poly.forEach((q, i) => lines.push([u(q[0]), u(q[1]), u(poly[(i + 1) % 4][0]), u(poly[(i + 1) % 4][1])])));
             pieces.circles.forEach((c) => circles.push([u(c[0]), u(c[1]), c[2] * UNITS_PER_CM]));
@@ -800,7 +972,7 @@ export function worldSvg(world: SimWorld, prefix: string): string {
         svg += '<path d="' + linePathD(item) + '" fill="none" stroke="#000000" stroke-width="' + n(item.width || LINE_WIDTH_CM) + '" stroke-linejoin="round"' + id(item) + '/>';
     }
     for (const item of items) {
-        if (item.kind !== 'line' && item.role === 'obstacle') {
+        if (!hasLinePoints(item) && item.role === 'obstacle') {
             svg += shapeSvg(item, 'fill="' + obstacleColor(item) + '" filter="url(#' + prefix + 'obstacleShadow)"' + id(item));
         } else if (isWall(item) && (item.points || []).length >= 2) {
             svg +=
@@ -815,6 +987,8 @@ export function worldSvg(world: SimWorld, prefix: string): string {
                 'obstacleShadow)"' +
                 id(item) +
                 '/>';
+        } else if (isTunnel(item) && (item.points || []).length >= 2) {
+            svg += '<path d="' + tunnelWallsD(item) + '" fill="' + obstacleColor(item) + '" filter="url(#' + prefix + 'obstacleShadow)"' + id(item) + '/>';
         }
     }
     for (const item of items) {
@@ -827,10 +1001,135 @@ export function worldSvg(world: SimWorld, prefix: string): string {
     return svg;
 }
 
+/** a tunnel's two walls as one path (cm): the outline of each of their pieces (nonzero: the pieces join into two bands) */
+function tunnelWallsD(item: SimItem): string {
+    return tunnelGeometry(item)
+        .walls.map((q) => 'M' + q.map(pt).join(' L') + ' Z')
+        .join(' ');
+}
+
+/** a tunnel's outline (cm): the outer sides of its walls and its openings */
+export function tunnelOutlineD(item: SimItem): string {
+    const [left, right] = tunnelGeometry(item).edges;
+    return left && right ? 'M' + left.concat(right.slice().reverse()).map(pt).join(' L') + ' Z' : '';
+}
+
+/** a tunnel's line from `a` to `b` cm along it (cm) */
+function tunnelStretch(g: TunnelGeometry, a: number, b: number): number[][] {
+    const at = (s: number) => {
+        let i = 1;
+        while (i < g.center.length - 1 && g.at[i] < s) {
+            i++;
+        }
+        const span = g.at[i] - g.at[i - 1] || 1;
+        const t = Math.max(0, Math.min(1, (s - g.at[i - 1]) / span));
+        return { i: i, p: [g.center[i - 1][0] + t * (g.center[i][0] - g.center[i - 1][0]), g.center[i - 1][1] + t * (g.center[i][1] - g.center[i - 1][1])] };
+    };
+    const from = at(a);
+    const to = at(b);
+    const out = [from.p];
+    for (let i = from.i; i < to.i; i++) {
+        out.push(g.center[i]);
+    }
+    out.push(to.p);
+    return out;
+}
+
+const ROOF_STEP_CM = 0.5; // the fade of the light is drawn in steps of this length ...
+const ROOF_OVERLAP_CM = 0.3; // ... each reaching this far into the next (the next paints over it: no seams)
+
+/**
+ * the roofs of the tunnels (cm), drawn above the robot: a translucent glass with dark edges along the walls, and under it as much dark as
+ * light is missing there (tunnelLight: black at 1 - light / 100, so the robot inside shows at the light it sees). The dark is a black
+ * rectangle under a mask: the mask paints the tunnel's line, as wide as the roof, in the grey of the dark, in steps along the fade.
+ */
+export function roofSvg(world: SimWorld, prefix: string): string {
+    let svg = '';
+    const tunnels = world.items.filter((i) => isTunnel(i) && (i.points || []).length >= 2);
+    tunnels.forEach((item, index) => {
+        const g = tunnelGeometry(item);
+        if (g.center.length < 2) {
+            return;
+        }
+        const wide = n(tunnelWidth(item) + 2 * TUNNEL_WALL_CM);
+        const grey = (light: number) => {
+            const v = Math.round((1 - light / AMBIENT_LIGHT) * 255);
+            return 'rgb(' + v + ',' + v + ',' + v + ')';
+        };
+        const stroke = (points: number[][], color: string) =>
+            '<path d="M' + points.map(pt).join(' L') + '" fill="none" stroke="' + color + '" stroke-width="' + wide + '" stroke-linejoin="round"/>';
+        let mask = stroke(g.center, grey(tunnelLightAtDepth(Infinity)));
+        for (let s = 0; s < g.length; s += ROOF_STEP_CM) {
+            const middle = Math.min(g.length, s + ROOF_STEP_CM / 2);
+            const depth = Math.min(middle, g.length - middle);
+            if (depth < TUNNEL_FADE_CM + ROOF_STEP_CM) {
+                mask += stroke(tunnelStretch(g, s, Math.min(g.length, s + ROOF_STEP_CM + ROOF_OVERLAP_CM)), grey(tunnelLightAtDepth(depth)));
+            }
+        }
+        const margin = 1;
+        const [x0, y0, x1, y1] = [g.box[0] - margin, g.box[1] - margin, g.box[2] + margin, g.box[3] + margin];
+        const box = 'x="' + n(x0) + '" y="' + n(y0) + '" width="' + n(x1 - x0) + '" height="' + n(y1 - y0) + '"';
+        const maskId = prefix + 'roof' + index;
+        svg +=
+            '<g class="nepoSimRoof" data-item="' +
+            escapeXml(item.id) +
+            '" pointer-events="none">' +
+            '<mask id="' +
+            maskId +
+            '" maskUnits="userSpaceOnUse" ' +
+            box +
+            '>' +
+            mask +
+            '</mask>' +
+            '<rect ' +
+            box +
+            ' fill="#000000" mask="url(#' +
+            maskId +
+            ')"/>' +
+            '<path d="M' +
+            g.center.map(pt).join(' L') +
+            '" fill="none" stroke="' +
+            ROOF_GLASS +
+            '" stroke-opacity="' +
+            ROOF_GLASS_OPACITY +
+            '" stroke-width="' +
+            wide +
+            '" stroke-linejoin="round"/>' +
+            g.edges.map((e) => '<path d="M' + e.map(pt).join(' L') + '" fill="none" stroke="' + ROOF_EDGE + '" stroke-opacity="0.55" stroke-width="0.25" stroke-linejoin="round"/>').join('') +
+            '</g>';
+    });
+    return svg;
+}
+
+/** the roofs of the tunnels as a picture of its own (an SVG image; for the simulator's canvas: levels.player): box [x, y, w, h] in cm; null if there are none */
+export function roofImage(world: SimWorld, pixelsPerCm: number): { url: string; box: number[] } {
+    const tunnels = world.items.filter((i) => isTunnel(i) && (i.points || []).length >= 2 && tunnelGeometry(i).center.length >= 2);
+    if (!tunnels.length) {
+        return null;
+    }
+    const boxes = tunnels.map((t) => tunnelGeometry(t).box);
+    const margin = 1;
+    const x0 = Math.min(...boxes.map((b) => b[0])) - margin;
+    const y0 = Math.min(...boxes.map((b) => b[1])) - margin;
+    const x1 = Math.max(...boxes.map((b) => b[2])) + margin;
+    const y1 = Math.max(...boxes.map((b) => b[3])) + margin;
+    const svg =
+        '<svg xmlns="http://www.w3.org/2000/svg" width="' +
+        Math.ceil((x1 - x0) * pixelsPerCm) +
+        '" height="' +
+        Math.ceil((y1 - y0) * pixelsPerCm) +
+        '" viewBox="' +
+        [x0, y0, x1 - x0, y1 - y0].map(n).join(' ') +
+        '" preserveAspectRatio="none">' +
+        roofSvg(world, 'roofImage') +
+        '</svg>';
+    return { url: 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg), box: [x0, y0, x1 - x0, y1 - y0] };
+}
+
 /**
  * the Edison as the simulator draws it, in its own frame and in units (x ahead of the axle, y to its right): EdisonChassis (the image with a
- * shadow), the line tracker and the light sensors filled with the brightness they see (LineSensor.draw), the LEDs (EdisonLeds).
- * light: [line tracker, LLIGHT, RLIGHT] in %; leds: [left, right].
+ * shadow), the line tracker filled with the brightness it sees (LineSensor.draw), the LEDs (EdisonLeds). The light sensors aren't drawn:
+ * they are on top of the robot and look up. light: [line tracker, ...] in %; leds: [left, right].
  */
 export function robotSvg(prefix: string, light?: number[], leds?: boolean[]): string {
     const sensor = (p: number[], value: number) => {
@@ -853,8 +1152,6 @@ export function robotSvg(prefix: string, light?: number[], leds?: boolean[]): st
         prefix +
         'robotShadow)"/>' +
         sensor(LINE_SENSOR, light ? light[0] : 0) +
-        sensor(LIGHT_SENSORS[0], light ? light[1] : 0) +
-        sensor(LIGHT_SENSORS[1], light ? light[2] : 0) +
         (leds && leds[0] ? led(-LED_POINT[1]) : '') +
         (leds && leds[1] ? led(LED_POINT[1]) : '')
     );
@@ -929,6 +1226,7 @@ export function thumbnail(data: SimData, width: number, height: number, floor: H
         ctx.translate((width - (x1 - x0) * s) / 2 - x0 * s, (height - (y1 - y0) * s) / 2 - y0 * s);
         ctx.scale(s, s);
         ctx.drawImage(floor, 0, 0);
+        const roofs: TunnelGeometry[] = [];
         const shape = (item: SimItem) => {
             ctx.beginPath();
             if (item.kind === 'rect') {
@@ -955,6 +1253,21 @@ export function thumbnail(data: SimData, width: number, height: number, floor: H
                 ctx.stroke();
                 continue;
             }
+            if (isTunnel(item)) {
+                const g = tunnelGeometry(item);
+                if (g.center.length >= 2) {
+                    ctx.beginPath();
+                    g.walls.forEach((q) => {
+                        ctx.moveTo(u(q[0][0]), u(q[0][1]));
+                        q.slice(1).forEach((p) => ctx.lineTo(u(p[0]), u(p[1])));
+                        ctx.closePath();
+                    });
+                    ctx.fillStyle = obstacleColor(item);
+                    ctx.fill();
+                    roofs.push(g); // over the robots
+                }
+                continue;
+            }
             if (item.kind === 'line' || item.role === 'color') {
                 continue;
             }
@@ -978,6 +1291,17 @@ export function thumbnail(data: SimData, width: number, height: number, floor: H
             ctx.rotate((-st.heading * Math.PI) / 180);
             ctx.drawImage(robot, CHASSIS.x, CHASSIS.y, CHASSIS.w, CHASSIS.h);
             ctx.restore();
+        }
+        for (const g of roofs) {
+            // the roof: as dark as deep inside (the small picture has no fade)
+            ctx.beginPath();
+            ctx.moveTo(u(g.center[0][0]), u(g.center[0][1]));
+            g.center.slice(1).forEach((p) => ctx.lineTo(u(p[0]), u(p[1])));
+            ctx.lineWidth = 2 * g.outer * UNITS_PER_CM;
+            ctx.lineJoin = 'round';
+            ctx.lineCap = 'butt';
+            ctx.strokeStyle = 'rgba(0, 0, 0, ' + (1 - TUNNEL_LIGHT / AMBIENT_LIGHT) * 0.7 + ')';
+            ctx.stroke();
         }
         return canvas.toDataURL('image/png');
     });

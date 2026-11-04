@@ -17,14 +17,18 @@
 | `circle` | `x`, `y` (centre), `r` | |
 | `triangle` | `points`: three `[x, y]` | |
 | `line` | `points`: `[x, y]`, …; `smooth` (a smooth curve through the points), `closed`, `width` (cm) | |
+| `tunnel` | `points`: `[x, y]`, … (its middle); `smooth`; `width`: its width inside (cm, 5 to 60, default 15) | role `obstacle` |
 
 Their `role`:
 
 - **a line without a role**: a black line on the floor, drawn as a black core (`width`, usually 1.48 cm) on a white
-  band about 5.3 cm wide. The line tracker sees black on the core; the light sensors read 0 % on black, 100 % on
-  white.
+  band about 5.3 cm wide. The line tracker sees black on the core: it reads 0 % on black, 100 % on white.
 - `obstacle`: a block the robot bumps into and its obstacle sensors see. A `line` with role `obstacle` is a **wall**
-  of that shape, `width` cm thick (default 1.5), not drawn on the floor.
+  of that shape, `width` cm thick (default 1.5), not drawn on the floor. A `tunnel` is two walls 1.5 cm thick along
+  its line, `width` cm apart, with a roof: the robot drives through it (and bumps into its walls). **Under the roof it
+  is darker**: the light sensors see 100 % at an opening, less the further in, and 40 % from 15 cm inside on (measured
+  along the tunnel from the nearer opening; linear in between). Make it at least 12 cm wide for the robot to drive
+  through; a line on the floor can run through it.
 - `goal`, `fail`: **areas** that only the tests see. The robot's sensors don't see them, and the robot drives over
   them. Goal areas have names ("Goal 1"); fail areas usually don't.
 - `color`: a coloured patch on the floor the sensors see (older worlds only).
@@ -41,7 +45,8 @@ Their `role`:
 - Speeds change at once; there is no slipping. Distances and angles are measured exactly.
 - **Sensors**, in front of the axle:
   - the line tracker: 5 cm ahead, in the middle;
-  - the light sensors LLIGHT and RLIGHT: 5.5 cm ahead, 1.5 cm to the left and right;
+  - the light sensors LLIGHT and RLIGHT: 5.5 cm ahead, 1.5 cm to the left and right, **on top of the robot, looking
+    up**: they read the light that falls on the robot, not the floor: 100 % in the open, less inside a tunnel;
   - three obstacle sensors, LEFT, FRONT and RIGHT: 6 cm ahead, 2.7 cm left, in the middle and 2.7 cm right, **all
     looking forward**, each seeing an obstacle, a wall or the floor's edge less than 3 cm ahead (a fan of ±22°).
     So a robot that stops when it sees an obstacle stops about 2 to 3 cm before it, without touching it.

@@ -8,7 +8,7 @@
  *    title, instructions,            optional texts the learner sees
  *    timeLimit,                      optional: seconds of the simulator's time
  *    world: {background: 'peach', size, starts: [one start], items: [...]},   the world of the Tests tab (nepoTest.sim), with soft goal
- *                                    areas and obstacles or walls with failOnHit; size: optional, the floor's {w, h} in cm (none: 300 x 200)
+ *                                    areas and obstacles, walls or tunnels with failOnHit; size: optional, the floor's {w, h} in cm (none: 300 x 200)
  *    view: {x, y, scale}}            the designer's zoom
  */
 import * as SIM from 'nepoTest.sim';
@@ -122,14 +122,17 @@ export function startOutline(level: Level): number[][] {
     return SIM.footprint(s.x, s.y, s.heading).map((p) => [SIM.BORDER + p[0] * SIM.UNITS_PER_CM, SIM.BORDER + p[1] * SIM.UNITS_PER_CM]);
 }
 
-/** an area, an obstacle or a wall with a shape (a triangle has three points, a wall two at least) */
+/** an area, an obstacle, a wall or a tunnel with a shape (a triangle has three points, a wall and a tunnel two at least) */
 export function isSolid(item: SIM.SimItem): boolean {
     const points = (item.points || []).length;
-    return item.kind === 'rect' || item.kind === 'circle' || (item.kind === 'triangle' && points === 3) || (SIM.isWall(item) && points >= 2);
+    return item.kind === 'rect' || item.kind === 'circle' || (item.kind === 'triangle' && points === 3) || (SIM.isLineObstacle(item) && points >= 2);
 }
 
-/** [minX, minY, maxX, maxY] of an item (cm); a line's and a wall's by their points */
+/** [minX, minY, maxX, maxY] of an item (cm); a line's and a wall's by their points, a tunnel's by its roof */
 function itemBox(item: SIM.SimItem): number[] {
+    if (SIM.isTunnel(item) && (item.points || []).length >= 2) {
+        return SIM.tunnelGeometry(item).box;
+    }
     if (item.points && item.points.length) {
         const xs = item.points.map((p) => p[0]);
         const ys = item.points.map((p) => p[1]);

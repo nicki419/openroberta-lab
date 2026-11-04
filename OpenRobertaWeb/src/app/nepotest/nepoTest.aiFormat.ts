@@ -103,7 +103,7 @@ export interface Provenance {
 }
 
 const NS = 'http://de.fhg.iais.roberta.blockly';
-const KINDS = ['rect', 'circle', 'triangle', 'line'];
+const KINDS = ['rect', 'circle', 'triangle', 'line', 'tunnel'];
 const ROLES = ['obstacle', 'goal', 'fail'];
 const OPS = ['EQ', 'NEQ', 'LT', 'LTE', 'GT', 'GTE'];
 const PORTS = ['PLAY', 'REC'];
@@ -382,10 +382,16 @@ function itemProblem(item: any, world: SIM.SimWorld, width: number, height: numb
         return 'there is an item "' + id + '" already';
     }
     if (KINDS.indexOf(item.kind) < 0) {
-        return 'item "' + id + '": kind must be rect, circle, triangle or line';
+        return 'item "' + id + '": kind must be rect, circle, triangle, line or tunnel';
     }
     if (item.role !== undefined && item.role !== null && ROLES.indexOf(item.role) < 0) {
         return 'item "' + id + '": role must be obstacle, goal or fail';
+    }
+    if (item.kind === 'tunnel' && item.role !== 'obstacle') {
+        return 'item "' + id + '": a tunnel has the role obstacle';
+    }
+    if (item.kind === 'tunnel' && item.width !== undefined && !(isNumber(item.width) && item.width >= SIM.TUNNEL_WIDTH_MIN_CM && item.width <= SIM.TUNNEL_WIDTH_MAX_CM)) {
+        return 'item "' + id + '": a tunnel\'s width (inside) is ' + SIM.TUNNEL_WIDTH_MIN_CM + ' to ' + SIM.TUNNEL_WIDTH_MAX_CM + ' cm';
     }
     if (item.kind !== 'line' && !item.role) {
         return 'item "' + id + '": a ' + item.kind + ' needs a role (obstacle, goal or fail)';
@@ -429,8 +435,12 @@ function cleanItem(item: any): SIM.SimItem {
     item.role && (out.role = item.role);
     const keys = item.kind === 'rect' ? ['x', 'y', 'w', 'h'] : item.kind === 'circle' ? ['x', 'y', 'r'] : [];
     keys.forEach((k) => (out[k] = SIM.round2(item[k])));
-    if (item.kind === 'triangle' || item.kind === 'line') {
+    if (item.kind === 'triangle' || item.kind === 'line' || item.kind === 'tunnel') {
         out.points = item.points.map((p: number[]) => [SIM.round2(p[0]), SIM.round2(p[1])]);
+    }
+    if (item.kind === 'tunnel') {
+        item.smooth && (out.smooth = true);
+        out.width = isNumber(item.width) ? SIM.round2(item.width) : SIM.TUNNEL_WIDTH_CM;
     }
     if (item.kind === 'line') {
         item.smooth && (out.smooth = true);

@@ -136,6 +136,7 @@ const MESSAGES: { [lang: string]: { [key: string]: string } } = {
         NEPOTEST_KIND_OBSTACLE: 'Obstacle',
         NEPOTEST_KIND_LINE: 'Line',
         NEPOTEST_KIND_WALL: 'Wall',
+        NEPOTEST_KIND_TUNNEL: 'Tunnel',
         NEPOTEST_UNKNOWN_START: 'This start is not in the world of this test: choose one of its starts.',
         NEPOTEST_UNKNOWN_ITEM: 'This is not in the world of this test (any more): choose something else.',
         NEPOTEST_OUTSIDE_WORLD: 'Put this into a simulation world.',

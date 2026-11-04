@@ -3,9 +3,10 @@
  * levels folder (level.model), a set at a time, in order. Beating a level unlocks the next; a beaten level can be played again, a locked one
  * can't be chosen.
  *
- * - The scene is the level's (ILevelHost, called by the simulator): its floor (peach with its lines: what the sensors read), its obstacles and
- *   walls (red: bumping into them loses the level), its goal, soft goal and fail areas drawn on the visible layer only (the sensors don't see
- *   them), the robot at its start. Nothing can be moved or edited; the reset button restarts the level.
+ * - The scene is the level's (ILevelHost, called by the simulator): its floor (peach with its lines: what the sensors read), its obstacles,
+ *   walls and tunnels (red: bumping into them loses the level), its goal, soft goal and fail areas drawn on the visible layer only (the sensors
+ *   don't see them), the robot at its start. The roofs of the tunnels are drawn above the robot (drawAbove), and the robot's light sensors,
+ *   which look up, see the light under them (nepoTest.sim lightAt). Nothing can be moved or edited; the reset button restarts the level.
  * - Every run of the program is an attempt from the start. In every frame the referee looks at the robot's outline: touching a fail area,
  *   bumping into a red obstacle or running out of time (the simulator's time) loses; touching a goal area beats the level, as does standing
  *   still on a soft goal area for its seconds (the program ending on one counts as standing still). Then the program is stopped and a message
@@ -78,6 +79,10 @@ let trial: LEVEL.Level = null; // a level of the Level designer ("Try in simulat
 let scene: SimulationScene = null;
 let applied: string = null; // the key of the level the scene shows
 let shapes: AreaShape[] = []; // the level's areas, obstacles and walls (units)
+let lightWorld: SIM.SimWorld = null; // the world whose light the robot's light sensors see (its tunnels)
+let roof: { key: string; img: HTMLImageElement; box: number[]; ready: boolean } = null; // the picture of the level's tunnel roofs
+const ROOF_PIXELS = 4e6; // the roofs' picture has at most so many pixels ...
+const ROOF_PX_PER_CM = 12; // ... and at most so many per cm
 let attempt: Attempt = null;
 let shownClock = '';
 const images: { [key: string]: Promise<HTMLImageElement> } = {};
@@ -261,10 +266,12 @@ const host: ILevelHost = {
                 readyScene.rcjList = []; // the level's areas
                 applied = null;
             }
+            readyScene.robots.forEach((robot) => ((robot as any).ambientLight = null));
             return;
         }
         scene = readyScene;
         scene.robots.forEach((robot) => (robot as any).removeMouseEvents()); // the robot can't be moved
+        scene.robots.forEach((robot) => ((robot as any).ambientLight = ambientLight));
         renderBar();
         if (applied !== levelKey()) {
             applyLevel().then(() => run && beginAttempt());
@@ -301,7 +308,36 @@ const host: ILevelHost = {
         });
         return width;
     },
+    drawAbove: function (ctx: CanvasRenderingContext2D): void {
+        if (roof && roof.ready && applied === roof.key) {
+            const [x, y, w, h] = roof.box;
+            ctx.drawImage(roof.img, u(x), u(y), w * SIM.UNITS_PER_CM, h * SIM.UNITS_PER_CM);
+        }
+    },
 };
+
+/** the light (%) the robot's light sensors see at a point of the scene (units): less under a tunnel's roof */
+function ambientLight(x: number, y: number): number {
+    return lightWorld ? SIM.lightAt(lightWorld, (x - SIM.BORDER) / SIM.UNITS_PER_CM, (y - SIM.BORDER) / SIM.UNITS_PER_CM) : SIM.AMBIENT_LIGHT;
+}
+
+/** the picture of the level's tunnel roofs (drawn above the robot); none if it has no tunnels */
+function makeRoof(world: SIM.SimWorld, key: string): void {
+    const tunnels = world.items.filter((i) => SIM.isTunnel(i) && (i.points || []).length >= 2);
+    if (!tunnels.length) {
+        roof = null;
+        return;
+    }
+    const boxes = tunnels.map((t) => SIM.tunnelGeometry(t).box);
+    const area = (Math.max(...boxes.map((b) => b[2])) - Math.min(...boxes.map((b) => b[0])) + 2) * (Math.max(...boxes.map((b) => b[3])) - Math.min(...boxes.map((b) => b[1])) + 2);
+    const image = SIM.roofImage(world, Math.min(ROOF_PX_PER_CM, Math.sqrt(ROOF_PIXELS / Math.max(1, area))));
+    const img = new Image();
+    const made = { key: key, img: img, box: image.box, ready: false };
+    img.onload = () => (made.ready = true);
+    img.onerror = () => console.error('the roofs of the tunnels could not be drawn');
+    img.src = image.url;
+    roof = made;
+}
 
 /** a panel beside the scene was shown or hidden: the scene is centred anew */
 export function sidePanelChanged(): void {
@@ -471,6 +507,11 @@ function applyLevel(): Promise<void> {
         s.markerList = [];
         s.rcjList = [new LevelAreas(items.filter((i) => (i.role === 'goal' || i.role === 'fail') && LEVEL.isSolid(i)))];
         shapes = items.filter((i) => LEVEL.isSolid(i) && i.role !== 'color').map((i) => ({ item: i, shape: SIMRUN.shapeOf(i) }));
+        lightWorld = level.world;
+        scene.robots.forEach((robot) => ((robot as any).ambientLight = ambientLight));
+        if (!roof || roof.key !== key) {
+            makeRoof(level.world, key);
+        }
         scene.centerBackground(true);
         placeRobot();
         applied = key;

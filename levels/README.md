@@ -20,7 +20,9 @@ Set `LEVEL_DESIGNER=true` in `.env` (copy `.env.example`), restart the server (`
   follow, obstacles and walls.
 - Select a thing to see its properties:
   - a soft goal area: how long the robot must stand still on it;
-  - an obstacle or a wall: whether bumping into it loses the level.
+  - an obstacle, a wall or a tunnel: whether bumping into it loses the level.
+  - a tunnel: its width inside (5 to 60 cm). The robot drives through it; inside it is darker: the light sensors see
+    100 % at an opening and 40 % from 15 cm inside on.
 - Give the level a title, instructions (optional) and a time limit (optional).
 - **Floor size:** width × height in cm, 50 to 600 (usually 300 × 200). What is drawn keeps its place, measured from the
   top left corner, so shrinking the floor cuts off the right and the bottom; the list of things to check says when

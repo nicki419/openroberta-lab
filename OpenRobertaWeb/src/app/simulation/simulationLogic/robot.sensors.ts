@@ -570,30 +570,29 @@ export class LineSensor implements ISensor, IDrawable, ILabel {
 }
 
 /**
- * The left and right light sensors of the Edison (ports LLIGHT and RLIGHT). The real sensors measure the light in front of the
- * robot; the simulation approximates this with the brightness of the ground below them (0 - 100 %), reusing the sampling of the
- * {@link LineSensor}. The values are provided as values['infrared'][port]['light'], the line tracker keeps values['infrared']['light'].
+ * The left and right light sensors of the Edison (ports LLIGHT and RLIGHT). They are on top of the robot, at its front left and right, and
+ * look up: they measure the light that falls onto the robot (0 - 100 %), not the floor. The robot's `ambientLight` gives the light at a point
+ * of the scene (units): a level or a test's world sets it (nepoTest.sim lightAt: the room's light, less under the roof of a tunnel); without
+ * one, the robot is in the open (EDISON_AMBIENT_LIGHT). They aren't drawn: from above, the robot's top hides nothing of them worth showing.
+ * The values are provided as values['infrared'][port]['light'], the line tracker keeps values['infrared']['light'].
  */
-export class EdisonLightSensors implements ISensor, IDrawable, ILabel {
-    drawPriority: number = 4;
+export const EDISON_AMBIENT_LIGHT = 100;
+
+export class EdisonLightSensors implements ISensor, ILabel {
     labelPriority: number = 5;
-    private readonly sensors: { port: string; msgKey: string; sensor: LineSensor }[];
+    private readonly sensors: { port: string; msgKey: string; x: number; y: number; light: number }[];
 
-    constructor(left: Point, right: Point, diameter: number) {
+    constructor(left: Point, right: Point) {
         this.sensors = [
-            { port: 'LLIGHT', msgKey: 'LEFT', sensor: new LineSensor(left, diameter) },
-            { port: 'RLIGHT', msgKey: 'RIGHT', sensor: new LineSensor(right, diameter) },
+            { port: 'LLIGHT', msgKey: 'LEFT', x: left.x, y: left.y, light: EDISON_AMBIENT_LIGHT },
+            { port: 'RLIGHT', msgKey: 'RIGHT', x: right.x, y: right.y, light: EDISON_AMBIENT_LIGHT },
         ];
-    }
-
-    draw(rCtx: CanvasRenderingContext2D, myRobot: RobotBase): void {
-        this.sensors.forEach((s) => s.sensor.draw(rCtx, myRobot));
     }
 
     getLabel(): string {
         let myLabel: string = '<div><label>' + Blockly.Msg['SENSOR_LIGHT'] + '</label></div>';
         this.sensors.forEach((s) => {
-            myLabel += '<div><label>&nbsp;-&nbsp;' + Blockly.Msg[s.msgKey] + '</label><span>' + s.sensor.light + ' %</span></div>';
+            myLabel += '<div><label>&nbsp;-&nbsp;' + Blockly.Msg[s.msgKey] + '</label><span>' + s.light + ' %</span></div>';
         });
         return myLabel;
     }
@@ -607,11 +606,15 @@ export class EdisonLightSensors implements ISensor, IDrawable, ILabel {
         udCtx: CanvasRenderingContext2D,
         personalObstacleList: any[]
     ): void {
+        const robot: RobotBaseMobile = myRobot as RobotBaseMobile;
+        const ambientLight: (x: number, y: number) => number = (myRobot as any).ambientLight;
         values['infrared'] = values['infrared'] || {};
         this.sensors.forEach((s) => {
-            // sample into a scratch object, so that the values of the line tracker are not overwritten
-            s.sensor.updateSensor(running, dt, myRobot, {}, uCtx, udCtx, personalObstacleList);
-            values['infrared'][s.port] = { light: s.sensor.light };
+            const p: PointRobotWorld = { rx: 0, ry: 0, x: s.x, y: s.y };
+            SIMATH.transform(robot.pose, p);
+            const light = typeof ambientLight === 'function' ? ambientLight(p.rx, p.ry) : EDISON_AMBIENT_LIGHT;
+            s.light = UTIL.round(Math.max(0, Math.min(100, light)), 0);
+            values['infrared'][s.port] = { light: s.light };
         });
     }
 }

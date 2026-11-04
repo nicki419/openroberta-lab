@@ -18,15 +18,19 @@ simulation.math.ts):
 - the same objects: obstacles and coloured areas, as rectangles, circles and triangles;
 - the same robot: 24 x 22.5 units (8 x 7.5 cm), the same wheel speed per %, moved in frames of 1/60 s with the
   simulator's kinematics, and bumping into obstacles and walls like there (the bumped side's wheel turns back);
-- the same sensors: the line tracker and LLIGHT/RLIGHT average the same 5 pixels of the same floor picture
-  (`floor`, drawn by the Tests tab exactly like the simulator draws its sensor canvas), and the obstacle detection
-  casts the same 3 x 5 rays of 3 cm.
+- the same sensors: the line tracker averages the same 5 pixels of the same floor picture (`floor`, drawn by the
+  Tests tab exactly like the simulator draws its sensor canvas); LLIGHT/RLIGHT are on top of the robot and look up:
+  they see the room's light (100 %), less under the roof of a tunnel (tunnel_light); the obstacle detection casts the
+  same 3 x 5 rays of 3 cm.
 The program is the generated EdPy on NepoTest's engine. So what the EdPy does differently from the simulator's own
 program stays different: powers in the robot's 10 % steps, turns and drives measured in wheel ticks, sensors read and
 cleared like on the robot.
 
 Added by the world: **lines** to follow (drawn like the background's track: a black core on a white band), **walls**
-(a line with the role "obstacle": an obstacle of that shape, "width" cm thick, default 1.5), **goal areas** and **fail
+(a line with the role "obstacle": an obstacle of that shape, "width" cm thick, default 1.5), **tunnels** ("kind":
+"tunnel", "role": "obstacle", "points", "smooth", "width": its width inside in cm, default 15: two walls 1.5 cm thick along
+its line, the robot drives through it; under its roof the light fades from 100 % at an opening to 40 % 15 cm inside),
+**goal areas** and **fail
 areas** (the tests check whether the robot reaches or touches them), and **starts**: where the robot can start (each
 test chooses one). Touching an obstacle is no failure of its own, as in the simulator: the robot bumps
 (a test can check that it never does).
@@ -120,8 +124,13 @@ COLOR_AREA_COLOR = '#FBED00'
 LINE_WIDTH_CM = 4.44 / UNITS_PER_CM  # the black core of simpleBackgroundEdison's track
 LINE_BAND_CM = 16 / UNITS_PER_CM  # its white band
 WALL_WIDTH_CM = 1.5  # a wall's thickness, if it has no width (nepoTest.sim.ts WALL_WIDTH_CM)
+TUNNEL_WIDTH_CM = 15  # a tunnel's width inside, if it has no width (nepoTest.sim.ts TUNNEL_WIDTH_CM)
+TUNNEL_WALL_CM = 1.5  # the thickness of a tunnel's walls
+AMBIENT_LIGHT = 100  # % the light sensors see (they look up) ...
+TUNNEL_LIGHT = 40  # ... deep inside a tunnel ...
+TUNNEL_FADE_CM = 15  # ... from this far inside (along it, from the nearer opening); linear in between
 ROLES = ('obstacle', 'color', 'goal', 'fail')
-KINDS = ('line', 'rect', 'circle', 'triangle')
+KINDS = ('line', 'tunnel', 'rect', 'circle', 'triangle')
 CHECK_DEG = 0.3
 SAMPLE_CM, SAMPLE_DEG = 0.5, 3.0  # the path gets a new pose after this much movement
 DEFAULT_MAX_TIME_MS = 30000
@@ -377,9 +386,94 @@ def is_wall(item):
     return item.get('kind') == 'line' and item.get('role') == 'obstacle'
 
 
+def is_tunnel(item):
+    """a tunnel: two walls along its line, with a roof (the robot can drive through it)"""
+    return item.get('kind') == 'tunnel'
+
+
+def is_line_obstacle(item):
+    """an obstacle along a line: a wall or a tunnel"""
+    return is_wall(item) or is_tunnel(item)
+
+
+def _offset_line(line, d):
+    """the points of a line moved sideways by d cm (nepoTest.sim.ts offsetLine): along the bisector at a corner, a
+    mitre at most 3 d long"""
+    def normal(a, b):
+        length = math.hypot(b[0] - a[0], b[1] - a[1]) or 1.0
+        return ((b[1] - a[1]) / length, -(b[0] - a[0]) / length)
+    out = []
+    for i, p in enumerate(line):
+        n1 = normal(line[i - 1], p) if i > 0 else normal(p, line[i + 1])
+        n2 = normal(p, line[i + 1]) if i < len(line) - 1 else n1
+        mx, my = n1[0] + n2[0], n1[1] + n2[1]
+        length = math.hypot(mx, my)
+        if length < 1e-9:
+            mx, my = n1
+        else:
+            mx, my = mx / length, my / length
+        scale = 1.0 / max(1.0 / 3, mx * n1[0] + my * n1[1])
+        out.append((p[0] + mx * d * scale, p[1] + my * d * scale))
+    return out
+
+
+def tunnel_geometry(item):
+    """a tunnel's line (in straight pieces), the length along it at each point, its walls' and its roof's
+    quadrilaterals (cm), as nepoTest.sim.ts tunnelGeometry"""
+    center = []
+    for p in polyline(bezier_segments(item.get('points') or [], bool(item.get('smooth')), False)):
+        if not center or math.hypot(p[0] - center[-1][0], p[1] - center[-1][1]) > 1e-6:
+            center.append(p)
+    at = [0.0]
+    for a, b in zip(center, center[1:]):
+        at.append(at[-1] + math.hypot(b[0] - a[0], b[1] - a[1]))
+    walls, roof = [], []
+    if len(center) >= 2:
+        half = float(item.get('width') or TUNNEL_WIDTH_CM) / 2.0
+        outer = half + TUNNEL_WALL_CM
+        left_in, left_out, right_in, right_out = [_offset_line(center, d) for d in (half, outer, -half, -outer)]
+        for i in range(1, len(center)):
+            walls.append([left_in[i - 1], left_in[i], left_out[i], left_out[i - 1]])
+            walls.append([right_in[i - 1], right_in[i], right_out[i], right_out[i - 1]])
+            roof.append([left_out[i - 1], left_out[i], right_out[i], right_out[i - 1]])
+    return center, at, walls, roof
+
+
+def tunnel_light(item, x, y):
+    """the light (%) at a point (cm) under a tunnel's roof (nepoTest.sim.ts tunnelLight); AMBIENT_LIGHT if the point isn't
+    under it"""
+    center, at, walls, roof = tunnel_geometry(item)
+    if len(center) < 2 or not any(point_in_polygon(x, y, q) for q in roof):
+        return AMBIENT_LIGHT
+    best, along = None, 0.0
+    for i in range(1, len(center)):
+        (ax, ay), (bx, by) = center[i - 1], center[i]
+        dx, dy = bx - ax, by - ay
+        length2 = dx * dx + dy * dy
+        t = 0.0 if length2 == 0 else max(0.0, min(1.0, ((x - ax) * dx + (y - ay) * dy) / length2))
+        d = math.hypot(x - (ax + t * dx), y - (ay + t * dy))
+        if best is None or d < best:
+            best, along = d, at[i - 1] + t * (at[i] - at[i - 1])
+    depth = min(along, at[-1] - along)
+    return AMBIENT_LIGHT - (AMBIENT_LIGHT - TUNNEL_LIGHT) * max(0.0, min(1.0, depth / TUNNEL_FADE_CM))
+
+
+def light_at(world_data, x, y):
+    """the light (%) the light sensors see at a point (cm): the room's, or less under a tunnel's roof"""
+    light = AMBIENT_LIGHT
+    for item in world_data.get('items') or []:
+        if is_tunnel(item) and len(item.get('points') or []) >= 2:
+            light = min(light, tunnel_light(item, x, y))
+    return light
+
+
 def wall_pieces(item):
     """a wall as the simulator's objects (nepoTest.sim.ts wallPieces), as items in cm with the wall's id: two triangles
-    around each straight piece of its line, and a circle at each of its points (the round corners and ends)"""
+    around each straight piece of its line, and a circle at each of its points (the round corners and ends); a tunnel:
+    two triangles for each piece of its two walls"""
+    if is_tunnel(item):
+        return [{'id': item.get('id'), 'kind': 'triangle', 'role': 'obstacle', 'points': [list(q[a]), list(q[b]), list(q[c])]}
+                for q in tunnel_geometry(item)[2] for a, b, c in ((0, 1, 2), (0, 2, 3))]
     half = float(item.get('width') or WALL_WIDTH_CM) / 2.0
     points = polyline(bezier_segments(item['points'], bool(item.get('smooth')), bool(item.get('closed'))))
     pieces = []
@@ -541,10 +635,11 @@ def item_name(world_data, item):
     if item.get('name'):
         return item['name']
     def kind_of(i):
-        return 'wall' if is_wall(i) else 'line' if i.get('kind') == 'line' else i.get('role')
+        return 'wall' if is_wall(i) else 'tunnel' if is_tunnel(i) else 'line' if i.get('kind') == 'line' else i.get('role')
     kind = kind_of(item)
     same = [i for i in world_data.get('items') or [] if kind_of(i) == kind]
-    word = {'goal': 'Goal', 'fail': 'Fail area', 'color': 'Area', 'obstacle': 'Obstacle', 'line': 'Line', 'wall': 'Wall'}.get(kind, kind)
+    word = {'goal': 'Goal', 'fail': 'Fail area', 'color': 'Area', 'obstacle': 'Obstacle', 'line': 'Line', 'wall': 'Wall',
+            'tunnel': 'Tunnel'}.get(kind, kind)
     return '%s %d' % (word, same.index(item) + 1 if item in same else 1)
 
 
@@ -598,10 +693,11 @@ class SimWorld(object):
         self.ground = (BORDER, BORDER, BORDER + bw, BORDER + bh)  # Ground(10, 10, w, h) as (x0, y0, x1, y1)
         start = start_pose(data, start) or {}
         self.start = (float(start.get('x', 0)), float(start.get('y', 0)), float(start.get('heading', 0)))
+        self.data = data
         self.lines, self.obstacles, self.colors, self.goals, self.fails = [], [], [], [], []
         for item in data.get('items') or []:
             kind = item.get('kind')
-            if is_wall(item):
+            if is_line_obstacle(item):
                 if len(item.get('points') or []) >= 2:
                     self.obstacles += [Shape(piece) for piece in wall_pieces(item)]
             elif kind == 'line':
@@ -788,8 +884,8 @@ class SimRobot(Robot):
         px, py = transform(self.pose_u, LINE_SENSOR)
         self.light['tracker'] = floor.sample(px, py)
         for side, point in LIGHT_SENSORS:
-            px, py = transform(self.pose_u, point)
-            self.light[side] = floor.sample(px, py)
+            px, py = transform(self.pose_u, point)  # they look up: the light, not the floor
+            self.light[side] = light_at(self.world.data, *to_cm(px, py))
         self._infrared()
 
     def _collisions(self, dt, tolerance):
@@ -965,7 +1061,7 @@ def validate_world(world, where):
         if kind not in KINDS:
             problems.append('%s: "kind" must be one of %s' % (w, ', '.join(KINDS)))
             continue
-        if kind == 'line' or kind == 'triangle':
+        if kind in ('line', 'tunnel', 'triangle'):
             points = item.get('points')
             count = 3 if kind == 'triangle' else None
             if not isinstance(points, list) or len(points) < 2 or (count and len(points) != count) or not all(
@@ -975,11 +1071,13 @@ def validate_world(world, where):
             keys = ('x', 'y', 'w', 'h') if kind == 'rect' else ('x', 'y', 'r')
             if not all(_number(item.get(k)) for k in keys):
                 problems.append('%s: a %s needs numbers %s' % (w, kind, ', '.join(keys)))
-        if kind != 'line' and item.get('role') not in ROLES:
+        if kind == 'tunnel' and item.get('role') != 'obstacle':
+            problems.append('%s: a tunnel\'s "role" must be "obstacle"' % w)
+        elif kind != 'line' and item.get('role') not in ROLES:
             problems.append('%s: "role" must be one of %s' % (w, ', '.join(ROLES)))
         if kind == 'line' and item.get('role') not in (None, 'obstacle'):
             problems.append('%s: a line\'s "role" can only be "obstacle" (a wall)' % w)
-        if kind == 'line' and item.get('width') is not None and (not _number(item['width']) or item['width'] <= 0):
+        if kind in ('line', 'tunnel') and item.get('width') is not None and (not _number(item['width']) or item['width'] <= 0):
             problems.append('%s: "width" must be a number > 0' % w)
         if item.get('name') is not None and not isinstance(item.get('name'), str):
             problems.append('%s: "name" must be a string' % w)
