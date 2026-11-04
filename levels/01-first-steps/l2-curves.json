@@ -1,0 +1,16 @@
+{
+ "format": "nepo-level",
+ "version": 1,
+ "title": "L2 - Curves",
+ "instructions": "Make the robot follow along the curves towards the goal",
+ "world": {"background": "peach", "size": {"w":120,"h":120},
+  "starts": [{"id":"A","name":"A","x":17.29,"y":9.32,"heading":0}],
+  "items": [
+    {"id":"lmw24qnvf3","kind":"line","points":[[20.96,9.08],[51.37,14.46],[55.4,57.46]],"smooth":true,"closed":false,"name":"Line 1"},
+    {"id":"lmw24rssq4","kind":"line","points":[[55.06,54.6],[61.28,81.31],[100.08,84.34]],"smooth":true,"closed":false,"name":"Line 2"},
+    {"id":"smw24st725","kind":"rect","role":"goal","name":"Goal 1","x":99.39,"y":78.26,"w":6.89,"h":11.93},
+    {"id":"smw24szgg6","kind":"rect","role":"fail","x":19.6,"y":21.82,"w":22,"h":62.82},
+    {"id":"smw24t3tz7","kind":"rect","role":"fail","x":69.16,"y":8.38,"w":23.85,"h":63.5}
+  ]},
+ "view": {"x":60,"y":60,"scale":5.953}
+}

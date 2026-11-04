@@ -1,0 +1,19 @@
+{
+ "format": "nepo-level",
+ "version": 1,
+ "title": "L7 - Well I'll Be Forked",
+ "instructions": "",
+ "world": {"background": "peach",
+  "starts": [{"id":"A","name":"A","x":9.25,"y":106.65,"heading":0}],
+  "items": [
+    {"id":"tmw2b5r31e","kind":"tunnel","role":"obstacle","points":[[-13.62,104.48],[201.38,104.53]],"smooth":true,"width":45,"name":"Tunnel 1","failOnHit":true},
+    {"id":"tmw2b5vewf","kind":"tunnel","role":"obstacle","points":[[173.13,95.93],[210.63,93.83],[233.13,71.33],[277.88,68.83]],"smooth":true,"width":15,"name":"Tunnel 2","failOnHit":true},
+    {"id":"tmw2b7o9tg","kind":"tunnel","role":"obstacle","points":[[172.88,112.23],[213.38,115.42],[232.63,135.98],[278.38,138.23]],"smooth":true,"width":15,"name":"Tunnel 3","failOnHit":true},
+    {"id":"lmw2b9iwsi","kind":"line","points":[[-1.87,95.98],[121.88,96.23],[152.63,88.98],[173.88,87.67]],"smooth":true,"closed":false,"role":"obstacle","width":1.5,"name":"Wall 1","failOnHit":true},
+    {"id":"lmw2b9y5cj","kind":"line","points":[[-2.37,114.78],[125.38,115.73],[154.13,120.28],[173.63,120.53]],"smooth":true,"closed":false,"role":"obstacle","width":1.5,"name":"Wall 2","failOnHit":true},
+    {"id":"lmw2bcajxk","kind":"line","points":[[108.63,106.47],[145.38,107.47],[162.88,113.22],[191.38,113.41]],"smooth":true,"closed":false,"name":"Line 1"},
+    {"id":"smw2bclbvl","kind":"rect","role":"goal","name":"Goal 1","x":257.63,"y":123.98,"w":23,"h":29.75},
+    {"id":"smw2bcqoym","kind":"rect","role":"fail","x":258.38,"y":53.73,"w":22,"h":30}
+  ]},
+ "view": {"x":147.25,"y":102.5,"scale":4}
+}

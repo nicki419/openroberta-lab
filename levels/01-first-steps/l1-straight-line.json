@@ -1,0 +1,14 @@
+{
+ "format": "nepo-level",
+ "version": 1,
+ "title": "L1 - Straight Line",
+ "instructions": "Make the robot follow the line to the goal.",
+ "timeLimit": 20,
+ "world": {"background": "peach", "size": {"w":150,"h":100},
+  "starts": [{"id":"A","name":"A","x":12,"y":51.92,"heading":0}],
+  "items": [
+    {"id":"lmw24o2q21","kind":"line","points":[[16.74,51.83],[132.26,51.66]],"smooth":false,"closed":false,"name":"Line 1"},
+    {"id":"smw24ok6t2","kind":"rect","role":"goal","name":"Goal 1","x":132.28,"y":40.33,"w":10.65,"h":21.18}
+  ]},
+ "view": {"x":75,"y":50,"scale":7.029}
+}

@@ -1,0 +1,15 @@
+{
+ "format": "nepo-level",
+ "version": 1,
+ "title": "L5 - Tunnel Vision",
+ "instructions": "Make the robot go through the tunnel. Tip: The left and right light sensors on the robot check for light above, not below.",
+ "world": {"background": "peach", "size": {"w":300,"h":100},
+  "starts": [{"id":"A","name":"A","x":6.91,"y":53.67,"heading":0}],
+  "items": [
+    {"id":"lmw2akq604","kind":"line","points":[[8.97,53.46],[83.42,53.46]],"smooth":false,"closed":false,"name":"Line 1"},
+    {"id":"tmw2aktkr5","kind":"tunnel","role":"obstacle","points":[[68.29,53.46],[230.28,53.46]],"smooth":true,"width":15,"name":"Tunnel 1","failOnHit":true},
+    {"id":"lmw2alekl6","kind":"line","points":[[216.37,53.66],[281.16,53.66]],"smooth":false,"closed":false,"name":"Line 2"},
+    {"id":"smw2am5f49","kind":"rect","role":"goal","name":"Goal 1","x":281.06,"y":47.09,"w":4.98,"h":11.64}
+  ]},
+ "view": {"x":156.64,"y":56.07,"scale":4.196}
+}

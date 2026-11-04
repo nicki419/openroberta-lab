@@ -1,0 +1,15 @@
+{
+ "format": "nepo-level",
+ "version": 1,
+ "title": "L6 - Tunnel Vision Reloaded",
+ "instructions": "",
+ "world": {"background": "peach", "size": {"w":350,"h":100},
+  "starts": [{"id":"A","name":"A","x":10.47,"y":83,"heading":0}],
+  "items": [
+    {"id":"lmw2aojmua","kind":"line","points":[[14.93,82.7],[83.71,82.46]],"smooth":false,"closed":false,"name":"Line 1"},
+    {"id":"tmw2aoqdjb","kind":"tunnel","role":"obstacle","points":[[69.85,82.22],[142.03,75.31],[177.21,22.24],[279.61,17.63]],"smooth":true,"width":15,"name":"Tunnel 1","failOnHit":true},
+    {"id":"lmw2apoaoc","kind":"line","points":[[265.35,18.11],[308.56,18.35]],"smooth":false,"closed":false,"name":"Line 2"},
+    {"id":"smw2apsm1d","kind":"rect","role":"goal","name":"Goal 1","x":306.66,"y":10.33,"w":9.97,"h":15.91}
+  ]},
+ "view": {"x":177.15,"y":55.93,"scale":4.212}
+}
