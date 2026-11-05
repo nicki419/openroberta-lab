@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.Executors;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -71,7 +72,10 @@ public class AiServiceTest {
                             .put("authorization", String.valueOf(exchange.getRequestHeaders().getFirst("Authorization")))
                             .put("body", body));
             }
-            Object[] answer = this.answers.isEmpty() ? new Object[] {500, "{\"error\": \"nothing scripted\"}", 0} : this.answers.removeFirst();
+            Object[] answer;
+            synchronized ( this.answers ) {
+                answer = this.answers.isEmpty() ? new Object[] {500, "{\"error\": \"nothing scripted\"}", 0} : this.answers.removeFirst();
+            }
             sleep((Integer) answer[2]);
             byte[] bytes = ((String) answer[1]).getBytes(StandardCharsets.UTF_8);
             exchange.getResponseHeaders().add("Content-Type", "application/json");
@@ -82,6 +86,7 @@ public class AiServiceTest {
                 // the client gave up (a timeout)
             }
         });
+        this.server.setExecutor(Executors.newCachedThreadPool()); // a request that waits (a timeout) doesn't hold up the next
         this.server.start();
     }
 
@@ -98,6 +103,40 @@ public class AiServiceTest {
         AiService service = new AiService(new AiSettings(url(), "deepseek-flash", key, false, null, this.folder.getRoot().getPath(), "low", "high"), 10);
         service.setTimeouts(1500, 1500);
         return service;
+    }
+
+    private static final String FALLBACK_KEY = "sk-fallback-fedcba9876543210";
+    private static final String SDU_MODEL = "deepseek-ai/DeepSeek-V4.1-Flash-1017";
+
+    /** SDU at {url}/primary, DeepSeek at {url}/fallback (the same fake server: the path tells them apart) */
+    private AiService serviceWithFallback() {
+        AiSettings settings =
+            new AiSettings(url() + "primary", SDU_MODEL, KEY, false, null, this.folder.getRoot().getPath(), "low", "low")
+                .withFallback(url() + "fallback", "deepseek-flash", FALLBACK_KEY);
+        AiService service = new AiService(settings, 10);
+        service.setTimeouts(1500, 1500);
+        return service;
+    }
+
+    /** an answer as SDU's vLLM gives it: the reasoning in "reasoning", no reasoning tokens, the cached tokens in prompt_tokens_details */
+    private static String vllmCompletion(JSONObject content) {
+        return new JSONObject()
+            .put("model", SDU_MODEL)
+            .put(
+                "choices",
+                new JSONArray()
+                    .put(
+                        new JSONObject()
+                            .put("index", 0)
+                            .put("finish_reason", "stop")
+                            .put("message", new JSONObject().put("role", "assistant").put("content", content.toString()).put("reasoning", "We need JSON."))))
+            .put(
+                "usage",
+                new JSONObject()
+                    .put("prompt_tokens", 9000)
+                    .put("completion_tokens", 120)
+                    .put("prompt_tokens_details", new JSONObject().put("cached_tokens", 8704)))
+            .toString();
     }
 
     private void script(int status, String body) {
@@ -471,6 +510,143 @@ public class AiServiceTest {
     }
 
     @Test
+    public void thePrimaryIsAskedFirstAndItsReasoningIsKept() throws Exception {
+        script(200, vllmCompletion(inferAnswer()));
+        AiService service = serviceWithFallback();
+        AiService.Outcome outcome = service.call(AiService.INFER, 1, data());
+        Assert.assertTrue(outcome.message, outcome.ok);
+        Assert.assertEquals(1, this.requests.size());
+        Assert.assertEquals("/primary/chat/completions", this.requests.get(0).getString("path"));
+        Assert.assertEquals("Bearer " + KEY, this.requests.get(0).getString("authorization"));
+        Assert.assertEquals(SDU_MODEL, new JSONObject(this.requests.get(0).getString("body")).getString("model"));
+        JSONObject event = outcome.event;
+        Assert.assertEquals("primary", event.getString("provider"));
+        Assert.assertEquals("127.0.0.1", event.getString("host"));
+        Assert.assertEquals(SDU_MODEL, event.getString("model"));
+        Assert.assertEquals(1, event.getJSONArray("tries").length());
+        Assert.assertEquals("We need JSON.", event.getString("reasoning")); // vLLM's field
+        Assert.assertEquals(13, event.getInt("reasoningChars"));
+        Assert.assertTrue(event.getJSONObject("tokens").isNull("reasoning")); // SDU doesn't say: not 0
+        Assert.assertEquals(8704, event.getJSONObject("tokens").getInt("cached"));
+        Assert.assertEquals("primary", outcome.meta.getString("provider"));
+    }
+
+    @Test
+    public void withoutAnAnswerFromThePrimaryTheFallbackIsAskedAndFirstForFiveMinutes() throws Exception {
+        long[] now = {1000};
+        script(503, "{\"error\": \"busy\"}");
+        script(503, "{\"error\": \"busy\"}"); // the primary's second try
+        script(200, completion(inferAnswer(), "stop"));
+        AiService service = serviceWithFallback();
+        service.setClock(() -> now[0]);
+        AiService.Outcome outcome = service.call(AiService.INFER, 1, data());
+        Assert.assertTrue(outcome.message, outcome.ok);
+        Assert.assertEquals(3, this.requests.size());
+        Assert.assertEquals("/primary/chat/completions", this.requests.get(1).getString("path"));
+        JSONObject fallback = this.requests.get(2);
+        Assert.assertEquals("/fallback/chat/completions", fallback.getString("path"));
+        Assert.assertEquals("Bearer " + FALLBACK_KEY, fallback.getString("authorization"));
+        JSONObject body = new JSONObject(fallback.getString("body"));
+        Assert.assertEquals("deepseek-flash", body.getString("model"));
+        Assert.assertEquals(new JSONObject(this.requests.get(0).getString("body")).getJSONArray("messages").toString(), body.getJSONArray("messages").toString());
+        JSONObject event = outcome.event;
+        Assert.assertEquals("fallback", event.getString("provider"));
+        Assert.assertEquals("deepseek-flash", event.getString("model"));
+        Assert.assertEquals(3, event.getInt("attempts"));
+        JSONArray tries = event.getJSONArray("tries");
+        Assert.assertEquals(2, tries.length());
+        Assert.assertEquals("primary", tries.getJSONObject(0).getString("provider"));
+        Assert.assertEquals("http_503", tries.getJSONObject(0).getString("error"));
+        Assert.assertEquals(2, tries.getJSONObject(0).getInt("attempts"));
+        Assert.assertTrue(tries.getJSONObject(1).getBoolean("ok"));
+        Assert.assertEquals(80, event.getJSONObject("tokens").getInt("reasoning"));
+        Assert.assertEquals("I think.", event.getString("reasoning")); // DeepSeek's field
+        Assert.assertEquals("fallback", outcome.meta.getString("provider"));
+
+        now[0] += AiService.COOL_DOWN_MS - 1; // still cooling down: the fallback first
+        script(200, completion(inferAnswer(), "stop"));
+        Assert.assertEquals("fallback", service.call(AiService.INFER, 1, data()).event.getString("provider"));
+        Assert.assertEquals("/fallback/chat/completions", this.requests.get(3).getString("path"));
+
+        now[0] += 2; // the primary again
+        script(200, vllmCompletion(inferAnswer()));
+        Assert.assertEquals("primary", service.call(AiService.INFER, 1, data()).event.getString("provider"));
+        Assert.assertEquals("/primary/chat/completions", this.requests.get(4).getString("path"));
+        Assert.assertEquals(5, this.requests.size());
+    }
+
+    @Test
+    public void aTimeoutOfThePrimaryGoesToTheFallback() {
+        this.answers.add(new Object[] {200, vllmCompletion(inferAnswer()), 3000}); // later than the 1.5 s timeout
+        script(200, completion(inferAnswer(), "stop"));
+        AiService.Outcome outcome = serviceWithFallback().call(AiService.INFER, 1, data());
+        Assert.assertTrue(outcome.message, outcome.ok);
+        Assert.assertEquals("timeout", outcome.event.getJSONArray("tries").getJSONObject(0).getString("error"));
+        Assert.assertEquals("fallback", outcome.event.getString("provider"));
+        Assert.assertTrue(outcome.event.getLong("latencyMs") >= 1500); // what the learner waited: both
+    }
+
+    @Test
+    public void anAnswerThatCantBeUsedIsNotAskedAgainAtTheFallback() {
+        script(200, completion("Sure! Here are your tests.", "stop"));
+        AiService service = serviceWithFallback();
+        Assert.assertEquals("bad_answer", service.call(AiService.INFER, 1, data()).error);
+        script(200, completion("{\"worlds\": [{\"name\": \"w\", \"tes", "length"));
+        Assert.assertEquals("cut_off", service.call(AiService.GENERATE, 1, data().put("intent", "Drive.")).error);
+        Assert.assertEquals(2, this.requests.size());
+        Assert.assertTrue(this.requests.stream().allMatch(r -> r.getString("path").startsWith("/primary/")));
+    }
+
+    @Test
+    public void whenBothFailTheErrorIsTheFallbacksAndBothAreInTheTelemetry() {
+        script(401, "{\"error\": \"invalid key " + KEY + "\"}");
+        script(401, "{\"error\": \"invalid key " + FALLBACK_KEY + "\"}");
+        AiService.Outcome outcome = serviceWithFallback().call(AiService.INFER, 1, data());
+        Assert.assertFalse(outcome.ok);
+        Assert.assertEquals("http_401", outcome.error);
+        Assert.assertEquals(2, this.requests.size());
+        JSONArray tries = outcome.event.getJSONArray("tries");
+        Assert.assertEquals(2, tries.length());
+        Assert.assertEquals("fallback", outcome.event.getString("provider"));
+        String event = outcome.event.toString();
+        Assert.assertFalse(event.contains(KEY));
+        Assert.assertFalse(event.contains(FALLBACK_KEY));
+        Assert.assertTrue(tries.getJSONObject(0).getString("message").contains("***"));
+        Assert.assertTrue(outcome.message.contains("***"));
+    }
+
+    @Test
+    public void theTelemetryHasWhatWasSentAndWhatCameBack() throws Exception {
+        script(200, completion(generateAnswer(), "stop"));
+        AiService service = service(KEY);
+        JSONObject data = data().put("intent", "Drive.").put("repair", new JSONObject().put("answer", generateAnswer()).put("problems", new JSONArray().put("test \"From A\": no checks")));
+        long before = System.currentTimeMillis();
+        AiService.Outcome outcome = service.call(AiService.GENERATE, 7, data);
+        Assert.assertTrue(outcome.message, outcome.ok);
+        JSONObject event = outcome.event;
+        Assert.assertTrue(event.getLong("startTime") >= before);
+        Assert.assertEquals(AiService.MAX_TOKENS, event.getInt("maxTokens"));
+        Assert.assertEquals(1500, event.getInt("timeoutMs"));
+        Assert.assertEquals("high", event.getString("effort"));
+        JSONArray messages = new JSONObject(this.requests.get(0).getString("body")).getJSONArray("messages");
+        Assert.assertEquals(messages.getJSONObject(1).getString("content"), event.getString("prompt"));
+        Assert.assertEquals(messages.getJSONObject(2).getString("content"), event.getString("repairAnswer"));
+        Assert.assertEquals(messages.getJSONObject(3).getString("content"), event.getString("repair"));
+        Assert.assertEquals(generateAnswer().toString(), event.getString("answer"));
+        Assert.assertEquals("stop", event.getString("finishReason"));
+        Assert.assertTrue(event.has("latencyMs"));
+        // the system prompt, once per version
+        File saved = new File(new File(this.folder.getRoot(), AiService.PROMPTS_DIR), event.getString("promptVersion") + ".md");
+        Assert.assertTrue(saved.isFile());
+        Assert.assertEquals(messages.getJSONObject(0).getString("content"), new String(Files.readAllBytes(saved.toPath()), StandardCharsets.UTF_8));
+        long saveTime = saved.lastModified();
+        script(200, completion(inferAnswer(), "stop"));
+        Assert.assertTrue(service.call(AiService.INFER, 7, data()).ok);
+        Assert.assertEquals(saveTime, saved.lastModified());
+        Assert.assertEquals(1, new File(this.folder.getRoot(), AiService.PROMPTS_DIR).list().length);
+    }
+
+    @Test
     public void theModelsOfTheKey() throws Exception {
         script(200, "{\"object\": \"list\", \"data\": [{\"id\": \"deepseek-flash\"}]}");
         JSONObject models = service(KEY).getClient().models();
@@ -492,31 +668,47 @@ public class AiServiceTest {
             Files
                 .write(
                     env.toPath(),
-                    Arrays.asList("DEEPSEEK_API_KEY=" + KEY, "DEEPSEEK_URL=" + url(), "DEEPSEEK_MODEL=deepseek-flash", "AI_TESTS_DEFAULT=true"),
+                    Arrays
+                        .asList(
+                            "DEEPSEEK_API_KEY=" + KEY,
+                            "DEEPSEEK_URL=" + url() + "primary",
+                            "DEEPSEEK_MODEL=deepseek-flash",
+                            "DEEPSEEK_FALLBACK_API_KEY=" + FALLBACK_KEY,
+                            "DEEPSEEK_FALLBACK_URL=" + url() + "fallback",
+                            "AI_TESTS_DEFAULT=true"),
                     StandardCharsets.UTF_8);
             List<String> defines = EnvFile.serverDefines(env, Collections.emptyMap());
             Assert.assertFalse(String.valueOf(defines).contains(KEY));
+            Assert.assertFalse(String.valueOf(defines).contains(FALLBACK_KEY));
             Assert.assertTrue(defines.contains("ai.deepseek.model=deepseek-flash"));
             Properties properties = Util.loadAndMergeOpenRobertaServerProperties("classpath:/openRoberta.properties", defines);
             Assert.assertFalse(properties.toString().contains(KEY));
+            Assert.assertFalse(properties.toString().contains(FALLBACK_KEY));
             AiSettings settings = AiSettings.of(new ServerProperties(properties), env, Collections.emptyMap());
             Assert.assertTrue(settings.isAvailable());
+            Assert.assertEquals(2, settings.providers().size());
+            Assert.assertEquals("deepseek-flash", settings.getFallback().getModel()); // the default of openRoberta.properties
             Assert.assertFalse(settings.toString().contains(KEY));
+            Assert.assertFalse(settings.toString().contains(FALLBACK_KEY));
 
             JSONObject clientInfo = settings.clientInfo();
             Assert.assertEquals(new JSONObject().put("available", true).put("default", true).toString(), clientInfo.toString());
 
             script(401, "{\"error\": \"invalid key " + KEY + "\"}");
+            script(401, "{\"error\": \"invalid key " + FALLBACK_KEY + "\"}");
             AiService service = new AiService(settings, 10);
             AiService.Outcome outcome = service.call(AiService.INFER, 1, data());
             Assert.assertEquals("http_401", outcome.error);
+            Assert.assertEquals(2, this.requests.size()); // both asked
             Assert.assertFalse("the telemetry", outcome.event.toString().contains(KEY));
+            Assert.assertFalse("the telemetry", outcome.event.toString().contains(FALLBACK_KEY));
             AiResponse response = AiResponse.of(outcome);
             response.setRc("error");
             response.setInitToken("t");
             response.setServerTime(0);
             response.setServerVersion("v");
             Assert.assertFalse("the browser", response.immutable().toJson().toString().contains(KEY));
+            Assert.assertFalse("the browser", response.immutable().toJson().toString().contains(FALLBACK_KEY));
         } finally {
             root.detachAppender(log);
             root.setLevel(level);
@@ -525,6 +717,7 @@ public class AiServiceTest {
         Assert.assertTrue(log.list.stream().anyMatch(e -> e.getFormattedMessage().startsWith("AI test assistant: url ")));
         for ( ILoggingEvent event : log.list ) {
             Assert.assertFalse("logged: " + event.getFormattedMessage(), event.getFormattedMessage().contains(KEY));
+            Assert.assertFalse("logged: " + event.getFormattedMessage(), event.getFormattedMessage().contains(FALLBACK_KEY));
         }
     }
 

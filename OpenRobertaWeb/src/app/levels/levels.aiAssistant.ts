@@ -188,7 +188,7 @@ const TEXT: { [key: string]: string } = {
     nothing: "Your tests already check this. I'll look again after your next change.",
     writingHead: 'Writing tests',
     writingFor: 'For: ',
-    writingNote: 'Usually 30 s to 2 minutes. You can keep working meanwhile.',
+    writingNote: 'Usually 1 to 3 minutes. You can keep working meanwhile.',
     fixingNote: 'Usually 10 to 20 s. You can keep working meanwhile.',
     analysing: 'First I look at the decisions in your program, then I write the tests.',
     writingTests: 'Now I write the tests.',
@@ -200,7 +200,6 @@ const TEXT: { [key: string]: string } = {
     assumes: 'It assumes',
     plans: 'Plans to try {0} of {1} outcomes of the decisions in your program.',
     plansNone: 'Your program makes no decisions: the tests try its one way through.',
-    notPlanned: 'Not tried',
     seen: 'Seen in the runs: {0} of {1} outcomes of the decisions in your program.',
     notSeen: 'Not seen',
     ranNotChecked: "not checked: it passed, but that doesn't show much",
@@ -1372,7 +1371,7 @@ function renderResults(body: Element, head: (key: string) => any, note: (s: stri
         if (state === 'flagged' && c.reason) {
             const box = html('div', 'aiReason', main);
             html('b', '', box, text(c.flag === 'doubtful' ? 'doubtful' : 'flagged') + ' ');
-            box.appendChild(document.createTextNode(c.reason));
+            box.appendChild(document.createTextNode(toYou(c.reason)));
         }
     });
     batch.plan && coverageLine(body, batch.plan, true);
@@ -1426,13 +1425,13 @@ function renderReview(body: Element, head: (key: string) => any, note: (s: strin
             });
             const span = html('span', '', label, t.name);
             t.oracle && TEXT['basis_' + t.oracle.basis] && html('em', 'aiBasis aiBasis_' + t.oracle.basis, span, text('basis_' + t.oracle.basis));
-            t.scenario && html('small', '', span, t.scenario);
+            t.scenario && html('small', '', span, toYou(t.scenario));
             const assumptions = (t.oracle && Array.isArray(t.oracle.assumptions) ? t.oracle.assumptions : []).filter((a: any) => typeof a === 'string' && a.trim());
             if (assumptions.length) {
                 const details = html('details', 'aiAssumptions', span);
                 html('summary', '', details, text('assumes'));
                 const ul = html('ul', '', details);
-                assumptions.forEach((a: string) => html('li', '', ul, a));
+                assumptions.forEach((a: string) => html('li', '', ul, toYou(a)));
             }
         });
     });
@@ -1445,8 +1444,9 @@ function renderReview(body: Element, head: (key: string) => any, note: (s: strin
 }
 
 /**
- * one line of coverage: the outcomes of the program's decisions the tests plan to try (review), or that the runs took (results), and those they
- * don't, as chips with their words (and why not: deferred, unsupported, left out)
+ * one line of coverage: the outcomes of the program's decisions the tests plan to try (review), or that the runs took (results). The results also
+ * list those the runs didn't take, as chips with their words. The outcomes the tests don't try, and why (deferred, unsupported, left out), aren't
+ * shown: they are in the telemetry (the plan of ai_tests_generated, ai_tests_checked and ai_tests_added: planOfLog).
  */
 function coverageLine(body: Element, plan: STRATEGY.Plan, seen: boolean): void {
     const total = plan.outcomes.length;
@@ -1458,17 +1458,28 @@ function coverageLine(body: Element, plan: STRATEGY.Plan, seen: boolean): void {
     const hit = plan.outcomes.filter((o) => (seen ? o.seen > 0 : o.planned.length > 0));
     html('p', '', box, seen ? text('seen', hit.length, total) : text('plans', plan.outcomes.filter((o) => o.planned.length).length, total));
     const missing = plan.outcomes.filter((o) => hit.indexOf(o) < 0);
-    if (!missing.length) {
+    if (!seen || !missing.length) {
         return;
     }
     const details = html('details', 'aiMissing', box);
-    html('summary', '', details, (seen ? text('notSeen') : text('notPlanned')) + ' (' + missing.length + ')');
+    html('summary', '', details, text('notSeen') + ' (' + missing.length + ')');
     const ul = html('ul', '', details);
     missing.forEach((o) => {
         const li = html('li', '', ul);
         li.appendChild(chip(o.block));
-        li.appendChild(document.createTextNode(' ' + o.words + (!seen && o.deferred ? ': ' + o.deferred : seen && o.planned.length ? ': planned, but it didn\'t happen' : '')));
+        li.appendChild(document.createTextNode(' ' + o.words + (o.planned.length ? ': planned, but it didn\'t happen' : '')));
     });
+}
+
+/**
+ * a text of the model as the panel shows it: spoken to the learner ("you"), never of "the learner". The prompt asks the model for it, and a fix's
+ * reason that speaks of the learner is repaired; this catches what slips through.
+ */
+function toYou(s: string): string {
+    const verbs: { [verb: string]: string } = { says: 'say', wants: 'want', asks: 'ask', expects: 'expect', has: 'have', is: 'are', was: 'were', does: 'do', needs: 'need', means: 'mean', thinks: 'think', writes: 'write' };
+    return String(s || '')
+        .replace(/\b([Tt])he learner['’]s\b/g, (m: string, t: string) => (t === 'T' ? 'Your' : 'your'))
+        .replace(/\b([Tt])he learner\b( (\w+))?/g, (m: string, t: string, rest: string, verb: string) => (t === 'T' ? 'You' : 'you') + (verb ? ' ' + (verbs[verb] || verb) : ''));
 }
 
 /** "in a new world: “A”", "in 2 new worlds: “A” and “B”", "in your world “C”", "in the worlds “A” and “C”" */

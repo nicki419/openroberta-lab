@@ -15,7 +15,7 @@ import java.util.Map;
  * repository's root for "ora.sh start-from-git"). Only the names in {@link #PROPERTIES} are used. A line is KEY=VALUE, the value may be quoted, a line
  * starting with # is a comment. An environment variable overrides the file; a -d define on the command line overrides both (it comes later).
  * <p>
- * Secrets ({@link #DEEPSEEK_API_KEY}) are no server properties: the server logs every define (Util.loadAndMergeOpenRobertaServerProperties). They are
+ * Secrets ({@link #DEEPSEEK_API_KEY}, {@link #DEEPSEEK_FALLBACK_API_KEY}) are no server properties: the server logs every define (Util.loadAndMergeOpenRobertaServerProperties). They are
  * read with {@link #secret} by the code that needs them.
  */
 public final class EnvFile {
@@ -31,8 +31,10 @@ public final class EnvFile {
         properties.put("LEVEL_DESIGNER", "levels.designer"); // true: the Level designer tab is shown
         properties.put("LEVELS_DIR", "levels.dir"); // the folder of the level sets (a folder per set, a file per level)
         properties.put("LEVEL_TELEMETRY_DIR", "levels.telemetry.dir"); // the folder of the study's telemetry (a file per participant)
-        properties.put("DEEPSEEK_URL", "ai.deepseek.url"); // the address of DeepSeek's API (AI test assistant)
+        properties.put("DEEPSEEK_URL", "ai.deepseek.url"); // the address of the model's API (AI test assistant): SDU's UCloud
         properties.put("DEEPSEEK_MODEL", "ai.deepseek.model"); // the model of the AI test assistant
+        properties.put("DEEPSEEK_FALLBACK_URL", "ai.fallback.url"); // the API asked when the first one fails: DeepSeek's own
+        properties.put("DEEPSEEK_FALLBACK_MODEL", "ai.fallback.model"); // … and its model
         properties.put("AI_TESTS_DEFAULT", "ai.tests.default"); // true: the AI test assistant is on for a learner who was never switched
         properties.put("AI_PACK_DIR", "ai.pack.dir"); // the folder of the AI's context pack, read at every call (none: the server's resources)
         properties.put("AI_EFFORT_INFER", "ai.effort.infer"); // the model's reasoning effort for a guess (low, high, max)
@@ -41,9 +43,14 @@ public final class EnvFile {
     }
 
     /**
-     * the name of DeepSeek's API key in .env and in the environment: a secret, see {@link #secret}
+     * the name of the API key of the model's API (DEEPSEEK_URL) in .env and in the environment: a secret, see {@link #secret}
      */
     public static final String DEEPSEEK_API_KEY = "DEEPSEEK_API_KEY";
+
+    /**
+     * … of the fallback's API (DEEPSEEK_FALLBACK_URL)
+     */
+    public static final String DEEPSEEK_FALLBACK_API_KEY = "DEEPSEEK_FALLBACK_API_KEY";
 
     private EnvFile() {
         // only static methods

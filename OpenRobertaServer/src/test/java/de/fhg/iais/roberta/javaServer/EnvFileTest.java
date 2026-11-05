@@ -51,21 +51,27 @@ public class EnvFileTest {
         File file =
             envFile(
                 "DEEPSEEK_API_KEY=sk-secret",
-                "DEEPSEEK_URL=https://api.deepseek.com",
-                "DEEPSEEK_MODEL=deepseek-flash",
+                "DEEPSEEK_URL=https://ai.cloud.sdu.dk/v1",
+                "DEEPSEEK_MODEL=deepseek-ai/DeepSeek-V4.1-Flash-1017",
+                "DEEPSEEK_FALLBACK_API_KEY=sk-fallback",
+                "DEEPSEEK_FALLBACK_URL=https://api.deepseek.com",
+                "DEEPSEEK_FALLBACK_MODEL=deepseek-flash",
                 "AI_TESTS_DEFAULT=true",
                 "AI_PACK_DIR=OpenRobertaServer/src/main/resources/ai",
                 "AI_EFFORT_GENERATE=high");
         Assert.assertEquals(
             Arrays
                 .asList(
-                    "ai.deepseek.url=https://api.deepseek.com",
-                    "ai.deepseek.model=deepseek-flash",
+                    "ai.deepseek.url=https://ai.cloud.sdu.dk/v1",
+                    "ai.deepseek.model=deepseek-ai/DeepSeek-V4.1-Flash-1017",
+                    "ai.fallback.url=https://api.deepseek.com",
+                    "ai.fallback.model=deepseek-flash",
                     "ai.tests.default=true",
                     "ai.pack.dir=OpenRobertaServer/src/main/resources/ai",
                     "ai.effort.generate=high"),
             EnvFile.serverDefines(file, Collections.singletonMap("DEEPSEEK_API_KEY", "sk-from-the-environment")));
         Assert.assertEquals("sk-secret", EnvFile.secret(file, Collections.emptyMap(), EnvFile.DEEPSEEK_API_KEY));
+        Assert.assertEquals("sk-fallback", EnvFile.secret(file, Collections.emptyMap(), EnvFile.DEEPSEEK_FALLBACK_API_KEY));
         Assert.assertEquals("sk-env", EnvFile.secret(file, Collections.singletonMap("DEEPSEEK_API_KEY", " sk-env "), EnvFile.DEEPSEEK_API_KEY));
         Assert.assertEquals("sk-secret", EnvFile.secret(file, Collections.singletonMap("DEEPSEEK_API_KEY", ""), EnvFile.DEEPSEEK_API_KEY));
         Assert.assertNull(EnvFile.secret(envFile2("DEEPSEEK_API_KEY="), Collections.emptyMap(), EnvFile.DEEPSEEK_API_KEY));

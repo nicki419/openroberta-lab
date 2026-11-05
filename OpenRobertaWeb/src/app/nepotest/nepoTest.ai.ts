@@ -31,6 +31,8 @@ import * as BLOCKS from 'nepoTest.blocks';
 import * as STRATEGY from 'nepoTest.aiStrategy';
 
 export const REPAIRS = 2;
+/** a text for the learner that speaks of them instead of to them */
+export const SPEAKS_OF_LEARNER = /\bthe learner/i;
 const PATH_POINTS = 12; // where the robot was, for the model: at most this many times
 
 /** what a call needs to know, besides its task (see OpenRobertaServer …/ai/AiPrompts). Nothing of the level: the model never gets it. */
@@ -321,7 +323,9 @@ async function checkWritten(
             } else if (fixed.indexOf(test) >= 0) {
                 add('the test is fixed too: either fix it or name it in ' + key);
             } else {
-                lists[key].push({ test: test, world: String(p.world || ''), reason: String(p.reason || '').trim() });
+                const reason = String(p.reason || '').trim();
+                lists[key].push({ test: test, world: String(p.world || ''), reason: reason });
+                SPEAKS_OF_LEARNER.test(reason) && add('the reason speaks of "the learner": write it to them ("you said …", "your program …")'); // repaired; kept if it stays
             }
         })
     );

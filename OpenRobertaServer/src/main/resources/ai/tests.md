@@ -97,7 +97,7 @@ The answer around the worlds:
   with the side if one is tested and the other isn't: "the line's edge: outside"), `reason`).
 - `consolidation_notes`: what you merged or left out because another test covers the same, in short.
 - `deferred_scenarios`: scenarios of the analysis you write no test for (`scenario_id`, `reason`).
-- `warnings`: limitations the learner should know, in plain words.
+- `warnings`: limitations the learner should know, in plain words, written to them ("You didn't say where …").
 
 ## Checks
 

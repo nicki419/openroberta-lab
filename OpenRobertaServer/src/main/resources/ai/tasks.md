@@ -139,8 +139,9 @@ Answer:
   as the learner's: to keep a test in its world, write `"base": "existing"` with the world's name. If the world itself
   must change, draw it anew under another name. Don't repeat the tests that passed, and don't add new tests.
 - `program_wrong` and `doubtful`: the tests you leave as they are. `test` and `world`: their names; `reason`: one or
-  two sentences for the learner, at most 300 characters: what the robot does, and what it should do (or what the
-  test wants that nobody said).
+  two sentences to the learner, at most 300 characters: what the robot does, and what it should do (or what the
+  test wants that they didn't say). Write to them: "your program never reads the obstacle sensor, and you said it
+  should stop", not "the learner said".
 - Every test of the task is either fixed, in `program_wrong` or in `doubtful`; leave out one you can't fix. Not all
   three may be empty.
 - Repairs work as for generate: answer again with the whole corrected answer.

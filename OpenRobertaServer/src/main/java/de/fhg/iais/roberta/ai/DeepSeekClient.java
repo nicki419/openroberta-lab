@@ -15,9 +15,10 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 /**
- * a small client of DeepSeek's chat API (OpenAI-compatible, POST {url}/chat/completions), with Java 8's HttpURLConnection. It asks for JSON (JSON mode,
- * response_format json_object), with timeouts, and tries a second time once after a 429 (too many requests), a 5xx, or no connection. The key goes only
- * into the Authorization header; error texts of DeepSeek are redacted ({@link AiSettings#redact}). Stateless, so one client serves all requests.
+ * a small client of an OpenAI-compatible chat API (POST {url}/chat/completions: SDU's UCloud or DeepSeek's own), with Java 8's HttpURLConnection. It
+ * asks for JSON (JSON mode, response_format json_object), with timeouts, and tries a second time once after a 429 (too many requests), a 5xx, or no
+ * connection. The key goes only into the Authorization header; error texts of the API are redacted ({@link AiSettings#redact}). Stateless, so one
+ * client per API serves all requests.
  */
 public class DeepSeekClient {
     public static final long RETRY_DELAY_MS = 1000;
@@ -26,15 +27,22 @@ public class DeepSeekClient {
     private static final int MAX_ERROR_CHARS = 500;
 
     private final AiSettings settings;
+    private final AiSettings.Provider provider;
     private final long retryDelayMs;
 
     /**
-     * @param settings the address, model and key
-     * @param retryDelayMs how long to wait before the second try (unless DeepSeek says so in Retry-After, at most 5 s)
+     * @param settings the settings (to redact the keys from error texts)
+     * @param provider the API: its address, model and key
+     * @param retryDelayMs how long to wait before the second try (unless the API says so in Retry-After, at most 5 s)
      */
-    public DeepSeekClient(AiSettings settings, long retryDelayMs) {
+    public DeepSeekClient(AiSettings settings, AiSettings.Provider provider, long retryDelayMs) {
         this.settings = settings;
+        this.provider = provider;
         this.retryDelayMs = retryDelayMs;
+    }
+
+    public AiSettings.Provider getProvider() {
+        return this.provider;
     }
 
     /**
@@ -48,7 +56,7 @@ public class DeepSeekClient {
     public Result chat(JSONArray messages, int maxTokens, String effort, int readTimeoutMs) {
         JSONObject body =
             new JSONObject()
-                .put("model", this.settings.getModel())
+                .put("model", this.provider.getModel())
                 .put("messages", messages)
                 .put("response_format", new JSONObject().put("type", "json_object"))
                 .put("max_tokens", maxTokens)
@@ -90,18 +98,18 @@ public class DeepSeekClient {
                 boolean connecting = String.valueOf(e.getMessage()).toLowerCase().contains("connect");
                 result.ok = false;
                 result.error = connecting ? "unreachable" : "timeout";
-                result.message = connecting ? "DeepSeek could not be reached" : "DeepSeek didn't answer within " + readTimeoutMs / 1000 + " s";
+                result.message = connecting ? host() + " could not be reached" : host() + " didn't answer within " + readTimeoutMs / 1000 + " s";
                 if ( !connecting ) {
                     break; // another try would make the learner wait twice as long
                 }
             } catch ( ConnectException e ) {
                 result.ok = false;
                 result.error = "unreachable";
-                result.message = "DeepSeek could not be reached: " + e.getMessage();
+                result.message = host() + " could not be reached: " + e.getMessage();
             } catch ( IOException e ) {
                 result.ok = false;
                 result.error = "unreachable";
-                result.message = this.settings.redact("the call to DeepSeek failed: " + e.getMessage());
+                result.message = this.settings.redact("the call to " + host() + " failed: " + e.getMessage());
                 break;
             }
             if ( attempt == 1 ) {
@@ -119,16 +127,20 @@ public class DeepSeekClient {
         HttpURLConnection connection = open("/models", 20000);
         int status = connection.getResponseCode();
         if ( status != 200 ) {
-            throw new IOException("DeepSeek answered " + status + ": " + errorText(connection));
+            throw new IOException(host() + " answered " + status + ": " + errorText(connection));
         }
         return new JSONObject(read(connection.getInputStream()));
     }
 
+    private String host() {
+        return this.provider.getHost();
+    }
+
     private HttpURLConnection open(String path, int readTimeoutMs) throws IOException {
-        HttpURLConnection connection = (HttpURLConnection) new URL(this.settings.getUrl() + path).openConnection();
+        HttpURLConnection connection = (HttpURLConnection) new URL(this.provider.getUrl() + path).openConnection();
         connection.setConnectTimeout(CONNECT_TIMEOUT_MS);
         connection.setReadTimeout(readTimeoutMs);
-        connection.setRequestProperty("Authorization", this.settings.authorization());
+        connection.setRequestProperty("Authorization", this.provider.authorization());
         connection.setRequestProperty("Accept", "application/json");
         return connection;
     }
@@ -139,7 +151,8 @@ public class DeepSeekClient {
             JSONObject choice = json.getJSONArray("choices").getJSONObject(0);
             JSONObject message = choice.getJSONObject("message");
             result.content = message.optString("content", "");
-            result.reasoning = message.optString("reasoning_content", null);
+            // DeepSeek's own API: reasoning_content; SDU's (vLLM): reasoning
+            result.reasoning = message.optString("reasoning_content", message.optString("reasoning", null));
             result.finishReason = choice.optString("finish_reason", null);
             result.model = json.optString("model", null);
             JSONObject usage = json.optJSONObject("usage");
@@ -147,7 +160,8 @@ public class DeepSeekClient {
                 result.promptTokens = usage.optInt("prompt_tokens");
                 result.cachedTokens = usage.has("prompt_cache_hit_tokens") ? usage.optInt("prompt_cache_hit_tokens") : nested(usage, "prompt_tokens_details", "cached_tokens");
                 result.completionTokens = usage.optInt("completion_tokens");
-                result.reasoningTokens = nested(usage, "completion_tokens_details", "reasoning_tokens");
+                JSONObject details = usage.optJSONObject("completion_tokens_details");
+                result.reasoningTokens = details == null || !details.has("reasoning_tokens") ? null : details.optInt("reasoning_tokens"); // SDU doesn't say
             }
             result.ok = true;
             result.error = null;
@@ -155,7 +169,7 @@ public class DeepSeekClient {
         } catch ( JSONException e ) {
             result.ok = false;
             result.error = "bad_response";
-            result.message = "DeepSeek's response could not be read: " + e.getMessage();
+            result.message = "the response of " + host() + " could not be read: " + e.getMessage();
         }
     }
 
@@ -211,6 +225,6 @@ public class DeepSeekClient {
         public int promptTokens;
         public int cachedTokens;
         public int completionTokens;
-        public int reasoningTokens;
+        public Integer reasoningTokens; // null: the API doesn't say
     }
 }
