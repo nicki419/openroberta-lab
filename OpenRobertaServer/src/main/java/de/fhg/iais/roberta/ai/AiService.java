@@ -28,14 +28,15 @@ import de.fhg.iais.roberta.util.ServerProperties;
  * system prompt, and the per-call part ({@link AiPrompts}) after it, calls the model in JSON mode ({@link DeepSeekClient}), checks the answer and
  * describes the call as an event for the participant's telemetry file (kind ai_call).
  * <p>
- * The model is DeepSeek-V4.1-Flash, at SDU's UCloud (the primary) and at DeepSeek's own API (the fallback, {@link AiSettings}). A call that gets no
- * answer from the primary (it can't be reached, doesn't answer in time, or answers with an HTTP error) is made again at the fallback, and for the next
- * 5 minutes the fallback is asked first. An answer that can't be used (cut off, not the JSON asked for) is not made again: the browser repairs it.
+ * The model is DeepSeek-V4.1-Flash, at DeepSeek's own API and at SDU's UCloud, asked in the order of AI_PROVIDERS (usually DeepSeek first,
+ * {@link AiSettings}). A call that gets no answer from the first (it can't be reached, doesn't answer in time, or answers with an HTTP error) is made
+ * again at the next, and for the next 5 minutes the first is asked last. An answer that can't be used (cut off, not the JSON asked for) is not made
+ * again: the browser repairs it. Each API has its own reasoning effort per call.
  * <p>
  * The event has what was sent and what came back: the per-call prompt (the system prompt is saved once per version, as
  * &lt;telemetry&gt;/ai-prompts/&lt;promptVersion&gt;.md), a repair's earlier answer and problems, the effort, token limit and timeout, every API asked
- * (tries: provider, host, model, status, error, attempts, latency), the answer, the model's reasoning, the tokens, the finish reason, the start time and
- * the time taken.
+ * (tries: provider, host, model, effort, status, error, attempts, latency), the answer, the model's reasoning, the tokens, the finish reason, the start
+ * time and the time taken.
  * <ul>
  * <li>infer: what is the program meant to do? {intent, confidence, ask, same_as_declined, not_covered}; short, 20 s.</li>
  * <li>analyze (the AnalysisAgent of docs/tests): the program's decisions and their outcomes, the paths that target them (branch coverage), the
@@ -46,9 +47,9 @@ import de.fhg.iais.roberta.util.ServerProperties;
  * tests: only their inputs changed], program_wrong: [{test, world, reason}: the program is wrong], doubtful: [{test, world, reason}: the test may
  * expect more than the learner said]}; as generate (its effort, 180 s, repairs).</li>
  * </ul>
- * The reasoning effort of each is a setting (AI_EFFORT_INFER; AI_EFFORT_GENERATE, also for analyze and fix; default low). Measured on 2026-11-05
- * with the clap counter and a 32,000-token prompt, three runs each, at low: infer about 2 s on both; analyze 39-56 s at DeepSeek, 67-116 s at SDU
- * (it reasons about twice as long; its low and high made no measurable difference); generate 62-74 s and 52-78 s; fix 14-29 s and 7-33 s.
+ * The reasoning effort of each call is a setting per API (&lt;NAME&gt;_EFFORT_INFER, _ANALYZE, _GENERATE, _FIX; preset low, low, none, low).
+ * Measured on 2026-11-05 (docs/ai/nepo-ai-model-evaluation.md): at low, infer 2-8 s; analyze 34-147 s at DeepSeek, 51-116 s at UCloud (it reasons
+ * longer); generate 54-132 s and 52-151 s; at none, generate 8-20 s on both, with first answers as valid by the Lab's rules.
  * Every call's meta has the contract version of the answers ({@link #CONTRACT}).
  * <p>
  * One instance serves the whole server (the limits per session are here).
@@ -64,16 +65,16 @@ public class AiService {
     public static final String CONTRACT = "1.1";
     private static final int MAX_REASONING = 200000; // characters of the reasoning kept in the telemetry (32,000 tokens are about 130,000)
     public static final String PROMPTS_DIR = "ai-prompts"; // in the telemetry folder: the system prompt of each promptVersion
-    public static final long COOL_DOWN_MS = 5 * 60 * 1000; // after the primary failed, the fallback is asked first for so long
+    public static final long COOL_DOWN_MS = 5 * 60 * 1000; // after the first API failed, it is asked last for so long
 
     private final AiSettings settings;
-    private final List<DeepSeekClient> clients; // the primary's, then the fallback's (those that can be called)
+    private final List<DeepSeekClient> clients; // one per API that can be called, in the order they are asked
     private final AiLimits limits;
     private ContextPack resourcePack; // the pack in the resources, loaded once
     private int inferTimeoutMs = 20000;
     private int generateTimeoutMs = 180000;
     private LongSupplier clock = System::currentTimeMillis;
-    private volatile long primaryDownUntil = 0; // the primary failed: until then, the fallback is asked first
+    private volatile long firstDownUntil = 0; // the first API failed: until then, it is asked last
     public static final int MAX_TOKENS = 32000; // analyze, generate, fix: the reasoning counts (a hard program took 22,000 tokens at SDU, 116 s)
 
     @Inject
@@ -114,7 +115,7 @@ public class AiService {
     }
 
     /**
-     * @return the client of the first API that can be called (the primary's, if it can), or null
+     * @return the client of the first API that can be called, or null
      */
     public DeepSeekClient getClient() {
         return this.clients.isEmpty() ? null : this.clients.get(0);
@@ -128,11 +129,11 @@ public class AiService {
     }
 
     /**
-     * @return the APIs to ask, in their order: the primary first, unless it failed in the last {@link #COOL_DOWN_MS}
+     * @return the APIs to ask, in their order (AI_PROVIDERS), but the first last if it failed in the last {@link #COOL_DOWN_MS}
      */
     private List<DeepSeekClient> order() {
         List<DeepSeekClient> order = new ArrayList<>(this.clients);
-        if ( order.size() > 1 && this.clock.getAsLong() < this.primaryDownUntil && AiSettings.PRIMARY.equals(order.get(0).getProvider().getName()) ) {
+        if ( order.size() > 1 && this.clock.getAsLong() < this.firstDownUntil ) {
             order.add(order.remove(0));
         }
         return order;
@@ -202,10 +203,9 @@ public class AiService {
             event.put("promptVersion", pack.getVersion());
             savePrompt(pack);
             boolean infer = INFER.equals(kind);
-            String effort = infer ? this.settings.getEffortInfer() : this.settings.getEffortGenerate();
             int maxTokens = infer ? 4000 : MAX_TOKENS;
             int timeoutMs = infer ? this.inferTimeoutMs : this.generateTimeoutMs;
-            event.put("effort", effort == null ? JSONObject.NULL : effort).put("maxTokens", maxTokens).put("timeoutMs", timeoutMs);
+            event.put("maxTokens", maxTokens).put("timeoutMs", timeoutMs);
             String prompt = AiPrompts.userMessage(kind, data);
             event.put("prompt", prompt);
             JSONArray messages = new JSONArray().put(message("system", pack.getText())).put(message("user", prompt));
@@ -216,7 +216,7 @@ public class AiService {
                     event.put("repairAnswer", repair[0]).put("repair", repair[1]);
                 }
             }
-            // the primary, then the fallback if the primary gave no answer (an answer that can't be used is repaired by the browser, not asked again)
+            // the APIs in their order, the next only if one gave no answer (an answer that can't be used is repaired by the browser, not asked again)
             DeepSeekClient.Result result = null;
             AiSettings.Provider answering = null;
             JSONArray tries = new JSONArray();
@@ -224,6 +224,7 @@ public class AiService {
             int attempts = 0;
             for ( DeepSeekClient client : order() ) {
                 AiSettings.Provider provider = client.getProvider();
+                String effort = provider.effort(kind);
                 result = client.chat(messages, maxTokens, effort, timeoutMs);
                 answering = provider;
                 latencyMs += result.latencyMs;
@@ -234,21 +235,23 @@ public class AiService {
                             .put("provider", provider.getName())
                             .put("host", provider.getHost())
                             .put("model", provider.getModel())
+                            .put("effort", effort == null ? JSONObject.NULL : effort)
                             .put("ok", result.ok)
                             .put("httpStatus", result.httpStatus)
                             .put("error", result.error == null ? JSONObject.NULL : result.error)
                             .put("message", result.message == null ? JSONObject.NULL : result.message)
                             .put("attempts", result.attempts)
                             .put("latencyMs", result.latencyMs));
-                boolean primary = AiSettings.PRIMARY.equals(provider.getName());
+                event.put("effort", effort == null ? JSONObject.NULL : effort); // the effort of the API that answered (or was asked last)
+                boolean first = client == this.clients.get(0);
                 if ( result.ok ) {
-                    if ( primary ) {
-                        this.primaryDownUntil = 0;
+                    if ( first ) {
+                        this.firstDownUntil = 0;
                     }
                     break;
                 }
-                if ( primary ) {
-                    this.primaryDownUntil = this.clock.getAsLong() + COOL_DOWN_MS;
+                if ( first ) {
+                    this.firstDownUntil = this.clock.getAsLong() + COOL_DOWN_MS;
                 }
                 LOG.warn("AI " + kind + ": " + provider.getHost() + " failed (" + result.error + ")" + (tries.length() < this.clients.size() ? ", asking the next" : ""));
             }

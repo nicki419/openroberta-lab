@@ -105,14 +105,23 @@ public class AiServiceTest {
         return service;
     }
 
-    private static final String FALLBACK_KEY = "sk-fallback-fedcba9876543210";
+    private static final String UCLOUD_KEY = "sk-ucloud-fedcba9876543210";
     private static final String SDU_MODEL = "deepseek-ai/DeepSeek-V4.1-Flash-1017";
 
-    /** SDU at {url}/primary, DeepSeek at {url}/fallback (the same fake server: the path tells them apart) */
-    private AiService serviceWithFallback() {
+    /**
+     * DeepSeek at {url}/deepseek first (efforts as preset: low, low, none, low), then UCloud at {url}/ucloud (generate at high, to tell them apart);
+     * the same fake server: the path tells them apart
+     */
+    private AiService serviceWithTwo() {
         AiSettings settings =
-            new AiSettings(url() + "primary", SDU_MODEL, KEY, false, null, this.folder.getRoot().getPath(), "low", "low")
-                .withFallback(url() + "fallback", "deepseek-flash", FALLBACK_KEY);
+            new AiSettings(
+                Arrays
+                    .asList(
+                        new AiSettings.Provider("deepseek", url() + "deepseek", "deepseek-flash", KEY, AiSettings.efforts("low", "low", "none", "low")),
+                        new AiSettings.Provider("ucloud", url() + "ucloud", SDU_MODEL, UCLOUD_KEY, AiSettings.efforts("low", "low", "high", "low"))),
+                false,
+                null,
+                this.folder.getRoot().getPath());
         AiService service = new AiService(settings, 10);
         service.setTimeouts(1500, 1500);
         return service;
@@ -537,107 +546,116 @@ public class AiServiceTest {
     }
 
     @Test
-    public void thePrimaryIsAskedFirstAndItsReasoningIsKept() throws Exception {
-        script(200, vllmCompletion(inferAnswer()));
-        AiService service = serviceWithFallback();
-        AiService.Outcome outcome = service.call(AiService.INFER, 1, data());
+    public void theFirstApiIsAskedFirstWithItsOwnEfforts() throws Exception {
+        script(200, completion(generateAnswer(), "stop"));
+        script(200, completion(inferAnswer(), "stop"));
+        AiService service = serviceWithTwo();
+        AiService.Outcome outcome = service.call(AiService.GENERATE, 1, data().put("intent", "Drive."));
         Assert.assertTrue(outcome.message, outcome.ok);
-        Assert.assertEquals(1, this.requests.size());
-        Assert.assertEquals("/primary/chat/completions", this.requests.get(0).getString("path"));
+        Assert.assertTrue(service.call(AiService.INFER, 1, data()).ok);
+        Assert.assertEquals(2, this.requests.size());
+        Assert.assertEquals("/deepseek/chat/completions", this.requests.get(0).getString("path"));
         Assert.assertEquals("Bearer " + KEY, this.requests.get(0).getString("authorization"));
-        Assert.assertEquals(SDU_MODEL, new JSONObject(this.requests.get(0).getString("body")).getString("model"));
+        JSONObject generate = new JSONObject(this.requests.get(0).getString("body"));
+        Assert.assertEquals("deepseek-flash", generate.getString("model"));
+        Assert.assertEquals("none", generate.getString("reasoning_effort")); // DeepSeek's generate
+        Assert.assertEquals("low", new JSONObject(this.requests.get(1).getString("body")).getString("reasoning_effort")); // its infer
         JSONObject event = outcome.event;
-        Assert.assertEquals("primary", event.getString("provider"));
+        Assert.assertEquals("deepseek", event.getString("provider"));
         Assert.assertEquals("127.0.0.1", event.getString("host"));
-        Assert.assertEquals(SDU_MODEL, event.getString("model"));
+        Assert.assertEquals("deepseek-flash", event.getString("model"));
+        Assert.assertEquals("none", event.getString("effort"));
         Assert.assertEquals(1, event.getJSONArray("tries").length());
-        Assert.assertEquals("We need JSON.", event.getString("reasoning")); // vLLM's field
-        Assert.assertEquals(13, event.getInt("reasoningChars"));
-        Assert.assertTrue(event.getJSONObject("tokens").isNull("reasoning")); // SDU doesn't say: not 0
-        Assert.assertEquals(8704, event.getJSONObject("tokens").getInt("cached"));
-        Assert.assertEquals("primary", outcome.meta.getString("provider"));
+        Assert.assertEquals("I think.", event.getString("reasoning")); // DeepSeek's field
+        Assert.assertEquals(80, event.getJSONObject("tokens").getInt("reasoning"));
+        Assert.assertEquals("deepseek", outcome.meta.getString("provider"));
     }
 
     @Test
-    public void withoutAnAnswerFromThePrimaryTheFallbackIsAskedAndFirstForFiveMinutes() throws Exception {
+    public void withoutAnAnswerFromTheFirstTheNextIsAskedAndFirstForFiveMinutes() throws Exception {
         long[] now = {1000};
         script(503, "{\"error\": \"busy\"}");
-        script(503, "{\"error\": \"busy\"}"); // the primary's second try
-        script(200, completion(inferAnswer(), "stop"));
-        AiService service = serviceWithFallback();
+        script(503, "{\"error\": \"busy\"}"); // DeepSeek's second try
+        script(200, vllmCompletion(generateAnswer()));
+        AiService service = serviceWithTwo();
         service.setClock(() -> now[0]);
-        AiService.Outcome outcome = service.call(AiService.INFER, 1, data());
+        AiService.Outcome outcome = service.call(AiService.GENERATE, 1, data().put("intent", "Drive."));
         Assert.assertTrue(outcome.message, outcome.ok);
         Assert.assertEquals(3, this.requests.size());
-        Assert.assertEquals("/primary/chat/completions", this.requests.get(1).getString("path"));
-        JSONObject fallback = this.requests.get(2);
-        Assert.assertEquals("/fallback/chat/completions", fallback.getString("path"));
-        Assert.assertEquals("Bearer " + FALLBACK_KEY, fallback.getString("authorization"));
-        JSONObject body = new JSONObject(fallback.getString("body"));
-        Assert.assertEquals("deepseek-flash", body.getString("model"));
+        Assert.assertEquals("/deepseek/chat/completions", this.requests.get(1).getString("path"));
+        JSONObject next = this.requests.get(2);
+        Assert.assertEquals("/ucloud/chat/completions", next.getString("path"));
+        Assert.assertEquals("Bearer " + UCLOUD_KEY, next.getString("authorization"));
+        JSONObject body = new JSONObject(next.getString("body"));
+        Assert.assertEquals(SDU_MODEL, body.getString("model"));
+        Assert.assertEquals("high", body.getString("reasoning_effort")); // UCloud's own effort for generate
         Assert.assertEquals(new JSONObject(this.requests.get(0).getString("body")).getJSONArray("messages").toString(), body.getJSONArray("messages").toString());
         JSONObject event = outcome.event;
-        Assert.assertEquals("fallback", event.getString("provider"));
-        Assert.assertEquals("deepseek-flash", event.getString("model"));
+        Assert.assertEquals("ucloud", event.getString("provider"));
+        Assert.assertEquals(SDU_MODEL, event.getString("model"));
+        Assert.assertEquals("high", event.getString("effort"));
         Assert.assertEquals(3, event.getInt("attempts"));
         JSONArray tries = event.getJSONArray("tries");
         Assert.assertEquals(2, tries.length());
-        Assert.assertEquals("primary", tries.getJSONObject(0).getString("provider"));
+        Assert.assertEquals("deepseek", tries.getJSONObject(0).getString("provider"));
+        Assert.assertEquals("none", tries.getJSONObject(0).getString("effort"));
         Assert.assertEquals("http_503", tries.getJSONObject(0).getString("error"));
         Assert.assertEquals(2, tries.getJSONObject(0).getInt("attempts"));
         Assert.assertTrue(tries.getJSONObject(1).getBoolean("ok"));
-        Assert.assertEquals(80, event.getJSONObject("tokens").getInt("reasoning"));
-        Assert.assertEquals("I think.", event.getString("reasoning")); // DeepSeek's field
-        Assert.assertEquals("fallback", outcome.meta.getString("provider"));
+        Assert.assertEquals("We need JSON.", event.getString("reasoning")); // vLLM's field
+        Assert.assertEquals(13, event.getInt("reasoningChars"));
+        Assert.assertTrue(event.getJSONObject("tokens").isNull("reasoning")); // UCloud doesn't say: not 0
+        Assert.assertEquals(8704, event.getJSONObject("tokens").getInt("cached"));
+        Assert.assertEquals("ucloud", outcome.meta.getString("provider"));
 
-        now[0] += AiService.COOL_DOWN_MS - 1; // still cooling down: the fallback first
-        script(200, completion(inferAnswer(), "stop"));
-        Assert.assertEquals("fallback", service.call(AiService.INFER, 1, data()).event.getString("provider"));
-        Assert.assertEquals("/fallback/chat/completions", this.requests.get(3).getString("path"));
-
-        now[0] += 2; // the primary again
+        now[0] += AiService.COOL_DOWN_MS - 1; // still cooling down: UCloud first
         script(200, vllmCompletion(inferAnswer()));
-        Assert.assertEquals("primary", service.call(AiService.INFER, 1, data()).event.getString("provider"));
-        Assert.assertEquals("/primary/chat/completions", this.requests.get(4).getString("path"));
+        Assert.assertEquals("ucloud", service.call(AiService.INFER, 1, data()).event.getString("provider"));
+        Assert.assertEquals("/ucloud/chat/completions", this.requests.get(3).getString("path"));
+
+        now[0] += 2; // DeepSeek first again
+        script(200, completion(inferAnswer(), "stop"));
+        Assert.assertEquals("deepseek", service.call(AiService.INFER, 1, data()).event.getString("provider"));
+        Assert.assertEquals("/deepseek/chat/completions", this.requests.get(4).getString("path"));
         Assert.assertEquals(5, this.requests.size());
     }
 
     @Test
-    public void aTimeoutOfThePrimaryGoesToTheFallback() {
-        this.answers.add(new Object[] {200, vllmCompletion(inferAnswer()), 3000}); // later than the 1.5 s timeout
-        script(200, completion(inferAnswer(), "stop"));
-        AiService.Outcome outcome = serviceWithFallback().call(AiService.INFER, 1, data());
+    public void aTimeoutOfTheFirstGoesToTheNext() {
+        this.answers.add(new Object[] {200, completion(inferAnswer(), "stop"), 3000}); // later than the 1.5 s timeout
+        script(200, vllmCompletion(inferAnswer()));
+        AiService.Outcome outcome = serviceWithTwo().call(AiService.INFER, 1, data());
         Assert.assertTrue(outcome.message, outcome.ok);
         Assert.assertEquals("timeout", outcome.event.getJSONArray("tries").getJSONObject(0).getString("error"));
-        Assert.assertEquals("fallback", outcome.event.getString("provider"));
+        Assert.assertEquals("ucloud", outcome.event.getString("provider"));
         Assert.assertTrue(outcome.event.getLong("latencyMs") >= 1500); // what the learner waited: both
     }
 
     @Test
-    public void anAnswerThatCantBeUsedIsNotAskedAgainAtTheFallback() {
+    public void anAnswerThatCantBeUsedIsNotAskedAgainAtTheNext() {
         script(200, completion("Sure! Here are your tests.", "stop"));
-        AiService service = serviceWithFallback();
+        AiService service = serviceWithTwo();
         Assert.assertEquals("bad_answer", service.call(AiService.INFER, 1, data()).error);
         script(200, completion("{\"worlds\": [{\"name\": \"w\", \"tes", "length"));
         Assert.assertEquals("cut_off", service.call(AiService.GENERATE, 1, data().put("intent", "Drive.")).error);
         Assert.assertEquals(2, this.requests.size());
-        Assert.assertTrue(this.requests.stream().allMatch(r -> r.getString("path").startsWith("/primary/")));
+        Assert.assertTrue(this.requests.stream().allMatch(r -> r.getString("path").startsWith("/deepseek/")));
     }
 
     @Test
-    public void whenBothFailTheErrorIsTheFallbacksAndBothAreInTheTelemetry() {
+    public void whenBothFailTheErrorIsTheLastsAndBothAreInTheTelemetry() {
         script(401, "{\"error\": \"invalid key " + KEY + "\"}");
-        script(401, "{\"error\": \"invalid key " + FALLBACK_KEY + "\"}");
-        AiService.Outcome outcome = serviceWithFallback().call(AiService.INFER, 1, data());
+        script(401, "{\"error\": \"invalid key " + UCLOUD_KEY + "\"}");
+        AiService.Outcome outcome = serviceWithTwo().call(AiService.INFER, 1, data());
         Assert.assertFalse(outcome.ok);
         Assert.assertEquals("http_401", outcome.error);
         Assert.assertEquals(2, this.requests.size());
         JSONArray tries = outcome.event.getJSONArray("tries");
         Assert.assertEquals(2, tries.length());
-        Assert.assertEquals("fallback", outcome.event.getString("provider"));
+        Assert.assertEquals("ucloud", outcome.event.getString("provider"));
         String event = outcome.event.toString();
         Assert.assertFalse(event.contains(KEY));
-        Assert.assertFalse(event.contains(FALLBACK_KEY));
+        Assert.assertFalse(event.contains(UCLOUD_KEY));
         Assert.assertTrue(tries.getJSONObject(0).getString("message").contains("***"));
         Assert.assertTrue(outcome.message.contains("***"));
     }
@@ -698,53 +716,62 @@ public class AiServiceTest {
                     Arrays
                         .asList(
                             "DEEPSEEK_API_KEY=" + KEY,
-                            "DEEPSEEK_URL=" + url() + "primary",
+                            "DEEPSEEK_URL=" + url() + "deepseek",
                             "DEEPSEEK_MODEL=deepseek-flash",
-                            "DEEPSEEK_FALLBACK_API_KEY=" + FALLBACK_KEY,
-                            "DEEPSEEK_FALLBACK_URL=" + url() + "fallback",
+                            "UCLOUD_API_KEY=" + UCLOUD_KEY,
+                            "UCLOUD_URL=" + url() + "ucloud",
+                            "UCLOUD_EFFORT_GENERATE=high",
                             "AI_TESTS_DEFAULT=true"),
                     StandardCharsets.UTF_8);
             List<String> defines = EnvFile.serverDefines(env, Collections.emptyMap());
             Assert.assertFalse(String.valueOf(defines).contains(KEY));
-            Assert.assertFalse(String.valueOf(defines).contains(FALLBACK_KEY));
+            Assert.assertFalse(String.valueOf(defines).contains(UCLOUD_KEY));
             Assert.assertTrue(defines.contains("ai.deepseek.model=deepseek-flash"));
             Properties properties = Util.loadAndMergeOpenRobertaServerProperties("classpath:/openRoberta.properties", defines);
             Assert.assertFalse(properties.toString().contains(KEY));
-            Assert.assertFalse(properties.toString().contains(FALLBACK_KEY));
+            Assert.assertFalse(properties.toString().contains(UCLOUD_KEY));
             AiSettings settings = AiSettings.of(new ServerProperties(properties), env, Collections.emptyMap());
             Assert.assertTrue(settings.isAvailable());
-            Assert.assertEquals(2, settings.providers().size());
-            Assert.assertEquals("deepseek-flash", settings.getFallback().getModel()); // the default of openRoberta.properties
+            List<AiSettings.Provider> providers = settings.providers();
+            Assert.assertEquals(2, providers.size());
+            Assert.assertEquals("deepseek", providers.get(0).getName()); // the default order of openRoberta.properties
+            Assert.assertEquals("ucloud", providers.get(1).getName());
+            Assert.assertEquals(SDU_MODEL, providers.get(1).getModel()); // the default
+            Assert.assertEquals("none", providers.get(0).effort(AiService.GENERATE)); // the presets
+            Assert.assertEquals("low", providers.get(0).effort(AiService.ANALYZE));
+            Assert.assertEquals("low", providers.get(0).effort(AiService.INFER));
+            Assert.assertEquals("low", providers.get(0).effort(AiService.FIX));
+            Assert.assertEquals("high", providers.get(1).effort(AiService.GENERATE)); // from .env
             Assert.assertFalse(settings.toString().contains(KEY));
-            Assert.assertFalse(settings.toString().contains(FALLBACK_KEY));
+            Assert.assertFalse(settings.toString().contains(UCLOUD_KEY));
 
             JSONObject clientInfo = settings.clientInfo();
             Assert.assertEquals(new JSONObject().put("available", true).put("default", true).toString(), clientInfo.toString());
 
             script(401, "{\"error\": \"invalid key " + KEY + "\"}");
-            script(401, "{\"error\": \"invalid key " + FALLBACK_KEY + "\"}");
+            script(401, "{\"error\": \"invalid key " + UCLOUD_KEY + "\"}");
             AiService service = new AiService(settings, 10);
             AiService.Outcome outcome = service.call(AiService.INFER, 1, data());
             Assert.assertEquals("http_401", outcome.error);
             Assert.assertEquals(2, this.requests.size()); // both asked
             Assert.assertFalse("the telemetry", outcome.event.toString().contains(KEY));
-            Assert.assertFalse("the telemetry", outcome.event.toString().contains(FALLBACK_KEY));
+            Assert.assertFalse("the telemetry", outcome.event.toString().contains(UCLOUD_KEY));
             AiResponse response = AiResponse.of(outcome);
             response.setRc("error");
             response.setInitToken("t");
             response.setServerTime(0);
             response.setServerVersion("v");
             Assert.assertFalse("the browser", response.immutable().toJson().toString().contains(KEY));
-            Assert.assertFalse("the browser", response.immutable().toJson().toString().contains(FALLBACK_KEY));
+            Assert.assertFalse("the browser", response.immutable().toJson().toString().contains(UCLOUD_KEY));
         } finally {
             root.detachAppender(log);
             root.setLevel(level);
         }
         Assert.assertTrue(log.list.stream().anyMatch(e -> e.getFormattedMessage().contains("new server property from command line: ai.deepseek.model=")));
-        Assert.assertTrue(log.list.stream().anyMatch(e -> e.getFormattedMessage().startsWith("AI test assistant: url ")));
+        Assert.assertTrue(log.list.stream().anyMatch(e -> e.getFormattedMessage().startsWith("AI test assistant: deepseek: url ")));
         for ( ILoggingEvent event : log.list ) {
             Assert.assertFalse("logged: " + event.getFormattedMessage(), event.getFormattedMessage().contains(KEY));
-            Assert.assertFalse("logged: " + event.getFormattedMessage(), event.getFormattedMessage().contains(FALLBACK_KEY));
+            Assert.assertFalse("logged: " + event.getFormattedMessage(), event.getFormattedMessage().contains(UCLOUD_KEY));
         }
     }
 

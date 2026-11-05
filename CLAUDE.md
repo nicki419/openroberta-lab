@@ -125,9 +125,10 @@ Read it before changing the simulator's level hooks, the level format or the tel
 designers' guide.
 
 **`docs/ai/nepo-ai-tests.md`** documents the **AI test assistant**. DeepSeek-V4.1-Flash, called through the Lab server
-(`/rest/ai/infer`, `/rest/ai/analyze`, `/rest/ai/generate`, `/rest/ai/fix`; at SDU's UCloud, with DeepSeek's own API as
-the fallback; the API keys stay on the server and are never logged; every call's prompt, answer, reasoning and timing go
-into the telemetry), guesses what a program is meant to do and writes scenario tests for it, following the testing strategy of
+(`/rest/ai/infer`, `/rest/ai/analyze`, `/rest/ai/generate`, `/rest/ai/fix`; at DeepSeek's own API, with SDU's UCloud as
+the backup, each with its own reasoning effort per call; the API keys stay on the server and are never logged; every
+call's prompt, answer, reasoning and timing go into the telemetry; the evaluation of the two APIs and the efforts:
+`docs/ai/nepo-ai-model-evaluation.md`), guesses what a program is meant to do and writes scenario tests for it, following the testing strategy of
 `docs/tests/*_v3.md`:
 - an analysis first: the program's decisions (found by code: `nepoTest.aiStrategy.ts`), the paths that target their
   outcomes, the input classes and boundaries;

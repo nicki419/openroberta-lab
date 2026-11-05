@@ -50,28 +50,35 @@ public class EnvFileTest {
     public void theAiSettingsButNotTheKey() throws Exception {
         File file =
             envFile(
+                "AI_PROVIDERS=deepseek,ucloud",
                 "DEEPSEEK_API_KEY=sk-secret",
-                "DEEPSEEK_URL=https://ai.cloud.sdu.dk/v1",
-                "DEEPSEEK_MODEL=deepseek-ai/DeepSeek-V4.1-Flash-1017",
-                "DEEPSEEK_FALLBACK_API_KEY=sk-fallback",
-                "DEEPSEEK_FALLBACK_URL=https://api.deepseek.com",
-                "DEEPSEEK_FALLBACK_MODEL=deepseek-flash",
+                "DEEPSEEK_URL=https://api.deepseek.com",
+                "DEEPSEEK_MODEL=deepseek-flash",
+                "DEEPSEEK_EFFORT_ANALYZE=low",
+                "DEEPSEEK_EFFORT_GENERATE=none",
+                "UCLOUD_API_KEY=sk-ucloud",
+                "UCLOUD_URL=https://ai.cloud.sdu.dk/v1",
+                "UCLOUD_MODEL=deepseek-ai/DeepSeek-V4.1-Flash-1017",
+                "UCLOUD_EFFORT_FIX=high",
                 "AI_TESTS_DEFAULT=true",
-                "AI_PACK_DIR=OpenRobertaServer/src/main/resources/ai",
-                "AI_EFFORT_GENERATE=high");
+                "AI_PACK_DIR=OpenRobertaServer/src/main/resources/ai");
         Assert.assertEquals(
             Arrays
                 .asList(
-                    "ai.deepseek.url=https://ai.cloud.sdu.dk/v1",
-                    "ai.deepseek.model=deepseek-ai/DeepSeek-V4.1-Flash-1017",
-                    "ai.fallback.url=https://api.deepseek.com",
-                    "ai.fallback.model=deepseek-flash",
+                    "ai.providers=deepseek,ucloud",
+                    "ai.deepseek.url=https://api.deepseek.com",
+                    "ai.deepseek.model=deepseek-flash",
+                    "ai.deepseek.effort.analyze=low",
+                    "ai.deepseek.effort.generate=none",
+                    "ai.ucloud.url=https://ai.cloud.sdu.dk/v1",
+                    "ai.ucloud.model=deepseek-ai/DeepSeek-V4.1-Flash-1017",
+                    "ai.ucloud.effort.fix=high",
                     "ai.tests.default=true",
-                    "ai.pack.dir=OpenRobertaServer/src/main/resources/ai",
-                    "ai.effort.generate=high"),
+                    "ai.pack.dir=OpenRobertaServer/src/main/resources/ai"),
             EnvFile.serverDefines(file, Collections.singletonMap("DEEPSEEK_API_KEY", "sk-from-the-environment")));
         Assert.assertEquals("sk-secret", EnvFile.secret(file, Collections.emptyMap(), EnvFile.DEEPSEEK_API_KEY));
-        Assert.assertEquals("sk-fallback", EnvFile.secret(file, Collections.emptyMap(), EnvFile.DEEPSEEK_FALLBACK_API_KEY));
+        Assert.assertEquals("sk-ucloud", EnvFile.secret(file, Collections.emptyMap(), EnvFile.UCLOUD_API_KEY));
+        Assert.assertEquals(EnvFile.UCLOUD_API_KEY, EnvFile.apiKeyOf("ucloud"));
         Assert.assertEquals("sk-env", EnvFile.secret(file, Collections.singletonMap("DEEPSEEK_API_KEY", " sk-env "), EnvFile.DEEPSEEK_API_KEY));
         Assert.assertEquals("sk-secret", EnvFile.secret(file, Collections.singletonMap("DEEPSEEK_API_KEY", ""), EnvFile.DEEPSEEK_API_KEY));
         Assert.assertNull(EnvFile.secret(envFile2("DEEPSEEK_API_KEY="), Collections.emptyMap(), EnvFile.DEEPSEEK_API_KEY));

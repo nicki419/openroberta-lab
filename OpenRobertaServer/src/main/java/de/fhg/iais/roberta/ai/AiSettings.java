@@ -6,6 +6,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -17,37 +18,34 @@ import de.fhg.iais.roberta.main.EnvFile;
 import de.fhg.iais.roberta.util.ServerProperties;
 
 /**
- * the settings of the AI test assistant: the model's API (the primary: SDU's UCloud) and the one asked when it fails (the fallback: DeepSeek's own
- * API), each with its address, model and API key; the default of the switch, the folder of the context pack and of the telemetry. All but the keys are
- * server properties (usually from .env, see {@link EnvFile}). The keys are read on their own, from the environment or .env
- * ({@link EnvFile#DEEPSEEK_API_KEY}, {@link EnvFile#DEEPSEEK_FALLBACK_API_KEY}), and kept here only: they are never server properties, because the
- * server logs every define, they are never logged, and they never leave the server except in the Authorization header of a call to their API.
+ * the settings of the AI test assistant: the APIs it calls, in the order they are asked (ai.providers, AI_PROVIDERS in .env; usually DeepSeek's own
+ * API first, SDU's UCloud when it gives no answer), each with its address, model, API key and the reasoning effort of each call (infer, analyze,
+ * generate, fix); the default of the switch, the folder of the context pack and of the telemetry. All but the keys are server properties (usually from
+ * .env, see {@link EnvFile}). The keys are read on their own, from the environment or .env (&lt;NAME&gt;_API_KEY: {@link EnvFile#DEEPSEEK_API_KEY},
+ * {@link EnvFile#UCLOUD_API_KEY}), and kept here only: they are never server properties, because the server logs every define, they are never logged,
+ * and they never leave the server except in the Authorization header of a call to their API.
  */
 public final class AiSettings {
     private static final Logger LOG = LoggerFactory.getLogger(AiSettings.class);
     private static final String REDACTED = "***";
-    public static final String PRIMARY = "primary";
-    public static final String FALLBACK = "fallback";
+    public static final String DEFAULT_PROVIDER = "deepseek"; // the name of the API of the short constructor (tests)
 
-    private final Provider primary;
-    private final Provider fallback; // null: none
+    private final List<Provider> providers; // in the order they are asked
     private final boolean defaultOn;
     private final String packDir;
     private final String telemetryDir;
-    private final String effortInfer;
-    private final String effortGenerate;
 
     /**
-     * the settings without a fallback (see {@link #withFallback})
+     * the settings with one API (named deepseek; see {@link #then} for more)
      *
-     * @param url the model's API, e.g. https://ai.cloud.sdu.dk/v1 (a / at the end is left out; the calls go to {url}/chat/completions)
-     * @param model the model's id, e.g. deepseek-ai/DeepSeek-V4.1-Flash-1017
+     * @param url the API, e.g. https://api.deepseek.com (a / at the end is left out; the calls go to {url}/chat/completions)
+     * @param model the model's id, e.g. deepseek-flash
      * @param key the API key; null: this API is not available
      * @param defaultOn whether the assistant is on for a learner who was never switched
      * @param packDir the folder of the context pack; null or empty: the pack in the server's resources
      * @param telemetryDir the folder of the study's telemetry (levels.telemetry.dir)
-     * @param effortInfer the model's reasoning effort for a guess (low, high, max; SDU's also none); null or empty: the model's default
-     * @param effortGenerate … for writing tests
+     * @param effortInfer the model's reasoning effort for a guess (none, low, high, max); null or empty: the model's default
+     * @param effortGenerate … for analyze, generate and fix
      */
     public AiSettings(
         String url,
@@ -58,34 +56,46 @@ public final class AiSettings {
         String telemetryDir,
         String effortInfer,
         String effortGenerate) {
-        this(new Provider(PRIMARY, url, model, key), null, defaultOn, packDir, telemetryDir, effortInfer, effortGenerate);
-    }
-
-    private AiSettings(
-        Provider primary,
-        Provider fallback,
-        boolean defaultOn,
-        String packDir,
-        String telemetryDir,
-        String effortInfer,
-        String effortGenerate) {
-        this.primary = primary;
-        this.fallback = fallback;
-        this.defaultOn = defaultOn;
-        this.packDir = packDir == null || packDir.trim().isEmpty() ? null : packDir.trim();
-        this.telemetryDir = telemetryDir;
-        this.effortInfer = effortInfer == null || effortInfer.trim().isEmpty() ? null : effortInfer.trim();
-        this.effortGenerate = effortGenerate == null || effortGenerate.trim().isEmpty() ? null : effortGenerate.trim();
+        this(
+            Collections.singletonList(new Provider(DEFAULT_PROVIDER, url, model, key, efforts(effortInfer, effortGenerate, effortGenerate, effortGenerate))),
+            defaultOn,
+            packDir,
+            telemetryDir);
     }
 
     /**
-     * @param url the fallback's API, e.g. https://api.deepseek.com
-     * @param model its model, e.g. deepseek-flash
-     * @param key its API key; null: there is no fallback
-     * @return these settings with that fallback
+     * @param providers the APIs, in the order they are asked
+     * @param defaultOn whether the assistant is on for a learner who was never switched
+     * @param packDir the folder of the context pack; null or empty: the pack in the server's resources
+     * @param telemetryDir the folder of the study's telemetry (levels.telemetry.dir)
      */
-    public AiSettings withFallback(String url, String model, String key) {
-        return new AiSettings(this.primary, new Provider(FALLBACK, url, model, key), this.defaultOn, this.packDir, this.telemetryDir, this.effortInfer, this.effortGenerate);
+    public AiSettings(List<Provider> providers, boolean defaultOn, String packDir, String telemetryDir) {
+        this.providers = Collections.unmodifiableList(new ArrayList<>(providers));
+        this.defaultOn = defaultOn;
+        this.packDir = packDir == null || packDir.trim().isEmpty() ? null : packDir.trim();
+        this.telemetryDir = telemetryDir;
+    }
+
+    /**
+     * @param provider an API, asked after those of these settings
+     * @return these settings with it
+     */
+    public AiSettings then(Provider provider) {
+        List<Provider> providers = new ArrayList<>(this.providers);
+        providers.add(provider);
+        return new AiSettings(providers, this.defaultOn, this.packDir, this.telemetryDir);
+    }
+
+    /**
+     * @return the efforts of the calls: {infer, analyze, generate, fix → effort}
+     */
+    public static Map<String, String> efforts(String infer, String analyze, String generate, String fix) {
+        Map<String, String> efforts = new HashMap<>();
+        efforts.put(AiService.INFER, infer);
+        efforts.put(AiService.ANALYZE, analyze);
+        efforts.put(AiService.GENERATE, generate);
+        efforts.put(AiService.FIX, fix);
+        return efforts;
     }
 
     /**
@@ -94,67 +104,73 @@ public final class AiSettings {
      * @param environment the environment variables, for the keys (they override the file)
      */
     public static AiSettings of(ServerProperties serverProperties, File envFile, Map<String, String> environment) {
-        String key = null;
-        String fallbackKey = null;
-        try {
-            key = EnvFile.secret(envFile, environment, EnvFile.DEEPSEEK_API_KEY);
-            fallbackKey = EnvFile.secret(envFile, environment, EnvFile.DEEPSEEK_FALLBACK_API_KEY);
-        } catch ( IOException e ) {
-            LOG.error("the AI test assistant's keys could not be read from " + envFile + ": " + e.getMessage());
+        List<Provider> providers = new ArrayList<>();
+        String order = serverProperties.getStringProperty("ai.providers");
+        for ( String name : (order == null ? "" : order).split(",") ) {
+            name = name.trim().toLowerCase();
+            if ( name.isEmpty() ) {
+                continue;
+            }
+            if ( !java.util.Arrays.asList(EnvFile.AI_PROVIDERS).contains(name) ) {
+                LOG.warn("the AI test assistant doesn't know the API " + name + " (ai.providers): left out");
+                continue;
+            }
+            String key = null;
+            try {
+                key = EnvFile.secret(envFile, environment, EnvFile.apiKeyOf(name));
+            } catch ( IOException e ) {
+                LOG.error("the AI test assistant's key " + EnvFile.apiKeyOf(name) + " could not be read from " + envFile + ": " + e.getMessage());
+            }
+            String p = "ai." + name + ".";
+            providers
+                .add(
+                    new Provider(
+                        name,
+                        serverProperties.getStringProperty(p + "url"),
+                        serverProperties.getStringProperty(p + "model"),
+                        key,
+                        efforts(
+                            serverProperties.getStringProperty(p + "effort.infer"),
+                            serverProperties.getStringProperty(p + "effort.analyze"),
+                            serverProperties.getStringProperty(p + "effort.generate"),
+                            serverProperties.getStringProperty(p + "effort.fix"))));
         }
         AiSettings settings =
             new AiSettings(
-                serverProperties.getStringProperty("ai.deepseek.url"),
-                serverProperties.getStringProperty("ai.deepseek.model"),
-                key,
+                providers,
                 serverProperties.getBooleanProperty("ai.tests.default"),
                 serverProperties.getStringProperty("ai.pack.dir"),
-                serverProperties.getStringProperty("levels.telemetry.dir"),
-                serverProperties.getStringProperty("ai.effort.infer"),
-                serverProperties.getStringProperty("ai.effort.generate"))
-                .withFallback(serverProperties.getStringProperty("ai.fallback.url"), serverProperties.getStringProperty("ai.fallback.model"), fallbackKey);
+                serverProperties.getStringProperty("levels.telemetry.dir"));
         LOG.info("AI test assistant: " + settings);
         return settings;
     }
 
     /**
-     * @return whether the assistant can call a model: the primary or the fallback has an address, a model and a key
+     * @return whether the assistant can call a model: an API has an address, a model and a key
      */
     public boolean isAvailable() {
         return !providers().isEmpty();
     }
 
     /**
-     * @return the APIs that can be called, the primary first
+     * @return the APIs that can be called, in the order they are asked
      */
     public List<Provider> providers() {
-        List<Provider> providers = new ArrayList<>();
-        if ( this.primary.isAvailable() ) {
-            providers.add(this.primary);
+        List<Provider> available = new ArrayList<>();
+        for ( Provider provider : this.providers ) {
+            if ( provider.isAvailable() ) {
+                available.add(provider);
+            }
         }
-        if ( this.fallback != null && this.fallback.isAvailable() ) {
-            providers.add(this.fallback);
-        }
-        return Collections.unmodifiableList(providers);
-    }
-
-    public Provider getPrimary() {
-        return this.primary;
+        return Collections.unmodifiableList(available);
     }
 
     /**
-     * @return the fallback, or null
-     */
-    public Provider getFallback() {
-        return this.fallback;
-    }
-
-    /**
-     * @return the model of the first API that can be called (the primary's if none can)
+     * @return the model of the first API that can be called, or null
      */
     public String getModel() {
-        List<Provider> providers = providers();
-        return providers.isEmpty() ? this.primary.getModel() : providers.get(0).getModel();
+        List<Provider> available = providers();
+        return available.isEmpty() ? null : available.get(0).getModel();
     }
 
     public boolean isDefaultOn() {
@@ -173,20 +189,6 @@ public final class AiSettings {
     }
 
     /**
-     * @return the model's reasoning effort for a guess, or null: the model's default
-     */
-    public String getEffortInfer() {
-        return this.effortInfer;
-    }
-
-    /**
-     * @return the model's reasoning effort for writing tests, or null: the model's default
-     */
-    public String getEffortGenerate() {
-        return this.effortGenerate;
-    }
-
-    /**
      * @param text a text that might contain a key (an error message of an API, say)
      * @return the text, with every key replaced by ***
      */
@@ -194,11 +196,8 @@ public final class AiSettings {
         if ( text == null ) {
             return null;
         }
-        for ( Provider provider : new Provider[] {
-            this.primary,
-            this.fallback
-        } ) {
-            if ( provider != null && provider.key != null ) {
+        for ( Provider provider : this.providers ) {
+            if ( provider.key != null ) {
                 text = text.replace(provider.key, REDACTED);
             }
         }
@@ -214,17 +213,15 @@ public final class AiSettings {
 
     @Override
     public String toString() {
-        return this.primary
-            + ", fallback "
-            + (this.fallback == null ? "none" : this.fallback.toString())
-            + ", default "
+        StringBuilder s = new StringBuilder();
+        for ( Provider provider : this.providers ) {
+            s.append(s.length() == 0 ? "" : "; then ").append(provider);
+        }
+        return (s.length() == 0 ? "no API" : s.toString())
+            + "; default "
             + (this.defaultOn ? "on" : "off")
             + ", pack "
             + (this.packDir == null ? "from the resources" : this.packDir)
-            + ", effort "
-            + this.effortInfer
-            + "/"
-            + this.effortGenerate
             + (isAvailable() ? "" : ": not available");
     }
 
@@ -233,20 +230,32 @@ public final class AiSettings {
     }
 
     /**
-     * an API the assistant can call: its name (primary or fallback), address, model and key. The key never leaves this class except in
-     * {@link #authorization()}.
+     * an API the assistant can call: its name (deepseek, ucloud), address, model, key and the reasoning effort of each call. The key never leaves this
+     * class except in {@link #authorization()}.
      */
     public static final class Provider {
         private final String name;
         private final String url;
         private final String model;
         private final String key;
+        private final Map<String, String> efforts;
 
-        Provider(String name, String url, String model, String key) {
+        /**
+         * @param name its name, e.g. ucloud
+         * @param url its address, e.g. https://ai.cloud.sdu.dk/v1
+         * @param model its model
+         * @param key its API key; null: it can't be called
+         * @param efforts the reasoning effort of each call (see {@link AiSettings#efforts}); null or empty: the model's default
+         */
+        public Provider(String name, String url, String model, String key, Map<String, String> efforts) {
             this.name = name;
             this.url = url == null ? null : url.trim().replaceAll("/+$", "");
             this.model = model == null ? null : model.trim();
             this.key = key == null || key.trim().isEmpty() ? null : key.trim();
+            this.efforts = new HashMap<>();
+            if ( efforts != null ) {
+                efforts.forEach((call, effort) -> this.efforts.put(call, effort == null || effort.trim().isEmpty() ? null : effort.trim()));
+            }
         }
 
         /**
@@ -269,6 +278,14 @@ public final class AiSettings {
         }
 
         /**
+         * @param call infer, analyze, generate or fix
+         * @return its reasoning effort, or null: the model's default
+         */
+        public String effort(String call) {
+            return this.efforts.get(call);
+        }
+
+        /**
          * @return the host of its address (for the telemetry), or the address if it can't be read
          */
         public String getHost() {
@@ -288,7 +305,21 @@ public final class AiSettings {
 
         @Override
         public String toString() {
-            return "url " + this.url + ", model " + this.model + ", key " + (this.key == null ? "not set" : "set");
+            return this.name
+                + ": url "
+                + this.url
+                + ", model "
+                + this.model
+                + ", key "
+                + (this.key == null ? "not set" : "set")
+                + ", effort infer/analyze/generate/fix "
+                + effort(AiService.INFER)
+                + "/"
+                + effort(AiService.ANALYZE)
+                + "/"
+                + effort(AiService.GENERATE)
+                + "/"
+                + effort(AiService.FIX);
         }
     }
 }

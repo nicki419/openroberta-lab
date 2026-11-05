@@ -188,7 +188,7 @@ const TEXT: { [key: string]: string } = {
     nothing: "Your tests already check this. I'll look again after your next change.",
     writingHead: 'Writing tests',
     writingFor: 'For: ',
-    writingNote: 'Usually 1 to 3 minutes. You can keep working meanwhile.',
+    writingNote: 'Usually 1 to 2 minutes. You can keep working meanwhile.',
     fixingNote: 'Usually under a minute, sometimes up to 3. You can keep working meanwhile.',
     analysing: 'First I look at the decisions in your program, then I write the tests.',
     writingTests: 'Now I write the tests.',

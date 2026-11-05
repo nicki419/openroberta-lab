@@ -15,11 +15,25 @@ import java.util.Map;
  * repository's root for "ora.sh start-from-git"). Only the names in {@link #PROPERTIES} are used. A line is KEY=VALUE, the value may be quoted, a line
  * starting with # is a comment. An environment variable overrides the file; a -d define on the command line overrides both (it comes later).
  * <p>
- * Secrets ({@link #DEEPSEEK_API_KEY}, {@link #DEEPSEEK_FALLBACK_API_KEY}) are no server properties: the server logs every define (Util.loadAndMergeOpenRobertaServerProperties). They are
+ * Secrets ({@link #DEEPSEEK_API_KEY}, {@link #UCLOUD_API_KEY}) are no server properties: the server logs every define (Util.loadAndMergeOpenRobertaServerProperties). They are
  * read with {@link #secret} by the code that needs them.
  */
 public final class EnvFile {
     public static final String FILE_NAME = ".env";
+
+    /** the APIs the AI test assistant knows: DeepSeek's own (deepseek) and SDU's UCloud (ucloud), each with &lt;NAME&gt;_API_KEY, _URL, _MODEL, _EFFORT_* */
+    public static final String[] AI_PROVIDERS = {
+        "deepseek",
+        "ucloud"
+    };
+
+    /** the AI's calls, each with its own reasoning effort per API */
+    public static final String[] AI_CALLS = {
+        "infer",
+        "analyze",
+        "generate",
+        "fix"
+    };
 
     /**
      * the names in .env and the server properties they set
@@ -31,26 +45,37 @@ public final class EnvFile {
         properties.put("LEVEL_DESIGNER", "levels.designer"); // true: the Level designer tab is shown
         properties.put("LEVELS_DIR", "levels.dir"); // the folder of the level sets (a folder per set, a file per level)
         properties.put("LEVEL_TELEMETRY_DIR", "levels.telemetry.dir"); // the folder of the study's telemetry (a file per participant)
-        properties.put("DEEPSEEK_URL", "ai.deepseek.url"); // the address of the model's API (AI test assistant): SDU's UCloud
-        properties.put("DEEPSEEK_MODEL", "ai.deepseek.model"); // the model of the AI test assistant
-        properties.put("DEEPSEEK_FALLBACK_URL", "ai.fallback.url"); // the API asked when the first one fails: DeepSeek's own
-        properties.put("DEEPSEEK_FALLBACK_MODEL", "ai.fallback.model"); // … and its model
+        properties.put("AI_PROVIDERS", "ai.providers"); // the AI test assistant's APIs in the order they are asked: deepseek, ucloud
+        for ( String provider : AI_PROVIDERS ) { // DeepSeek's own API, SDU's UCloud: the address, the model, the reasoning effort of each call
+            String env = provider.toUpperCase(), property = "ai." + provider + ".";
+            properties.put(env + "_URL", property + "url");
+            properties.put(env + "_MODEL", property + "model");
+            for ( String call : AI_CALLS ) {
+                properties.put(env + "_EFFORT_" + call.toUpperCase(), property + "effort." + call); // none, low, high, max
+            }
+        }
         properties.put("AI_TESTS_DEFAULT", "ai.tests.default"); // true: the AI test assistant is on for a learner who was never switched
         properties.put("AI_PACK_DIR", "ai.pack.dir"); // the folder of the AI's context pack, read at every call (none: the server's resources)
-        properties.put("AI_EFFORT_INFER", "ai.effort.infer"); // the model's reasoning effort for a guess (low, high, max)
-        properties.put("AI_EFFORT_GENERATE", "ai.effort.generate"); // … for writing tests
         PROPERTIES = Collections.unmodifiableMap(properties);
     }
 
     /**
-     * the name of the API key of the model's API (DEEPSEEK_URL) in .env and in the environment: a secret, see {@link #secret}
+     * the name of the API key of DeepSeek's own API in .env and in the environment: a secret, see {@link #secret}
      */
     public static final String DEEPSEEK_API_KEY = "DEEPSEEK_API_KEY";
 
     /**
-     * … of the fallback's API (DEEPSEEK_FALLBACK_URL)
+     * … of SDU's UCloud
      */
-    public static final String DEEPSEEK_FALLBACK_API_KEY = "DEEPSEEK_FALLBACK_API_KEY";
+    public static final String UCLOUD_API_KEY = "UCLOUD_API_KEY";
+
+    /**
+     * @param provider one of {@link #AI_PROVIDERS}
+     * @return the name of its API key (a secret): &lt;NAME&gt;_API_KEY
+     */
+    public static String apiKeyOf(String provider) {
+        return provider.toUpperCase() + "_API_KEY";
+    }
 
     private EnvFile() {
         // only static methods

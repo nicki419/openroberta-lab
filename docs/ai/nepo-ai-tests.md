@@ -1,6 +1,6 @@
 # The AI test assistant: tests written by DeepSeek
 
-The model is DeepSeek-V4.1-Flash, at SDU's UCloud, with DeepSeek's own API as the fallback (see "The calls").
+The model is DeepSeek-V4.1-Flash, at DeepSeek's own API, with SDU's UCloud as the backup (see "The calls").
 
 When a learner runs a changed program on a level, the assistant guesses what the program is meant to do and offers
 to write **scenario-based simulation tests** for it. The learner can say in one sentence what the program should do.
@@ -44,15 +44,16 @@ This document covers:
 | What | Where |
 |---|---|
 | REST: `POST /rest/ai/infer`, `POST /rest/ai/analyze`, `POST /rest/ai/generate`, `POST /rest/ai/fix` (the usual request envelope; the response has `answer`, `meta`, or `aiError` and `aiMessage`) | `javaServer/restServices/all/controller/AiController`, `AiResponse` |
-| the calls: limits per session (one of each kind at a time; 60 infers, 30 analyses, 30 generates, 30 fixes per hour), the context pack first, the answer checked for its shape, the `ai_call` event; analyze and fix as generate (its effort, 180 s, at most 32,000 tokens with the reasoning, repairs); every call's meta has `contract` (`AiService.CONTRACT`, 1.1) | `ai/AiService` |
+| the calls: limits per session (one of each kind at a time; 60 infers, 30 analyses, 30 generates, 30 fixes per hour), the context pack first, the answer checked for its shape, the `ai_call` event; analyze and fix as generate (180 s, at most 32,000 tokens with the reasoning, repairs); each call its own effort per API; every call's meta has `contract` (`AiService.CONTRACT`, 1.1) | `ai/AiService` |
 | the per-call message (`## The program`, `## The program's decisions` (not for infer), `## The learner's tests`, `## What the learner said before`, `## The analysis` (generate, fix), `## Task: …`), the trimming of NEPO XML (positions, configuration and the start block's `<data>` go; the block ids stay) and EdPy, the answer checks (`checkAnalyze`: status, intent, arrays; `checkGenerate`: no worlds only with `generation_status` `no_valid_scenarios`; `checkFix`: `worlds`, `program_wrong` and `doubtful`, not all empty) | `ai/AiPrompts` |
 | the model's chat API (OpenAI-compatible): JSON mode, reasoning effort, timeouts (infer 20 s; analyze, generate and fix 180 s), one more try after 429, 5xx or no connection; the reasoning from `reasoning_content` (DeepSeek) or `reasoning` (UCloud's vLLM) | `ai/DeepSeekClient` |
-| **two APIs, the same model** (DeepSeek-V4.1-Flash): SDU's UCloud first (the primary), DeepSeek's own API as the fallback. A call without an answer from the primary (it can't be reached, doesn't answer in time, or an HTTP error) is made again at the fallback, and for the next 5 minutes the fallback is asked first (`COOL_DOWN_MS`). An answer that can't be used (cut off, not the JSON asked for) isn't made again: the browser repairs it. A timeout of the primary followed by the fallback can make a call take up to 6 minutes | `ai/AiService` `order`; `AiServiceTest withoutAnAnswerFromThePrimary…`, `aTimeoutOfThePrimaryGoesToTheFallback`, `anAnswerThatCantBeUsedIsNotAskedAgainAtTheFallback` |
-| **HTTPS trust:** the AI's calls trust the JDK's roots and the roots in `src/main/resources/ai/certs/` (`DeepSeekClient.EXTRA_ROOTS`): HARICA TLS RSA Root CA 2021, which signs UCloud's certificate (via GÉANT TLS RSA 1) and which older JDKs don't trust (13.0.2: "PKIX path building failed", so every call went to the fallback). Taken from the Windows root store, SHA-256 `D9:5D:0E:8E:…:EC:CB:7B:1D`, valid until 2045. The JVM's own trust doesn't change | `ai/DeepSeekClient` `trustManager`; `AiServiceTest theAiCallsTrustTheUniversitysRootBesidesTheJdks` |
+| **two APIs, the same model** (DeepSeek-V4.1-Flash), asked in the order of `AI_PROVIDERS` (since 2026-11-05: DeepSeek's own API first, SDU's UCloud as the backup; before that the other way round). A call without an answer from the first (it can't be reached, doesn't answer in time, or an HTTP error) is made again at the next, and for the next 5 minutes the first is asked last (`COOL_DOWN_MS`). An answer that can't be used (cut off, not the JSON asked for) isn't made again: the browser repairs it. A timeout of the first followed by the next can make a call take up to 6 minutes | `ai/AiService` `order`; `AiServiceTest withoutAnAnswerFromTheFirst…`, `aTimeoutOfTheFirstGoesToTheNext`, `anAnswerThatCantBeUsedIsNotAskedAgainAtTheNext` |
+| **the reasoning effort per API and call:** `<NAME>_EFFORT_INFER`, `_ANALYZE`, `_GENERATE`, `_FIX` (none, low, high, max); preset for both: low, low, none, low (`docs/ai/nepo-ai-model-evaluation.md`: generate at none took about 17 s instead of 1 to 2.5 minutes, with first answers as valid; the analysis stays at low). Each try is sent with its API's effort | `ai/AiSettings.Provider` `effort`; `AiServiceTest theFirstApiIsAskedFirstWithItsOwnEfforts` |
+| **HTTPS trust:** the AI's calls trust the JDK's roots and the roots in `src/main/resources/ai/certs/` (`DeepSeekClient.EXTRA_ROOTS`): HARICA TLS RSA Root CA 2021, which signs UCloud's certificate (via GÉANT TLS RSA 1) and which older JDKs don't trust (13.0.2: "PKIX path building failed", so every call to UCloud failed). Taken from the Windows root store, SHA-256 `D9:5D:0E:8E:…:EC:CB:7B:1D`, valid until 2045. The JVM's own trust doesn't change | `ai/DeepSeekClient` `trustManager`; `AiServiceTest theAiCallsTrustTheUniversitysRootBesidesTheJdks` |
 | a repair's problems are hints: more than 40 are cut to the first 40 (and how many more), one longer than 800 characters is cut; a fix's run text longer than 4,000 characters is cut. Before 2026-11-05 they were refused (`too_large`), and a refused repair lost the tests it would have saved | `ai/AiPrompts` `repairMessages`, `appendFix`; `AiServiceTest aRepairWithLongOrManyProblemsIsCutNotRefused` |
 | the context pack: the system prompt, its `promptVersion` (hash); each version is saved once as `<telemetry>/ai-prompts/<promptVersion>.md` | `ai/ContextPack`, `src/main/resources/ai/` (`pack.txt` lists the files) |
-| `.env`: `DEEPSEEK_URL` (`https://ai.cloud.sdu.dk/v1`), `DEEPSEEK_MODEL` (`deepseek-ai/DeepSeek-V4.1-Flash-1017`), `DEEPSEEK_FALLBACK_URL` (`https://api.deepseek.com`), `DEEPSEEK_FALLBACK_MODEL` (`deepseek-flash`), `AI_TESTS_DEFAULT`, `AI_PACK_DIR` (read at every call: change the prompt without a rebuild), `AI_EFFORT_INFER`, `AI_EFFORT_GENERATE` (default low; both APIs take low, high, max; UCloud also none) | `main/EnvFile`, `ai/AiSettings`, `openRoberta.properties` (the defaults in brackets) |
-| the API keys `DEEPSEEK_API_KEY` (UCloud) and `DEEPSEEK_FALLBACK_API_KEY` (DeepSeek): read on their own (`EnvFile.secret`), never server properties (those are logged), never logged, never sent to the browser. One missing: only the other API is asked | `ai/AiSettings`; `AiServiceTest theKeyIsNeverLoggedAndNeverLeavesTheServer` |
+| `.env`: `AI_PROVIDERS` (`deepseek,ucloud`); `DEEPSEEK_URL` (`https://api.deepseek.com`), `DEEPSEEK_MODEL` (`deepseek-flash`), `DEEPSEEK_EFFORT_*`; `UCLOUD_URL` (`https://ai.cloud.sdu.dk/v1`), `UCLOUD_MODEL` (`deepseek-ai/DeepSeek-V4.1-Flash-1017`), `UCLOUD_EFFORT_*`; `AI_TESTS_DEFAULT`, `AI_PACK_DIR` (read at every call: change the prompt without a rebuild). Both APIs take the efforts none, low, high, max (UCloud refuses medium, minimal, xhigh) | `main/EnvFile`, `ai/AiSettings`, `openRoberta.properties` (the defaults in brackets) |
+| the API keys `DEEPSEEK_API_KEY` and `UCLOUD_API_KEY`: read on their own (`EnvFile.secret`), never server properties (those are logged), never logged, never sent to the browser. An API without a key isn't asked | `ai/AiSettings`; `AiServiceTest theKeyIsNeverLoggedAndNeverLeavesTheServer` |
 | the browser learns `server.ai = {available, default}` | `ClientInit` |
 
 Every call, failed or not, is a line `kind: "ai_call"` in the participant's telemetry file (`LevelsController.writeTelemetry`,
@@ -63,20 +64,18 @@ which adds `serverTime`, `userId`, `account` and `session`):
 | `callId`, `call`, `ai`, `level`, `fingerprint`, `contract` | which call (`ai` is always true: the browser calls only while the AI is on; `level` is the id, logged only) |
 | `startTime`, `latencyMs` | when the call came in, and how long the APIs took (all tries together: what the learner waited at the server); `serverTime` is when the event was written |
 | `promptVersion`, `prompt`, `repairAnswer`, `repair` | what was sent: the system prompt by its version (the text is in `ai-prompts/<promptVersion>.md`), the per-call message, and for a repair the earlier answer and the problems sent back |
-| `effort`, `maxTokens`, `timeoutMs` | the request's settings |
-| `provider`, `host`, `model`, `modelAnswered` | the API that answered (or was asked last): `primary` or `fallback`, its host, the model asked for and the model the API says it used |
-| `tries` | every API asked, in order: `provider`, `host`, `model`, `ok`, `httpStatus`, `error`, `message`, `attempts`, `latencyMs` |
+| `effort`, `maxTokens`, `timeoutMs` | the request's settings (`effort`: that of the API that answered) |
+| `provider`, `host`, `model`, `modelAnswered` | the API that answered (or was asked last): `deepseek` or `ucloud` (until 2026-11-05: `primary` or `fallback`), its host, the model asked for and the model the API says it used |
+| `tries` | every API asked, in order: `provider`, `host`, `model`, `effort`, `ok`, `httpStatus`, `error`, `message`, `attempts`, `latencyMs` |
 | `status`, `error`, `message`, `httpStatus`, `attempts` | the outcome (`attempts`: all tries together) |
 | `answer`, `finishReason`, `tokens` | what came back: the raw answer, why it ended, and `in`, `cached`, `out`, `reasoning` (`null` if the API doesn't say: UCloud doesn't) |
 | `reasoning`, `reasoningChars` | the model's reasoning (at most 200,000 characters: in practice all of it) and its length |
 
-Measured on 2026-11-05 (the clap counter, a prompt of about 32,000 tokens, cached from the second call on; three runs
-each at effort low, both APIs at once): infer about 2 s on both; analyze 39–56 s at DeepSeek, 55–116 s at UCloud (it
-reasons about twice as long; its low and high made no measurable difference); generate 62–74 s and 52–78 s; fix
-14–29 s and 7–33 s. Writing tests (analyze and generate) took about 2 minutes at DeepSeek and 2.5 at UCloud. Both
-answered alike: the program's decisions exactly, every outcome planned, the 2, 3 and 4 claps tests, `program_wrong`
-for the fix. Earlier (2026-11-03, `deepseek-flash`, a prompt of 12,700 tokens): infer 3 to 5 s; generate 7 to 18 s at
-effort low, 71 s at high.
+Measured on 2026-11-05: the experiments, their results and the discussion (why the same model behaves differently at
+the two APIs) are in **`docs/ai/nepo-ai-model-evaluation.md`**. In short, with the presets (analyze low, generate
+none), writing tests takes about 67 s at DeepSeek and 93 s at UCloud (medians); with both at low, about 2 and 2¾ minutes.
+Earlier (2026-11-03, `deepseek-flash`, a prompt of 12,700 tokens): infer 3 to 5 s; generate 7 to 18 s at effort low,
+71 s at high.
 
 ## The assistant beside the simulator (`OpenRobertaWeb/src/app/levels/levels.aiAssistant.ts`)
 
@@ -434,12 +433,15 @@ deleted. The Test runner's `test_run` said that 1 AI test ran (edited) and passe
   Not counted: a function's conditional return (`robProcedures_ifreturn`), counting loops (`repeat n times`), and the
   parts of a condition (`and`, `or`: branch, not condition coverage). The coverage seen counts only the runs of the
   tests the learner chose.
-- **Writing takes two calls:** analyze, then generate. At effort low that is about 2 minutes at DeepSeek and 2.5 at
-  UCloud (up to about 3); it was 7 to 18 s for generate alone. The answers are long, 9,000 to 15,000 output tokens each
-  for a program with a loop and a function, because every test says what it is for. The panel says "Usually 1 to 3
-  minutes"; for a fix, "Usually under a minute, sometimes up to 3" (fixes took 2 to 33 s, but one took 177 s at
-  DeepSeek, 28,800 tokens, near both the token cap and the timeout). At UCloud the effort makes no measurable difference, and its slowest analyze (116 s, 22,000 tokens) came
-  near the 32,000-token cap, which it reaches after about 170 s, just inside the 180 s timeout.
+- **Writing takes two calls:** analyze (at low), then generate (at none since 2026-11-05). That is about 67 s at
+  DeepSeek and 93 s at UCloud (medians); with both at low it was about 2 and 2¾ minutes. At low, an analysis is 6,000
+  to 26,000 output tokens, because the model reasons long before it answers; one took 147 s at DeepSeek. The panel
+  says "Usually 1 to 2 minutes"; for a fix (still at low), "Usually under a minute, sometimes up to 3" (fixes took 2
+  to 33 s, but one took 177 s at DeepSeek, 28,800 tokens, near both the token cap and the timeout). At UCloud, low
+  and high make no measurable difference.
+- **Generate at none plans less of the boundaries:** in the evaluation, the test at exactly the count of 3 claps was
+  missing in 3 of 4 runs at none, and one answer had no tests (a repair asks again). See
+  `docs/ai/nepo-ai-model-evaluation.md`.
 - **A deferral is judged only by its reason:** the code checks that every outcome, class and boundary side is tested
   or deferred with a reason, but not whether the reason is sound. The rule against deferring what the program would
   fail is in the prompt only.
