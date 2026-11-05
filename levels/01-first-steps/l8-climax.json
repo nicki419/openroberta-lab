@@ -4,20 +4,20 @@
  "title": "L8 - Climax",
  "instructions": "",
  "world": {"background": "peach", "size": {"w":220,"h":150},
-  "starts": [{"id":"A","name":"A","x":9.5,"y":137.78,"heading":0}],
+  "starts": [{"heading":0,"name":"A","x":9.5,"y":137.78,"id":"A"}],
   "items": [
-    {"id":"lmw2c6952o","kind":"line","points":[[12.52,138.43],[81.76,137.48],[77.39,118.99]],"smooth":true,"closed":false,"name":"Line 1"},
-    {"id":"lmw2c6hc0p","kind":"line","points":[[20.59,34.29],[14.54,14.13],[77.39,11.44]],"smooth":true,"closed":false,"name":"Line 2"},
-    {"id":"lmw2c6w3sq","kind":"line","points":[[78.66,121],[72.69,113.56],[85.46,99.44],[30,102.13],[81.09,66.16],[33.73,82.34],[59.26,61],[24.98,70.3],[53.97,50.42],[29.54,47.69],[19.24,31.88]],"smooth":false,"closed":false,"name":"Line 3"},
-    {"id":"tmw2c8a9or","kind":"tunnel","role":"obstacle","points":[[58.91,12.82],[94.47,14.68],[107.72,38.9]],"smooth":true,"width":15,"name":"Tunnel 1","failOnHit":true},
-    {"id":"tmw2cbe3eu","kind":"tunnel","role":"obstacle","points":[[118.68,20.44],[150.71,127.48]],"smooth":true,"width":60,"name":"Tunnel 2","failOnHit":true},
-    {"id":"lmw2cbzxex","kind":"line","points":[[108.3,36.25],[115.23,54.42],[142.92,54.47],[155.62,72.36]],"smooth":true,"closed":false,"name":"Line 4"},
-    {"id":"lmw2ccpdm11","kind":"line","points":[[144.08,71.16],[161.1,124.53]],"smooth":false,"closed":false,"role":"obstacle","width":1.5,"name":"Wall 1","failOnHit":true},
-    {"id":"smw2cd7x712","kind":"rect","role":"fail","x":111.48,"y":64,"w":24.81,"h":12.69},
-    {"id":"smw2cdhim13","kind":"rect","role":"fail","x":122.73,"y":31.05,"w":27.7,"h":14.14},
-    {"id":"lmw2cdrrd14","kind":"line","points":[[166,107.51],[178.41,134.92],[198.03,128.04],[164.32,8.86]],"smooth":true,"closed":false,"name":"Line 5"},
-    {"id":"lmw2cescr16","kind":"line","points":[[148.07,12.06],[184.2,0.64]],"smooth":false,"closed":false,"role":"obstacle","width":1.5,"name":"Wall 2","failOnHit":true},
-    {"id":"smw2cf83617","kind":"rect","role":"goal","name":"Goal 1","x":155.05,"y":5.61,"w":25.39,"h":23.24,"soft":{"still":3}}
+    {"kind":"line","name":"Line 1","closed":false,"id":"lmw2c6952o","points":[[12.52,138.43],[81.76,137.48],[77.39,118.99]],"smooth":true},
+    {"kind":"line","name":"Line 2","closed":false,"id":"lmw2c6hc0p","points":[[20.59,34.29],[14.54,14.13],[77.39,11.44]],"smooth":true},
+    {"role":"obstacle","kind":"tunnel","width":15,"name":"Tunnel 1","failOnHit":true,"id":"tmw2c8a9or","points":[[58.91,12.82],[94.47,14.68],[107.72,38.9]],"smooth":true},
+    {"role":"obstacle","kind":"tunnel","width":60,"name":"Tunnel 2","failOnHit":true,"id":"tmw2cbe3eu","points":[[118.68,20.44],[150.71,127.48]],"smooth":true},
+    {"kind":"line","name":"Line 4","closed":false,"id":"lmw2cbzxex","points":[[108.3,36.25],[115.23,54.42],[142.92,54.47],[155.62,72.36]],"smooth":true},
+    {"role":"obstacle","kind":"line","width":1.5,"name":"Wall 1","closed":false,"failOnHit":true,"id":"lmw2ccpdm11","points":[[144.08,71.16],[161.1,124.53]],"smooth":false},
+    {"role":"fail","kind":"rect","w":24.81,"x":111.48,"h":12.69,"y":64,"id":"smw2cd7x712"},
+    {"role":"fail","kind":"rect","w":27.7,"x":122.73,"h":14.14,"y":31.05,"id":"smw2cdhim13"},
+    {"kind":"line","name":"Line 5","closed":false,"id":"lmw2cdrrd14","points":[[166,107.51],[178.41,134.92],[198.03,128.04],[164.32,8.86]],"smooth":true},
+    {"role":"obstacle","kind":"line","width":1.5,"name":"Wall 2","closed":false,"failOnHit":true,"id":"lmw2cescr16","points":[[148.07,12.06],[184.2,0.64]],"smooth":false},
+    {"role":"goal","kind":"rect","w":25.39,"name":"Goal 1","x":155.05,"h":23.24,"y":5.61,"id":"smw2cf83617","soft":{"still":3}},
+    {"id":"lmw45ya9g2","kind":"line","points":[[77.68,120.17],[46.08,108.19],[67.56,74.94],[28.73,71.43],[45.87,48.51],[27.49,46.65],[18.82,31.37]],"smooth":true,"closed":false,"name":"Line 3"}
   ]},
- "view": {"x":110,"y":75,"scale":4.842}
+ "view": {"x":85.42,"y":81.82,"scale":4.842}
 }
