@@ -539,6 +539,13 @@ public class AiServiceTest {
                         "Write tests only for scenario S2 \"Stops at a wall\", at most 4 tests: the analysis' other scenarios get their own calls, or the learner's tests already test them.\n"));
         Assert.assertEquals("bad_request", service.call(AiService.GENERATE, 7, new JSONObject(data.toString()).put("scenarios", new JSONArray().put("S9"))).error);
         Assert.assertEquals(1, this.requests.size());
+        // a program that follows a line: every test starts on one (2026-11-05: a wall test on a plain floor circled on its start)
+        script(200, completion(generateAnswer(), "stop"));
+        Assert.assertTrue(service.call(AiService.GENERATE, 7, new JSONObject(data.toString()).put("followsLine", true)).ok);
+        String line = new JSONObject(this.requests.get(1).getString("body")).getJSONArray("messages").getJSONObject(1).getString("content");
+        Assert.assertTrue(line, line.endsWith("On a plain floor it circles on the start.\n"));
+        Assert.assertTrue(line.contains("The program follows a line (it reads the line tracker): every test starts on a line"));
+        Assert.assertFalse(prompt.contains("follows a line"));
     }
 
     @Test

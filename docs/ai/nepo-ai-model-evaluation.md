@@ -329,6 +329,59 @@ dark):
 The far side of the sensors' range (x + 10 against x + 8) is the one placement the model still gets wrong at
 `none`. A test placed wrong there still passes on a right program, but it doesn't test the boundary it claims.
 
+### E10: Worlds for a line follower
+
+In the Lab, the test "The wall already in sight, it stands still" failed. Its start stood on a plain floor, the
+program's line following read 83 % there, and the robot circled on the start. The model also gave the test the start
+of the other test (whose wall was 16 cm away).
+
+The wall scenario of that run (its logged generate call) was replayed at `none`, 2 to 4 tests per run. "Line" means a
+line under the start's line tracker; "seen" means the front sensors see the wall at the start.
+
+| Change | Runs | Tests on a line | Near wall seen at once | Far / drive-up wall not seen |
+|---|---|---|---|---|
+| How the line tracker works (`simulator.md`), and "go through the program first" (`tests.md`) | 3 | 0/6 | | |
+| The analysis' `initial_condition` and paths to include what the program needs on the way (`tasks.md`): analyze + generate | 3 | 0/6 | the analysis still said "a wall ahead" | |
+| The wall recipe: "if the program reads the line tracker, a line first" | 4 | 1/9 | | |
+| The server says it: "The program follows a line (it reads the line tracker): every test starts on a line …" | 4 | 6/7 | 1/3 | 4/4 |
+| … and the wall recipe as a template: each test its own line and wall, the next test 30 cm lower | 4 | **8/8** | **4/4** | **4/4** |
+
+**What worked:** at `none`, the model doesn't draw a conclusion from facts about the program ("it follows a line, so
+it needs a line"), not even when the conclusion is spelled out as a rule. It does follow a sentence in its task and a
+recipe with numbers.
+
+**So the Lab now:**
+- **decides itself** whether the program follows a line: a block that runs reads the line tracker, not in a
+  switched-off block, not in a function that is never called (`readsLineTracker`);
+- **tells each scenario call** so (`followsLine`);
+- **checks every test's start:** a start whose line tracker is more than 10 cm from a line goes back for a repair
+  (`lineProblems`).
+
+### E11: "In dim light, no walls"
+
+**The problem.** The assistant offered "In dim light, no walls, it drives on". The simulator can't make that: dim
+light exists only inside a tunnel, and a tunnel always has walls. The test drew a tunnel, whose walls run beside the
+robot where its forward-looking sensors don't see them. Its "drives on" was invented: the analysis' expectation was
+only "doesn't bump", and the program gives no motion command there. The rule "every test needs a positive check" had
+pushed the model to make one up.
+
+**The changes** (context pack):
+- `simulator.md`: dim light only inside a tunnel, which always has walls; say "nothing in front of it", never "no
+  walls".
+- `tasks.md` (analyze): describe situations by what the sensors see.
+- `tests.md`: a positive check comes from the scenario's expected behaviour, never invented; a scenario whose only
+  expectation is negative is deferred.
+
+**The check** (analyze line 338 and generate line 341, 3 runs each at `none`):
+- **Analyze:** all 3 describe it as "inside a tunnel, nothing in front". 2 of 3 mark its expectation `unknown`, so
+  the Lab writes no test for it. 1 still invents "it keeps going".
+- **Generate,** given the old scenario ("doesn't bump"): none of the 3 defers it. Each writes "it stays still" or
+  "doesn't turn". These pass, because the program does nothing there, but they are taken from the code, not from what
+  the learner wanted.
+
+At `none` the model follows the description rule, and the analysis mostly marks the expectation unknown. It does not
+reliably follow "don't invent an expectation".
+
 ## Summary
 
 | | DeepSeek | UCloud |
@@ -452,6 +505,8 @@ Each folder has the scripts and their raw outputs:
 | `e6-live-session/` | `today.py`, `today.txt`: the live session's events; `fix_times.py` |
 | `e7-learners-tests-count/` | `dup_check.py` (old against new rules), `dup_summary.py`, `summary.txt`, `out_*.json` |
 | `e8-one-call-per-scenario/` | `per_scenario.py` (the replay and its evaluation), `results.json` |
+| `e11-dim-light-no-walls/` | `dim_check.py`, `results.json` |
+| `e10-line-follower-worlds/` | `line_check.py` (the rules only), `chain_check.py` (analyze + generate), `recipe_check.py` (the conditional recipe), `follows_line_check.py` (the server's sentence; `follows_line_results.json` before, `follows_line_results2.json` after the template) |
 | `e9-none-with-recipes/` | `per_scenario_effort.py`, `results_none.json` (before the recipes), `per_scenario_none.py` (with them, and the sensors' zones), `results.json`, `per_scenario_s2.py`, `results_s2_count.json` (after "count from the start") |
 
 Each raw output holds the prompt that was sent, the answer, the time and the tokens. The prompts are read from the

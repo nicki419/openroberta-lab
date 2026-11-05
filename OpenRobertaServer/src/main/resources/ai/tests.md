@@ -136,7 +136,10 @@ The answer around the worlds:
   as well when the robot should stop before something.
 - **Positive and negative checks**: `never_bumps` and `never_touches` are negative: they hold for a robot that never
   moves. Every test needs at least one positive check (`reaches`, `ends_in`, `does`, `whenever`, `after`,
-  `variable`) that shows its scenario happened.
+  `variable`) that shows its scenario happened, **taken from the scenario's expected behaviour, never invented**. If
+  the only expectation is negative ("it doesn't bump into walls") and neither the learner nor the intent says what the
+  robot should do there, the scenario gets no test: defer it ("nothing to expect that shows it happened"). Don't add
+  "drives forward" or "stands still" that nobody asked for, to have a positive check.
 
 ## Drawing a world
 
@@ -151,10 +154,21 @@ The answer around the worlds:
   from the start.
 - **Starts** must be on the floor, with the whole robot (8 × 7.5 cm, from 1.8 cm behind to 6.2 cm in front of the
   start) clear of obstacles and walls, and not touching a goal or fail area.
+- **Go through the program from the start first.** For each test, follow what the program does from the start until
+  the scenario's moment: which decisions it takes on the way, and what it then does with the motors. The world must
+  make those go as planned, and list them in `planned_branch_ids`. A program that follows a line in bright light
+  needs a line under the robot until the scenario's thing comes (see "The line tracker" in "The simulator"): without
+  it, it circles on the start. So a wall ahead for a line follower stands across a line that runs from the start.
 - **Place things from the start, with heading 0** (facing right, towards larger x) unless the scenario needs another
   heading. For a start at (x, y):
+  - **A line through the start** (for a program that follows a line): a straight `line`, `width` 1.48, `points`
+    [[x − 10, y], [x + 80, y]]; the start is then on its black core, facing along it. Other things of the scenario go
+    on this line (a wall across it at x + 8, x + 10 or further).
   - **A wall ahead** (all three obstacle sensors see it): a `rect` with its left edge at x + 8 (seen at once; x + 10:
-    just not seen; further: the robot drives up to it), `y` = y − 6, `w` 2, `h` 12.
+    just not seen; further: the robot drives up to it), `y` = y − 6, `w` 2, `h` 12. **If the program follows a line**,
+    each such test gets its own line and its own wall: the `line` `points` [[x − 10, y], [x + 40, y]], and the wall
+    across it at x + 8 (seen at once), x + 10 (just not seen) or x + 30 (it drives up to it). The next test starts
+    30 cm lower (y + 30), with its own line and wall by the same numbers.
   - **Something only the LEFT sensor sees** ("a wall on the left"): a `rect` at x + 7, y − 4.5, `w` 2, `h` 2.5; just
     out of reach: at x + 9.5. **Only RIGHT**: the same at y + 2. **Both, not FRONT**: both boxes. Not a wall beside
     the robot: the sensors look forward, and they don't see a wall along the robot's side.
@@ -165,7 +179,7 @@ The answer around the worlds:
   - **Count from the start, never back from a thing.** Each test that needs something at a set distance gets its own:
     first its start, then its thing by the numbers above. Start B at (130, 100) with a wall seen at once: the wall's
     `x` is 138; start C at (130, 160) with a wall just not seen: its `x` is 140. Don't draw one wall for several tests
-    and work out their starts from it.
+    and work out their starts from it. Then check that each test's `start` is the start you drew its thing for.
   - Each test of a world its own start, each with what its scenario needs in front of it; tests that need different
     things in front of them start at different places of the floor (at least 30 cm apart).
 - New ids: items `t1`, `t2`, …; starts `A`, `B`, … with the same letter as `name`.

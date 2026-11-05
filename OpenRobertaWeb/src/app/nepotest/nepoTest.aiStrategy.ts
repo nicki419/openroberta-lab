@@ -19,6 +19,7 @@
  * The model sees the program's blocks with short ids (b1, b2, … in document order: shortIds); the index maps them back to the blocks' ids.
  */
 import * as FORMAT from 'nepoTest.aiFormat';
+import * as SIM from 'nepoTest.sim';
 
 export const MAX_TESTS = 8;
 
@@ -56,6 +57,7 @@ export interface Index {
     nepo: string; // the program's XML with the short ids
     toShort: { [block: string]: string };
     toReal: { [short: string]: string };
+    lineTracker?: boolean; // a block that runs reads the line tracker: the program follows a line (tests start on one: lineProblems)
 }
 
 /** an outcome of the program's decisions and what became of it: planned by a test, deferred (why), and how often the runs took it */
@@ -113,9 +115,82 @@ export function indexOf(programXml: string, label?: (block: string) => string): 
         index.decisions.push(d);
         d.outcomes.forEach((o) => (index.outcome[o.id] = { decision: d, outcome: o }));
     }
+    index.lineTracker = readsLineTracker(blocks);
     blocks.forEach((b) => b.setAttribute('id', index.toShort[b.getAttribute('id')] || b.getAttribute('id')));
     index.nepo = new XMLSerializer().serializeToString(doc);
     return index;
+}
+
+/**
+ * does a block that runs read the line tracker (a light sensor block on the port LINETRACKER, in any mode)? Not in a switched-off block, not in a
+ * function nobody calls
+ */
+function readsLineTracker(blocks: Element[]): boolean {
+    const called: string[] = [];
+    blocks
+        .filter((b) => /^robProcedures_call/.test(b.getAttribute('type') || ''))
+        .forEach((b) => {
+            const m = Array.prototype.filter.call(b.children, (c: Element) => c.localName === 'mutation')[0];
+            m && called.push(m.getAttribute('name'));
+        });
+    const fieldOf = (b: Element, name: string) => {
+        const f = Array.prototype.filter.call(b.children, (c: Element) => c.localName === 'field' && c.getAttribute('name') === name)[0];
+        return f ? f.textContent : null;
+    };
+    return blocks.some((b) => {
+        if (b.getAttribute('type') !== 'robSensors_light_getSample' || fieldOf(b, 'SENSORPORT') !== 'LINETRACKER' || !runs(b)) {
+            return false;
+        }
+        let top: Element = b;
+        for (let e: Element = b; e && e.localName !== 'instance'; e = e.parentElement) {
+            if (e.localName === 'block') {
+                if (e.getAttribute('disabled') === 'true') {
+                    return false;
+                }
+                top = e;
+            }
+        }
+        const def = /^robProcedures_def/.test(top.getAttribute('type') || '');
+        return !def || called.indexOf(fieldOf(top, 'NAME')) >= 0;
+    });
+}
+
+/** how far (cm) a test's start has the line tracker from a line on the floor at most (more: the program, a line follower, circles on the start) */
+export const LINE_NEAR_CM = 10;
+const LINE_TRACKER_AHEAD_CM = 5;
+
+/**
+ * for a program that follows a line (index.lineTracker): a test whose start has no line near the line tracker (2026-11-05: "the wall already in
+ * sight" stood on a plain floor; the line follower read 83 % there and circled on the start instead of driving up to the wall)
+ */
+export function lineProblems(world: SIM.SimWorld, start: SIM.SimStart): string[] {
+    if (!start) {
+        return [];
+    }
+    const h = (start.heading * Math.PI) / 180; // counterclockwise from +x, y down
+    const px = start.x + LINE_TRACKER_AHEAD_CM * Math.cos(h);
+    const py = start.y - LINE_TRACKER_AHEAD_CM * Math.sin(h);
+    let nearest = Infinity;
+    (world.items || [])
+        .filter((i) => i.kind === 'line' && (!i.role || i.role === 'color') && Array.isArray(i.points) && i.points.length > 1)
+        .forEach((i) => {
+            const pts = i.closed ? i.points.concat([i.points[0]]) : i.points;
+            for (let k = 1; k < pts.length; k++) {
+                const [x1, y1] = pts[k - 1];
+                const [x2, y2] = pts[k];
+                const dx = x2 - x1;
+                const dy = y2 - y1;
+                const t = Math.max(0, Math.min(1, ((px - x1) * dx + (py - y1) * dy) / (dx * dx + dy * dy || 1)));
+                nearest = Math.min(nearest, Math.hypot(px - (x1 + t * dx), py - (y1 + t * dy)));
+            }
+        });
+    return nearest <= LINE_NEAR_CM
+        ? []
+        : [
+              'start "' +
+                  start.id +
+                  '": there is no line near it (the line tracker is 5 cm ahead of the start). The program follows a line: on a plain floor it circles on the start. Draw a line through the start ("A line through the start" in "Tests"), with the scenario\'s things on it',
+          ];
 }
 
 /** does a block run: is it in an instance that begins with the start block or a function's definition? */
@@ -542,6 +617,9 @@ export function checkTests(
             t.checks.some((c) => POSITIVE.indexOf(c.check) >= 0) ||
                 add('it has only never_bumps / never_touches, which hold for a robot that never moves: add a check that shows its scenario happened (reaches, ends_in, does, whenever, after, variable)');
             contradictions(t.checks).forEach((m) => add(m));
+            if (index.lineTracker && w.data && w.data.world) {
+                lineProblems(w.data.world, (w.data.world.starts || []).filter((s) => s.id === t.start)[0]).forEach((m) => add(m));
+            }
             arrayOf(t.source_block_ids).forEach((b: string) => index.toReal[b] === undefined && add('source_block_ids: there is no block "' + b + '"'));
             isText(t.reason) || add('reason: one sentence, why this test is in the set');
         }

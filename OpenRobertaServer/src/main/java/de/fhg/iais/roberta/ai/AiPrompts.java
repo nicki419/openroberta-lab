@@ -23,7 +23,8 @@ import org.json.JSONObject;
  *            notCovered: what the learner's tests don't check yet (the guess's not_covered; only if they have tests, or null),
  *            repair: {answer: the answer with problems, problems: ["...", ...]} (or null)
  *  generate: as analyze, and analysis: the checked answer of analyze, scenarios: [the ids of the scenarios this call writes tests for] (or
- *            null: all; the browser makes one call per scenario that the learner's tests don't test yet), maxTests: its share of the tests
+ *            null: all; the browser makes one call per scenario that the learner's tests don't test yet), maxTests: its share of the tests,
+ *            followsLine: true if a block that runs reads the line tracker (every test then starts on a line)
  *  fix:      as generate, and fix: {tests: the failed tests as test JSON, each world in full,
  *                                   results: ["how a failed test ran", ...] (the browser writes them from the runs),
  *                                   kept: [{test, world}: the tests of the answer that passed]}}
@@ -231,6 +232,11 @@ public final class AiPrompts {
             .append(String.join(", ", named))
             .append(maxTests > 0 ? ", at most " + maxTests + " tests" : "")
             .append(": the analysis' other scenarios get their own calls, or the learner's tests already test them.\n");
+        if ( data.optBoolean("followsLine", false) ) { // the browser found a block that runs and reads the line tracker
+            m
+                .append("The program follows a line (it reads the line tracker): every test starts on a line or close beside it, facing along it ")
+                .append("(\"A line through the start\" in \"Tests\"), with the scenario's things on that line. On a plain floor it circles on the start.\n");
+        }
     }
 
     /** the task fix: the failed tests, how they ran (one item each, its lines indented), the tests that passed */

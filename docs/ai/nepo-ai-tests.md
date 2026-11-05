@@ -218,6 +218,18 @@ by the model and checked by code:
   `event` `obstacle` has nothing to decide for something in view from the start: an event is a change. "It doesn't
   turn" is `does stands_still`. Two checks that can't both hold (`does turns_left` and `does turns_right`; two
   `whenever` with the same condition and opposite actions) are a problem for a repair (`contradictions`).
+- **A program that follows a line gets its line in every world**:
+  - the browser decides from the blocks (`nepoTest.aiStrategy` `readsLineTracker`: a block that runs reads the line
+    tracker, not in a switched-off block, not in a function never called; `Index.lineTracker`);
+  - each scenario call says "The program follows a line (it reads the line tracker): every test starts on a line or
+    close beside it …" (`followsLine`, `AiPrompts`);
+  - `tests.md` has the template: each test its own line and wall;
+  - a test whose start has no line within 10 cm of its line tracker goes back for a repair (`lineProblems`,
+    `LINE_NEAR_CM`).
+
+  `simulator.md` "The line tracker" says how it reads the floor: 0 % on black, about 100 % on the white band, 83 % on
+  the peach floor. On a plain floor a line follower circles. Rules alone didn't make the model draw the line at
+  `none` (0 of 6 tests); the sentence and the template did (8 of 8; `nepo-ai-model-evaluation.md`, E10).
 - **Two checks are looser than TGA §8:** a planned outcome must be an outcome of the program, not necessarily of the
   test's paths (a run takes outcomes on its way: a wall test drives with nothing ahead before it sees the wall). A
   class or boundary must be one of the analysis' (`whole`), not necessarily of the test's paths. Both had left out

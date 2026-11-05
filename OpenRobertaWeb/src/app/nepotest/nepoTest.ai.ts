@@ -234,7 +234,7 @@ export async function generate(request: Request, intent: string, sentence: strin
     const one = (i: number) => {
         const id = todo.write[i];
         const part: Strategy = { index: strategy.index, analysis: STRATEGY.analysisFor(strategy.analysis, [id]), maxTests: maxTests, only: [id], whole: strategy.analysis };
-        return written('generate', Object.assign({}, data, { scenarios: [id], maxTests: maxTests }), ctx, programXml, null, part, sentence);
+        return written('generate', Object.assign({}, data, { scenarios: [id], maxTests: maxTests, followsLine: !!strategy.index.lineTracker }), ctx, programXml, null, part, sentence);
     };
     let next = 0;
     const worker = async () => {

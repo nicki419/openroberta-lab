@@ -29,6 +29,11 @@ Their `role`:
   is darker**: the light sensors see 100 % at an opening, less the further in, and 40 % from 15 cm inside on (measured
   along the tunnel from the nearer opening; linear in between). Make it at least 12 cm wide for the robot to drive
   through; a line on the floor can run through it.
+- **Dim light exists only inside a tunnel, and a tunnel always has its two walls.** There is no dim floor without
+  walls. They run along the robot: its obstacle sensors, which look forward, don't see them while it stands in the
+  middle facing along the tunnel (in a 15 cm tunnel each wall is 7.5 cm from the middle), but they see them, and it
+  bumps into them, when it turns or drifts towards one. Say "in dim light, nothing in front of it", never "in dim
+  light, no walls".
 - `goal`, `fail`: **areas** that only the tests see. The robot's sensors don't see them, and the robot drives over
   them. Goal areas have names ("Goal 1"); fail areas usually don't.
 - `color`: a coloured patch on the floor the sensors see (older worlds only).
@@ -44,7 +49,7 @@ Their `role`:
   2.9 × (r - l) degrees per second (left if r > l).
 - Speeds change at once; there is no slipping. Distances and angles are measured exactly.
 - **Sensors**, in front of the axle:
-  - the line tracker: 5 cm ahead, in the middle;
+  - the line tracker: 5 cm ahead, in the middle, looking down at the floor under it (see "The line tracker" below);
   - the light sensors LLIGHT and RLIGHT: 5.5 cm ahead, 1.5 cm to the left and right, **on top of the robot, looking
     up**: they read the light that falls on the robot, not the floor: 100 % in the open, less inside a tunnel;
   - three obstacle sensors, LEFT, FRONT and RIGHT: 6 cm ahead, 2.7 cm left, in the middle and 2.7 cm right, **all
@@ -54,6 +59,22 @@ Their `role`:
 - **Bumping**: the robot can't drive into an obstacle, a wall or the floor's edge; it stays in front of it while its
   wheels keep turning.
 - LEDs: left and right, on or off.
+
+## The line tracker
+
+- It reads the brightness of the floor right under it, one point 5 cm ahead of the axle in the middle: **0 % on a
+  line's black core, about 100 % on the white band beside it, about 83 % on the plain peach floor**. The blocks give
+  it as a light value (0 to 100 %) or as "sees black" (true only on the core).
+- **There is no line on a plain floor.** A program that steers by the line tracker sees 83 % there, all the time.
+  A line follower that turns one way above a threshold ("turn right while it reads more than 55 %") then turns that
+  way without end: it circles on the spot or drives in circles, and doesn't drive straight. It only drives along where
+  a line is under it.
+- So a world for a program that follows a line needs the line wherever the robot should drive the way it usually
+  does (to a wall, to a goal, into a tunnel), with the start on the line, facing along it. Without the line, the
+  robot circles before it gets there.
+- A line drawn straight through a start puts the line tracker on the black core (heading along the line). A start
+  1.5 to 2 cm beside the line's middle puts it on the white band (about 100 %); 5 cm or more beside, on the peach
+  floor (83 %).
 
 ## Time
 

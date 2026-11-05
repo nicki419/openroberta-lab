@@ -75,6 +75,13 @@ sentence: the analysis is read by the Lab and by you, not by the learner.
    where it fits. If the learner wants something the program has no decision for (the sentence says "stop at
    obstacles", no block reads the obstacle sensor), write the scenario on the paths the robot takes in that situation,
    and say in `uncertainties` that the program has no decision for it: don't invent a decision.
+   **Describe a situation by what the robot's sensors see** and what the simulator can make: "in dim light, nothing
+   in front of it", not "in dim light, no walls" (dim light is only inside a tunnel, which has walls).
+   **`initial_condition` is everything the world needs** for the program to get to the scenario's moment the way it
+   usually runs, not only the scenario's own thing. For a program that follows a line in bright light: "on a line, in
+   bright light, a wall across the line ahead", not "a wall ahead": without the line, it circles on the start (see
+   "The line tracker" in "The simulator"). A path starts at the beginning of the run: its `branch_ids` list the
+   outcomes taken on the way too (no obstacle, bright, the line tracker's outcomes), then the scenario's.
    `tested_by`: the names of the learner's tests that already test the scenario: they make its situation happen and
    check what it expects (the same kind of world and start, numbers aside). [] if none does, or the learner has no
    tests. A scenario tested by one of theirs gets no new tests.
@@ -93,7 +100,9 @@ what one of their tests already tests is deferred with the reason `tested by "<t
 count" in "Tests"). Answer with the test JSON
 (see "Tests"): choose the tests in the four steps of "How to choose the tests", from the analysis' paths, scenarios
 and input dimensions, in worlds you draw for them: **a world for its scenario**, with only the things the scenario is
-about (no tunnel in a world about stopping at a wall). Without a sentence, take the intent from the guess, and write only
+about (no tunnel in a world about stopping at a wall), **and what the program needs to get there**: draw the
+scenario's `initial_condition` in full. If the program follows a line in bright light, every test there starts on a
+line facing along it, and the scenario's thing stands on that line. Without a sentence, take the intent from the guess, and write only
 tests that the guess clearly asks for (`inferred_from_program`). What the program would do in a test is never a reason
 to leave the test out or to defer its class or boundary: a surprise of the simulator (`uncertainties`) is a reason to
 test it. The Lab checks that every id, class and boundary of
