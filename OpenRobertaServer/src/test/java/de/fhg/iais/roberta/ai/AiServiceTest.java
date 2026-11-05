@@ -510,6 +510,33 @@ public class AiServiceTest {
     }
 
     @Test
+    public void theAiCallsTrustTheUniversitysRootBesidesTheJdks() {
+        // 2026-11-05: JDK 13.0.2 doesn't trust HARICA, which signs SDU's certificate: every call went to the fallback ("PKIX path building failed")
+        javax.net.ssl.X509TrustManager trust = DeepSeekClient.trustManager();
+        Assert.assertNotNull(trust);
+        java.security.cert.X509Certificate[] roots = trust.getAcceptedIssuers();
+        Assert.assertTrue(Arrays.stream(roots).anyMatch(c -> c.getSubjectX500Principal().getName().contains("CN=HARICA TLS RSA Root CA 2021")));
+        Assert.assertTrue(roots.length > 50); // and the JDK's
+    }
+
+    @Test
+    public void aRepairWithLongOrManyProblemsIsCutNotRefused() throws Exception {
+        // 2026-11-05: a problem of 336 characters made the whole repair too_large, and the 4 tests it would have repaired were lost
+        JSONArray problems = new JSONArray().put("test \"A\": " + String.join("", Collections.nCopies(900, "x")));
+        for ( int i = 1; i < AiPrompts.MAX_PROBLEMS + 5; i++ ) {
+            problems.put("test \"T" + i + "\": no checks");
+        }
+        script(200, completion(generateAnswer(), "stop"));
+        JSONObject data = data().put("intent", "Drive.").put("repair", new JSONObject().put("answer", generateAnswer()).put("problems", problems));
+        AiService.Outcome outcome = service(KEY).call(AiService.GENERATE, 7, data);
+        Assert.assertTrue(outcome.message, outcome.ok);
+        String repair = new JSONObject(this.requests.get(0).getString("body")).getJSONArray("messages").getJSONObject(3).getString("content");
+        Assert.assertTrue(repair.contains("- test \"A\": " + String.join("", Collections.nCopies(AiPrompts.MAX_PROBLEM - 10, "x")) + " …\n"));
+        Assert.assertTrue(repair, repair.contains("- test \"T" + (AiPrompts.MAX_PROBLEMS - 1) + "\": no checks\n- … and 5 more problems like these\n"));
+        Assert.assertFalse(repair.contains("\"T" + AiPrompts.MAX_PROBLEMS + "\""));
+    }
+
+    @Test
     public void thePrimaryIsAskedFirstAndItsReasoningIsKept() throws Exception {
         script(200, vllmCompletion(inferAnswer()));
         AiService service = serviceWithFallback();

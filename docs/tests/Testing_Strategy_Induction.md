@@ -322,7 +322,7 @@ The exception separates a **test that is wrong** (its scenario never happened) f
    WYSIWYT, by contrast, *measures* testedness (Slides L2 p.39). Until the coverage is measured, the adequacy claim can't be checked, and a report must not call it branch coverage achieved.
 
    **How the implementation handles it (2026-11-04):**
-   - The Lab's simulator records every decision's outcomes, so the assistant now measures which outcomes each check run took, next to the planned ones: "Seen in the runs: n of m" (`docs/ai/nepo-ai-tests.md`, "The testing strategy").
+   - The Lab's simulator records every decision's outcomes, so the assistant now measures which outcomes each check run took, next to the planned ones, kept in the telemetry (`docs/ai/nepo-ai-tests.md`, "The testing strategy"; the panel showed it as "Seen in the runs: n of m" until 2026-11-05).
    - A test whose planned outcome never ran counts as *not checked*, not as passed.
    - The decision inventory comes from the code, not from the model.
 

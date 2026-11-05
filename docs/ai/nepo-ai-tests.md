@@ -48,6 +48,8 @@ This document covers:
 | the per-call message (`## The program`, `## The program's decisions` (not for infer), `## The learner's tests`, `## What the learner said before`, `## The analysis` (generate, fix), `## Task: …`), the trimming of NEPO XML (positions, configuration and the start block's `<data>` go; the block ids stay) and EdPy, the answer checks (`checkAnalyze`: status, intent, arrays; `checkGenerate`: no worlds only with `generation_status` `no_valid_scenarios`; `checkFix`: `worlds`, `program_wrong` and `doubtful`, not all empty) | `ai/AiPrompts` |
 | the model's chat API (OpenAI-compatible): JSON mode, reasoning effort, timeouts (infer 20 s; analyze, generate and fix 180 s), one more try after 429, 5xx or no connection; the reasoning from `reasoning_content` (DeepSeek) or `reasoning` (UCloud's vLLM) | `ai/DeepSeekClient` |
 | **two APIs, the same model** (DeepSeek-V4.1-Flash): SDU's UCloud first (the primary), DeepSeek's own API as the fallback. A call without an answer from the primary (it can't be reached, doesn't answer in time, or an HTTP error) is made again at the fallback, and for the next 5 minutes the fallback is asked first (`COOL_DOWN_MS`). An answer that can't be used (cut off, not the JSON asked for) isn't made again: the browser repairs it. A timeout of the primary followed by the fallback can make a call take up to 6 minutes | `ai/AiService` `order`; `AiServiceTest withoutAnAnswerFromThePrimary…`, `aTimeoutOfThePrimaryGoesToTheFallback`, `anAnswerThatCantBeUsedIsNotAskedAgainAtTheFallback` |
+| **HTTPS trust:** the AI's calls trust the JDK's roots and the roots in `src/main/resources/ai/certs/` (`DeepSeekClient.EXTRA_ROOTS`): HARICA TLS RSA Root CA 2021, which signs UCloud's certificate (via GÉANT TLS RSA 1) and which older JDKs don't trust (13.0.2: "PKIX path building failed", so every call went to the fallback). Taken from the Windows root store, SHA-256 `D9:5D:0E:8E:…:EC:CB:7B:1D`, valid until 2045. The JVM's own trust doesn't change | `ai/DeepSeekClient` `trustManager`; `AiServiceTest theAiCallsTrustTheUniversitysRootBesidesTheJdks` |
+| a repair's problems are hints: more than 40 are cut to the first 40 (and how many more), one longer than 800 characters is cut; a fix's run text longer than 4,000 characters is cut. Before 2026-11-05 they were refused (`too_large`), and a refused repair lost the tests it would have saved | `ai/AiPrompts` `repairMessages`, `appendFix`; `AiServiceTest aRepairWithLongOrManyProblemsIsCutNotRefused` |
 | the context pack: the system prompt, its `promptVersion` (hash); each version is saved once as `<telemetry>/ai-prompts/<promptVersion>.md` | `ai/ContextPack`, `src/main/resources/ai/` (`pack.txt` lists the files) |
 | `.env`: `DEEPSEEK_URL` (`https://ai.cloud.sdu.dk/v1`), `DEEPSEEK_MODEL` (`deepseek-ai/DeepSeek-V4.1-Flash-1017`), `DEEPSEEK_FALLBACK_URL` (`https://api.deepseek.com`), `DEEPSEEK_FALLBACK_MODEL` (`deepseek-flash`), `AI_TESTS_DEFAULT`, `AI_PACK_DIR` (read at every call: change the prompt without a rebuild), `AI_EFFORT_INFER`, `AI_EFFORT_GENERATE` (default low; both APIs take low, high, max; UCloud also none) | `main/EnvFile`, `ai/AiSettings`, `openRoberta.properties` (the defaults in brackets) |
 | the API keys `DEEPSEEK_API_KEY` (UCloud) and `DEEPSEEK_FALLBACK_API_KEY` (DeepSeek): read on their own (`EnvFile.secret`), never server properties (those are logged), never logged, never sent to the browser. One missing: only the other API is asked | `ai/AiSettings`; `AiServiceTest theKeyIsNeverLoggedAndNeverLeavesTheServer` |
@@ -178,14 +180,15 @@ by the model and checked by code:
 - **The review list:**
   - each test's label: "Based on your description" (`learner_description`), "Suggested from your blocks"
     (`inferred_from_program`), "A safety guess" (`applicable_safety`);
-  - its assumptions, in a fold-out;
-  - one coverage line: "Plans to try 3 of 3 outcomes of the decisions in your program".
-- **The results:** "Seen in the runs: n of m", with a fold-out "Not seen (n)" whose chips select the decision's block.
-- **Kept for the analysis, not shown:**
-  - the outcomes the tests don't try, and why: deferred by the model with its reason, unsupported in the analysis,
-    or lost because their test was left out. Since 2026-11-04 they are not in the panel; they are in the telemetry, in
-    `plan` of `ai_tests_generated`, `ai_tests_checked` and `ai_tests_added`: per outcome `planned`, `deferred` (why
-    not), `seen`; also `deferredInputs` and `deferredScenarios`;
+  - its assumptions, in a fold-out.
+- **The results:** each test's run (passed, failed, not checked, with why).
+- **Kept for the analysis, not shown** (since 2026-11-05 the panel shows no coverage and no count of left-out tests: too
+  much information for a learner):
+  - the coverage: the outcomes the tests plan to try, those the runs took, and those the tests don't try, and why
+    (deferred by the model with its reason, unsupported in the analysis, or lost because their test was left out). In
+    the telemetry, in `plan` of `ai_tests_generated`, `ai_tests_checked` and `ai_tests_added`: per outcome `planned`,
+    `deferred` (why not), `seen`; also `deferredInputs` and `deferredScenarios`;
+  - the tests left out (with their problems: `leftOut`) and the duplicates (`duplicates`) of `ai_tests_generated`;
   - the classes, boundaries and postconditions: in the telemetry and in the tests' provenance.
 - **Spoken to the learner:** the model's texts (scenarios, assumptions, reasons, warnings) say "you" and "your
   program", never "the learner" (`system.md`, `tasks.md`). A fix's reason that speaks of "the learner" is sent back for
@@ -434,7 +437,8 @@ deleted. The Test runner's `test_run` said that 1 AI test ran (edited) and passe
 - **Writing takes two calls:** analyze, then generate. At effort low that is about 2 minutes at DeepSeek and 2.5 at
   UCloud (up to about 3); it was 7 to 18 s for generate alone. The answers are long, 9,000 to 15,000 output tokens each
   for a program with a loop and a function, because every test says what it is for. The panel says "Usually 1 to 3
-  minutes". At UCloud the effort makes no measurable difference, and its slowest analyze (116 s, 22,000 tokens) came
+  minutes"; for a fix, "Usually under a minute, sometimes up to 3" (fixes took 2 to 33 s, but one took 177 s at
+  DeepSeek, 28,800 tokens, near both the token cap and the timeout). At UCloud the effort makes no measurable difference, and its slowest analyze (116 s, 22,000 tokens) came
   near the 32,000-token cap, which it reaches after about 170 s, just inside the 180 s timeout.
 - **A deferral is judged only by its reason:** the code checks that every outcome, class and boundary side is tested
   or deferred with a reason, but not whether the reason is sound. The rule against deferring what the program would

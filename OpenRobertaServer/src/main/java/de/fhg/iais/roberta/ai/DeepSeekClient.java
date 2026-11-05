@@ -9,10 +9,24 @@ import java.net.HttpURLConnection;
 import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.security.GeneralSecurityException;
+import java.security.KeyStore;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
+
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.X509TrustManager;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * a small client of an OpenAI-compatible chat API (POST {url}/chat/completions: SDU's UCloud or DeepSeek's own), with Java 8's HttpURLConnection. It
@@ -25,6 +39,15 @@ public class DeepSeekClient {
     private static final int CONNECT_TIMEOUT_MS = 5000;
     private static final long MAX_RETRY_AFTER_MS = 5000;
     private static final int MAX_ERROR_CHARS = 500;
+    private static final Logger LOG = LoggerFactory.getLogger(DeepSeekClient.class);
+    static final String CERTS = "/ai/certs/";
+    /** root certificates the AI's calls trust besides the JDK's (see {@link #trustManager()}) */
+    static final String[] EXTRA_ROOTS = {
+        "harica-tls-rsa-root-ca-2021.pem"
+    };
+    private static X509TrustManager trustManager;
+    private static SSLSocketFactory socketFactory;
+    private static boolean trustFailed;
 
     private final AiSettings settings;
     private final AiSettings.Provider provider;
@@ -136,8 +159,66 @@ public class DeepSeekClient {
         return this.provider.getHost();
     }
 
+    /**
+     * the trust of the AI's calls: the roots the JDK trusts, and the roots in the server's resources ({@link #EXTRA_ROOTS}). SDU's certificate comes
+     * from HARICA (GÉANT TLS RSA 1, HARICA TLS RSA Root CA 2021), which older JDKs (13.0.2: 93 roots) don't trust: their calls failed with "PKIX
+     * path building failed" and went to the fallback. Only these calls use it; the JVM's trust doesn't change.
+     *
+     * @return the trust manager, or null if it can't be made (the JDK's trust is used then)
+     */
+    static synchronized X509TrustManager trustManager() {
+        if ( trustManager == null && !trustFailed ) {
+            try {
+                KeyStore store = KeyStore.getInstance(KeyStore.getDefaultType());
+                store.load(null, null);
+                TrustManagerFactory jdk = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+                jdk.init((KeyStore) null);
+                int n = 0;
+                for ( TrustManager tm : jdk.getTrustManagers() ) {
+                    if ( tm instanceof X509TrustManager ) {
+                        for ( X509Certificate root : ((X509TrustManager) tm).getAcceptedIssuers() ) {
+                            store.setCertificateEntry("jdk-" + n++, root);
+                        }
+                    }
+                }
+                CertificateFactory certificates = CertificateFactory.getInstance("X.509");
+                for ( String file : EXTRA_ROOTS ) {
+                    try (InputStream in = DeepSeekClient.class.getResourceAsStream(CERTS + file)) {
+                        if ( in == null ) {
+                            throw new IOException("the resources have no " + CERTS + file);
+                        }
+                        for ( Certificate root : certificates.generateCertificates(in) ) {
+                            store.setCertificateEntry("extra-" + n++, root);
+                        }
+                    }
+                }
+                TrustManagerFactory all = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+                all.init(store);
+                for ( TrustManager tm : all.getTrustManagers() ) {
+                    if ( tm instanceof X509TrustManager ) {
+                        trustManager = (X509TrustManager) tm;
+                    }
+                }
+                SSLContext context = SSLContext.getInstance("TLS");
+                context.init(null, new TrustManager[] {
+                    trustManager
+                }, null);
+                socketFactory = context.getSocketFactory();
+            } catch ( GeneralSecurityException | IOException | RuntimeException e ) {
+                trustFailed = true;
+                trustManager = null;
+                socketFactory = null;
+                LOG.error("the AI's calls trust only the JDK's roots: " + e.getMessage());
+            }
+        }
+        return trustManager;
+    }
+
     private HttpURLConnection open(String path, int readTimeoutMs) throws IOException {
         HttpURLConnection connection = (HttpURLConnection) new URL(this.provider.getUrl() + path).openConnection();
+        if ( connection instanceof HttpsURLConnection && trustManager() != null ) {
+            ((HttpsURLConnection) connection).setSSLSocketFactory(socketFactory);
+        }
         connection.setConnectTimeout(CONNECT_TIMEOUT_MS);
         connection.setReadTimeout(readTimeoutMs);
         connection.setRequestProperty("Authorization", this.provider.authorization());

@@ -189,7 +189,7 @@ const TEXT: { [key: string]: string } = {
     writingHead: 'Writing tests',
     writingFor: 'For: ',
     writingNote: 'Usually 1 to 3 minutes. You can keep working meanwhile.',
-    fixingNote: 'Usually 10 to 20 s. You can keep working meanwhile.',
+    fixingNote: 'Usually under a minute, sometimes up to 3. You can keep working meanwhile.',
     analysing: 'First I look at the decisions in your program, then I write the tests.',
     writingTests: 'Now I write the tests.',
     insufficientHead: 'Nothing to test yet',
@@ -198,10 +198,6 @@ const TEXT: { [key: string]: string } = {
     basis_inferred_from_program: 'Suggested from your blocks',
     basis_applicable_safety: 'A safety guess',
     assumes: 'It assumes',
-    plans: 'Plans to try {0} of {1} outcomes of the decisions in your program.',
-    plansNone: 'Your program makes no decisions: the tests try its one way through.',
-    seen: 'Seen in the runs: {0} of {1} outcomes of the decisions in your program.',
-    notSeen: 'Not seen',
     ranNotChecked: "not checked: it passed, but that doesn't show much",
     staleHead: 'Your program changed',
     stale: 'You changed your program after these tests were written. They may not fit it any more.',
@@ -212,7 +208,6 @@ const TEXT: { [key: string]: string } = {
     untick: "Untick any you don't want. The others run on your program before they are added.",
     newWorld: 'In a new world: “{0}”',
     yourWorld: 'In your world “{0}”',
-    leftOut: '{0} more were left out: they had problems, or you have them already.',
     add: 'Add {0} tests',
     addOne: 'Add 1 test',
     discard: 'Discard',
@@ -1374,7 +1369,6 @@ function renderResults(body: Element, head: (key: string) => any, note: (s: stri
             box.appendChild(document.createTextNode(toYou(c.reason)));
         }
     });
-    batch.plan && coverageLine(body, batch.plan, true);
     const failed = batch.candidates.filter((c) => c.state === 'failed' || c.state === 'notChecked');
     const flagged = batch.candidates.filter((c) => c.state === 'flagged');
     if (failed.length) {
@@ -1435,40 +1429,9 @@ function renderReview(body: Element, head: (key: string) => any, note: (s: strin
             }
         });
     });
-    generated.plan && coverageLine(body, generated.plan, false);
-    const left = generated.dropped.length + generated.duplicates.length;
-    left && note(text('leftOut', left));
     const row = buttons();
     const add = button(row, total === 1 ? text('addOne') : text('add', total), 'btn-primary aiAdd', chooseTests);
     button(row, text('discard'), 'btn-default aiDiscard', discard);
-}
-
-/**
- * one line of coverage: the outcomes of the program's decisions the tests plan to try (review), or that the runs took (results). The results also
- * list those the runs didn't take, as chips with their words. The outcomes the tests don't try, and why (deferred, unsupported, left out), aren't
- * shown: they are in the telemetry (the plan of ai_tests_generated, ai_tests_checked and ai_tests_added: planOfLog).
- */
-function coverageLine(body: Element, plan: STRATEGY.Plan, seen: boolean): void {
-    const total = plan.outcomes.length;
-    const box = html('div', 'aiCoverage', body);
-    if (!total) {
-        html('p', '', box, text('plansNone'));
-        return;
-    }
-    const hit = plan.outcomes.filter((o) => (seen ? o.seen > 0 : o.planned.length > 0));
-    html('p', '', box, seen ? text('seen', hit.length, total) : text('plans', plan.outcomes.filter((o) => o.planned.length).length, total));
-    const missing = plan.outcomes.filter((o) => hit.indexOf(o) < 0);
-    if (!seen || !missing.length) {
-        return;
-    }
-    const details = html('details', 'aiMissing', box);
-    html('summary', '', details, text('notSeen') + ' (' + missing.length + ')');
-    const ul = html('ul', '', details);
-    missing.forEach((o) => {
-        const li = html('li', '', ul);
-        li.appendChild(chip(o.block));
-        li.appendChild(document.createTextNode(' ' + o.words + (o.planned.length ? ': planned, but it didn\'t happen' : '')));
-    });
 }
 
 /**

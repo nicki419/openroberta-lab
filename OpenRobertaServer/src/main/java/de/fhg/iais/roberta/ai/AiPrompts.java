@@ -35,8 +35,8 @@ public final class AiPrompts {
     public static final int MAX_SENTENCE = 200;
     public static final int MAX_SAID = 5; // the last ones
     public static final int MAX_GUESS = 300;
-    public static final int MAX_PROBLEMS = 30;
-    public static final int MAX_PROBLEM = 300;
+    public static final int MAX_PROBLEMS = 40; // more: the first ones, and how many more
+    public static final int MAX_PROBLEM = 800; // longer: cut (the strategy's problems quote dimensions and boundaries: 300 to 500 characters)
     public static final int MAX_ANSWER = 60000;
     public static final int MAX_RESULTS = 15; // failed tests of a fix
     public static final int MAX_RESULT = 4000;
@@ -195,7 +195,8 @@ public final class AiPrompts {
         m.append("```json\n").append(limited("the failed tests", tests.toString(), MAX_TESTS)).append("\n```\n\n");
         m.append("How they ran:\n\n");
         for ( int i = 0; i < results.length(); i++ ) {
-            String result = limited("a result", results.optString(i, ""), MAX_RESULT).replace("\r", "").trim();
+            String result = results.optString(i, "").replace("\r", "").trim();
+            result = result.length() > MAX_RESULT ? result.substring(0, MAX_RESULT) + "\n…" : result; // cut, not refused: the fix would be lost
             m.append("- ").append(result.replace("\n", "\n  ")).append('\n');
         }
         JSONArray kept = fix.optJSONArray("kept");
@@ -217,8 +218,9 @@ public final class AiPrompts {
 
     /**
      * @param data the browser's data
-     * @return the repair of a generate answer: {answer, problems} as the assistant's earlier answer and the message that lists the problems, or null
-     * @throws AiException bad_request or too_large
+     * @return the repair of a generate answer: {answer, problems} as the assistant's earlier answer and the message that lists the problems (at most
+     *         {@link #MAX_PROBLEMS}, each cut at {@link #MAX_PROBLEM} characters), or null
+     * @throws AiException bad_request, or too_large (the answer)
      */
     public static String[] repairMessages(JSONObject data) {
         JSONObject repair = data.optJSONObject("repair");
@@ -230,12 +232,15 @@ public final class AiPrompts {
         if ( answer == null || problems == null || problems.length() == 0 ) {
             throw new AiException("bad_request", "a repair needs the answer and its problems");
         }
-        if ( problems.length() > MAX_PROBLEMS ) {
-            throw new AiException("too_large", "a repair has at most " + MAX_PROBLEMS + " problems");
-        }
+        // the problems are hints: too many or too long ones are cut, never refused (a refused repair loses the tests it would have saved)
         StringBuilder m = new StringBuilder("These problems were found in your answer:\n\n");
-        for ( int i = 0; i < problems.length(); i++ ) {
-            m.append("- ").append(line(limited("a problem", problems.optString(i, ""), MAX_PROBLEM), MAX_PROBLEM)).append('\n');
+        int shown = Math.min(problems.length(), MAX_PROBLEMS);
+        for ( int i = 0; i < shown; i++ ) {
+            String problem = problems.optString(i, "").replaceAll("\\s+", " ").trim();
+            m.append("- ").append(problem.length() > MAX_PROBLEM ? problem.substring(0, MAX_PROBLEM) + " …" : problem).append('\n');
+        }
+        if ( problems.length() > shown ) {
+            m.append("- … and ").append(problems.length() - shown).append(" more problems like these\n");
         }
         m.append("\nAnswer again with the whole corrected answer.\n");
         return new String[] {
