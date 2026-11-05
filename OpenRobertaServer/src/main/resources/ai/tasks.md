@@ -27,13 +27,16 @@ would help now. Answer:
   check the intent, or the program does nothing yet (only the start block, or no movement at all).
 - `same_as_declined`: if the task gives a guess the learner declined, true if your intent means the same, otherwise
   false. With no declined guess: false.
-- `not_covered`: one short sentence about what no test checks yet, or null if `ask` is false.
+- `not_covered`: one short sentence about what no test checks yet, or null if `ask` is false. Name the behaviour and
+  the situation ("turning away from a wall on the left in dim light"), not the whole intent: the learner sees it, and
+  the new tests are written for it. If the learner has tests, it is only what theirs don't check.
 
 ## Task: analyze
 
 The learner wants tests. Before any test is written, analyse the program (the answer: `schemas/analyze.schema.json`).
 The task gives the intent you guessed (which the learner saw) and, if they wrote one, their own sentence about what
-the program should do. You don't write tests or worlds here: **don't choose checks, times, positions or set-ups**,
+the program should do; if the learner has tests, also what they don't check yet. Analyse the whole program anyway:
+generate leaves out what their tests already test. You don't write tests or worlds here: **don't choose checks, times, positions or set-ups**,
 generate does that from your analysis. Where the simulator makes the program behave in a surprising way (a fast loop
 that hears one clap several times), say so in one line in `uncertainties`, and go on. Keep every text to one short
 sentence: the analysis is read by the Lab and by you, not by the learner.
@@ -78,8 +81,11 @@ sentence: the analysis is read by the Lab and by you, not by the learner.
 
 ## Task: generate
 
-The learner wants tests. The task gives the intent you guessed and, if they wrote one, their own sentence; the
-message has your checked analysis. **Their sentence wins** where it differs from the guess. Answer with the test JSON
+The learner wants tests. The task gives the intent you guessed and, if they wrote one, their own sentence; if the
+learner has tests, also what they don't check yet (from your guess). The message has your checked analysis. **Their
+sentence wins** where it differs from the guess. **Add to the learner's tests, don't repeat them**: what one of their
+tests already tests is deferred with the reason `tested by "<their test>"` (see "The learner's tests count" in
+"Tests"). Answer with the test JSON
 (see "Tests"): choose the tests in the four steps of "How to choose the tests", from the analysis' paths, scenarios
 and input dimensions, in worlds you draw for them. Without a sentence, take the intent from the guess, and write only
 tests that the guess clearly asks for (`inferred_from_program`). What the program would do in a test is never a reason

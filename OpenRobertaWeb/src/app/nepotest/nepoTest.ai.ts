@@ -126,9 +126,24 @@ export function call(kind: string, data: any): Promise<Call> {
     });
 }
 
+/**
+ * a call, made once more if its answer couldn't be read (bad_answer: not JSON, or not the shape asked for). Such an answer can't be repaired: there
+ * is nothing to send back (2026-11-05: 1 of 3 generate answers at effort none was broken JSON, and the learner got an error)
+ *
+ * @param calls the meta of the call that couldn't be read is added here (the telemetry's calls), if given
+ */
+export async function callReadable(kind: string, data: any, calls?: any[]): Promise<Call> {
+    const first = await call(kind, data);
+    if (first.ok || first.error !== 'bad_answer') {
+        return first;
+    }
+    calls && first.meta && calls.push(first.meta);
+    return call(kind, data);
+}
+
 /** what is the program meant to do? answer: {intent, confidence, ask, same_as_declined, not_covered} */
 export function infer(request: Request, declined: string): Promise<Call> {
-    return call('infer', Object.assign({}, request, { declined: declined || null }));
+    return callReadable('infer', Object.assign({}, request, { declined: declined || null }));
 }
 
 /** the program's decisions, the intent and the sentence: what analyze, generate and fix get besides the request */
@@ -147,7 +162,7 @@ function strategyData(request: Request, intent: string, sentence: string, index:
 export async function analyze(request: Request, intent: string, sentence: string, index: STRATEGY.Index): Promise<Analyzed> {
     const out: Analyzed = { ok: false, analysis: null, insufficient: false, problems: [], repairs: 0, calls: [], answers: [], error: null, message: '' };
     const data = strategyData(request, intent, sentence, index, null);
-    let result = await call('analyze', data);
+    let result = await callReadable('analyze', data, out.calls);
     for (let round = 0; ; round++) {
         result.meta && out.calls.push(result.meta);
         if (!result.ok) {
@@ -169,7 +184,7 @@ export async function analyze(request: Request, intent: string, sentence: string
             return out;
         }
         out.repairs++;
-        result = await call('analyze', Object.assign({}, data, { repair: { answer: result.answer, problems: out.problems.map(problemText) } }));
+        result = await callReadable('analyze', Object.assign({}, data, { repair: { answer: result.answer, problems: out.problems.map(problemText) } }), out.calls);
     }
 }
 
@@ -243,7 +258,7 @@ async function written(kind: string, data: any, ctx: FORMAT.Context, programXml:
         error: null,
         message: '',
     };
-    let result = await call(kind, data);
+    let result = await callReadable(kind, data, out.calls);
     let checked: { worlds: FORMAT.Resolved[]; problems: FORMAT.Problem[]; programWrong: ProgramWrong[]; doubtful: ProgramWrong[] } = null;
     let answer: any = null;
     for (let round = 0; ; round++) {
@@ -263,7 +278,7 @@ async function written(kind: string, data: any, ctx: FORMAT.Context, programXml:
             break;
         }
         out.repairs++;
-        result = await call(kind, Object.assign({}, data, { repair: { answer: result.answer, problems: checked.problems.map(problemText) } }));
+        result = await callReadable(kind, Object.assign({}, data, { repair: { answer: result.answer, problems: checked.problems.map(problemText) } }), out.calls);
     }
     const good = FORMAT.without(checked.worlds, checked.problems);
     out.dropped = checked.problems.filter((p) => !STRATEGY.isAnswerWide(p));

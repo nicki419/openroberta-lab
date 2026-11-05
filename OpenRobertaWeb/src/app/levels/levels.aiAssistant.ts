@@ -65,6 +65,11 @@ const DECLINED_RUNS = 3; // after "Not now": changed runs before it offers again
 const MAX_SENTENCE = 200;
 const MAX_SAID = 50; // sentences kept in the notes (the server sends the last 5)
 const FIXES = 2; // how often the assistant tries to fix the tests of a batch
+/**
+ * false: the tests that failed or weren't checked are offered as "Add anyway" / "Discard", without "Fix" (since 2026-11-05: a test that fails
+ * because the program is wrong is worth keeping, and the learner decides). The fix (the model's three verdicts, the reruns) stays for true.
+ */
+const FIX_TESTS = false;
 
 type State =
     | 'idle'
@@ -98,6 +103,7 @@ interface View {
     since?: number; // thinking, writing, fixing: since when (ms)
     phase?: string; // writing: analysing | writing
     intent?: string;
+    gap?: string; // offer: what the learner's tests don't check yet (the guess's not_covered), shown when they have tests
     for?: string; // writing: the sentence, or the guess
     progress?: { index: number; count: number; name: string }; // checking: the test that runs
     count?: number; // fixing: how many tests
@@ -177,6 +183,7 @@ const TEXT: { [key: string]: string } = {
     offerHead: 'Test suggestion',
     looksLike: 'It looks like your program should:',
     question: 'Should I write tests that check this?',
+    questionGap: "Should I write tests for what your tests don't check yet?",
     sentenceLabel: 'In your own words: what should your program do? (optional)',
     sentencePlaceholder: 'This program should follow a black line and stop if it senses an obstacle',
     write: 'Write tests',
@@ -250,6 +257,8 @@ const TEXT: { [key: string]: string } = {
     askFix: "Should I try to fix the tests that failed or weren't checked, or discard them?",
     askFixOne: 'Should I try to fix the test, or discard it?',
     askFixNote: 'The tests that passed are added either way.',
+    askAdd: "Add the tests that failed or weren't checked anyway? A test that fails can show what your program doesn't do yet, but it can also be wrong itself.",
+    askAddOne: "Add this test anyway? A test that fails can show what your program doesn't do yet, but it can also be wrong itself.",
     fixThem: 'Fix them',
     fixIt: 'Fix it',
     discardThem: 'Discard them',
@@ -268,6 +277,7 @@ const TEXT: { [key: string]: string } = {
     addUnchecked: 'Add them without running',
     emptyHead: 'No new tests',
     empty: 'The tests I wrote were already there or had problems, so none were added.',
+    emptyTested: 'Your tests already check what I would test, so I wrote no new ones.',
     discardedHead: 'No tests added',
     again: "I'll look again after your next change.",
     quietHead: 'No suggestions here',
@@ -525,7 +535,17 @@ async function think(level: string, run: { program: string; edpy: Promise<{ edpy
     const held = !!notes.declined && (guess.same_as_declined || notes.declined.runs < DECLINED_RUNS);
     const state: State = held ? 'guess' : guess.ask ? 'offer' : 'nothing';
     record('ai_inferred', Object.assign(event, { shown: state, declinedRuns: notes.declined ? notes.declined.runs : null }));
-    show({ state: state, intent: guess.intent });
+    show({ state: state, intent: guess.intent, gap: gapOf(request.tests) });
+}
+
+/**
+ * what the learner's tests don't check yet (the guess's not_covered), if they have tests: the offer says it, and analyze and generate get it, so the
+ * new tests are about what is missing and don't repeat theirs (2026-11-05: a line follower got its line-following tests again with every offer)
+ */
+function gapOf(tests: any): string {
+    const has = !!tests && Array.isArray(tests.worlds) && tests.worlds.some((w: any) => w && Array.isArray(w.tests) && w.tests.length);
+    const gap = guess && typeof guess.not_covered === 'string' ? guess.not_covered.trim() : '';
+    return has && gap ? gap : null;
 }
 
 /**
@@ -536,7 +556,8 @@ async function think(level: string, run: { program: string; edpy: Promise<{ edpy
 async function write(intent: string, sentence: string, before: string[]): Promise<void> {
     const mine = ++token;
     show({ state: 'writing', since: Date.now(), for: sentence || intent, intent: intent, phase: 'analysing' });
-    const data = Object.assign({}, request, { tests: TESTS_C.aiTests(), said: before });
+    const tests = TESTS_C.aiTests();
+    const data = Object.assign({}, request, { tests: tests, said: before, notCovered: gapOf(tests) });
     const decisions = index;
     let started = Date.now();
     const analyzed = await AI.analyze(data, intent, sentence, decisions);
@@ -570,7 +591,9 @@ async function write(intent: string, sentence: string, before: string[]): Promis
     generated = result;
     writing = { intent: intent, sentence: sentence, before: before, strategy: strategy };
     ticked = result.worlds.map((w) => w.tests.map(() => true));
-    show({ state: result.worlds.some((w) => w.tests.length) ? 'review' : 'empty', intent: intent });
+    const none = !result.worlds.some((w) => w.tests.length);
+    const tested = none && result.status === 'no_valid_scenarios' && !result.dropped.length && !result.duplicates.length; // nothing new: their tests check it
+    show({ state: none ? 'empty' : 'review', intent: intent, phase: tested ? 'tested' : undefined });
 }
 
 /** ai_analyzed: the program's decisions, the analysis, its repairs and what was still wrong, the calls */
@@ -875,7 +898,7 @@ function decide(): void {
     toFix.length ? fix(toFix) : finish();
 }
 
-/** the learner's choice for the failed tests (fix, discard) or for those the assistant thinks right (add, discard) */
+/** the learner's choice for the failed tests (add or discard; fix if FIX_TESTS) or for those the assistant thinks right (add, discard) */
 function answerFailed(group: 'failed' | 'flagged', answer: string): void {
     const tests = batch.candidates.filter((c) => c.state === group || (group === 'failed' && c.state === 'notChecked'));
     tests.forEach((c) => (c.state = answer === 'fix' ? 'fix' : answer === 'add' ? 'kept' : 'discarded'));
@@ -1210,7 +1233,8 @@ function render(): void {
         case 'offer': {
             head('offerHead');
             intent();
-            html('p', '', body, text('question'));
+            view.gap && html('p', 'aiGap', body, view.gap);
+            html('p', '', body, view.gap ? text('questionGap') : text('question'));
             const label = html('label', 'aiLabel', body, text('sentenceLabel'));
             label.setAttribute('for', 'aiSentence');
             ui.sentence = html('input', 'aiSentence', body);
@@ -1283,7 +1307,7 @@ function render(): void {
         }
         case 'empty':
             head(view.phase === 'insufficient' ? 'insufficientHead' : 'emptyHead');
-            html('p', '', body, view.phase === 'insufficient' ? view.message : text('empty'));
+            html('p', '', body, view.phase === 'insufficient' ? view.message : view.phase === 'tested' ? text('emptyTested') : text('empty'));
             note(text('again'));
             break;
         case 'stale': {
@@ -1373,10 +1397,12 @@ function renderResults(body: Element, head: (key: string) => any, note: (s: stri
     const flagged = batch.candidates.filter((c) => c.state === 'flagged');
     if (failed.length) {
         const one = failed.length === 1;
-        html('p', 'aiQuestion', body, one ? text('askFixOne') : text('askFix'));
+        html('p', 'aiQuestion', body, FIX_TESTS ? (one ? text('askFixOne') : text('askFix')) : one ? text('askAddOne') : text('askAdd'));
         shown.some((c) => c.state === 'passed') && note(text('askFixNote'));
         const row = buttons();
-        button(row, one ? text('fixIt') : text('fixThem'), 'btn-primary aiFix', () => answerFailed('failed', 'fix'));
+        FIX_TESTS
+            ? button(row, one ? text('fixIt') : text('fixThem'), 'btn-primary aiFix', () => answerFailed('failed', 'fix'))
+            : button(row, text('addAnyway'), 'btn-primary aiAddAnyway aiAddFailed', () => answerFailed('failed', 'add'));
         button(row, one ? text('discardIt') : text('discardThem'), 'btn-default aiDiscardFailed', () => answerFailed('failed', 'discard'));
     } else if (batch.candidates.some((c) => c.state === 'fix')) {
         note(text('fixChosen'));

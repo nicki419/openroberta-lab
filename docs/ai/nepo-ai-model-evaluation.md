@@ -221,6 +221,36 @@ A session with the Lab itself (test account `nick`, program B) showed three prob
    **Fixed:** long or many problems are now shortened, not refused.
 3. **The fix took 177 s** at low (28,783 output tokens), close to both the 180 s timeout and the 32,000-token cap.
 
+### E7: Tests that repeat the learner's
+
+In a later session (program B, extended with dim light and side walls), two of the four new tests repeated the
+learner's own line-following tests:
+- the same world and checks;
+- starts only 0.1 to 2 cm from theirs.
+
+Infer had correctly named what was missing (`not_covered`: turning away from walls in dim light). That sentence was
+never passed on, though, so generate wrote tests for the whole intent again. The existing duplicate check only catches
+exact copies.
+
+**The change:**
+- `not_covered` goes to analyze and generate.
+- A rule in `tests.md`: what one of the learner's tests already tests is deferred as `tested by "<their test>"`, and a
+  test that differs from one of theirs only in its numbers counts as the same.
+
+**The check:** the generate call that repeated the tests (telemetry line 129) was replayed three times each on
+DeepSeek at `none`:
+- with the old context pack (from git) and the old prompt;
+- with the new pack and the new prompt line.
+
+| | Tests of the line following (the learner has 2) | Deferrals "tested by" |
+|---|---|---|
+| Old rules | 4, 2, 1 (two named exactly as the learner's) | 0, 0, 0 |
+| New rules | 0, 0 (the third answer was broken JSON) | 10 of 17, 8 of 14 |
+
+With the new rules, the tests went to what was missing: the obstacle stop and the walls in dim light. The broken
+answer led to one more change: an answer that can't be read is now asked for once more by itself (`callReadable`),
+since it can't be repaired.
+
 ## Summary
 
 | | DeepSeek | UCloud |
@@ -338,6 +368,7 @@ Each folder has the scripts and their raw outputs:
 | `e5-low-vs-none/` | `replay3.py`, `run.sh`, `evaluate.py` (the port of the Lab's checks), `evaluation.txt`, `run.log`, `out/` (48 calls) |
 | `validity-check/` | `sanity.py`, `sanity.txt`: the port against the Lab's verdict on a logged answer |
 | `e6-live-session/` | `today.py`, `today.txt`: the live session's events; `fix_times.py` |
+| `e7-learners-tests-count/` | `dup_check.py` (old against new rules), `dup_summary.py`, `summary.txt`, `out_*.json` |
 
 Each raw output holds the prompt that was sent, the answer, the time and the tokens. The prompts are read from the
 telemetry (`admin/levelTelemetry/`, lines as above), and the system prompt of version `bf36cb82ed98` is

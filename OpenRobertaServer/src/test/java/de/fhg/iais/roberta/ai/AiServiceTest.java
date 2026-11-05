@@ -519,6 +519,31 @@ public class AiServiceTest {
     }
 
     @Test
+    public void analyzeAndGenerateGetWhatTheLearnersTestsDontCheckYet() throws Exception {
+        // 2026-11-05: without it, every offer wrote the line-following tests the learner already had again
+        String gap = "No test checks that your robot turns away from a wall on its left when the light is dim.";
+        script(200, completion(analyzeAnswer(), "stop"));
+        script(200, completion(generateAnswer(), "stop"));
+        script(200, completion(inferAnswer(), "stop"));
+        AiService service = service(KEY);
+        JSONObject data = data().put("intent", "Follow the line.").put("sentence", JSONObject.NULL).put("decisions", decisions()).put("notCovered", gap);
+        Assert.assertTrue(service.call(AiService.ANALYZE, 7, data).ok);
+        Assert.assertTrue(service.call(AiService.GENERATE, 7, new JSONObject(data.toString()).put("analysis", analyzeAnswer())).ok);
+        Assert.assertTrue(service.call(AiService.INFER, 7, data().put("notCovered", gap)).ok);
+        String line = "What the learner's tests don't check yet (your guess): \"" + gap + "\"\n";
+        for ( int i = 0; i < 2; i++ ) {
+            String prompt = new JSONObject(this.requests.get(i).getString("body")).getJSONArray("messages").getJSONObject(1).getString("content");
+            Assert.assertTrue(prompt, prompt.endsWith("The learner wrote no sentence.\n" + line));
+        }
+        String infer = new JSONObject(this.requests.get(2).getString("body")).getJSONArray("messages").getJSONObject(1).getString("content");
+        Assert.assertFalse(infer.contains("don't check yet")); // infer finds the gap itself
+        script(200, completion(generateAnswer(), "stop"));
+        Assert.assertTrue(service.call(AiService.GENERATE, 7, data().put("intent", "Drive.").put("notCovered", String.join("", Collections.nCopies(400, "x")))).ok);
+        String cut = new JSONObject(this.requests.get(3).getString("body")).getJSONArray("messages").getJSONObject(1).getString("content");
+        Assert.assertTrue(cut.endsWith("(your guess): \"" + String.join("", Collections.nCopies(AiPrompts.MAX_GUESS, "x")) + "\"\n")); // cut, not refused
+    }
+
+    @Test
     public void theAiCallsTrustTheUniversitysRootBesidesTheJdks() {
         // 2026-11-05: JDK 13.0.2 doesn't trust HARICA, which signs SDU's certificate: every call went to the fallback ("PKIX path building failed")
         javax.net.ssl.X509TrustManager trust = DeepSeekClient.trustManager();

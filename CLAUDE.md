@@ -141,9 +141,11 @@ their tests, **never the level** (no title, instructions or world): it draws eac
 context pack in `OpenRobertaServer/src/main/resources/ai/`. Its test JSON becomes Tests-tab blocks through
 `nepoTest.aiFormat.ts`, checked and repaired by `nepoTest.ai.ts`. The assistant's panel sits to the right of the levels'
 simulator (`levels.aiAssistant.ts`): a run of a changed program brings a guess and an offer, and the learner reviews the
-tests. The tests they keep run on the simulator before they are added (`nepoTest.ai` `runTests`). For those that fail,
-the learner chooses: the model gets how they ran and fixes them, or says the program is wrong (`fix`; the learner then
-adds such a test anyway or discards it), or they are discarded. Nothing is added until every failed test is decided, and
+tests. The tests they keep run on the simulator before they are added (`nepoTest.ai` `runTests`). For those that fail
+or aren't checked, the learner chooses "Add anyway" (a failing test can show what the program doesn't do yet) or
+"Discard"; the model's fix (`fix`: it fixes the tests or says the program is wrong) is switched off (`FIX_TESTS` in
+`levels.aiAssistant.ts`), its code kept. If the learner has tests, the offer and the new tests are about what theirs
+don't check yet (the guess's `not_covered`; generate defers the rest as `tested by`). Nothing is added until every failed test is decided, and
 in the Tests tab the added tests don't run by themselves. It is switched on and off in the Edit menu, per test subject on the server
 (`/rest/ai/switch`). The learner's sentences are saved with the program (`nepoAi_notes`). Its events go into the study's
 telemetry, and every telemetry event says whether the AI was on (`ai`). Read it before changing the prompt, the test

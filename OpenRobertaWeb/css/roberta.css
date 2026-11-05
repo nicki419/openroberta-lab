@@ -876,6 +876,14 @@ body.blocklyMinimalBody * {
     color: #555;
 }
 
+/* the offer: what the learner's tests don't check yet */
+.aiBody p.aiGap {
+    margin: 4px 0 8px;
+    padding-left: 8px;
+    border-left: 3px solid #f0ad4e;
+    font-size: 13px;
+}
+
 .aiAssumptions summary {
     cursor: pointer;
 }

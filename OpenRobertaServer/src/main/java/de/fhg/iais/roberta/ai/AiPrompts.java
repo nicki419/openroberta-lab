@@ -16,6 +16,7 @@ import org.json.JSONObject;
  *  infer:    declined: the guess the learner declined (or null)
  *  analyze:  decisions: [{id: D1, block: b7, kind: if | wait | while, label, outcomes: [{id: D1.1, outcome}, ...]}] (the browser finds them in
  *            the program's blocks: nepoTest.aiStrategy decisionIndex), intent: the guess, sentence: the learner's sentence (or null),
+ *            notCovered: what the learner's tests don't check yet (the guess's not_covered; only if they have tests, or null),
  *            repair: {answer: the answer with problems, problems: ["...", ...]} (or null)
  *  generate: as analyze, and analysis: the checked answer of analyze
  *  fix:      as generate, and fix: {tests: the failed tests as test JSON, each world in full,
@@ -129,6 +130,10 @@ public final class AiPrompts {
             m.append(fix ? "## Task: fix\n\n" : AiService.ANALYZE.equals(task) ? "## Task: analyze\n\n" : "## Task: generate\n\n");
             m.append("The intent you guessed: ").append(quote(limited("the intent", intent, MAX_GUESS))).append('\n');
             m.append(sentence == null ? "The learner wrote no sentence.\n" : "The learner's sentence: " + quote(limited("the sentence", sentence, MAX_SENTENCE)) + "\n");
+            String notCovered = optText(data, "notCovered"); // the guess's not_covered, sent when the learner has tests: cut, not refused
+            if ( !fix && notCovered != null ) {
+                m.append("What the learner's tests don't check yet (your guess): ").append(quote(line(notCovered, MAX_GUESS))).append('\n');
+            }
             if ( fix ) {
                 appendFix(m, data.optJSONObject("fix"));
             }

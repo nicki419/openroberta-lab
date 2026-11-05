@@ -197,8 +197,14 @@ as another one; keep the one that is easier to understand. Share a world between
 one floor. Never leave out the only test of an outcome, of a class or of a side of a boundary. Say what you merged in
 `consolidation_notes`. **At most 8 tests**, in at most 3 worlds; what doesn't fit is deferred with the reason.
 
-- **No duplicates**: don't write a test that checks the same as one the learner already has (the same world, start,
-  set-up and checks).
+- **The learner's tests count: write only what they don't test yet.** A scenario, outcome, class or boundary side that
+  one of the learner's tests already tests gets no new test: defer it with the reason `tested by "<their test's
+  name>"` (`deferred_scenarios`, `deferred_branch_ids`, `deferred_inputs`). A test that differs from one of theirs only
+  in its numbers tests the same and is left out: a start a little to one side but in the same situation (on the same
+  side of the line's edge, the same wall in the sensor's range, the same light), another time or `max_time_ms`, a world
+  drawn anew with the same things. "What the learner's tests don't check yet" in the task says what is missing; write
+  your tests for that, and for whatever else none of their tests checks. If their tests check everything, answer with
+  no tests and `generation_status` `no_valid_scenarios`, everything deferred as tested by theirs.
 - Only `never_touches` if the world has a fail area, only `never_bumps` with an `item` that is an obstacle or wall,
   only `variable` with a global variable the program declares.
 
