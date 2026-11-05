@@ -112,7 +112,7 @@ The answer around the worlds:
 | `after` | `event`; `within_ms` (at least 1); `does` | after each such event, within `within_ms`, the robot does `does` at least once |
 | `variable` | `variable` (its NEPO name), `op` (`EQ`, `NEQ`, `LT`, `LTE`, `GT`, `GTE`), `value` | when the run ends, the global variable compares so with `value` |
 
-- `does`: `drives_forward`, `drives_backward` (at least 1 cm/s along the heading), `turns_left`, `turns_right` (at
+- `does`: `drives_forward`, `drives_backward` (at least 1 cm/s along the heading, over half a second: a robot that wiggles along a line drives forward), `turns_left`, `turns_right` (at
   least 10°/s; a curve counts as driving and turning), `stands_still` (neither), `left_led_on`, `left_led_off`,
   `right_led_on`, `right_led_off`, `leds_on`, `leds_off` (both LEDs), `plays_sound`, `silent`.
 - `when` (what the sensors measure, whether or not the program reads them): `line`, `no_line` (the line tracker sees

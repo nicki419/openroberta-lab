@@ -565,7 +565,7 @@ no `expect`. (Until 2026-10-26, a simulation test had a world of its own, and it
 
 The checks of behaviour (`nepoTest.simBehaviour.ts`; Tests tab: `nepo-test-blocks.md` §5) are decided when the run has
 ended, from its record:
-- `does`: `drives_forward`, `drives_backward` (at least 1 cm/s along the heading), `turns_left`, `turns_right` (at
+- `does`: `drives_forward`, `drives_backward` (at least 1 cm/s along the heading, over half a second around each frame: a robot that wiggles along a line drives forward), `turns_left`, `turns_right` (at
   least 10°/s), `stands_still` (neither), `left_led_on`, `left_led_off`, `right_led_on`, `right_led_off`, `leds_on`,
   `leds_off` (both), `plays_sound`, `silent`. The motion of a frame is the change of the robot's pose in it (near a
   bump: over 100 ms, the bump's jitter cancels out).

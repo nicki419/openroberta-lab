@@ -17,6 +17,11 @@
 import * as PROGRAM from 'nepoTest.simProgram';
 
 export const MOVING_CM_S = 1; // slower along its heading: it doesn't drive (the Edison at 10 % drives 3.5 cm/s)
+/**
+ * driving forward or backward is judged over this long around a frame (its distance along its heading, over the time): a line follower that wiggles
+ * along the line (short turns on the spot between its drives, 2026-11-05) drives forward, although in the frames of its turns it doesn't move
+ */
+export const DRIVING_WINDOW_MS = 500;
 export const TURNING_DEG_S = 10; // slower: it doesn't turn (a curve whose wheels differ by 4 % turns faster)
 export const KINDS = ['does', 'whenever', 'after', 'variable'];
 // after_ms when a check has none (NepoTest/nepotest/simulation.py): "does" gives the robot a moment to get going; "whenever": the program
@@ -33,6 +38,7 @@ export interface Moment {
     x: number; // cm
     y: number;
     v: number; // cm/s along its heading (forward positive)
+    vd: number; // cm/s along its heading over DRIVING_WINDOW_MS around the frame: what drives_forward and drives_backward are judged by
     w: number; // degrees/s, counterclockwise (left) positive
     leds: boolean[]; // left, right
     tone: boolean;
@@ -46,7 +52,7 @@ export function moments(rec: PROGRAM.Recorder): Moment[] {
     }
     const frames = [first].concat(rec.frames.filter((f, i) => f.t > (i ? rec.frames[i - 1].t : first.t)));
     const bumped = (i: number) => i < frames.length && frames[i].bump !== undefined;
-    const out: Moment[] = [{ t: first.t, dt: 0, x: first.x, y: first.y, v: 0, w: 0, leds: first.leds, tone: first.tone, sensors: first.sensors || {} }];
+    const out: Moment[] = [{ t: first.t, dt: 0, x: first.x, y: first.y, v: 0, vd: 0, w: 0, leds: first.leds, tone: first.tone, sensors: first.sensors || {} }];
     for (let i = 1; i < frames.length; i++) {
         const f = frames[i];
         const k = bumped(i) || bumped(i + 1) ? Math.min(BUMP_FRAMES, i, frames.length - 1 - i) : 0;
@@ -61,11 +67,31 @@ export function moments(rec: PROGRAM.Recorder): Moment[] {
             x: f.x,
             y: f.y,
             v: (ahead * 1000) / dt,
+            vd: 0,
             w: ((b.h - a.h) * 1000) / dt,
             leds: f.leds,
             tone: f.tone,
             sensors: f.sensors || {},
         });
+    }
+    // vd: the distance along the heading over the frames within DRIVING_WINDOW_MS / 2 before and after (fewer at the run's beginning and end), per s
+    const along: number[] = [0]; // the distance along the heading up to the end of each frame, cm
+    for (let i = 1; i < out.length; i++) {
+        along.push(along[i - 1] + (out[i].v * out[i].dt) / 1000);
+    }
+    const half = DRIVING_WINDOW_MS / 2;
+    let lo = 0;
+    let hi = 0;
+    for (let i = 1; i < out.length; i++) {
+        while (out[lo].t < out[i].t - half) {
+            lo++;
+        }
+        while (hi + 1 < out.length && out[hi + 1].t <= out[i].t + half) {
+            hi++;
+        }
+        const from = Math.max(0, Math.min(lo, i) - 1); // the end of the frame before the window's first
+        const span = out[Math.max(hi, i)].t - out[from].t;
+        out[i].vd = span > 0 ? ((along[Math.max(hi, i)] - along[from]) * 1000) / span : out[i].v;
     }
     return out;
 }
@@ -82,8 +108,8 @@ interface Does {
 
 /** what a check says the robot does (in the reports' English: now, in the past, after "did not") */
 export const DOES: { [name: string]: Does } = {
-    drives_forward: { now: 'drives forward', past: 'drove forward', base: 'drive forward', kind: 'motion', holds: (m) => m.v >= MOVING_CM_S },
-    drives_backward: { now: 'drives backward', past: 'drove backward', base: 'drive backward', kind: 'motion', holds: (m) => m.v <= -MOVING_CM_S },
+    drives_forward: { now: 'drives forward', past: 'drove forward', base: 'drive forward', kind: 'motion', holds: (m) => m.vd >= MOVING_CM_S },
+    drives_backward: { now: 'drives backward', past: 'drove backward', base: 'drive backward', kind: 'motion', holds: (m) => m.vd <= -MOVING_CM_S },
     turns_left: { now: 'turns left', past: 'turned left', base: 'turn left', kind: 'motion', holds: (m) => m.w >= TURNING_DEG_S },
     turns_right: { now: 'turns right', past: 'turned right', base: 'turn right', kind: 'motion', holds: (m) => m.w <= -TURNING_DEG_S },
     stands_still: {

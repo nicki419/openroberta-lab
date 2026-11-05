@@ -674,7 +674,7 @@ suite is loaded.
 **Checks of behaviour** (`nepoTest.simBehaviour.ts`): what the robot does, decided from the run's record when the run
 has ended. A test can check only its behaviour (no area at all).
 - **What it does** is measured in every frame (1/60 s) from how the robot really moved in the simulator, its position
-  and heading: *drives forward / backward* (at least 1 cm/s along its heading; 10 % power is 3.5 cm/s), *turns left /
+  and heading: *drives forward / backward* (at least 1 cm/s along its heading, over half a second around each frame, so a robot that wiggles along a line drives forward; 10 % power is 3.5 cm/s), *turns left /
   right* (at least 10°/s: a curve whose wheels differ by 4 % turns faster), *stands still* (neither). Curving left is
   driving forward and turning left. And its LEDs (on, off; left, right, both) and its sound (a tone or a sound file).
   A robot that drives against an obstacle jitters from frame to frame (the simulator turns the bumped wheel back): near a

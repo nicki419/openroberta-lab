@@ -78,7 +78,7 @@
    "properties": {
     "check": {"enum": ["reaches", "never_touches", "ends_in", "never_bumps", "does", "whenever", "after", "variable"]},
     "does": {"enum": ["drives_forward", "drives_backward", "turns_left", "turns_right", "stands_still", "left_led_on", "left_led_off", "right_led_on", "right_led_off", "leds_on", "leds_off", "plays_sound", "silent"],
-             "description": "what the robot does (does, whenever, after): driving and turning from its position and heading (forward: at least 1 cm/s along its heading; turning: at least 10 degrees/s), its LEDs, its sound"},
+             "description": "what the robot does (does, whenever, after): driving and turning from its position and heading (forward: at least 1 cm/s along its heading, over half a second; turning: at least 10 degrees/s), its LEDs, its sound"},
     "after_ms": {"type": "number", "minimum": 0, "description": "does: from when on (default 100); whenever: how long the condition must have held, the time to react (default 0: the program reacts in the frame after it sensed something)"},
     "when": {"enum": ["line", "no_line", "obstacle_ahead", "obstacle_left", "obstacle_right", "no_obstacle", "left_light_below", "left_light_above", "right_light_below", "right_light_above", "sound", "play_key", "rec_key"]},
     "percent": {"type": "number", "minimum": 0, "maximum": 100, "description": "the light conditions: below / above this %"},
