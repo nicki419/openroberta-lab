@@ -44,7 +44,7 @@ This document covers:
 | What | Where |
 |---|---|
 | REST: `POST /rest/ai/infer`, `POST /rest/ai/analyze`, `POST /rest/ai/generate`, `POST /rest/ai/fix` (the usual request envelope; the response has `answer`, `meta`, or `aiError` and `aiMessage`) | `javaServer/restServices/all/controller/AiController`, `AiResponse` |
-| the calls: limits per session (one of each kind at a time, but 6 generates; 60 infers, 30 analyses, 150 generates, 30 fixes per hour), the context pack first, the answer checked for its shape, the `ai_call` event; analyze and fix as generate (180 s, at most 32,000 tokens with the reasoning, repairs); each call its own effort per API; every call's meta has `contract` (`AiService.CONTRACT`, 1.1) | `ai/AiService` |
+| the calls: limits per session (one of each kind at a time, but 6 generates; 60 infers, 30 analyses, 150 generates, 30 fixes per hour), the context pack first, the answer checked for its shape, the `ai_call` event; analyze and fix as generate (180 s, at most 32,000 tokens with the reasoning, repairs); each call its own effort per API; every call's meta has `contract` (`AiService.CONTRACT`: 1.2 since 2026-11-05, with `tested_by` and one generate call per scenario; 1.1 before) | `ai/AiService` |
 | the per-call message (`## The program`, `## The program's decisions` (not for infer), `## The learner's tests`, `## What the learner said before`, `## The analysis` (generate, fix), `## Task: …`), the trimming of NEPO XML (positions, configuration and the start block's `<data>` go; the block ids stay) and EdPy, the answer checks (`checkAnalyze`: status, intent, arrays; `checkGenerate`: no worlds only with `generation_status` `no_valid_scenarios`; `checkFix`: `worlds`, `program_wrong` and `doubtful`, not all empty) | `ai/AiPrompts` |
 | the model's chat API (OpenAI-compatible): JSON mode, reasoning effort, timeouts (infer 20 s; analyze, generate and fix 180 s), one more try after 429, 5xx or no connection; the reasoning from `reasoning_content` (DeepSeek) or `reasoning` (UCloud's vLLM) | `ai/DeepSeekClient` |
 | **two APIs, the same model** (DeepSeek-V4.1-Flash), asked in the order of `AI_PROVIDERS` (since 2026-11-05: DeepSeek's own API first, SDU's UCloud as the backup; before that the other way round). A call without an answer from the first (it can't be reached, doesn't answer in time, or an HTTP error) is made again at the next, and for the next 5 minutes the first is asked last (`COOL_DOWN_MS`). An answer that can't be used (cut off, not the JSON asked for) isn't made again: the browser repairs it. A timeout of the first followed by the next can make a call take up to 6 minutes | `ai/AiService` `order`; `AiServiceTest withoutAnAnswerFromTheFirst…`, `aTimeoutOfTheFirstGoesToTheNext`, `anAnswerThatCantBeUsedIsNotAskedAgainAtTheNext` |
@@ -186,7 +186,14 @@ by the model and checked by code:
   scenario's part of the analysis (`analysisFor`: its paths, outcomes, classes and boundaries).
 - **The merge:** worlds with the same name are told apart ("… 2"), duplicates across the calls are left out, and the
   coverage plan is computed for the whole analysis. The `tested_by` scenarios and their outcomes are deferred as
-  `tested by "<their tests>"` (`testedDeferrals`). It is not ok only if every call failed.
+  `tested by "<their tests>"` (`testedDeferrals`).
+- **When a call fails:** one refused as `busy` (more at once than the server allows) runs again after the others,
+  one after the other. Without any test, a failed call makes the whole an error ("Try again"), not "No new tests".
+- **A test of another scenario** is left out with "this call writes tests only for scenario S1 (see the task)" (the
+  `only` of `checkTests`), not with the other problems it would have against the wrong part of the analysis.
+- **The server must match:** browser code that makes one call per scenario needs a server of contract 1.2. With an
+  older server (2026-11-05: the frontend rebuilt, the jar not), two of three calls came back `busy`, and the one that
+  ran wasn't told its scenario. It wrote the tests of another, all were left out, and the panel said "No new tests".
 - **When nothing needs a call:** "Your tests already check what I would test".
 - **Telemetry:** `ai_tests_generated` has `scenarioCalls` (per call: its tests, what was left out, repairs, calls,
   error) and `testedBy`.
@@ -195,9 +202,19 @@ by the model and checked by code:
   - it repeated the learner's tests and placed things off the robot's way;
   - at effort low it ran into the 32,000-token cap after 3 minutes.
 
-  Presets since then: analyze `none`, generate `low` (`docs/ai/nepo-ai-model-evaluation.md`, E8). The context pack
-  asks for a world per scenario with only what it needs, a start per test, and things placed on the robot's way
-  (`tests.md`, "A world for each scenario").
+  Presets: analyze and generate at `none` (generate at `low` took 2 to 3 minutes for a hard scenario;
+  `docs/ai/nepo-ai-model-evaluation.md`, E8 and E9).
+- **What the context pack asks:**
+  - a world per scenario with only what it needs, and a start per test;
+  - placement recipes counted from the start, for heading 0 (`tests.md`, "Place things from the start"): a wall
+    ahead (x + 8 seen at once, x + 10 just not), a box only the LEFT or RIGHT sensor sees, dim light by a tunnel
+    around the start;
+  - "count from the start, never back from a thing";
+  - in `simulator.md`, the sensors' zones (all three look forward).
+- **Two checks are looser than TGA §8:** a planned outcome must be an outcome of the program, not necessarily of the
+  test's paths (a run takes outcomes on its way: a wall test drives with nothing ahead before it sees the wall). A
+  class or boundary must be one of the analysis' (`whole`), not necessarily of the test's paths. Both had left out
+  most good tests. A planned outcome that never happens still makes the test "not checked".
 
 **The semantics of a run:**
 - **Planned is not happened:** after the check run, `seenIn` counts each outcome from the run report's `trace`, where
@@ -467,7 +484,7 @@ deleted. The Test runner's `test_run` said that 1 AI test ran (edited) and passe
 - **Writing takes two calls:** analyze (at low), then generate (at none since 2026-11-05). That is about 67 s at
   DeepSeek and 93 s at UCloud (medians); with both at low it was about 2 and 2¾ minutes. At low, an analysis is 6,000
   to 26,000 output tokens, because the model reasons long before it answers; one took 147 s at DeepSeek. The panel
-  says "Usually 1 to 2 minutes"; for a fix (still at low), "Usually under a minute, sometimes up to 3" (fixes took 2
+  says "Usually under a minute" (with analyze and generate at none, about 35 s); for a fix (still at low), "Usually under a minute, sometimes up to 3" (fixes took 2
   to 33 s, but one took 177 s at DeepSeek, 28,800 tokens, near both the token cap and the timeout). At UCloud, low
   and high make no measurable difference.
 - **Generate at none plans less of the boundaries:** in the evaluation, the test at exactly the count of 3 claps was

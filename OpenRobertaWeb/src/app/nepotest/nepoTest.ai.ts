@@ -65,6 +65,8 @@ export interface Strategy {
     index: STRATEGY.Index;
     analysis: any;
     maxTests?: number; // one generate call of several: its share of STRATEGY.MAX_TESTS
+    only?: string[]; // … and the scenarios it writes (the analysis is their part)
+    whole?: any; // … and the whole analysis (the classes and boundaries a test may name)
 }
 
 /** at most so many generate calls at once (the server's AiService.GENERATE_AT_ONCE) */
@@ -229,16 +231,27 @@ export async function generate(request: Request, intent: string, sentence: strin
     const data = strategyData(request, intent, sentence, strategy.index, strategy.analysis);
     const maxTests = Math.max(2, Math.floor(STRATEGY.MAX_TESTS / Math.max(1, todo.write.length)));
     const results: Generated[] = new Array(todo.write.length);
+    const one = (i: number) => {
+        const id = todo.write[i];
+        const part: Strategy = { index: strategy.index, analysis: STRATEGY.analysisFor(strategy.analysis, [id]), maxTests: maxTests, only: [id], whole: strategy.analysis };
+        return written('generate', Object.assign({}, data, { scenarios: [id], maxTests: maxTests }), ctx, programXml, null, part, sentence);
+    };
     let next = 0;
     const worker = async () => {
         while (next < todo.write.length) {
             const i = next++;
-            const id = todo.write[i];
-            const part: Strategy = { index: strategy.index, analysis: STRATEGY.analysisFor(strategy.analysis, [id]), maxTests: maxTests };
-            results[i] = await written('generate', Object.assign({}, data, { scenarios: [id], maxTests: maxTests }), ctx, programXml, null, part, sentence);
+            results[i] = await one(i);
         }
     };
     await Promise.all(Array.from({ length: Math.min(GENERATE_AT_ONCE, todo.write.length) }, worker));
+    // refused because too many ran at once (a server that allows fewer, or another page of the session): again, one after the other
+    for (let i = 0; i < results.length; i++) {
+        if (!results[i].ok && results[i].error === 'busy') {
+            const calls = results[i].calls;
+            results[i] = await one(i);
+            results[i].calls = calls.concat(results[i].calls);
+        }
+    }
     return merged(results, todo, maxTests, strategy, ctx);
 }
 
@@ -325,6 +338,13 @@ function merged(results: Generated[], todo: { write: string[]; tested: { id: str
     out.plan = STRATEGY.planOf(out.worlds, strategy.analysis, strategy.index, answer);
     const tests = out.worlds.reduce((n, w) => n + w.tests.length, 0);
     out.status = tests ? 'ready_for_review' : !todo.write.length || results.every((r) => !r.ok || r.status === 'no_valid_scenarios') ? 'no_valid_scenarios' : 'partial';
+    const failed = results.filter((r) => !r.ok);
+    if (!tests && failed.length) {
+        // no tests, and a scenario's call failed: an error ("Try again"), not "no new tests"
+        out.ok = false;
+        out.error = failed[0].error;
+        out.message = failed.length + ' of ' + results.length + ' calls failed: ' + failed[0].message;
+    }
     return out;
 }
 
@@ -443,7 +463,7 @@ async function checkWritten(
     if (!fixing) {
         const none = answer && answer.generation_status === 'no_valid_scenarios' && Array.isArray(answer.worlds) && !answer.worlds.length;
         const checked = none ? { worlds: [] as FORMAT.Resolved[], problems: [] as FORMAT.Problem[] } : await check(answer, ctx, programXml, prefix);
-        const problems = checked.problems.concat(STRATEGY.checkTests(answer, checked.worlds, strategy.analysis, strategy.index, sentence, false, strategy.maxTests));
+        const problems = checked.problems.concat(STRATEGY.checkTests(answer, checked.worlds, strategy.analysis, strategy.index, sentence, false, strategy.maxTests, strategy.only, strategy.whole));
         return { worlds: checked.worlds, problems: problems, programWrong: [], doubtful: [] };
     }
     const names = fixing.map((r) => r.test.name);

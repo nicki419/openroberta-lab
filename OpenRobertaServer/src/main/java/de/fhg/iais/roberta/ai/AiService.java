@@ -61,8 +61,11 @@ public class AiService {
     public static final String GENERATE = "generate";
     public static final String FIX = "fix";
     public static final String ANALYZE = "analyze";
-    /** the version of the answers' contracts (docs/tests: AnalysisAgent and TestGenerationAgent 1.1; the fix's own) */
-    public static final String CONTRACT = "1.1";
+    /**
+     * the version of the answers' contracts (docs/tests: AnalysisAgent and TestGenerationAgent 1.1; the fix's own). 1.2 (2026-11-05): analyze says
+     * which of the learner's tests test each scenario (tested_by), and generate writes the scenarios its task names (one call per scenario)
+     */
+    public static final String CONTRACT = "1.2";
     private static final int MAX_REASONING = 200000; // characters of the reasoning kept in the telemetry (32,000 tokens are about 130,000)
     public static final String PROMPTS_DIR = "ai-prompts"; // in the telemetry folder: the system prompt of each promptVersion
     public static final long COOL_DOWN_MS = 5 * 60 * 1000; // after the first API failed, it is asked last for so long

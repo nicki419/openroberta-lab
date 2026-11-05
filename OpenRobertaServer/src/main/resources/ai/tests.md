@@ -141,6 +141,23 @@ The answer around the worlds:
   from the start.
 - **Starts** must be on the floor, with the whole robot (8 × 7.5 cm, from 1.8 cm behind to 6.2 cm in front of the
   start) clear of obstacles and walls, and not touching a goal or fail area.
+- **Place things from the start, with heading 0** (facing right, towards larger x) unless the scenario needs another
+  heading. For a start at (x, y):
+  - **A wall ahead** (all three obstacle sensors see it): a `rect` with its left edge at x + 8 (seen at once; x + 10:
+    just not seen; further: the robot drives up to it), `y` = y − 6, `w` 2, `h` 12.
+  - **Something only the LEFT sensor sees** ("a wall on the left"): a `rect` at x + 7, y − 4.5, `w` 2, `h` 2.5; just
+    out of reach: at x + 9.5. **Only RIGHT**: the same at y + 2. **Both, not FRONT**: both boxes. Not a wall beside
+    the robot: the sensors look forward, and they don't see a wall along the robot's side.
+  - **Dim light** (the light sensors are 5.5 cm ahead of the start): a straight `tunnel`, `width` 15, `points`
+    [[x − d, y], [x + 40, y]], with the start in its middle: the sensors are d + 5.5 cm inside. d = 10 gives 40 %;
+    for "just below / above p %" make d + 5.5 one cm more or less than (100 − p) / 4. Its walls run along the robot:
+    the obstacle sensors don't see them. Boxes for LEFT or RIGHT fit inside it.
+  - **Count from the start, never back from a thing.** Each test that needs something at a set distance gets its own:
+    first its start, then its thing by the numbers above. Start B at (130, 100) with a wall seen at once: the wall's
+    `x` is 138; start C at (130, 160) with a wall just not seen: its `x` is 140. Don't draw one wall for several tests
+    and work out their starts from it.
+  - Each test of a world its own start, each with what its scenario needs in front of it; tests that need different
+    things in front of them start at different places of the floor (at least 30 cm apart).
 - New ids: items `t1`, `t2`, …; starts `A`, `B`, … with the same letter as `name`.
 
 ## How to choose the tests: four steps, in this order

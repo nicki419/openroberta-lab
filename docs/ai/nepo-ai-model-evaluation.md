@@ -290,6 +290,45 @@ Across all five calls:
 minutes at DeepSeek. The hard scenario at UCloud (187 s) would exceed the 180 s timeout, and then be asked again at
 DeepSeek.
 
+### E9: One call per scenario at effort none, with placement recipes
+
+Generate at `low` (E8) takes too long for the study, so generate runs at `none`. The same replay as E8 at `none`
+(`e9-none-with-recipes/`):
+- **Time:** every call took 13–23 s, so with the calls in parallel and analyze at `none`, writing takes about 35 s.
+- **What one call per scenario fixed on its own:** no call wrote tests for another scenario, none repeated the
+  learner's tests, and the wall-ahead worlds held only a wall.
+- **What was still wrong:** the side walls of the dim-light scenario (walls 32 cm ahead instead of beside, a start
+  that doesn't exist, four tests at one start).
+- **Two over-strict checks** left out most of the tests: "planned outcome not on its paths" (a wall test plans
+  "nothing ahead" while it drives up to the wall) and "dimension not of its paths" (an input of another path). They
+  had left out most tests of program B in E5 too, at every effort and on both APIs.
+
+**The changes:**
+1. **The checks relaxed:** a planned outcome must be an outcome of the program, and an input class or boundary must
+   be one of the analysis, not necessarily of the test's own paths. This deviates from TGA §8, which ties both to the
+   test's paths. "Not checked" still shows a planned outcome that never happens.
+2. **Placement recipes:**
+   - **Facts in `simulator.md`:** the three obstacle sensors all look forward, and the analysis' "a wall on the
+     left" is something in front of the robot's left half. The zones of LEFT, FRONT and RIGHT for heading 0 (taken
+     from the simulator's geometry, `nepoTest.sim.ts`).
+   - **Recipes in `tests.md`, counted from the start:** a wall ahead (x + 8 seen at once, x + 10 just not), a box
+     only LEFT or RIGHT sees, dim light by a tunnel around the start.
+   - **"Count from the start, never back from a thing"**, after the model drew one wall and worked the starts out
+     wrongly from it.
+
+**The check** (a script tells, per test, which sensor sees something at its start, and whether the start is in the
+dark):
+
+| Scenario, at none | Runs | Right placement |
+|---|---|---|
+| S3: a wall on the left / right in dim light | 3 DeepSeek (1 broken JSON), 1 UCloud | 6/6 tests: only LEFT for "left", only RIGHT for "right", all at 40 % light |
+| S2: drives up to a wall | 6 | 6/6: nothing seen at the start |
+| S2: right in front of the wall (after "count from the start") | 5 | 4/5 seen at once (before: 2/4) |
+| S2: just out of sight | 4 | 2/4 not seen (one answer swapped near and far, one put it in reach) |
+
+The far side of the sensors' range (x + 10 against x + 8) is the one placement the model still gets wrong at
+`none`. A test placed wrong there still passes on a right program, but it doesn't test the boundary it claims.
+
 ## Summary
 
 | | DeepSeek | UCloud |
@@ -384,8 +423,11 @@ Configuration (`.env`; presets in `openRoberta.properties`):
   - after E5: infer `low`, analyze `low`, generate `none` (4 to 5 times faster, first answers as valid as at `low`),
     fix `low`;
   - after E8, with one generate call per scenario: infer `low`; analyze `none` (12 to 17 s and good enough, while at
-    `low` a hard program reasoned into the token cap); generate `low` (each call is about one scenario, so it
-    fits, and the tests are far better than at `none`); fix `low` (only tested there, and switched off in the panel).
+    `low` a hard program reasoned into the token cap); generate `low`; fix `low` (only tested there, and switched off
+    in the panel);
+  - after E9 (the current one): generate `none` as well. At `low`, one scenario's call took 2 to 3 minutes, too long
+    for the study; at `none`, with one call per scenario and the placement recipes, the tests are placed right but
+    for the far side of the sensors' range.
 
   The settings are `<NAME>_EFFORT_INFER`, `_ANALYZE`, `_GENERATE`, `_FIX`.
 - The panel says "Usually 1 to 2 minutes" for writing tests, and "Usually under a minute, sometimes up to 3" for a fix.
@@ -410,6 +452,7 @@ Each folder has the scripts and their raw outputs:
 | `e6-live-session/` | `today.py`, `today.txt`: the live session's events; `fix_times.py` |
 | `e7-learners-tests-count/` | `dup_check.py` (old against new rules), `dup_summary.py`, `summary.txt`, `out_*.json` |
 | `e8-one-call-per-scenario/` | `per_scenario.py` (the replay and its evaluation), `results.json` |
+| `e9-none-with-recipes/` | `per_scenario_effort.py`, `results_none.json` (before the recipes), `per_scenario_none.py` (with them, and the sensors' zones), `results.json`, `per_scenario_s2.py`, `results_s2_count.json` (after "count from the start") |
 
 Each raw output holds the prompt that was sent, the answer, the time and the tokens. The prompts are read from the
 telemetry (`admin/levelTelemetry/`, lines as above), and the system prompt of version `bf36cb82ed98` is

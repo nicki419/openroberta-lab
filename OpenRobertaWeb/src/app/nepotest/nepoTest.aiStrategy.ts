@@ -450,9 +450,31 @@ function realizationProblems(r: any, test: FORMAT.AiTest, world: FORMAT.Resolved
  * check, its blocks; then, for generate (not a fix), the answer: at most MAX_TESTS tests, every target outcome planned or deferred, every class and
  * both sides of every boundary tested or deferred, every scenario tested or deferred, the status.
  */
-export function checkTests(answer: any, worlds: FORMAT.Resolved[], analysis: any, index: Index, sentence: string, fix: boolean, maxTests: number = MAX_TESTS): FORMAT.Problem[] {
+export function checkTests(
+    answer: any,
+    worlds: FORMAT.Resolved[],
+    analysis: any,
+    index: Index,
+    sentence: string,
+    fix: boolean,
+    maxTests: number = MAX_TESTS,
+    only: string[] = null, // one generate call of several: the scenarios it writes (the analysis is their part)
+    whole: any = null // … and the whole analysis: a test's classes and boundaries may come from any of its paths
+): FORMAT.Problem[] {
     const problems: FORMAT.Problem[] = [];
     analysis = analysis || {};
+    // the classes and boundaries a test may name: those of every path of the (whole) analysis (2026-11-05: "dimension not of its paths" left out
+    // good tests on every effort and API, for a test of one path that needs an input of another: a bright floor in a test of stopping at a wall)
+    const named: { [d: string]: { classes: string[]; boundaries: string[] } } = {};
+    arrayOf((whole || analysis).scenario_paths).forEach((p: any) =>
+        arrayOf(p && p.input_dimensions).forEach((d: any) => {
+            if (d && isText(d.dimension)) {
+                const e = (named[d.dimension] = named[d.dimension] || { classes: [], boundaries: [] });
+                e.classes.push(...arrayOf(d.equivalence_classes));
+                e.boundaries.push(...arrayOf(d.boundary_candidates));
+            }
+        })
+    );
     const scenarios: { [id: string]: any } = {};
     arrayOf(analysis.scenarios).forEach((s: any) => s && (scenarios[s.id] = s));
     const dims = inputsOf(analysis);
@@ -462,6 +484,11 @@ export function checkTests(answer: any, worlds: FORMAT.Resolved[], analysis: any
             count++;
             const add = (message: string) => problem(problems, message, w.name, t.name);
             const s = scenarios[t.scenario_id];
+            if (!s && only && only.length) {
+                // a test of another scenario of the analysis: the rest of its problems would only be noise
+                add('this call writes tests only for scenario ' + only.join(', ') + ' (see the task): leave this test out; ' + (t.scenario_id || 'its scenario') + ' gets its own call');
+                continue;
+            }
             if (!s) {
                 add('scenario_id: there is no scenario "' + t.scenario_id + '" in the analysis');
             } else if (s.oracle_basis === 'unknown') {
@@ -471,26 +498,16 @@ export function checkTests(answer: any, worlds: FORMAT.Resolved[], analysis: any
             const ps = arrayOf(t.path_ids);
             ps.length || add('path_ids: name the paths of ' + (t.scenario_id || 'its scenario') + ' it follows');
             ps.forEach((p: string) => own.indexOf(p) < 0 && add('path_ids: "' + p + '" is not a path of scenario ' + t.scenario_id + ' (its paths: ' + (own.join(', ') || 'none') + ')'));
-            const paths = pathsOf(t, analysis);
-            const onPaths: string[] = [];
-            paths.forEach((p: any) => arrayOf(p.branch_ids).forEach((b: string) => onPaths.push(b)));
             Array.isArray(t.planned_branch_ids) || add('planned_branch_ids: the outcomes its run should take (a list, empty for a path without decisions)');
-            arrayOf(t.planned_branch_ids).forEach((b: string) => onPaths.indexOf(b) < 0 && add('planned_branch_ids: "' + b + '" is not on its paths (' + (onPaths.join(', ') || 'no outcomes') + ')'));
+            // any outcome of the program's decisions: a run takes outcomes on its way to the path's (2026-11-05: "D1.else is not on its paths" left out
+            // nearly every wall test, which drives with nothing ahead, D1.else, before it sees the wall); "not checked" shows if one never happens
+            arrayOf(t.planned_branch_ids).forEach((b: string) => !index.outcome[b] && add('planned_branch_ids: "' + b + '" is not an outcome of the program\'s decisions'));
             const sel = t.input_selection;
             if (!sel || !Array.isArray(sel.equivalence_partitions) || !Array.isArray(sel.boundary_values)) {
                 add('input_selection needs equivalence_partitions and boundary_values (lists; may be empty)');
             } else {
-                const ownDims: { [d: string]: { classes: string[]; boundaries: string[] } } = {};
-                paths.forEach((p: any) =>
-                    arrayOf(p.input_dimensions).forEach((d: any) => {
-                        if (d && isText(d.dimension)) {
-                            const e = (ownDims[d.dimension] = ownDims[d.dimension] || { classes: [], boundaries: [] });
-                            e.classes.push(...arrayOf(d.equivalence_classes));
-                            e.boundaries.push(...arrayOf(d.boundary_candidates));
-                        }
-                    })
-                );
-                const where = (d: string) => (ownDims[d] ? '' : 'dimension "' + d + '" is not one of its paths\' (' + (Object.keys(ownDims).map((x) => '"' + x + '"').join(', ') || 'none') + ')');
+                const ownDims = named;
+                const where = (d: string) => (ownDims[d] ? '' : 'dimension "' + d + '" is not one of the analysis\' (' + (Object.keys(ownDims).map((x) => '"' + x + '"').join(', ') || 'none') + ')');
                 for (const e of sel.equivalence_partitions) {
                     const bad = !e ? 'an empty class' : where(e.dimension) || (ownDims[e.dimension].classes.indexOf(e.class) < 0 ? 'class "' + e.class + '" is not one of "' + e.dimension + '" (' + ownDims[e.dimension].classes.map((c) => '"' + c + '"').join(', ') + ')' : '');
                     bad && add('input_selection: ' + bad);

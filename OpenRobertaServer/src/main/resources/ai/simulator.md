@@ -74,6 +74,10 @@ The simulator is exact and the same in every run, so a test close to one of thes
 - **The obstacle sensors' range**: an obstacle is seen while it is less than 3 cm ahead of the sensors, which are 6 cm
   ahead of the axle: an obstacle 8 cm ahead of a start is seen at once (just inside), one 10 cm ahead isn't (just
   outside). The robot's front is 6.2 cm ahead of the axle.
+- **Which obstacle sensor sees it**: all three look forward. For a start at (x, y) with heading 0 (facing right), each
+  sees from about x + 6 to x + 9, in a fan about 2.3 cm wide: LEFT from y − 3.8 to y − 1.5, FRONT from y − 1.2 to
+  y + 1.2, RIGHT from y + 1.5 to y + 3.8. A wall beside the robot, running along it, is seen by none of them; "a wall
+  on the left" for a program that reads LEFT is something in front of the robot's left half.
 - **Light under a tunnel's roof**: the light sensors read 100 % at an opening and 40 % from 15 cm inside on, linear in
   between (measured from the nearer opening, at the sensors, 5.5 cm ahead of the axle): a reading of p % is at
   (100 − p) / 4 cm inside. A program that compares the light with 70 % changes at 7.5 cm inside.

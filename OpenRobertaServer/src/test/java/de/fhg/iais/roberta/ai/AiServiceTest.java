@@ -802,7 +802,7 @@ public class AiServiceTest {
             Assert.assertEquals("deepseek", providers.get(0).getName()); // the default order of openRoberta.properties
             Assert.assertEquals("ucloud", providers.get(1).getName());
             Assert.assertEquals(SDU_MODEL, providers.get(1).getModel()); // the default
-            Assert.assertEquals("low", providers.get(0).effort(AiService.GENERATE)); // the presets: one generate call per scenario, at low
+            Assert.assertEquals("none", providers.get(0).effort(AiService.GENERATE)); // the presets: one generate call per scenario, at none
             Assert.assertEquals("none", providers.get(0).effort(AiService.ANALYZE));
             Assert.assertEquals("low", providers.get(0).effort(AiService.INFER));
             Assert.assertEquals("low", providers.get(0).effort(AiService.FIX));
