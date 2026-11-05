@@ -519,6 +519,46 @@ public class AiServiceTest {
     }
 
     @Test
+    public void generateWritesTestsForTheScenariosItIsGiven() throws Exception {
+        // 2026-11-05: one call per scenario, so unrelated scenarios aren't crammed into one world, and each call fits the token cap at effort low
+        JSONObject analysis =
+            analyzeAnswer()
+                .put(
+                    "scenarios",
+                    new JSONArray().put(new JSONObject().put("id", "S1").put("title", "Follows the line")).put(new JSONObject().put("id", "S2").put("title", "Stops at a wall")));
+        script(200, completion(generateAnswer(), "stop"));
+        AiService service = service(KEY);
+        JSONObject data = data().put("intent", "Drive.").put("analysis", analysis).put("scenarios", new JSONArray().put("S2")).put("maxTests", 4);
+        Assert.assertTrue(service.call(AiService.GENERATE, 7, data).ok);
+        String prompt = new JSONObject(this.requests.get(0).getString("body")).getJSONArray("messages").getJSONObject(1).getString("content");
+        Assert
+            .assertTrue(
+                prompt,
+                prompt
+                    .endsWith(
+                        "Write tests only for scenario S2 \"Stops at a wall\", at most 4 tests: the analysis' other scenarios get their own calls, or the learner's tests already test them.\n"));
+        Assert.assertEquals("bad_request", service.call(AiService.GENERATE, 7, new JSONObject(data.toString()).put("scenarios", new JSONArray().put("S9"))).error);
+        Assert.assertEquals(1, this.requests.size());
+    }
+
+    @Test
+    public void generateMayRunSixCallsAtOnceTheOthersOne() {
+        Map<String, Integer> perHour = new HashMap<>();
+        perHour.put(AiService.GENERATE, 100);
+        perHour.put(AiService.INFER, 100);
+        AiLimits limits = new AiLimits(perHour, Collections.singletonMap(AiService.GENERATE, AiService.GENERATE_AT_ONCE), () -> 0L);
+        for ( int i = 0; i < AiService.GENERATE_AT_ONCE; i++ ) {
+            Assert.assertNull(limits.acquire(1, AiService.GENERATE));
+        }
+        Assert.assertEquals("busy", limits.acquire(1, AiService.GENERATE));
+        Assert.assertNull(limits.acquire(2, AiService.GENERATE)); // another session
+        limits.release(1, AiService.GENERATE);
+        Assert.assertNull(limits.acquire(1, AiService.GENERATE));
+        Assert.assertNull(limits.acquire(1, AiService.INFER));
+        Assert.assertEquals("busy", limits.acquire(1, AiService.INFER)); // one at a time
+    }
+
+    @Test
     public void analyzeAndGenerateGetWhatTheLearnersTestsDontCheckYet() throws Exception {
         // 2026-11-05: without it, every offer wrote the line-following tests the learner already had again
         String gap = "No test checks that your robot turns away from a wall on its left when the light is dim.";
@@ -762,8 +802,8 @@ public class AiServiceTest {
             Assert.assertEquals("deepseek", providers.get(0).getName()); // the default order of openRoberta.properties
             Assert.assertEquals("ucloud", providers.get(1).getName());
             Assert.assertEquals(SDU_MODEL, providers.get(1).getModel()); // the default
-            Assert.assertEquals("none", providers.get(0).effort(AiService.GENERATE)); // the presets
-            Assert.assertEquals("low", providers.get(0).effort(AiService.ANALYZE));
+            Assert.assertEquals("low", providers.get(0).effort(AiService.GENERATE)); // the presets: one generate call per scenario, at low
+            Assert.assertEquals("none", providers.get(0).effort(AiService.ANALYZE));
             Assert.assertEquals("low", providers.get(0).effort(AiService.INFER));
             Assert.assertEquals("low", providers.get(0).effort(AiService.FIX));
             Assert.assertEquals("high", providers.get(1).effort(AiService.GENERATE)); // from .env

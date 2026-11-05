@@ -66,6 +66,7 @@ public class AiService {
     private static final int MAX_REASONING = 200000; // characters of the reasoning kept in the telemetry (32,000 tokens are about 130,000)
     public static final String PROMPTS_DIR = "ai-prompts"; // in the telemetry folder: the system prompt of each promptVersion
     public static final long COOL_DOWN_MS = 5 * 60 * 1000; // after the first API failed, it is asked last for so long
+    public static final int GENERATE_AT_ONCE = 6; // generate: one call per scenario, in parallel (the browser makes at most so many)
 
     private final AiSettings settings;
     private final List<DeepSeekClient> clients; // one per API that can be called, in the order they are asked
@@ -95,10 +96,12 @@ public class AiService {
         this.clients = Collections.unmodifiableList(clients);
         Map<String, Integer> perHour = new HashMap<>();
         perHour.put(INFER, 60);
-        perHour.put(GENERATE, 30);
+        perHour.put(GENERATE, 150); // one call per scenario, and its repairs
         perHour.put(FIX, 30);
         perHour.put(ANALYZE, 30);
-        this.limits = new AiLimits(perHour, System::currentTimeMillis);
+        Map<String, Integer> atOnce = new HashMap<>();
+        atOnce.put(GENERATE, GENERATE_AT_ONCE);
+        this.limits = new AiLimits(perHour, atOnce, System::currentTimeMillis);
     }
 
     public AiSettings getSettings() {

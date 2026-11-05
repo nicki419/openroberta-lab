@@ -64,6 +64,22 @@ export interface ProgramWrong {
 export interface Strategy {
     index: STRATEGY.Index;
     analysis: any;
+    maxTests?: number; // one generate call of several: its share of STRATEGY.MAX_TESTS
+}
+
+/** at most so many generate calls at once (the server's AiService.GENERATE_AT_ONCE) */
+export const GENERATE_AT_ONCE = 6;
+
+/** one generate call of a scenario: what it wrote, and what went wrong (for the telemetry) */
+export interface ScenarioCall {
+    scenario: string;
+    ok: boolean;
+    error: string;
+    tests: number; // offered after its checks and repairs
+    dropped: number;
+    repairs: number;
+    calls: number;
+    maxTests: number;
 }
 
 /** the analysis of the program (the task analyze), checked */
@@ -96,6 +112,8 @@ export interface Generated {
     answers: any[]; // the model's answers, in their order
     error: string;
     message: string;
+    scenarios?: ScenarioCall[]; // generate: one call per scenario
+    testedBy?: { id: string; by: string[] }[]; // generate: the scenarios the learner's tests test (no call)
 }
 
 /** a test of an answer and how it ran on the Lab's simulator (nepoTest.simRun's report; outcome passed, failed or error) */
@@ -171,7 +189,7 @@ export async function analyze(request: Request, intent: string, sentence: string
             return out;
         }
         out.answers.push(result.answer);
-        out.problems = STRATEGY.checkAnalysis(result.answer, index, sentence);
+        out.problems = STRATEGY.checkAnalysis(result.answer, index, sentence, testNames(request.tests));
         if (!out.problems.length) {
             out.ok = true;
             out.analysis = result.answer;
@@ -188,14 +206,126 @@ export async function analyze(request: Request, intent: string, sentence: string
     }
 }
 
+/** the names of the learner's tests */
+function testNames(tests: FORMAT.AiTests): string[] {
+    const names: string[] = [];
+    ((tests && tests.worlds) || []).forEach((w) => ((w && w.tests) || []).forEach((t) => t && typeof t.name === 'string' && names.push(t.name)));
+    return names;
+}
+
 /**
- * scenario tests for the intent (and the learner's sentence, if they wrote one), from the checked analysis: checked and repaired
+ * scenario tests for the intent (and the learner's sentence, if they wrote one), from the checked analysis: one call per scenario that the learner's
+ * tests don't test yet (STRATEGY.scenariosToWrite), at most GENERATE_AT_ONCE at once, each checked against its part of the analysis and repaired
+ * on its own, with its share of the tests (at least 2); then merged: worlds with the same name told apart, duplicates across the calls left out,
+ * the coverage plan computed for the whole analysis, with the scenarios the learner's tests test deferred as "tested by" them. Not ok only if every
+ * call failed. (2026-11-05: one call for all scenarios crammed unrelated ones into one world, repeated the learner's tests, and at effort low ran
+ * into the token cap after 3 minutes.)
  *
  * @param ctx what the answer is checked against (tests.controller aiContext)
  * @param programXml the program (for the translator's name checks)
  */
-export function generate(request: Request, intent: string, sentence: string, ctx: FORMAT.Context, programXml: string, strategy: Strategy): Promise<Generated> {
-    return written('generate', strategyData(request, intent, sentence, strategy.index, strategy.analysis), ctx, programXml, null, strategy, sentence);
+export async function generate(request: Request, intent: string, sentence: string, ctx: FORMAT.Context, programXml: string, strategy: Strategy): Promise<Generated> {
+    const todo = STRATEGY.scenariosToWrite(strategy.analysis);
+    const data = strategyData(request, intent, sentence, strategy.index, strategy.analysis);
+    const maxTests = Math.max(2, Math.floor(STRATEGY.MAX_TESTS / Math.max(1, todo.write.length)));
+    const results: Generated[] = new Array(todo.write.length);
+    let next = 0;
+    const worker = async () => {
+        while (next < todo.write.length) {
+            const i = next++;
+            const id = todo.write[i];
+            const part: Strategy = { index: strategy.index, analysis: STRATEGY.analysisFor(strategy.analysis, [id]), maxTests: maxTests };
+            results[i] = await written('generate', Object.assign({}, data, { scenarios: [id], maxTests: maxTests }), ctx, programXml, null, part, sentence);
+        }
+    };
+    await Promise.all(Array.from({ length: Math.min(GENERATE_AT_ONCE, todo.write.length) }, worker));
+    return merged(results, todo, maxTests, strategy, ctx);
+}
+
+/** the answers of generate's calls as one (see generate) */
+function merged(results: Generated[], todo: { write: string[]; tested: { id: string; by: string[] }[] }, maxTests: number, strategy: Strategy, ctx: FORMAT.Context): Generated {
+    const out: Generated = {
+        ok: !results.length || results.some((r) => r.ok),
+        worlds: [],
+        programWrong: [],
+        doubtful: [],
+        dropped: [],
+        unresolved: [],
+        duplicates: [],
+        plan: null,
+        status: null,
+        warnings: [],
+        repairs: 0,
+        calls: [],
+        answers: [],
+        error: null,
+        message: '',
+        scenarios: [],
+        testedBy: todo.tested,
+    };
+    const names: string[] = ctx.existing.worlds.map((w) => w.name);
+    const deferredBranches: any[] = [];
+    const deferredInputs: any[] = [];
+    const deferredScenarios: any[] = [];
+    results.forEach((r, i) => {
+        out.scenarios.push({
+            scenario: todo.write[i],
+            ok: r.ok,
+            error: r.error,
+            tests: r.worlds.reduce((n, w) => n + w.tests.length, 0),
+            dropped: r.dropped.length,
+            repairs: r.repairs,
+            calls: r.calls.length,
+            maxTests: maxTests,
+        });
+        out.calls.push(...r.calls);
+        out.answers.push(...r.answers);
+        out.repairs += r.repairs;
+        if (!r.ok) {
+            out.error = out.error || r.error;
+            out.message = out.message || r.message;
+            return;
+        }
+        r.worlds.forEach((w) => {
+            if (w.existing) {
+                out.worlds.push(w); // tests added to one of the learner's worlds keep its name
+                return;
+            }
+            let name = w.name;
+            for (let n = 2; names.indexOf(name) >= 0; n++) {
+                name = w.name + ' ' + n;
+            }
+            names.push(name);
+            out.worlds.push(name === w.name ? w : Object.assign({}, w, { name: name }));
+        });
+        out.dropped.push(...r.dropped);
+        out.unresolved.push(...r.unresolved);
+        out.duplicates.push(...r.duplicates);
+        r.warnings.forEach((w) => out.warnings.indexOf(w) < 0 && out.warnings.push(w));
+        const last = r.answers[r.answers.length - 1] || {};
+        const plan = last.coverage_plan || {};
+        deferredBranches.push(...(Array.isArray(plan.deferred_branch_ids) ? plan.deferred_branch_ids : []));
+        deferredInputs.push(...(Array.isArray(plan.deferred_inputs) ? plan.deferred_inputs : []));
+        deferredScenarios.push(...(Array.isArray(last.deferred_scenarios) ? last.deferred_scenarios : []));
+    });
+    if (out.ok) {
+        out.error = null;
+        out.message = '';
+    }
+    const unique = FORMAT.dropDuplicates(out.worlds, ctx.existing); // across the calls
+    out.duplicates.push(...unique.duplicates.filter((d) => !out.duplicates.some((x) => x.world === d.world && x.test === d.test)));
+    out.worlds = unique.worlds;
+    const planned: string[] = [];
+    out.worlds.forEach((w) => w.tests.forEach((t) => (t.planned_branch_ids || []).forEach((b: string) => planned.indexOf(b) < 0 && planned.push(b))));
+    const tested = STRATEGY.testedDeferrals(strategy.analysis, todo.tested, planned);
+    const answer = {
+        coverage_plan: { deferred_branch_ids: deferredBranches.concat(tested.branches), deferred_inputs: deferredInputs },
+        deferred_scenarios: deferredScenarios.concat(tested.scenarios),
+    };
+    out.plan = STRATEGY.planOf(out.worlds, strategy.analysis, strategy.index, answer);
+    const tests = out.worlds.reduce((n, w) => n + w.tests.length, 0);
+    out.status = tests ? 'ready_for_review' : !todo.write.length || results.every((r) => !r.ok || r.status === 'no_valid_scenarios') ? 'no_valid_scenarios' : 'partial';
+    return out;
 }
 
 /**
@@ -313,7 +443,7 @@ async function checkWritten(
     if (!fixing) {
         const none = answer && answer.generation_status === 'no_valid_scenarios' && Array.isArray(answer.worlds) && !answer.worlds.length;
         const checked = none ? { worlds: [] as FORMAT.Resolved[], problems: [] as FORMAT.Problem[] } : await check(answer, ctx, programXml, prefix);
-        const problems = checked.problems.concat(STRATEGY.checkTests(answer, checked.worlds, strategy.analysis, strategy.index, sentence, false));
+        const problems = checked.problems.concat(STRATEGY.checkTests(answer, checked.worlds, strategy.analysis, strategy.index, sentence, false, strategy.maxTests));
         return { worlds: checked.worlds, problems: problems, programWrong: [], doubtful: [] };
     }
     const names = fixing.map((r) => r.test.name);

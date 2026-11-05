@@ -592,7 +592,8 @@ async function write(intent: string, sentence: string, before: string[]): Promis
     writing = { intent: intent, sentence: sentence, before: before, strategy: strategy };
     ticked = result.worlds.map((w) => w.tests.map(() => true));
     const none = !result.worlds.some((w) => w.tests.length);
-    const tested = none && result.status === 'no_valid_scenarios' && !result.dropped.length && !result.duplicates.length; // nothing new: their tests check it
+    // nothing new: the learner's tests test every scenario that could be tested (no call was made)
+    const tested = none && (result.testedBy || []).length > 0 && !(result.scenarios || []).length;
     show({ state: none ? 'empty' : 'review', intent: intent, phase: tested ? 'tested' : undefined });
 }
 
@@ -652,6 +653,8 @@ function recordGenerated(intent: string, sentence: string, result: AI.Generated,
         repairs: result.repairs,
         leftOut: result.dropped.map(AI.problemText),
         duplicates: result.duplicates,
+        scenarioCalls: result.scenarios || null, // one call per scenario: its tests, what it left out, its repairs and calls, its error
+        testedBy: result.testedBy || null, // the scenarios the learner's tests test (the analysis' tested_by): no call
         calls: result.calls.map(callOf),
         latencyMs: ms,
         tokens: tokensOf(result.calls),

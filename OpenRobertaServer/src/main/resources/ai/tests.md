@@ -193,9 +193,20 @@ without decisions has one straight path: test its scenarios.
 - A scenario whose expected behaviour is `unknown` gets no test: defer it.
 
 **4. Consolidate.** Leave out a test that plans the same outcomes, with the same classes, boundary sides and checks,
-as another one; keep the one that is easier to understand. Share a world between tests where their scenarios fit on
-one floor. Never leave out the only test of an outcome, of a class or of a side of a boundary. Say what you merged in
-`consolidation_notes`. **At most 8 tests**, in at most 3 worlds; what doesn't fit is deferred with the reason.
+as another one; keep the one that is easier to understand. Never leave out the only test of an outcome, of a class or
+of a side of a boundary. Say what you merged in `consolidation_notes`. **At most as many tests as the task allows**
+(8 if it names all scenarios); what doesn't fit is deferred with the reason.
+
+- **A world for each scenario.** Draw a world with only what its scenario needs: a wall-stop scenario gets a wall in
+  front of the start, not a tunnel; a line scenario gets the line, not the walls of another scenario. Share a world
+  only between tests of the same scenario (or of scenarios that are the same situation). Unrelated things in one world
+  change what the program does: a tunnel darkens the light sensors, a wall at the side triggers the side sensors.
+- **Each test its own start, placed for its situation.** Two tests of one world never start at the same pose unless
+  the set-up differs. Place what the scenario is about where the robot meets it: on its way from the start, in the
+  direction of its heading (heading 0 points right, towards larger x; see "The floor and its coordinates"), within the
+  sensor's range for a boundary test. Check every coordinate before you answer. For heading 0, a `rect` ahead has its
+  left edge `x` beyond the start's x and spans the start's y (`y` ≤ the start's y ≤ `y` + `h`; `y` is its top edge); a
+  wall on the left (heading 0) lies at smaller y, on the right at larger y.
 
 - **The learner's tests count: write only what they don't test yet.** A scenario, outcome, class or boundary side that
   one of the learner's tests already tests gets no new test: defer it with the reason `tested by "<their test's

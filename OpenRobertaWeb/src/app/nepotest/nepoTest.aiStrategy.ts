@@ -236,7 +236,7 @@ export function targetsOf(analysis: any): string[] {
  * the problems of an answer of analyze, checked against the program's decisions and the learner's sentence (AnalysisAgent_v3 §7): every decision
  * with exactly its outcomes, every supported outcome on a path, paths and scenarios naming each other, the blocks real, the enums
  */
-export function checkAnalysis(answer: any, index: Index, sentence: string): FORMAT.Problem[] {
+export function checkAnalysis(answer: any, index: Index, sentence: string, learnerTests: string[] = []): FORMAT.Problem[] {
     const problems: FORMAT.Problem[] = [];
     const add = (message: string) => problem(problems, message);
     const blocksOk = (ids: any, where: string) =>
@@ -333,6 +333,16 @@ export function checkAnalysis(answer: any, index: Index, sentence: string): FORM
         TESTABILITY.indexOf(s.testability) < 0 && add('scenario ' + id + ': testability must be supported, uncertain or unsupported');
         CONFIDENCE.indexOf(s.confidence) < 0 && add('scenario ' + id + ': confidence must be low, medium or high');
         blocksOk(s.source_block_ids, 'scenario ' + id);
+        if (s.tested_by !== undefined && s.tested_by !== null) {
+            // missing: none (an answer without it isn't repaired for that alone)
+            !Array.isArray(s.tested_by)
+                ? add('scenario ' + id + ': tested_by must be a list of the names of the learner\'s tests that test it ([] if none)')
+                : s.tested_by.forEach(
+                      (n: any) =>
+                          learnerTests.indexOf(n) < 0 &&
+                          add('scenario ' + id + ': tested_by: the learner has no test "' + n + '"' + (learnerTests.length ? ' (their tests: ' + learnerTests.map((x) => '"' + x + '"').join(', ') + ')' : ' (they have no tests)'))
+                  );
+        }
     }
 
     // branch coverage: every outcome the simulator can make happen is on a path that isn't unsupported
@@ -352,6 +362,54 @@ export function checkAnalysis(answer: any, index: Index, sentence: string): FORM
 function pathsOf(test: any, analysis: any): any[] {
     const ids = arrayOf(test.path_ids);
     return arrayOf(analysis.scenario_paths).filter((p: any) => p && ids.indexOf(p.id) >= 0);
+}
+
+/**
+ * the scenarios generate writes tests for, one call each (2026-11-05: one call for all of them crammed unrelated scenarios into one world, and at
+ * effort low ran into the token cap): those that are testable, have an expected behaviour and that none of the learner's tests tests (tested_by);
+ * and those the learner's tests test, with the names of those tests
+ */
+export function scenariosToWrite(analysis: any): { write: string[]; tested: { id: string; by: string[] }[] } {
+    const write: string[] = [];
+    const tested: { id: string; by: string[] }[] = [];
+    arrayOf(analysis && analysis.scenarios).forEach((s: any) => {
+        if (!s || !isText(s.id)) {
+            return;
+        }
+        const by = arrayOf(s.tested_by).filter(isText);
+        if (by.length) {
+            tested.push({ id: s.id, by: by });
+        } else if (s.testability !== 'unsupported' && s.oracle_basis !== 'unknown') {
+            write.push(s.id);
+        }
+    });
+    return { write: write, tested: tested };
+}
+
+/** the part of the analysis one generate call is about: these scenarios and their paths (its checks and coverage are about them only) */
+export function analysisFor(analysis: any, ids: string[]): any {
+    const scenarios = arrayOf(analysis && analysis.scenarios).filter((s: any) => s && ids.indexOf(s.id) >= 0);
+    const pathIds: string[] = [];
+    scenarios.forEach((s: any) => arrayOf(s.path_ids).forEach((p: string) => pathIds.push(p)));
+    const paths = arrayOf(analysis && analysis.scenario_paths).filter((p: any) => p && (pathIds.indexOf(p.id) >= 0 || ids.indexOf(p.scenario_id) >= 0));
+    return Object.assign({}, analysis, { scenarios: scenarios, scenario_paths: paths });
+}
+
+/**
+ * the deferrals of the scenarios the learner's tests test (for the coverage plan of the merged answer): the scenarios, and the outcomes of their
+ * paths that no new test plans, each "tested by" their tests
+ */
+export function testedDeferrals(analysis: any, tested: { id: string; by: string[] }[], planned: string[]): { scenarios: any[]; branches: any[] } {
+    const scenarios: any[] = [];
+    const branches: any[] = [];
+    tested.forEach((t) => {
+        const reason = 'tested by ' + t.by.map((n) => '"' + n + '"').join(', ');
+        scenarios.push({ scenario_id: t.id, reason: reason });
+        arrayOf(analysisFor(analysis, [t.id]).scenario_paths).forEach((p: any) =>
+            arrayOf(p.branch_ids).forEach((b: string) => planned.indexOf(b) < 0 && !branches.some((x) => x.branch_id === b) && branches.push({ branch_id: b, reason: reason }))
+        );
+    });
+    return { scenarios: scenarios, branches: branches };
 }
 
 /** the input classes and boundaries of the analysis (of the paths that aren't unsupported): {dimension → {classes, boundaries}} */
@@ -392,7 +450,7 @@ function realizationProblems(r: any, test: FORMAT.AiTest, world: FORMAT.Resolved
  * check, its blocks; then, for generate (not a fix), the answer: at most MAX_TESTS tests, every target outcome planned or deferred, every class and
  * both sides of every boundary tested or deferred, every scenario tested or deferred, the status.
  */
-export function checkTests(answer: any, worlds: FORMAT.Resolved[], analysis: any, index: Index, sentence: string, fix: boolean): FORMAT.Problem[] {
+export function checkTests(answer: any, worlds: FORMAT.Resolved[], analysis: any, index: Index, sentence: string, fix: boolean, maxTests: number = MAX_TESTS): FORMAT.Problem[] {
     const problems: FORMAT.Problem[] = [];
     analysis = analysis || {};
     const scenarios: { [id: string]: any } = {};
@@ -474,7 +532,7 @@ export function checkTests(answer: any, worlds: FORMAT.Resolved[], analysis: any
         return problems;
     }
     const add = (message: string) => problem(problems, message);
-    count > MAX_TESTS && add('the answer has ' + count + ' tests, at most ' + MAX_TESTS + ': leave out those that test the same as another (consolidate), and defer what doesn\'t fit');
+    count > maxTests && add('the answer has ' + count + ' tests, at most ' + maxTests + ': leave out those that test the same as another (consolidate), and defer what doesn\'t fit');
     STATUSES.indexOf(answer && answer.generation_status) < 0 && add('generation_status must be one of ' + STATUSES.join(', '));
     const tests: FORMAT.AiTest[] = [];
     worlds.forEach((w) => tests.push(...w.tests));

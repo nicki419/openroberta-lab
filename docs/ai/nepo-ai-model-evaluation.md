@@ -251,6 +251,45 @@ With the new rules, the tests went to what was missing: the obstacle stop and th
 answer led to one more change: an answer that can't be read is now asked for once more by itself (`callReadable`),
 since it can't be repaired.
 
+### E8: One generate call per scenario
+
+**The problem.** In a session with program B, extended with dim light and walls on both sides, the single call for
+all scenarios failed both ways:
+- **At low:** it ran into the 32,000-token cap (analyze 173 s, generate 185 s, both `cut_off`).
+- **At none, the tests were poor:**
+  - they repeated the learner's tests;
+  - unrelated scenarios were crammed into one world (a tunnel in a world about stopping at a wall);
+  - walls were placed 20–30 cm beside the robot's way, not in front of it;
+  - two tests started at the same point.
+
+**The change:**
+- Analyze (at `none`) also says which of the learner's tests already test each scenario (`tested_by`).
+- Generate makes one call per remaining scenario, in parallel, at `low`. Each call is checked and repaired against
+  its scenario's part of the analysis.
+
+**The check:** the generate call that was cut off (telemetry line 208) was replayed as the Lab now makes it:
+- S1 (line following) set as tested by the learner's two tests;
+- one call each for S2 (stop at a wall ahead) and S3 (turn away from walls in dim light), at most 4 tests;
+- two runs on DeepSeek and one on UCloud, all at once.
+
+Analyze (line 204) was also replayed twice at `none`.
+
+| Call | Time | Output tokens | Valid tests | Answer-wide gaps | World |
+|---|---|---|---|---|---|
+| analyze, DeepSeek, none | 12, 14 s | 2,741; 3,693 | `tested_by` right in both: S1 by the learner's two tests, the others none | | |
+| S2, DeepSeek | 54, 63 s | 9,707; 11,785 | 2/2; 1/2 | 0; 1 | only a wall, in front of the start |
+| S2, UCloud | 72 s | 12,647 | 3/3 | 0 | only a box, in front of the start |
+| S3, DeepSeek | 116, 142 s | 21,162; 26,560 | 4/4; 4/4 | 0; 0 | a tunnel, walls on the correct sides |
+| S3, UCloud | 187 s | 35,745 | 4/4 | 2 | a tunnel, walls on the correct sides |
+
+Across all five calls:
+- no call wrote tests for another scenario, and none repeated the learner's line-following tests;
+- every test had its own start.
+
+**Time.** The calls run in parallel, so writing takes as long as the slowest scenario. Here that is about 2 to 2½
+minutes at DeepSeek. The hard scenario at UCloud (187 s) would exceed the 180 s timeout, and then be asked again at
+DeepSeek.
+
 ## Summary
 
 | | DeepSeek | UCloud |
@@ -341,11 +380,12 @@ Configuration (`.env`; presets in `openRoberta.properties`):
   connection, timeout or HTTP error), and then first for 5 minutes. Reasons:
   - DeepSeek's analysis at `low` is about 25 s faster (median);
   - DeepSeek's `low` and `high` behave as documented.
-- **Efforts for both APIs:**
-  - infer `low`: correct every time, and `none` saves only seconds;
-  - analyze `low`: at `none` the analyses were thinner, and at UCloud often invalid;
-  - generate `none`: 4 to 5 times faster, with first answers as valid as at `low`;
-  - fix `low`: only tested there.
+- **Efforts for both APIs** (first decided after E5; changed after E8, the second list is the current one):
+  - after E5: infer `low`, analyze `low`, generate `none` (4 to 5 times faster, first answers as valid as at `low`),
+    fix `low`;
+  - after E8, with one generate call per scenario: infer `low`; analyze `none` (12 to 17 s and good enough, while at
+    `low` a hard program reasoned into the token cap); generate `low` (each call is about one scenario, so it
+    fits, and the tests are far better than at `none`); fix `low` (only tested there, and switched off in the panel).
 
   The settings are `<NAME>_EFFORT_INFER`, `_ANALYZE`, `_GENERATE`, `_FIX`.
 - The panel says "Usually 1 to 2 minutes" for writing tests, and "Usually under a minute, sometimes up to 3" for a fix.
@@ -369,6 +409,7 @@ Each folder has the scripts and their raw outputs:
 | `validity-check/` | `sanity.py`, `sanity.txt`: the port against the Lab's verdict on a logged answer |
 | `e6-live-session/` | `today.py`, `today.txt`: the live session's events; `fix_times.py` |
 | `e7-learners-tests-count/` | `dup_check.py` (old against new rules), `dup_summary.py`, `summary.txt`, `out_*.json` |
+| `e8-one-call-per-scenario/` | `per_scenario.py` (the replay and its evaluation), `results.json` |
 
 Each raw output holds the prompt that was sent, the answer, the time and the tokens. The prompts are read from the
 telemetry (`admin/levelTelemetry/`, lines as above), and the system prompt of version `bf36cb82ed98` is

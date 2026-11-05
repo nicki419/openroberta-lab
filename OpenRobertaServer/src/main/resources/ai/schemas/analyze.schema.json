@@ -109,11 +109,13 @@
           "assumptions",
           "source_block_ids",
           "testability",
-          "confidence"
+          "confidence",
+          "tested_by"
         ],
         "additionalProperties": false,
         "properties": {
           "id": {"type": "string", "pattern": "^S[0-9]+$"},
+          "tested_by": {"type": "array", "items": {"type": "string"}, "description": "the names of the learner's tests that already test this scenario; [] if none"},
           "path_ids": {"type": "array", "minItems": 1, "items": {"type": "string"}},
           "title": {"type": "string", "minLength": 1, "maxLength": 80},
           "category": {"enum": ["nominal", "alternative", "boundary", "adverse", "recovery", "timing", "safety"]},

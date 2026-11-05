@@ -141,8 +141,8 @@ range is where the robot changes from driving to stopping). The sentence gives n
   {"id":"P2","scenario_id":"S2","branch_ids":["D1.2","D1.else","D1.1"],"input_dimensions":[{"dimension":"what is ahead on the line","equivalence_classes":["an obstacle on the line"],"boundary_candidates":["the obstacle sensors' range"]}],"testability":"supported"}
  ],
  "scenarios":[
-  {"id":"S1","path_ids":["P1"],"title":"Follows the line","category":"nominal","initial_condition":"The robot starts on a curved line, or beside it","trigger":"The line tracker sees black, then the floor, again and again","coded_response":"It curves left on black and right on the floor","expected_response_hypothesis":"It follows the line to its end","oracle_basis":"learner_description","assumptions":["The end of the line is where it should get to."],"source_block_ids":["b6","b7","b10"],"testability":"supported","confidence":"high"},
-  {"id":"S2","path_ids":["P2"],"title":"Stops at an obstacle on the line","category":"adverse","initial_condition":"An obstacle is on the line ahead of the robot","trigger":"The obstacle sensor sees it","coded_response":"It stops while the obstacle is ahead","expected_response_hypothesis":"It stops before the obstacle without bumping into it, and stays there","oracle_basis":"learner_description","assumptions":[],"source_block_ids":["b4","b5"],"testability":"supported","confidence":"high"}
+  {"id":"S1","path_ids":["P1"],"title":"Follows the line","category":"nominal","initial_condition":"The robot starts on a curved line, or beside it","trigger":"The line tracker sees black, then the floor, again and again","coded_response":"It curves left on black and right on the floor","expected_response_hypothesis":"It follows the line to its end","oracle_basis":"learner_description","assumptions":["The end of the line is where it should get to."],"source_block_ids":["b6","b7","b10"],"testability":"supported","confidence":"high","tested_by":[]},
+  {"id":"S2","path_ids":["P2"],"title":"Stops at an obstacle on the line","category":"adverse","initial_condition":"An obstacle is on the line ahead of the robot","trigger":"The obstacle sensor sees it","coded_response":"It stops while the obstacle is ahead","expected_response_hypothesis":"It stops before the obstacle without bumping into it, and stays there","oracle_basis":"learner_description","assumptions":[],"source_block_ids":["b4","b5"],"testability":"supported","confidence":"high","tested_by":[]}
  ],
  "uncertainties":["The sentence doesn't say where the line ends or what the robot should do there."],
  "unsupported_features":[]
@@ -157,6 +157,7 @@ The same parts, with the analysis (your answer to analyze, as above) before the 
 
 The intent you guessed: "Follow the black line, and stop when something is in the way."
 The learner's sentence: "This program should follow a black line and stop if it senses an obstacle"
+Write tests only for scenarios S1 "Follows the line", S2 "Stops at an obstacle on the line": the analysis' other scenarios get their own calls, or the learner's tests already test them.
 
 ## The answer (generate)
 

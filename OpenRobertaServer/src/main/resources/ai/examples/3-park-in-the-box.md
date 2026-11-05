@@ -97,8 +97,8 @@ start, so the time of the press has classes but no boundary: none is invented.
   {"id":"P2","scenario_id":"S2","branch_ids":["D1.waits"],"input_dimensions":[{"dimension":"when PLAY is pressed","equivalence_classes":["never pressed"],"boundary_candidates":[]}],"testability":"supported"}
  ],
  "scenarios":[
-  {"id":"S1","path_ids":["P1"],"title":"Parks after PLAY","category":"nominal","initial_condition":"The robot stands in front of the box","trigger":"PLAY is pressed","coded_response":"It drives 115 cm forward and stops","expected_response_hypothesis":"It drives into the box and stops inside it","oracle_basis":"learner_description","assumptions":["The box is where the program stops: you gave no distance."],"source_block_ids":["b2","b6"],"testability":"supported","confidence":"high"},
-  {"id":"S2","path_ids":["P2"],"title":"Waits without PLAY","category":"alternative","initial_condition":"The robot stands in front of the box","trigger":"Nobody presses PLAY","coded_response":"It keeps waiting","expected_response_hypothesis":"It doesn't move","oracle_basis":"inferred","assumptions":["You didn't say it, but 'when I press play' means it waits until then."],"source_block_ids":["b2"],"testability":"supported","confidence":"medium"}
+  {"id":"S1","path_ids":["P1"],"title":"Parks after PLAY","category":"nominal","initial_condition":"The robot stands in front of the box","trigger":"PLAY is pressed","coded_response":"It drives 115 cm forward and stops","expected_response_hypothesis":"It drives into the box and stops inside it","oracle_basis":"learner_description","assumptions":["The box is where the program stops: you gave no distance."],"source_block_ids":["b2","b6"],"testability":"supported","confidence":"high","tested_by":[]},
+  {"id":"S2","path_ids":["P2"],"title":"Waits without PLAY","category":"alternative","initial_condition":"The robot stands in front of the box","trigger":"Nobody presses PLAY","coded_response":"It keeps waiting","expected_response_hypothesis":"It doesn't move","oracle_basis":"inferred","assumptions":["You didn't say it, but 'when I press play' means it waits until then."],"source_block_ids":["b2"],"testability":"supported","confidence":"medium","tested_by":[]}
  ],
  "uncertainties":["You don't say how far the box is.","The program compares no number and begins to wait at once: a press at any time is seen, so there is no boundary in its time."],
  "unsupported_features":[]
@@ -113,6 +113,7 @@ The same parts, with the analysis before the task, then:
 
 The intent you guessed: "Wait until the PLAY key is pressed, then drive forward and stop."
 The learner's sentence: "When I press play, the robot drives into the box and parks there."
+Write tests only for scenarios S1 "Parks after PLAY", S2 "Waits without PLAY": the analysis' other scenarios get their own calls, or the learner's tests already test them.
 
 ## The answer (generate)
 

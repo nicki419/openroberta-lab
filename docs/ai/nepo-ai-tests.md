@@ -44,7 +44,7 @@ This document covers:
 | What | Where |
 |---|---|
 | REST: `POST /rest/ai/infer`, `POST /rest/ai/analyze`, `POST /rest/ai/generate`, `POST /rest/ai/fix` (the usual request envelope; the response has `answer`, `meta`, or `aiError` and `aiMessage`) | `javaServer/restServices/all/controller/AiController`, `AiResponse` |
-| the calls: limits per session (one of each kind at a time; 60 infers, 30 analyses, 30 generates, 30 fixes per hour), the context pack first, the answer checked for its shape, the `ai_call` event; analyze and fix as generate (180 s, at most 32,000 tokens with the reasoning, repairs); each call its own effort per API; every call's meta has `contract` (`AiService.CONTRACT`, 1.1) | `ai/AiService` |
+| the calls: limits per session (one of each kind at a time, but 6 generates; 60 infers, 30 analyses, 150 generates, 30 fixes per hour), the context pack first, the answer checked for its shape, the `ai_call` event; analyze and fix as generate (180 s, at most 32,000 tokens with the reasoning, repairs); each call its own effort per API; every call's meta has `contract` (`AiService.CONTRACT`, 1.1) | `ai/AiService` |
 | the per-call message (`## The program`, `## The program's decisions` (not for infer), `## The learner's tests`, `## What the learner said before`, `## The analysis` (generate, fix), `## Task: …`), the trimming of NEPO XML (positions, configuration and the start block's `<data>` go; the block ids stay) and EdPy, the answer checks (`checkAnalyze`: status, intent, arrays; `checkGenerate`: no worlds only with `generation_status` `no_valid_scenarios`; `checkFix`: `worlds`, `program_wrong` and `doubtful`, not all empty) | `ai/AiPrompts` |
 | the model's chat API (OpenAI-compatible): JSON mode, reasoning effort, timeouts (infer 20 s; analyze, generate and fix 180 s), one more try after 429, 5xx or no connection; the reasoning from `reasoning_content` (DeepSeek) or `reasoning` (UCloud's vLLM) | `ai/DeepSeekClient` |
 | **two APIs, the same model** (DeepSeek-V4.1-Flash), asked in the order of `AI_PROVIDERS` (since 2026-11-05: DeepSeek's own API first, SDU's UCloud as the backup; before that the other way round). A call without an answer from the first (it can't be reached, doesn't answer in time, or an HTTP error) is made again at the next, and for the next 5 minutes the first is asked last (`COOL_DOWN_MS`). An answer that can't be used (cut off, not the JSON asked for) isn't made again: the browser repairs it. A timeout of the first followed by the next can make a call take up to 6 minutes | `ai/AiService` `order`; `AiServiceTest withoutAnAnswerFromTheFirst…`, `aTimeoutOfTheFirstGoesToTheNext`, `anAnswerThatCantBeUsedIsNotAskedAgainAtTheNext` |
@@ -174,6 +174,30 @@ by the model and checked by code:
 | 2 | Inputs: **equivalence partitioning** and **boundary value analysis** | analyze: each path's input dimensions with classes and boundary candidates (only from numbers in the program and the simulator's "Where readings change", `simulator.md`); generate: each test's `input_selection`, what of the test realizes it | `checkTests`: every class and boundary word for word from the test's paths, `side` (below, at, above, inside, outside), `realized_by` naming the test's own start, things, events or variables |
 | 3 | A complete test: **path + inputs + expected results + postconditions** | generate: `scenario_id`, `path_ids`, `planned_branch_ids`, `expected_results`, `postconditions` (with `check_indices`), `oracle` (`basis`, `confidence`, `assumptions`, `review_required`) | `checkTests`: everything resolves to the analysis, the indices to real checks, `learner_description` only with a sentence, a scenario with an `unknown` oracle gets no test, at least one positive check (anti-triviality) |
 | 4 | **Consolidation** keeping unique coverage | generate: merges and leaves out, `coverage_plan`, `consolidation_notes`, `deferred_scenarios` | `checkTests`: at most 8 tests (`MAX_TESTS`); every target outcome planned or deferred with a reason; every class tested or deferred; every boundary tested on two sides, or the missing side deferred; every scenario tested or deferred. `planOf`: the coverage plan computed from the tests that are left (after repairs, left-out tests and duplicates), never taken from the model (`corrected` says whether the model's differed) |
+
+**One generate call per scenario** (since 2026-11-05, `nepoTest.ai` `generate`):
+- **Analyze says what is tested already:** each scenario's `tested_by` names the learner's tests that already test it
+  (`checkAnalysis`: only names of the learner's tests; missing means none).
+- **Generate runs per scenario:** one call per scenario that is testable, has an expected behaviour and isn't
+  `tested_by` (`scenariosToWrite`), at most 6 at once (`GENERATE_AT_ONCE`; the server allows as many per session,
+  `AiLimits`, and 150 generates per hour).
+- **What each call gets and is checked against:** the whole analysis, with "Write tests only for scenario S2 "…", at
+  most N tests" in its task (N = 8 / the number of calls, at least 2). Its checks and repairs are against its
+  scenario's part of the analysis (`analysisFor`: its paths, outcomes, classes and boundaries).
+- **The merge:** worlds with the same name are told apart ("… 2"), duplicates across the calls are left out, and the
+  coverage plan is computed for the whole analysis. The `tested_by` scenarios and their outcomes are deferred as
+  `tested by "<their tests>"` (`testedDeferrals`). It is not ok only if every call failed.
+- **When nothing needs a call:** "Your tests already check what I would test".
+- **Telemetry:** `ai_tests_generated` has `scenarioCalls` (per call: its tests, what was left out, repairs, calls,
+  error) and `testedBy`.
+- **Why:**
+  - one call for all scenarios crammed unrelated ones into one world (a tunnel in a world about stopping at a wall);
+  - it repeated the learner's tests and placed things off the robot's way;
+  - at effort low it ran into the 32,000-token cap after 3 minutes.
+
+  Presets since then: analyze `none`, generate `low` (`docs/ai/nepo-ai-model-evaluation.md`, E8). The context pack
+  asks for a world per scenario with only what it needs, a start per test, and things placed on the robot's way
+  (`tests.md`, "A world for each scenario").
 
 **The semantics of a run:**
 - **Planned is not happened:** after the check run, `seenIn` counts each outcome from the run report's `trace`, where

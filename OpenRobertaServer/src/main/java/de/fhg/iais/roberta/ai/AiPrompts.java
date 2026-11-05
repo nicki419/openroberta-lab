@@ -1,5 +1,9 @@
 package de.fhg.iais.roberta.ai;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 import org.json.JSONArray;
@@ -18,7 +22,8 @@ import org.json.JSONObject;
  *            the program's blocks: nepoTest.aiStrategy decisionIndex), intent: the guess, sentence: the learner's sentence (or null),
  *            notCovered: what the learner's tests don't check yet (the guess's not_covered; only if they have tests, or null),
  *            repair: {answer: the answer with problems, problems: ["...", ...]} (or null)
- *  generate: as analyze, and analysis: the checked answer of analyze
+ *  generate: as analyze, and analysis: the checked answer of analyze, scenarios: [the ids of the scenarios this call writes tests for] (or
+ *            null: all; the browser makes one call per scenario that the learner's tests don't test yet), maxTests: its share of the tests
  *  fix:      as generate, and fix: {tests: the failed tests as test JSON, each world in full,
  *                                   results: ["how a failed test ran", ...] (the browser writes them from the runs),
  *                                   kept: [{test, world}: the tests of the answer that passed]}}
@@ -57,6 +62,8 @@ public final class AiPrompts {
     private static final Pattern DECISION_ID = Pattern.compile("D\\d{1,3}");
     private static final Pattern OUTCOME_ID = Pattern.compile("D\\d{1,3}\\.(\\d{1,2}|else|waits|repeats|ends)");
     private static final Pattern BLOCK_ID = Pattern.compile("b\\d{1,4}");
+    private static final Pattern SCENARIO_ID = Pattern.compile("S\\d{1,3}");
+    public static final int MAX_SCENARIOS = 20; // named in one generate call
 
     private AiPrompts() {
         // only static methods
@@ -134,6 +141,9 @@ public final class AiPrompts {
             if ( !fix && notCovered != null ) {
                 m.append("What the learner's tests don't check yet (your guess): ").append(quote(line(notCovered, MAX_GUESS))).append('\n');
             }
+            if ( AiService.GENERATE.equals(task) ) {
+                appendScenarios(m, data);
+            }
             if ( fix ) {
                 appendFix(m, data.optJSONObject("fix"));
             }
@@ -183,6 +193,44 @@ public final class AiPrompts {
             }
         }
         m.append('\n');
+    }
+
+    /**
+     * generate: the scenarios of the analysis this call writes tests for (the browser makes one call per scenario that the learner's tests don't
+     * test yet, in parallel), with their titles; none: all
+     */
+    private static void appendScenarios(StringBuilder m, JSONObject data) {
+        JSONArray ids = data.optJSONArray("scenarios");
+        if ( ids == null || ids.length() == 0 ) {
+            return;
+        }
+        if ( ids.length() > MAX_SCENARIOS ) {
+            throw new AiException("too_large", "at most " + MAX_SCENARIOS + " scenarios per call");
+        }
+        Map<String, String> titles = new HashMap<>();
+        JSONObject analysis = data.optJSONObject("analysis");
+        JSONArray scenarios = analysis == null ? null : analysis.optJSONArray("scenarios");
+        for ( int i = 0; scenarios != null && i < scenarios.length(); i++ ) {
+            JSONObject s = scenarios.optJSONObject(i);
+            if ( s != null ) {
+                titles.put(s.optString("id", ""), s.optString("title", ""));
+            }
+        }
+        List<String> named = new ArrayList<>();
+        for ( int i = 0; i < ids.length(); i++ ) {
+            String id = ids.optString(i, "");
+            if ( !SCENARIO_ID.matcher(id).matches() || !titles.containsKey(id) ) {
+                throw new AiException("bad_request", "there is no scenario " + id + " in the analysis");
+            }
+            named.add(id + (titles.get(id).isEmpty() ? "" : " " + quote(line(titles.get(id), MAX_LABEL))));
+        }
+        int maxTests = data.optInt("maxTests", 0);
+        m
+            .append("Write tests only for ")
+            .append(named.size() == 1 ? "scenario " : "scenarios ")
+            .append(String.join(", ", named))
+            .append(maxTests > 0 ? ", at most " + maxTests + " tests" : "")
+            .append(": the analysis' other scenarios get their own calls, or the learner's tests already test them.\n");
     }
 
     /** the task fix: the failed tests, how they ran (one item each, its lines indented), the tests that passed */
