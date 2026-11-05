@@ -541,6 +541,7 @@ export function checkTests(
             }
             t.checks.some((c) => POSITIVE.indexOf(c.check) >= 0) ||
                 add('it has only never_bumps / never_touches, which hold for a robot that never moves: add a check that shows its scenario happened (reaches, ends_in, does, whenever, after, variable)');
+            contradictions(t.checks).forEach((m) => add(m));
             arrayOf(t.source_block_ids).forEach((b: string) => index.toReal[b] === undefined && add('source_block_ids: there is no block "' + b + '"'));
             isText(t.reason) || add('reason: one sentence, why this test is in the set');
         }
@@ -591,6 +592,48 @@ export function checkTests(
     none && count && add('generation_status is no_valid_scenarios, but the answer has tests');
     !none && !count && add('the answer has no tests: write them, or say generation_status no_valid_scenarios');
     return problems;
+}
+
+/** what the robot can't do in the same frame: turning left and right, standing still and moving, an LED on and off, playing and silent */
+const EXCLUSIVE: string[][] = [
+    ['turns_left', 'turns_right'],
+    ['drives_forward', 'drives_backward'],
+    ['stands_still', 'drives_forward'],
+    ['stands_still', 'drives_backward'],
+    ['stands_still', 'turns_left'],
+    ['stands_still', 'turns_right'],
+    ['left_led_on', 'left_led_off'],
+    ['right_led_on', 'right_led_off'],
+    ['leds_on', 'leds_off'],
+    ['leds_on', 'left_led_off'],
+    ['leds_on', 'right_led_off'],
+    ['leds_off', 'left_led_on'],
+    ['leds_off', 'right_led_on'],
+    ['plays_sound', 'silent'],
+];
+
+/**
+ * the checks of a test that can't both hold: two `does` (each holds to the end of the run, so they overlap), or two `whenever` with the same
+ * condition, that ask for what the robot can't do at the same time (2026-11-05: "it doesn't turn" was written as `does turns_left` and `does
+ * turns_right`, a test no program passes)
+ */
+export function contradictions(checks: any[]): string[] {
+    const out: string[] = [];
+    const clash = (a: string, b: string) => EXCLUSIVE.some((p) => (p[0] === a && p[1] === b) || (p[0] === b && p[1] === a));
+    arrayOf(checks).forEach((c: any, i: number) =>
+        arrayOf(checks).forEach((d: any, j: number) => {
+            if (j <= i || !c || !d || !clash(c.does, d.does)) {
+                return;
+            }
+            const both = c.check === 'does' && d.check === 'does';
+            const same = c.check === 'whenever' && d.check === 'whenever' && c.when === d.when && (c.percent || null) === (d.percent || null);
+            (both || same) &&
+                out.push(
+                    'checks ' + i + ' and ' + j + " can't both hold: the robot can't " + c.does + ' and ' + d.does + ' at the same time' + (both ? ' (each `does` holds to the end of the run)' : '') + '. For "it doesn\'t …", check what it does instead (`does` `stands_still`, `drives_forward`)'
+                );
+        })
+    );
+    return out;
 }
 
 /** the answer-wide problems (no world, no test): they don't leave a test out */

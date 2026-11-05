@@ -121,6 +121,16 @@ The answer around the worlds:
   `rec_key`.
 - `event`: `clap`, `key` (from `world`), `line_start`, `line_end` (the line tracker begins or stops seeing black),
   `obstacle` (an obstacle sensor begins to see something).
+- **`does` is for what lasts**: every frame from `after_ms` to the end of the run. Use it for what the robot keeps
+  doing (drives forward along a line, stands still from some time on). **Not for a short move**: a turn by an angle or
+  a short drive ends, the robot then does something else, and `does` fails although the robot did what it should.
+- **A reaction to something it sees**: `whenever`, with the sensor condition. "When there is something on its left,
+  it turns right": `{"check": "whenever", "when": "obstacle_left", "does": "turns_right"}`. It holds while the
+  condition holds, so a turn that ends once the thing is out of view passes. Something the robot drives up to can use
+  `after` with `event` `obstacle` too; something in view from the start never "appears", so `after` has nothing to
+  decide: use `whenever`.
+- **"It doesn't …"**: check what it does instead: `does` `stands_still` (it doesn't move), or `drives_forward`. Never
+  two checks that can't both hold, such as `does` `turns_left` and `does` `turns_right`: the Lab refuses them.
 - A check with nothing to decide (the condition never held, no event happened) is **not checked**: it is no evidence,
   and the Lab doesn't count the test as passed. A robot stuck at an obstacle stands still too, so check `never_bumps`
   as well when the robot should stop before something.

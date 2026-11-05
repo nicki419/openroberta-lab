@@ -211,6 +211,13 @@ by the model and checked by code:
     around the start;
   - "count from the start, never back from a thing";
   - in `simulator.md`, the sensors' zones (all three look forward).
+- **Checks that fit the behaviour** (`tests.md`, "Checks"): `does` is for what lasts, from `after_ms` to the end of
+  the run. A short move (a turn by an angle) fails it although the robot made it: 2026-11-05, "turns away from a box
+  on its left" turned right 20° in the first 0.3 s, then stood still, and `does turns_right` from 0.3 s failed. A
+  reaction to something seen is `whenever` with the sensor condition (`obstacle_left` → `turns_right`). `after` with
+  `event` `obstacle` has nothing to decide for something in view from the start: an event is a change. "It doesn't
+  turn" is `does stands_still`. Two checks that can't both hold (`does turns_left` and `does turns_right`; two
+  `whenever` with the same condition and opposite actions) are a problem for a repair (`contradictions`).
 - **Two checks are looser than TGA §8:** a planned outcome must be an outcome of the program, not necessarily of the
   test's paths (a run takes outcomes on its way: a wall test drives with nothing ahead before it sees the wall). A
   class or boundary must be one of the analysis' (`whole`), not necessarily of the test's paths. Both had left out
