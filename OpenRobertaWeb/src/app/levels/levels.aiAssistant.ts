@@ -857,7 +857,7 @@ async function check(list: Candidate[]): Promise<void> {
         const c = list.filter((x) => x.test === r.test)[0];
         c.ran = r;
         c.seen = STRATEGY.seenIn(r.report, decisions);
-        c.why = STRATEGY.notCheckedWhy(r.report, r.test, decisions);
+        c.why = STRATEGY.notCheckedWhy(r.report, r.test, decisions, undefined, batch.strategy.analysis);
         c.state = !AI.passed(r) ? 'failed' : c.why.length ? 'notChecked' : 'passed';
     });
     batch.plan = batch.plan && STRATEGY.withSeen(batch.plan, batch.candidates.filter((c) => c.seen).map((c) => c.seen));

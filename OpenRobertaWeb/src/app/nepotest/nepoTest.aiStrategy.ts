@@ -617,6 +617,15 @@ export function checkTests(
             t.checks.some((c) => POSITIVE.indexOf(c.check) >= 0) ||
                 add('it has only never_bumps / never_touches, which hold for a robot that never moves: add a check that shows its scenario happened (reaches, ends_in, does, whenever, after, variable)');
             contradictions(t.checks).forEach((m) => add(m));
+            // a turn away ends what the robot sees within a fraction of a second: a `whenever` that waits longer has nothing to decide (2026-11-05: two
+            // tests of turning away from a wall passed, but were shown as not checked, with after_ms 200)
+            t.checks
+                .filter((c: any) => c && c.check === 'whenever' && (c.does === 'turns_left' || c.does === 'turns_right') && c.after_ms > 50)
+                .forEach((c: any) =>
+                    add(
+                        'a "whenever" with "' + c.does + '" and after_ms ' + c.after_ms + ': turning ends what the robot sees sooner, so the check would have nothing to decide. Leave after_ms out (0): the program reacts in the next frame'
+                    )
+                );
             if (index.lineTracker && w.data && w.data.world) {
                 lineProblems(w.data.world, (w.data.world.starts || []).filter((s) => s.id === t.start)[0]).forEach((m) => add(m));
             }
@@ -777,18 +786,24 @@ export function withSeen(plan: Plan, seen: { [outcome: string]: number }[]): Pla
  * happened; [] if neither (a test that failed is failed, not unchecked)
  *
  * @param label the label of a block (for the words)
+ * @param analysis the analysis (if given, only the planned outcomes on the test's own paths count: 2026-11-05, a test planned outcomes it never needed,
+ *        "a wall on the right" in a test of a wall on the left, and passed but was shown as not checked)
  */
-export function notCheckedWhy(report: any, test: FORMAT.AiTest, index: Index, label?: (block: string) => string): { text: string; block: string }[] {
+export function notCheckedWhy(report: any, test: FORMAT.AiTest, index: Index, label?: (block: string) => string, analysis?: any): { text: string; block: string }[] {
     if (!report || report.outcome !== 'passed') {
         return [];
     }
     const out: { text: string; block: string }[] = [];
     (report.checks || []).filter((c: any) => c.passed === null).forEach((c: any) => out.push({ text: 'nothing to decide for “' + (c.text || c.check) + '”', block: null }));
     const seen = seenIn(report, index);
-    arrayOf(test.planned_branch_ids).forEach((b: string) => {
-        const o = index.outcome[b];
-        o && !seen[b] && out.push({ text: o.outcome.outcome.replace(/: .*$/, '') + ': never happened', block: o.decision.block });
-    });
+    const onPaths: string[] = [];
+    analysis && pathsOf(test, analysis).forEach((p: any) => arrayOf(p.branch_ids).forEach((b: string) => onPaths.push(b)));
+    arrayOf(test.planned_branch_ids)
+        .filter((b: string) => !onPaths.length || onPaths.indexOf(b) >= 0)
+        .forEach((b: string) => {
+            const o = index.outcome[b];
+            o && !seen[b] && out.push({ text: o.outcome.outcome.replace(/: .*$/, '') + ': never happened', block: o.decision.block });
+        });
     return out;
 }
 

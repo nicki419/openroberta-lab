@@ -102,8 +102,12 @@ program as it is in the Program tab, each in its own world (`nepoTest.ai` `runTe
 
 - **All pass:** they are added ("They passed on your program").
 - **Not checked:** a test whose checks all passed is still **not checked** when one check had nothing to decide
-  (`passed: null`), or when an outcome its run should take (`planned_branch_ids`) never happened
-  (`nepoTest.aiStrategy` `notCheckedWhy`, from the run's `trace`). Its scenario didn't happen, so it counts as not
+  (`passed: null`), or when an outcome its run should take never happened (`nepoTest.aiStrategy` `notCheckedWhy`,
+  from the run's `trace`). Of its `planned_branch_ids`, only those on the test's own paths count: since planned
+  outcomes may be any of the program's, a test planned some it never needed and was shown as not checked though it
+  had passed (2026-11-05). For the same reason, a `whenever` about turning away (`turns_left`, `turns_right`) with
+  an `after_ms` above 50 goes back for a repair: the turn ends what the robot sees sooner, and the check would have
+  nothing to decide. Two tests of turning away from a wall had `after_ms` 200, passed, and were shown as not checked. Its scenario didn't happen, so it counts as not
   passed. It is shown with "?", "not checked: it passed, but that doesn't show much", and what didn't happen, with the
   decision's block as a chip. It is decided as a failed test.
 - **Some fail or aren't checked:** the results list each test (passed; failed, with its failed checks and why, as in

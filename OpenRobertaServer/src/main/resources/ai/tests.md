@@ -126,7 +126,9 @@ The answer around the worlds:
   a short drive ends, the robot then does something else, and `does` fails although the robot did what it should.
 - **A reaction to something it sees**: `whenever`, with the sensor condition. "When there is something on its left,
   it turns right": `{"check": "whenever", "when": "obstacle_left", "does": "turns_right"}`. It holds while the
-  condition holds, so a turn that ends once the thing is out of view passes. Something the robot drives up to can use
+  condition holds, so a turn that ends once the thing is out of view passes. **Leave its `after_ms` out (0)**: the
+  program reacts in the next frame, and a turn away ends what the robot sees within a fraction of a second, so a
+  `whenever` that waits 200 ms has nothing to decide (the Lab refuses a turn with more than 50 ms). Something the robot drives up to can use
   `after` with `event` `obstacle` too; something in view from the start never "appears", so `after` has nothing to
   decide: use `whenever`.
 - **"It doesn't …"**: check what it does instead: `does` `stands_still` (it doesn't move), or `drives_forward`. Never
@@ -223,8 +225,9 @@ without decisions has one straight path: test its scenarios.
   and 40 %"): a test that repeats the program confirms it, bugs included. Vary the situation instead.
 - **Every test needs a positive check** (see "Checks"): pair `never_bumps` with what the robot should do.
 - **Every test must pass for a program that does what the learner said.** Leave margins in the time a test gives the
-  program: `max_time_ms` well above the time the robot needs at the program's speeds, `after_ms` well after the
-  moment the robot should have arrived, `within_ms` generous. The inputs of a boundary test sit close to the
+  program: `max_time_ms` well above the time the robot needs at the program's speeds, `after_ms` of a `does` well
+  after the moment the robot should have arrived, `within_ms` generous. (Not the `after_ms` of a `whenever` about
+  turning away: see "A reaction to something it sees".) The inputs of a boundary test sit close to the
   boundary; its checks still leave margins.
 - Use `until` to end a run at a goal when the test is about getting there. Don't use it when the test checks
   something after the robot arrived.
