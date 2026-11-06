@@ -200,9 +200,11 @@ without decisions has one straight path: test its scenarios.
   PLAY pressed, never pressed; a count below its limit, at it). A test stands for one class of each dimension it
   varies; a second test of the same class with other numbers adds nothing. A class that can't be drawn or set up is
   deferred (`deferred_inputs`) with the reason.
-- **Boundaries**: where the program's behaviour changes with an input, test both sides close to it: a number the
-  program compares with (a count, a variable, a light %, a repeat count), the time of a key or clap around a wait or a
-  movement that blocks the program, the edge of the line under the line tracker, the range of the obstacle sensors.
+- **Boundaries, only where the learner would see the difference**: where the program's behaviour changes with an
+  input the learner cares about, test both sides close to it: a count it compares with, the time of a key or clap
+  around a wait, the range of the obstacle sensors (stops at once, or drives up first), the light % at which it turns
+  away in the dark. **Not the line's edge or the line tracker's thresholds**: a line follower crosses them all the time,
+  and the test of following the line already takes both sides; defer them with that reason.
   Geometry: about 1 cm to each side; timing: about 0.2 s to each side of the moment; "at" only for whole numbers the
   program compares with (2, 3 and 4 claps for "3 claps"). Take boundaries from the numbers in the program and from
   "Where readings change" in "The simulator"; never invent a threshold. A boundary whose side can't be realized
@@ -222,7 +224,14 @@ without decisions has one straight path: test its scenarios.
   assumption.
 - **Check the intent, not the implementation**: "reaches Goal 1", "never bumps into the box", "stands still from
   12 s on", "whenever an obstacle is ahead, it stands still". Not that the blocks do what they say ("curves at 10 %
-  and 40 %"): a test that repeats the program confirms it, bugs included. Vary the situation instead.
+  and 40 %"): a test that repeats the program confirms it, bugs included. Vary the situation instead. **A line
+  follower is tested by where it gets to** (it `reaches` a goal area over the line's end, from on the line or from
+  beside it), never by how it steers ("whenever it sees black, it turns right"): that is the program itself, and it
+  holds for a robot that steers off the line too. The Lab refuses a test of a line follower whose only checks are
+  about steering on the line.
+- **Few tests, each worth reading**: a learner reads every test. One test per scenario is usual, two when they
+  differ in a way the learner would notice (from on the line, from beside it; a wall seen at once, a wall it drives
+  up to). No two tests that check the same thing with other numbers.
 - **Every test needs a positive check** (see "Checks"): pair `never_bumps` with what the robot should do.
 - **Every test must pass for a program that does what the learner said.** Leave margins in the time a test gives the
   program: `max_time_ms` well above the time the robot needs at the program's speeds, `after_ms` of a `does` well
@@ -239,7 +248,7 @@ without decisions has one straight path: test its scenarios.
 **4. Consolidate.** Leave out a test that plans the same outcomes, with the same classes, boundary sides and checks,
 as another one; keep the one that is easier to understand. Never leave out the only test of an outcome, of a class or
 of a side of a boundary. Say what you merged in `consolidation_notes`. **At most as many tests as the task allows**
-(8 if it names all scenarios); what doesn't fit is deferred with the reason.
+(6 if it names all scenarios); what doesn't fit is deferred with the reason.
 
 - **A world for each scenario.** Draw a world with only what its scenario needs: a wall-stop scenario gets a wall in
   front of the start, not a tunnel; a line scenario gets the line, not the walls of another scenario. Share a world

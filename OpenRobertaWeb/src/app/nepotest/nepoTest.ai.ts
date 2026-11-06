@@ -168,7 +168,7 @@ export function infer(request: Request, declined: string): Promise<Call> {
 
 /** the program's decisions, the intent and the sentence: what analyze, generate and fix get besides the request */
 function strategyData(request: Request, intent: string, sentence: string, index: STRATEGY.Index, analysis: any): any {
-    const data: any = Object.assign({}, request, { intent: intent, sentence: sentence || null, decisions: STRATEGY.decisionsForModel(index) });
+    const data: any = Object.assign({}, request, { intent: intent, sentence: sentence || null, decisions: STRATEGY.decisionsForModel(index), sensors: index.sensors || [] });
     analysis && (data.analysis = analysis);
     return data;
 }
@@ -229,7 +229,7 @@ function testNames(tests: FORMAT.AiTests): string[] {
 export async function generate(request: Request, intent: string, sentence: string, ctx: FORMAT.Context, programXml: string, strategy: Strategy): Promise<Generated> {
     const todo = STRATEGY.scenariosToWrite(strategy.analysis);
     const data = strategyData(request, intent, sentence, strategy.index, strategy.analysis);
-    const maxTests = Math.max(2, Math.floor(STRATEGY.MAX_TESTS / Math.max(1, todo.write.length)));
+    const maxTests = Math.max(1, Math.floor(STRATEGY.MAX_TESTS / Math.max(1, todo.write.length)));
     const results: Generated[] = new Array(todo.write.length);
     const one = (i: number) => {
         const id = todo.write[i];

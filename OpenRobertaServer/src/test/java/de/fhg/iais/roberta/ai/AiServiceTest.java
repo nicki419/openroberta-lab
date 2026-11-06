@@ -549,6 +549,21 @@ public class AiServiceTest {
     }
 
     @Test
+    public void theModelIsToldWhichSensorsTheProgramReads() throws Exception {
+        // 2026-11-06: a line follower that reads only the line tracker got a test in a dim tunnel
+        script(200, completion(analyzeAnswer(), "stop"));
+        AiService service = service(KEY);
+        JSONObject data = data().put("intent", "Follow the line.").put("decisions", decisions()).put("sensors", new JSONArray().put("LINETRACKER"));
+        Assert.assertTrue(service.call(AiService.ANALYZE, 7, data).ok);
+        String prompt = new JSONObject(this.requests.get(0).getString("body")).getJSONArray("messages").getJSONObject(1).getString("content");
+        Assert.assertTrue(prompt, prompt.contains("The sensors it reads: the line tracker (the brightness of the floor under it"));
+        Assert.assertTrue(prompt, prompt.contains("It reads no light sensor: dim light, which is only inside a tunnel, changes nothing it reads"));
+        Assert.assertTrue(prompt, prompt.contains("no obstacle sensor: it doesn't see walls or boxes"));
+        Assert.assertFalse(prompt, prompt.contains("not the line tracker"));
+        Assert.assertTrue(prompt, prompt.indexOf("The sensors it reads") < prompt.indexOf("## The learner's tests"));
+    }
+
+    @Test
     public void generateMayRunSixCallsAtOnceTheOthersOne() {
         Map<String, Integer> perHour = new HashMap<>();
         perHour.put(AiService.GENERATE, 100);

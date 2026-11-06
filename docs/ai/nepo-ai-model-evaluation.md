@@ -382,6 +382,63 @@ pushed the model to make one up.
 At `none` the model follows the description rule, and the analysis mostly marks the expectation unknown. It does not
 reliably follow "don't invent an expectation".
 
+### E12: Fewer scenarios, fewer tests (2026-11-06)
+
+**The problem.** A plain line follower got 8 tests in 5 worlds, and 7 of them were about its steering ("on the black
+line, it turns right", "just on / just off the white band, it turns left"), several near-copies of each other. The
+analysis had made 5 scenarios: following the line, one per steering outcome, and one per boundary of the line
+tracker's thresholds. One generate call per scenario then wrote each of them a world, and the calls couldn't merge
+across scenarios.
+
+**The changes:**
+- **Analysis (`tasks.md`):** a scenario is a situation the learner would name, not one per decision outcome or per
+  boundary; at most 4.
+- **Lab checks on the analysis (`checkAnalysis`):** more than 4 scenarios, or two scenarios with the same outcomes,
+  go back for a repair.
+- **Generate (`tests.md`):**
+  - boundary tests only where the learner would see the difference, not the line's edge or the line tracker's
+    thresholds;
+  - a line follower is tested by where it gets to, not by how it steers, and the Lab refuses a test whose only checks
+    are about steering (`checkTests`);
+  - one test per scenario is usual.
+- **At most 6 tests** (was 8), at least one per scenario.
+
+**The check:** the analysis of that run, then one generate call per scenario, replayed 3 times at `none`. DeepSeek
+couldn't be reached at the time (the TLS handshake failed), so the replay used UCloud, which is also what the Lab
+falls back to.
+
+| Chain | Scenarios | Tests |
+|---|---|---|
+| 1 | "Follows the line", "Turns right on black" | 6: three from on, beside and far from the line, three around the dark threshold; all check that it reaches a goal |
+| 2 | "Follows the line" | 2: from on the line to the goal, from beside the line |
+| 3 | "Follows the line" (and one with an unknown expectation, no test) | 2: the same |
+
+No test checked only steering (before: 7 of 8). In two of three runs the tests were exactly the two that matter.
+One run still made a steering scenario, with tests around the line tracker's threshold that the new rule asks to
+leave out.
+
+### E13: The sensors a program reads (2026-11-06)
+
+**The problem.** A line follower that reads only the line tracker got a test "In dim light, it drives straight", in
+a tunnel, and one "On the dim line". The request had nothing of another program in it: no learner tests, no earlier
+sentences.
+
+The analysis had made a scenario "In between: drive straight": the line tracker reads between the program's two
+thresholds. The model took that "light %" for the dim light of a tunnel, which only the light sensors on top
+see. The context pack's many recipes for dim light and tunnels, written for another program, made that easy.
+
+**The changes:**
+- **The browser** finds the sensors the program's blocks that run read (`sensorsRead`).
+- **Every analyze and generate call is told them** (`AiPrompts.appendSensors`), and what the program therefore can't
+  notice: "It reads no light sensor: dim light, which is only inside a tunnel, changes nothing it reads … no obstacle
+  sensor: it doesn't see walls or boxes … Make no scenario, world or check about what it doesn't sense."
+- **`simulator.md`:** the line tracker is not a light sensor of the room; a floor of medium brightness doesn't exist.
+
+**The check:** the chain of that run, 3 times at `none` on UCloud (DeepSeek couldn't be reached):
+- no scenario about dim light, and no tunnel in any world (0 of 7 tests);
+- the tests were "On the line, it follows it to the goal" and "Started beside the line, it finds it", plus one "Past
+  the line's end, it drives straight".
+
 ## Summary
 
 | | DeepSeek | UCloud |
@@ -505,6 +562,8 @@ Each folder has the scripts and their raw outputs:
 | `e6-live-session/` | `today.py`, `today.txt`: the live session's events; `fix_times.py` |
 | `e7-learners-tests-count/` | `dup_check.py` (old against new rules), `dup_summary.py`, `summary.txt`, `out_*.json` |
 | `e8-one-call-per-scenario/` | `per_scenario.py` (the replay and its evaluation), `results.json` |
+| `e13-sensors-it-reads/` | `sensors_chain.py`, `results.json` |
+| `e12-fewer-scenarios/` | `chain.py` (DeepSeek), `chain_ucloud.py` (the run), `results_ucloud.json` |
 | `e11-dim-light-no-walls/` | `dim_check.py`, `results.json` |
 | `e10-line-follower-worlds/` | `line_check.py` (the rules only), `chain_check.py` (analyze + generate), `recipe_check.py` (the conditional recipe), `follows_line_check.py` (the server's sentence; `follows_line_results.json` before, `follows_line_results2.json` after the template) |
 | `e9-none-with-recipes/` | `per_scenario_effort.py`, `results_none.json` (before the recipes), `per_scenario_none.py` (with them, and the sensors' zones), `results.json`, `per_scenario_s2.py`, `results_s2_count.json` (after "count from the start") |

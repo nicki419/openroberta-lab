@@ -65,6 +65,11 @@ Their `role`:
 - It reads the brightness of the floor right under it, one point 5 cm ahead of the axle in the middle: **0 % on a
   line's black core, about 100 % on the white band beside it, about 83 % on the plain peach floor**. The blocks give
   it as a light value (0 to 100 %) or as "sees black" (true only on the core).
+- **The line tracker is not a light sensor of the room.** Its "light %" is the floor's brightness; a tunnel's dim
+  light doesn't change it (only the light sensors LLIGHT and RLIGHT on top see that). "Dark" for the line tracker is a
+  black line, never a tunnel. A floor of medium brightness doesn't exist: readings between black (0 %) and the peach
+  floor (83 %) happen only right at the edge of a line's black core, for a moment. A program's "in between" (neither
+  dark nor bright) is tested by following the line, not by a world of its own.
 - **There is no line on a plain floor.** A program that steers by the line tracker sees 83 % there, all the time.
   A line follower that turns one way above a threshold ("turn right while it reads more than 55 %") then turns that
   way without end: it circles on the spot or drives in circles, and doesn't drive straight. It only drives along where

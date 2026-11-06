@@ -67,7 +67,13 @@ sentence: the analysis is read by the Lab and by you, not by the learner.
    "the line's edge under the line tracker", "the obstacle sensor's range", "PLAY pressed before or after the wait
    starts", "the count 3 that the program compares with"). Only boundaries from numbers in the program or from "Where
    readings change" in "The simulator"; no invented thresholds, sizes or coordinates.
-6. **Scenarios**: each is `initial_condition` → `trigger` → its paths (`path_ids`; each path's `scenario_id` names
+6. **Scenarios: few, and the learner's own words.** A scenario is a situation the learner would name, with what the
+   robot should do there: "follows the line to its end", "stops at a wall", "turns away from a wall in the dark". It
+   is **not one per decision outcome and not one per boundary**. A run that follows a line takes all of its steering
+   outcomes, so following the line is one scenario whose path lists them all; "on black it turns right" and "just
+   inside the dark threshold" are not scenarios. Boundaries are the input dimensions of a path, not scenarios of their
+   own. **At most 4 scenarios** (most programs have 1 to 3); two scenarios whose paths take the same outcomes are one.
+   Each is `initial_condition` → `trigger` → its paths (`path_ids`; each path's `scenario_id` names
    it) → `coded_response` → `expected_response_hypothesis` (what the robot should do: from the sentence, else from the
    guessed intent; null if nothing defensible) with its `oracle_basis` (`learner_description` only with a sentence;
    `inferred`; `applicable_safety`; `unknown` if null), `assumptions`, the blocks (`source_block_ids`), `testability`

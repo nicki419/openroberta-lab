@@ -234,6 +234,21 @@ by the model and checked by code:
   `simulator.md` "The line tracker" says how it reads the floor: 0 % on black, about 100 % on the white band, 83 % on
   the peach floor. On a plain floor a line follower circles. Rules alone didn't make the model draw the line at
   `none` (0 of 6 tests); the sentence and the template did (8 of 8; `nepo-ai-model-evaluation.md`, E10).
+- **The sensors it reads** (2026-11-06, E13): the browser finds the sensors the program's blocks that run read
+  (`nepoTest.aiStrategy` `sensorsRead`: LINETRACKER, LLIGHT, RLIGHT, OBSTACLE_FRONT/LEFT/RIGHT, SOUND, KEY, IR;
+  `Index.sensors`). Analyze and generate get them (`sensors`, `AiPrompts.appendSensors`), with what the program can't
+  notice ("It reads no light sensor: dim light … changes nothing it reads"). Before, a line follower got a test in a
+  dim tunnel: the model had taken the line tracker's "light %" for dim light.
+- **Few, readable tests** (2026-11-06, `nepo-ai-model-evaluation.md` E12):
+  - at most 4 scenarios, each a situation the learner would name, not one per decision outcome or boundary
+    (`checkAnalysis`: more than `MAX_SCENARIOS`, or two scenarios with the same outcomes, go back for a repair);
+  - at most 6 tests (`MAX_TESTS`), at least 1 per scenario;
+  - boundary tests only where the learner would see the difference, not the line's edge;
+  - a line follower is tested by where it gets to: a test whose only positive checks are about steering
+    ("whenever it sees the line, it turns", "always turns") goes back for a repair (`checkTests`).
+
+  Before, a line follower got 8 tests, 7 of them about its steering. This narrows the spec's "BVA wherever the program
+  has a boundary" (TGA §6) to the boundaries the learner would notice.
 - **Two checks are looser than TGA §8:** a planned outcome must be an outcome of the program, not necessarily of the
   test's paths (a run takes outcomes on its way: a wall test drives with nothing ahead before it sees the wall). A
   class or boundary must be one of the analysis' (`whole`), not necessarily of the test's paths. Both had left out

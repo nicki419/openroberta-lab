@@ -21,6 +21,7 @@ import org.json.JSONObject;
  *  analyze:  decisions: [{id: D1, block: b7, kind: if | wait | while, label, outcomes: [{id: D1.1, outcome}, ...]}] (the browser finds them in
  *            the program's blocks: nepoTest.aiStrategy decisionIndex), intent: the guess, sentence: the learner's sentence (or null),
  *            notCovered: what the learner's tests don't check yet (the guess's not_covered; only if they have tests, or null),
+ *            sensors: the sensors its blocks that run read ([LINETRACKER, LLIGHT, RLIGHT, OBSTACLE_FRONT, …, SOUND, KEY, IR]),
  *            repair: {answer: the answer with problems, problems: ["...", ...]} (or null)
  *  generate: as analyze, and analysis: the checked answer of analyze, scenarios: [the ids of the scenarios this call writes tests for] (or
  *            null: all; the browser makes one call per scenario that the learner's tests don't test yet), maxTests: its share of the tests,
@@ -97,6 +98,7 @@ public final class AiPrompts {
         boolean infer = AiService.INFER.equals(task);
         if ( !infer ) {
             appendDecisions(m, data.opt("decisions"));
+            appendSensors(m, data.opt("sensors"));
         }
 
         m.append("## The learner's tests\n\n");
@@ -237,6 +239,66 @@ public final class AiPrompts {
                 .append("The program follows a line (it reads the line tracker): every test starts on a line or close beside it, facing along it ")
                 .append("(\"A line through the start\" in \"Tests\"), with the scenario's things on that line. On a plain floor it circles on the start.\n");
         }
+    }
+
+    /**
+     * the sensors the program reads (the browser finds them in its blocks that run: nepoTest.aiStrategy sensorsRead), and what it therefore can't
+     * notice (2026-11-06: a line follower that reads only the line tracker got a test in a dim tunnel)
+     */
+    private static void appendSensors(StringBuilder m, Object value) {
+        if ( !(value instanceof JSONArray) ) {
+            return;
+        }
+        JSONArray list = (JSONArray) value;
+        List<String> read = new ArrayList<>();
+        for ( int i = 0; i < list.length() && i < 20; i++ ) {
+            String s = list.optString(i, "");
+            if ( s.matches("[A-Z_]{1,20}") && !read.contains(s) ) {
+                read.add(s);
+            }
+        }
+        boolean line = read.contains("LINETRACKER");
+        boolean light = read.contains("LLIGHT") || read.contains("RLIGHT");
+        List<String> obstacles = new ArrayList<>();
+        for ( String s : read ) {
+            if ( s.startsWith("OBSTACLE_") ) {
+                obstacles.add(s.substring("OBSTACLE_".length()));
+            }
+        }
+        List<String> words = new ArrayList<>();
+        if ( line ) {
+            words.add("the line tracker (the brightness of the floor under it: black line, white band, peach floor)");
+        }
+        if ( light ) {
+            words.add("the light sensors " + (read.contains("LLIGHT") ? "LLIGHT" : "") + (read.contains("LLIGHT") && read.contains("RLIGHT") ? " and " : "") + (read.contains("RLIGHT") ? "RLIGHT" : "") + " (the light from above: dim only inside a tunnel)");
+        }
+        if ( !obstacles.isEmpty() ) {
+            words.add("the obstacle sensors " + String.join(", ", obstacles));
+        }
+        if ( read.contains("SOUND") ) {
+            words.add("the sound sensor (claps)");
+        }
+        if ( read.contains("KEY") ) {
+            words.add("the keys");
+        }
+        if ( read.contains("IR") ) {
+            words.add("IR messages");
+        }
+        m.append("The sensors it reads: ").append(words.isEmpty() ? "none" : String.join("; ", words)).append(".\n");
+        List<String> not = new ArrayList<>();
+        if ( !light ) {
+            not.add("no light sensor: dim light, which is only inside a tunnel, changes nothing it reads (the line tracker's light % is the floor, not dim light)");
+        }
+        if ( obstacles.isEmpty() ) {
+            not.add("no obstacle sensor: it doesn't see walls or boxes, it only bumps into them");
+        }
+        if ( !line ) {
+            not.add("not the line tracker: lines on the floor change nothing for it");
+        }
+        if ( !not.isEmpty() ) {
+            m.append("It reads ").append(String.join("; ", not)).append(". Make no scenario, world or check about what it doesn't sense.\n");
+        }
+        m.append('\n');
     }
 
     /** the task fix: the failed tests, how they ran (one item each, its lines indented), the tests that passed */

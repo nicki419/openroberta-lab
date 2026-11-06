@@ -21,7 +21,8 @@
 import * as FORMAT from 'nepoTest.aiFormat';
 import * as SIM from 'nepoTest.sim';
 
-export const MAX_TESTS = 8;
+export const MAX_TESTS = 6; // 2026-11-06: 8 was too many to read (a line follower got 8, 7 of them about its steering)
+export const MAX_SCENARIOS = 4; // of an analysis: each a situation the learner would name
 
 const IFS = ['robControls_if', 'robControls_ifElse', 'controls_if'];
 const WAITS = ['robControls_wait_for', 'robControls_wait'];
@@ -58,6 +59,7 @@ export interface Index {
     toShort: { [block: string]: string };
     toReal: { [short: string]: string };
     lineTracker?: boolean; // a block that runs reads the line tracker: the program follows a line (tests start on one: lineProblems)
+    sensors?: string[]; // the sensors blocks that run read (sensorsRead): the model is told them, and what the program can't notice
 }
 
 /** an outcome of the program's decisions and what became of it: planned by a test, deferred (why), and how often the runs took it */
@@ -115,17 +117,20 @@ export function indexOf(programXml: string, label?: (block: string) => string): 
         index.decisions.push(d);
         d.outcomes.forEach((o) => (index.outcome[o.id] = { decision: d, outcome: o }));
     }
-    index.lineTracker = readsLineTracker(blocks);
+    index.sensors = sensorsRead(blocks);
+    index.lineTracker = index.sensors.indexOf('LINETRACKER') >= 0;
     blocks.forEach((b) => b.setAttribute('id', index.toShort[b.getAttribute('id')] || b.getAttribute('id')));
     index.nepo = new XMLSerializer().serializeToString(doc);
     return index;
 }
 
 /**
- * does a block that runs read the line tracker (a light sensor block on the port LINETRACKER, in any mode)? Not in a switched-off block, not in a
- * function nobody calls
+ * the sensors the program reads, from its sensor blocks that run (not in a switched-off block, not in a function nobody calls): LINETRACKER (the floor
+ * under it), LLIGHT and RLIGHT (the light from above), OBSTACLE_LEFT, OBSTACLE_FRONT, OBSTACLE_RIGHT, SOUND, KEY, IR. The model is told them, and what
+ * the program can't notice (2026-11-06: a line follower that reads only the line tracker got a test in a dim tunnel, as if a "light %" were the dim
+ * light of the light sensors)
  */
-function readsLineTracker(blocks: Element[]): boolean {
+function sensorsRead(blocks: Element[]): string[] {
     const called: string[] = [];
     blocks
         .filter((b) => /^robProcedures_call/.test(b.getAttribute('type') || ''))
@@ -137,8 +142,8 @@ function readsLineTracker(blocks: Element[]): boolean {
         const f = Array.prototype.filter.call(b.children, (c: Element) => c.localName === 'field' && c.getAttribute('name') === name)[0];
         return f ? f.textContent : null;
     };
-    return blocks.some((b) => {
-        if (b.getAttribute('type') !== 'robSensors_light_getSample' || fieldOf(b, 'SENSORPORT') !== 'LINETRACKER' || !runs(b)) {
+    const live = (b: Element) => {
+        if (!runs(b)) {
             return false;
         }
         let top: Element = b;
@@ -150,9 +155,29 @@ function readsLineTracker(blocks: Element[]): boolean {
                 top = e;
             }
         }
-        const def = /^robProcedures_def/.test(top.getAttribute('type') || '');
-        return !def || called.indexOf(fieldOf(top, 'NAME')) >= 0;
-    });
+        return !/^robProcedures_def/.test(top.getAttribute('type') || '') || called.indexOf(fieldOf(top, 'NAME')) >= 0;
+    };
+    const out: string[] = [];
+    const add = (s: string) => s && out.indexOf(s) < 0 && out.push(s);
+    blocks
+        .filter((b) => /^robSensors_/.test(b.getAttribute('type') || '') && live(b))
+        .forEach((b) => {
+            const type = b.getAttribute('type');
+            const port = fieldOf(b, 'SENSORPORT') || '';
+            const kind = type === 'robSensors_getSample' ? (fieldOf(b, 'SENSORTYPE') || '').split('_')[0].toLowerCase() : type.replace(/^robSensors_|_getSample$/g, '');
+            if (kind === 'light') {
+                add(port === 'LINETRACKER' || port === 'LLIGHT' || port === 'RLIGHT' ? port : 'LINETRACKER');
+            } else if (kind === 'infrared') {
+                add('OBSTACLE_' + (port || 'FRONT'));
+            } else if (kind === 'sound') {
+                add('SOUND');
+            } else if (kind === 'key') {
+                add('KEY');
+            } else if (kind === 'irseeker') {
+                add('IR');
+            }
+        });
+    return out;
 }
 
 /** how far (cm) a test's start has the line tracker from a line on the floor at most (more: the program, a line follower, circles on the start) */
@@ -428,6 +453,25 @@ export function checkAnalysis(answer: any, index: Index, sentence: string, learn
         }
     }
     answer.analysis_status === 'ok' && !Object.keys(scenarios).length && add('the analysis is ok but has no scenarios');
+    // few scenarios, each a situation the learner would name (2026-11-06: a line follower got 5: following the line, one per steering outcome and one
+    // per boundary, and so 8 tests, 7 of them about its steering)
+    const ids = Object.keys(scenarios);
+    ids.length > MAX_SCENARIOS &&
+        add('there are ' + ids.length + ' scenarios, at most ' + MAX_SCENARIOS + ': a scenario is a situation the learner would name, not one per decision outcome or per boundary; merge them');
+    const outcomesOf = (id: string) =>
+        arrayOf(scenarios[id].path_ids)
+            .map((p: string) => paths[p])
+            .filter((p: any) => p)
+            .reduce((all: string[], p: any) => all.concat(arrayOf(p.branch_ids)), [])
+            .filter((b: string, i: number, all: string[]) => all.indexOf(b) === i)
+            .sort()
+            .join();
+    ids.forEach((a, i) =>
+        ids.slice(i + 1).forEach((b) => {
+            const same = outcomesOf(a);
+            same && same === outcomesOf(b) && add('scenarios ' + a + ' and ' + b + ' take the same outcomes (' + same + '): they are one situation; merge them (a boundary is an input of the path, not a scenario)');
+        })
+    );
     return problems;
 }
 
@@ -628,6 +672,13 @@ export function checkTests(
                 );
             if (index.lineTracker && w.data && w.data.world) {
                 lineProblems(w.data.world, (w.data.world.starts || []).filter((s) => s.id === t.start)[0]).forEach((m) => add(m));
+                // a line follower is tested by where it gets to, not by how it steers: its positive checks only "whenever it sees (no) line, it turns"
+                // or "always turns" repeat the program (2026-11-06: 7 of 8 tests of a line follower were such)
+                const positive = t.checks.filter((c: any) => POSITIVE.indexOf(c.check) >= 0);
+                const steering = (c: any) => (c.check === 'whenever' && (c.when === 'line' || c.when === 'no_line')) || (c.check === 'does' && (c.does === 'turns_left' || c.does === 'turns_right'));
+                positive.length &&
+                    positive.every(steering) &&
+                    add('it only checks how the line follower steers, which is the program itself: check where it gets to (it reaches a goal area over the line\'s end), or leave the test out');
             }
             arrayOf(t.source_block_ids).forEach((b: string) => index.toReal[b] === undefined && add('source_block_ids: there is no block "' + b + '"'));
             isText(t.reason) || add('reason: one sentence, why this test is in the set');
