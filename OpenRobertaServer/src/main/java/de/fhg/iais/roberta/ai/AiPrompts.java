@@ -22,10 +22,13 @@ import org.json.JSONObject;
  *  analyze:  decisions: [{id: D1, block: b7, kind: if | wait | while, label, outcomes: [{id: D1.1, outcome}, ...]}] (the browser finds them in
  *            the program's blocks: nepoTest.aiStrategy decisionIndex),
  *            sensors: the sensors its blocks that run read ([LINETRACKER, LLIGHT, RLIGHT, OBSTACLE_FRONT, …, SOUND, KEY, IR]),
+ *            floor: what it did on a plain floor, measured by the browser on the simulator ({seconds, moved_cm, turned_deg: + is to the left}; or
+ *            null: not known),
  *            repair: {answer: the answer with problems, problems: ["...", ...]} (or null)
  *  generate: as analyze, and analysis: the checked answer of analyze, scenarios: [the ids of the scenarios this call writes tests for] (or
  *            null: all; the browser makes one call per scenario that the learner's tests don't test yet), maxTests: its share of the tests,
- *            followsLine: true if a block that runs reads the line tracker (every test then starts on a line)
+ *            followsLine: true if a block that runs reads the line tracker (every test then starts on a line, unless it drives straight on a
+ *            plain floor)
  *  fix:      as generate, and fix: {tests: the failed tests as test JSON, each world in full,
  *                                   results: ["how a failed test ran", ...] (the browser writes them from the runs),
  *                                   kept: [{test, world}: the tests of the answer that passed]}}
@@ -97,6 +100,7 @@ public final class AiPrompts {
         m.append(edpy.isEmpty() ? "EdPy: (not available)\n\n" : "EdPy:\n```python\n" + edpy + "\n```\n\n");
         appendDecisions(m, data.opt("decisions"));
         appendSensors(m, data.opt("sensors"));
+        appendFloor(m, data.optJSONObject("floor"));
 
         m.append("## The learner's tests\n\n");
         Object tests = data.opt("tests");
@@ -220,9 +224,18 @@ public final class AiPrompts {
             .append(maxTests > 0 ? ", at most " + maxTests + " tests" : "")
             .append(": the analysis' other scenarios get their own calls, or the learner's tests already test them.\n");
         if ( data.optBoolean("followsLine", false) ) { // the browser found a block that runs and reads the line tracker
-            m
-                .append("The program follows a line (it reads the line tracker): every test starts on a line or close beside it, facing along it ")
-                .append("(\"A line through the start\" in \"Tests\"), with the scenario's things on that line. On a plain floor it circles on the start.\n");
+            String floor = floorMoves(data.optJSONObject("floor"));
+            if ( "straight".equals(floor) ) {
+                m
+                    .append("The program reads the line tracker, but on a plain floor it drives straight on (\"The program on a plain floor\"): ")
+                    .append("draw a line only where following it is what the test is about. A test of something else (a wall, a tunnel) gets no line.\n");
+            } else {
+                m
+                    .append("The program follows a line (it reads the line tracker): every test starts on a line or close beside it, facing along it ")
+                    .append("(\"A line through the start\" in \"Tests\"), with the scenario's things on that line. On a plain floor ")
+                    .append(floor == null ? "it doesn't get anywhere: it circles on the start" : "it doesn't drive along (\"The program on a plain floor\")")
+                    .append(".\n");
+            }
         }
     }
 
@@ -284,6 +297,50 @@ public final class AiPrompts {
             m.append("It reads ").append(String.join("; ", not)).append(". Make no scenario, world or check about what it doesn't sense.\n");
         }
         m.append('\n');
+    }
+
+    /**
+     * what the program did on a plain floor, measured by the browser on the simulator (nepoTest.ai floorRun): a fact the model can't read reliably from
+     * the blocks (2026-11-06: a line follower that steers only over black or white drives straight on, and was told it circles)
+     */
+    private static void appendFloor(StringBuilder m, JSONObject floor) {
+        String moves = floorMoves(floor);
+        if ( moves == null ) {
+            return;
+        }
+        long seconds = Math.round(floor.optDouble("seconds", 3));
+        long cm = Math.round(floor.optDouble("moved_cm"));
+        long deg = Math.round(Math.abs(floor.optDouble("turned_deg")));
+        m.append("## The program on a plain floor\n\n");
+        m.append("The Lab ran it for ").append(seconds).append(" s on a plain peach floor, bright, with nothing around and nothing happening: ");
+        if ( "straight".equals(moves) ) {
+            m.append("it drove straight on, ").append(cm).append(" cm.");
+        } else if ( "stands".equals(moves) ) {
+            m.append("it stood still.");
+        } else {
+            m.append("it turned ").append("turns_left".equals(moves) ? "left" : "right").append(", ").append(deg).append("° in all, ");
+            m.append(cm < 5 ? "on the spot." : "in a curve (its path " + cm + " cm).");
+        }
+        m.append("\n\n");
+    }
+
+    /**
+     * @param floor {seconds, moved_cm, turned_deg} (or null)
+     * @return straight, turns_left, turns_right, stands, or null if not known (as nepoTest.aiStrategy floorMoves)
+     */
+    static String floorMoves(JSONObject floor) {
+        if ( floor == null || !(floor.opt("moved_cm") instanceof Number) || !(floor.opt("turned_deg") instanceof Number) ) {
+            return null;
+        }
+        double moved = floor.optDouble("moved_cm");
+        double turned = floor.optDouble("turned_deg");
+        if ( Double.isNaN(moved) || Double.isNaN(turned) ) {
+            return null;
+        }
+        if ( Math.abs(turned) >= 30 ) {
+            return turned > 0 ? "turns_left" : "turns_right";
+        }
+        return moved >= 5 ? "straight" : "stands";
     }
 
     /** the task fix: the failed tests, how they ran (one item each, its lines indented), the tests that passed */

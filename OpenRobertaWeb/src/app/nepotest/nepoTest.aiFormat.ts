@@ -384,7 +384,92 @@ function resolveWorld(w: any, name: string, ctx: Context, problem: (message: str
         }
     }
     world.starts.length || problem('the world has no start');
+    tunnelProblems(world).forEach((m) => problem('items: ' + m));
     return { name: name, existing: false, data: dataOf(world), tests: [] };
+}
+
+const ROBOT_WIDTH_CM = 7.5;
+const ROOMY_TUNNEL_CM = 30; // in a tunnel at least this wide the robot can drive around a block (a dark room)
+
+/**
+ * the obstacles inside a tunnel narrower than ROOMY_TUNNEL_CM that don't close it: the robot, 7.5 cm wide, can't get around them in there, and bumps
+ * into them. 2026-11-06: "a wall on the left in dim light" was a 2 × 2.5 cm box inside a 15 cm tunnel, in the robot's way, and the test failed on a
+ * right program; the tunnel's own walls, in a bend, are what such a test needs (simulator runs: bends 15 and 20 cm wide, the robot gets through
+ * without bumping). A wall across the whole tunnel (for a stop in dim light) is fine.
+ */
+export function tunnelProblems(world: SIM.SimWorld): string[] {
+    const out: string[] = [];
+    const tunnels = (world.items || []).filter((t) => t.kind === 'tunnel' && Array.isArray(t.points) && t.points.length > 1);
+    (world.items || [])
+        .filter((i) => i.role === 'obstacle' && i.kind !== 'tunnel')
+        .forEach((item) => {
+            const outline = outlineOf(item);
+            if (!outline.length) {
+                return;
+            }
+            const cx = outline.reduce((s, p) => s + p[0], 0) / outline.length;
+            const cy = outline.reduce((s, p) => s + p[1], 0) / outline.length;
+            tunnels.forEach((t) => {
+                const width = isNumber(t.width) ? t.width : 15;
+                const near = nearestSegment(t.points, cx, cy);
+                if (width >= ROOMY_TUNNEL_CM || near.distance >= width / 2) {
+                    return;
+                }
+                const across = outline.map(([x, y]) => -x * near.uy + y * near.ux); // along the tunnel's normal
+                const extent = Math.max(...across) - Math.min(...across);
+                if (extent < width - 2) {
+                    out.push(
+                        'item "' +
+                            item.id +
+                            '" is inside the tunnel "' +
+                            t.id +
+                            '" (' +
+                            width +
+                            ' cm wide), and leaves no room to get around it: the robot is ' +
+                            ROBOT_WIDTH_CM +
+                            ' cm wide and bumps into it. Nothing goes inside a tunnel but a line on the floor, or a wall across the whole tunnel for a stop in dim light. For walls on its left or right in dim light, bend the tunnel: its own walls are those walls ("Dim light: walls on its left or right" in "Tests")'
+                    );
+                }
+            });
+        });
+    return out;
+}
+
+/** the corners or points of an item (cm) */
+function outlineOf(item: SIM.SimItem): number[][] {
+    if (item.kind === 'rect' && [item.x, item.y, item.w, item.h].every(isNumber)) {
+        return [
+            [item.x, item.y],
+            [item.x + item.w, item.y],
+            [item.x, item.y + item.h],
+            [item.x + item.w, item.y + item.h],
+        ];
+    }
+    if (item.kind === 'circle' && [item.x, item.y, item.r].every(isNumber)) {
+        return [
+            [item.x - item.r, item.y],
+            [item.x + item.r, item.y],
+            [item.x, item.y - item.r],
+            [item.x, item.y + item.r],
+        ];
+    }
+    return Array.isArray(item.points) ? item.points.filter((p) => Array.isArray(p) && p.length === 2 && p.every(isNumber)) : [];
+}
+
+/** the segment of a polyline nearest to a point: the distance, and the segment's direction (unit) */
+function nearestSegment(points: number[][], px: number, py: number): { distance: number; ux: number; uy: number } {
+    let best = { distance: Infinity, ux: 1, uy: 0 };
+    for (let k = 1; k < points.length; k++) {
+        const [x1, y1] = points[k - 1];
+        const [x2, y2] = points[k];
+        const dx = x2 - x1;
+        const dy = y2 - y1;
+        const length = Math.hypot(dx, dy) || 1;
+        const t = Math.max(0, Math.min(1, ((px - x1) * dx + (py - y1) * dy) / (length * length)));
+        const distance = Math.hypot(px - (x1 + t * dx), py - (y1 + t * dy));
+        distance < best.distance && (best = { distance: distance, ux: dx / length, uy: dy / length });
+    }
+    return best;
 }
 
 /** a world as the data of a world block (the editor's view: the whole floor) */

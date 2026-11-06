@@ -442,6 +442,10 @@ async function write(sentence: string, before: string[]): Promise<void> {
         return;
     }
     const decisions = STRATEGY.indexOf(run.program, TESTS_C.aiBlockLabel);
+    decisions.floor = await AI.floorRun(TESTS_C.aiProgramXml()); // what it does on a plain floor: the model is told, and the line rule depends on it
+    if (mine !== token) {
+        return;
+    }
     index = decisions;
     runProgram = run.program;
     const tests = TESTS_C.aiTests();
@@ -500,6 +504,7 @@ function recordAnalyzed(sentence: string, result: AI.Analyzed, decisions: STRATE
         message: result.message || null,
         stale: stale,
         decisions: STRATEGY.decisionsForLog(decisions),
+        floor: decisions.floor || null, // the Lab's run on a plain floor
         status: result.analysis ? result.analysis.analysis_status : null,
         analysis: result.analysis || result.answers[result.answers.length - 1] || null,
         problems: result.problems.map(AI.problemText),

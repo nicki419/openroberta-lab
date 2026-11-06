@@ -124,7 +124,10 @@ The answer around the worlds:
   a short drive ends, the robot then does something else, and `does` fails although the robot did what it should.
 - **A reaction to something it sees**: `whenever`, with the sensor condition. "When there is something on its left,
   it turns right": `{"check": "whenever", "when": "obstacle_left", "does": "turns_right"}`. It holds while the
-  condition holds, so a turn that ends once the thing is out of view passes. **Leave its `after_ms` out (0)**: the
+  condition holds, so a turn that ends once the thing is out of view passes. **But a program that turns in steps**
+  (turn by 20°, then drive on, then look again) drives forward between its steps while the wall is still in view, and
+  `whenever` fails on a right program: test turning away from walls by where the robot gets to (it gets through a bent
+  tunnel without bumping, as with a line follower). **Leave its `after_ms` out (0)**: the
   program reacts in the next frame, and a turn away ends what the robot sees within a fraction of a second, so a
   `whenever` that waits 200 ms has nothing to decide (the Lab refuses a turn with more than 50 ms). Something the robot drives up to can use
   `after` with `event` `obstacle` too; something in view from the start never "appears", so `after` has nothing to
@@ -156,32 +159,44 @@ The answer around the worlds:
   start) clear of obstacles and walls, and not touching a goal or fail area.
 - **Go through the program from the start first.** For each test, follow what the program does from the start until
   the scenario's moment: which decisions it takes on the way, and what it then does with the motors. The world must
-  make those go as planned, and list them in `planned_branch_ids`. A program that follows a line in bright light
-  needs a line under the robot until the scenario's thing comes (see "The line tracker" in "The simulator"): without
-  it, it circles on the start. So a wall ahead for a line follower stands across a line that runs from the start.
+  make those go as planned, and list them in `planned_branch_ids`. **"The program on a plain floor" says whether it
+  gets anywhere without a line.** If it turns or circles there, it needs a line under the robot until the scenario's
+  thing comes, and a wall ahead stands across a line that runs from the start. If it drives straight on, draw a line
+  only for a test about following the line.
 - **Place things from the start, with heading 0** (facing right, towards larger x) unless the scenario needs another
   heading. For a start at (x, y):
   - **A line through the start** (for a program that follows a line): a straight `line`, `width` 1.48, `points`
     [[x − 10, y], [x + 80, y]]; the start is then on its black core, facing along it. Other things of the scenario go
     on this line (a wall across it at x + 8, or at x + 30 or further).
   - **A line beside the start** (for a test that starts "beside the line"): the same line 8 cm to the side, **on the
-    side the program turns to on the plain floor**, so that it finds it. Look it up in the program: what it does
-    where the line tracker sees no black (about 83 %: a reading above its threshold, or the else part of "sees
-    black"). Turns left there (`SPIN_LEFT`, or the right wheel faster): the line on its left, `points`
-    [[x − 10, y − 8], [x + 80, y − 8]]. Turns right: on its right, y + 8. On the other side it turns away and circles
-    without finding the line, and the test fails on a right program. The start is then not on the line.
+    side the program turns to on the plain floor** ("The program on a plain floor"), so that it finds it. Turns left
+    there: the line on its left, `points` [[x − 10, y − 8], [x + 80, y − 8]]. Turns right: on its right, y + 8. On the
+    other side it turns away and circles without finding the line, and the test fails on a right program. **If it
+    drives straight on**, it drives past a line beside it: a start beside the line isn't a situation of its own for
+    this program; defer the class with that reason. The start is then not on the line.
   - **A wall ahead** (all three obstacle sensors see it): a `rect` with its left edge at x + 8 (seen at once) or at
-    x + 30 or further (the robot drives up to it), `y` = y − 6, `w` 2, `h` 12. **If the program follows a line**,
-    each such test gets its own line and its own wall: the `line` `points` [[x − 10, y], [x + 40, y]], and the wall
+    x + 30 or further (the robot drives up to it), `y` = y − 6, `w` 2, `h` 12. **If the program needs a line to get
+    anywhere** (it turns or circles on a plain floor), each such test gets its own line and its own wall: the `line` `points` [[x − 10, y], [x + 40, y]], and the wall
     across it at x + 8 (seen at once) or x + 30 (it drives up to it). The next test starts 30 cm lower (y + 30), with
     its own line and wall by the same numbers.
-  - **Something only the LEFT sensor sees** ("a wall on the left"): a `rect` at x + 7, y − 4.5, `w` 2, `h` 2.5.
-    **Only RIGHT**: the same at y + 2. **Both, not FRONT**: both boxes. Not a wall beside the robot: the sensors look
-    forward, and they don't see a wall along the robot's side.
+  - **Something on its left or right** ("a wall on the left" for a program that reads LEFT): the sensors look
+    forward, so it is something in front of the robot's left half, **inside the robot's width**: the robot drives into
+    it unless it turns away in time. Never a small box in its way (it bumps into it), and not a wall along its side
+    (no sensor sees it). In the dark, the tunnel's own walls do it: "Dim light: walls on its left or right".
   - **Dim light** (the light sensors are 5.5 cm ahead of the start): a straight `tunnel`, `width` 15, `points`
     [[x − 10, y], [x + 40, y]], with the start in its middle: the sensors are 15.5 cm inside and read 40 %, the
-    darkest a tunnel gets. Its walls run along the robot: the obstacle sensors don't see them. Boxes for LEFT or RIGHT
-    fit inside it.
+    darkest a tunnel gets. Its walls run along the robot: the obstacle sensors don't see them. **Nothing goes inside
+    the tunnel** (no box, no wall beside the robot: it bumps into them), and a line only if the test is about
+    following the line in the dark. To drive through it: the start 15 cm before the opening, `points` [[x + 15, y],
+    [x + 135, y]], a goal area just after the exit (`x` + 140, `y` − 15, `w` 20, `h` 30).
+  - **Dim light: walls on its left or right** (a program that turns away from walls in the dark): **a tunnel that
+    bends**, `width` 15 to 20, the start 15 cm before its opening. A bend to the right, `points` [[x + 15, y],
+    [x + 75, y], [x + 115, y + 30], [x + 130, y + 70]], `smooth` true: its left wall comes in front of the robot's left
+    half (LEFT). A bend to the left: y − 30 and y − 70 (RIGHT). A goal area after the exit: `x` + 115, `y` + 75, `w`
+    30, `h` 20 (bend to the left: `y` − 95). With the start at y 100, both fit on the floor. Checks: `never_bumps` the
+    tunnel, and `reaches` the goal: a robot that turns away from the walls gets through, one that doesn't bumps into
+    them. A straight tunnel is the class "nothing on either side"; a wall across the whole tunnel (`rect` of `h` =
+    its width) the class "a wall ahead in the dark".
   - **Count from the start, never back from a thing.** Each test that needs something at a set distance gets its own:
     first its start, then its thing by the numbers above. Start B at (130, 100) with a wall seen at once: the wall's
     `x` is 138; start C at (130, 160) with a wall it drives up to: its `x` is 160. Don't draw one wall for several
@@ -249,7 +264,8 @@ merged in `consolidation_notes`. **At most as many tests as the task allows**
 (6 if it names all scenarios); what doesn't fit is deferred with the reason.
 
 - **A world for each scenario.** Draw a world with only what its scenario needs: a wall-stop scenario gets a wall in
-  front of the start, not a tunnel; a line scenario gets the line, not the walls of another scenario. Share a world
+  front of the start, not a tunnel; a line scenario gets the line, not the walls of another scenario; a dim-light
+  scenario gets the tunnel, with nothing inside it, and a line only if it is about following the line in the dark. Share a world
   only between tests of the same scenario (or of scenarios that are the same situation). Unrelated things in one world
   change what the program does: a tunnel darkens the light sensors, a wall at the side triggers the side sensors.
 - **Each test its own start, placed for its situation.** Two tests of one world never start at the same pose unless

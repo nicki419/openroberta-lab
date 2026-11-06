@@ -28,7 +28,11 @@ Their `role`:
   its line, `width` cm apart, with a roof: the robot drives through it (and bumps into its walls). **Under the roof it
   is darker**: the light sensors see 100 % at an opening, less the further in, and 40 % from 15 cm inside on (measured
   along the tunnel from the nearer opening; linear in between). Make it at least 12 cm wide for the robot to drive
-  through; a line on the floor can run through it.
+  through; a line on the floor can run through it. **Nothing else goes inside a tunnel**: the robot is 7.5 cm wide,
+  so a box inside a 15 cm tunnel leaves it no way around, and it bumps into the box (only a wall across the whole
+  tunnel, for a stop in the dark, belongs inside). **Its own walls are the walls the robot meets in the dark: in a
+  bend, the outer wall comes in front of the robot.** In a bend to the right (with heading 0: towards larger y), the
+  left wall comes in front of its left half, and LEFT sees it; in a bend to the left, the right wall and RIGHT.
 - **Dim light exists only inside a tunnel, and a tunnel always has its two walls.** There is no dim floor without
   walls. They run along the robot: its obstacle sensors, which look forward, don't see them while it stands in the
   middle facing along the tunnel (in a 15 cm tunnel each wall is 7.5 cm from the middle), but they see them, and it
@@ -71,12 +75,14 @@ Their `role`:
   floor (83 %) happen only right at the edge of a line's black core, for a moment. A program's "in between" (neither
   dark nor bright) is tested by following the line, not by a world of its own.
 - **There is no line on a plain floor.** A program that steers by the line tracker sees 83 % there, all the time.
-  A line follower that turns one way above a threshold ("turn right while it reads more than 55 %") then turns that
-  way without end: it circles on the spot or drives in circles, and doesn't drive straight. It only drives along where
-  a line is under it.
-- So a world for a program that follows a line needs the line wherever the robot should drive the way it usually
-  does (to a wall, to a goal, into a tunnel), with the start on the line, facing along it. Without the line, the
-  robot circles before it gets there.
+  What it then does depends on the program, and **the message says it: "The program on a plain floor"** (the Lab ran
+  it there). A line follower that turns one way above a threshold ("turn right while it reads more than 55 %") turns
+  that way without end: it circles, and doesn't get anywhere without a line. One that steers only over black or white
+  (below 45 %, above 90 %) drives straight on.
+- So if it turns or circles on a plain floor, a world needs the line wherever the robot should drive the way it
+  usually does (to a wall, to a goal, into a tunnel), with the start on the line, facing along it. **If it drives
+  straight on, a world needs a line only where following the line is what the test is about**: a test of a wall or of
+  a tunnel gets no line, and the robot drives up to it straight.
 - A line drawn straight through a start puts the line tracker on the black core (heading along the line). A start
   1.5 to 2 cm beside the line's middle puts it on the white band (about 100 %); 5 cm or more beside, on the peach
   floor (83 %).

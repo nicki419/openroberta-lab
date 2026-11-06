@@ -60,9 +60,11 @@ sentence: the analysis is read by the Lab and by you, not by the learner.
    **Describe a situation by what the robot's sensors see** and what the simulator can make: "in dim light, nothing
    in front of it", not "in dim light, no walls" (dim light is only inside a tunnel, which has walls).
    **`initial_condition` is everything the world needs** for the program to get to the scenario's moment the way it
-   usually runs, not only the scenario's own thing. For a program that follows a line in bright light: "on a line, in
-   bright light, a wall across the line ahead", not "a wall ahead": without the line, it circles on the start (see
-   "The line tracker" in "The simulator"). A path starts at the beginning of the run: its `branch_ids` list the
+   usually runs, not only the scenario's own thing. For a program that needs a line to get anywhere ("The program on
+   a plain floor": it turns or circles there): "on a line, in bright light, a wall across the line ahead", not "a wall
+   ahead": without the line, it circles on the start. One that drives straight on there needs no line for it: "a wall
+   ahead" (see "The line tracker" in "The simulator"). Walls at its sides in the dark are a tunnel's own walls: "in a
+   tunnel that bends to the right" (its left wall comes in front of the robot), never a box inside a tunnel. A path starts at the beginning of the run: its `branch_ids` list the
    outcomes taken on the way too (no obstacle, bright, the line tracker's outcomes), then the scenario's.
    `tested_by`: the names of the learner's tests that already test the scenario: they make its situation happen and
    check what it expects (the same kind of world and start, numbers aside). [] if none does, or the learner has no

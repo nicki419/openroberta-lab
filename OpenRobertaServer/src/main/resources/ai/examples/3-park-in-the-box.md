@@ -65,6 +65,10 @@ Ed.ReadClapSensor()
   - D1.1: the condition holds: it goes on
   - D1.waits: the condition doesn't hold yet: it waits
 
+### The program on a plain floor
+
+The Lab ran it for 3 s on a plain peach floor, bright, with nothing around and nothing happening: it stood still.
+
 ### The learner's tests
 
 None yet.

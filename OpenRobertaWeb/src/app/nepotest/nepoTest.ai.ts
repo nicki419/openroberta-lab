@@ -162,9 +162,14 @@ export async function callReadable(kind: string, data: any, calls?: any[]): Prom
     return call(kind, data);
 }
 
-/** the program's decisions and the learner's sentence: what analyze, generate and fix get besides the request */
+/** the program's decisions, what it does on a plain floor and the learner's sentence: what analyze, generate and fix get besides the request */
 function strategyData(request: Request, sentence: string, index: STRATEGY.Index, analysis: any): any {
-    const data: any = Object.assign({}, request, { sentence: sentence || null, decisions: STRATEGY.decisionsForModel(index), sensors: index.sensors || [] });
+    const data: any = Object.assign({}, request, {
+        sentence: sentence || null,
+        decisions: STRATEGY.decisionsForModel(index),
+        sensors: index.sensors || [],
+        floor: index.floor || null,
+    });
     analysis && (data.analysis = analysis);
     return data;
 }
@@ -553,6 +558,35 @@ export function prefixOf(meta: any, round: number): string {
  *
  * @param onTest before each test: its number (from 0), how many there are, the test
  */
+export const FLOOR_MS = 3000;
+
+/**
+ * what the program does on a plain floor: it runs FLOOR_MS on the simulator, on a peach floor, bright, with nothing around and nothing happening
+ * (STRATEGY.Floor). null if the run fails: then nothing is said, and a line follower is taken to need its line.
+ */
+export async function floorRun(programXml: string): Promise<STRATEGY.Floor> {
+    const world: any = { background: 'peach', starts: [{ id: 'A', name: 'A', x: 150, y: 100, heading: 0 }], items: [] };
+    const test: any = { name: 'On a plain floor', start: 'A', max_time_ms: FLOOR_MS, world: [], globals: {}, checks: [{ check: 'never_bumps' }] };
+    try {
+        const ran = await runTests([{ name: 'A plain floor', existing: false, data: SIM.parseData(JSON.stringify({ version: SIM.DATA_VERSION, world: world })), tests: [test] }], programXml);
+        const sim = ran[0] && ran[0].report && ran[0].report.simulation;
+        const path: number[][] = (sim && sim.path) || [];
+        if (!path.length) {
+            return null;
+        }
+        let moved = 0;
+        let turned = 0;
+        for (let i = 1; i < path.length; i++) {
+            moved += Math.hypot(path[i][1] - path[i - 1][1], path[i][2] - path[i - 1][2]);
+            turned += ((((path[i][3] - path[i - 1][3]) % 360) + 540) % 360) - 180; // the shorter way
+        }
+        return { seconds: Math.round((sim.t || FLOOR_MS) / 100) / 10, moved_cm: Math.round(moved), turned_deg: Math.round(turned) };
+    } catch (e) {
+        console.warn('the run on a plain floor failed', e);
+        return null;
+    }
+}
+
 export async function runTests(
     worlds: FORMAT.Resolved[],
     programXml: string,

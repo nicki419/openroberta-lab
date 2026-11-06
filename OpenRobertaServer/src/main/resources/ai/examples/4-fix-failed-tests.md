@@ -78,6 +78,10 @@ while True:
   - D1.1: the condition holds
   - D1.else: the condition doesn't hold: the else part runs
 
+### The program on a plain floor
+
+The Lab ran it for 3 s on a plain peach floor, bright, with nothing around and nothing happening: it turned right, 258° in all, in a curve (its path 26 cm).
+
 ### The learner's tests
 
 None yet.

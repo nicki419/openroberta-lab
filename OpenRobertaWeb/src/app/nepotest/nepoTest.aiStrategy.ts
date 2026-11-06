@@ -61,6 +61,31 @@ export interface Index {
     toReal: { [short: string]: string };
     lineTracker?: boolean; // a block that runs reads the line tracker: the program follows a line (tests start on one: lineProblems)
     sensors?: string[]; // the sensors blocks that run read (sensorsRead): the model is told them, and what the program can't notice
+    floor?: Floor; // what the program does on a plain floor (nepoTest.ai floorRun), or null if that run failed
+}
+
+/**
+ * what the program did on a plain floor, measured by the Lab (nepoTest.ai floorRun: FLOOR_MS on a peach floor, bright, nothing around, nothing
+ * happening): the way its path took (cm) and how far it turned (degrees, counterclockwise: + is to the left). The model is told it, and a program
+ * that reads the line tracker but drives straight on there needs no line in tests that aren't about the line (2026-11-06: a line follower that steers
+ * only over black or white drove straight on the plain floor; the rule "every test starts on a line, on a plain floor it circles" put a line into its
+ * tunnel tests).
+ */
+export interface Floor {
+    seconds: number;
+    moved_cm: number;
+    turned_deg: number;
+}
+
+/** how the program moves on a plain floor: straight (it gets somewhere without a line), turns_left, turns_right, stands; null: not known */
+export function floorMoves(floor: Floor): string {
+    if (!floor || !isFinite(floor.moved_cm) || !isFinite(floor.turned_deg)) {
+        return null;
+    }
+    if (Math.abs(floor.turned_deg) >= 30) {
+        return floor.turned_deg > 0 ? 'turns_left' : 'turns_right';
+    }
+    return floor.moved_cm >= 5 ? 'straight' : 'stands';
 }
 
 /** an outcome of the program's decisions and what became of it: planned by a test, deferred (why), and how often the runs took it */
@@ -181,7 +206,7 @@ function sensorsRead(blocks: Element[]): string[] {
     return out;
 }
 
-/** how far (cm) a test's start has the line tracker from a line on the floor at most (more: the program, a line follower, circles on the start) */
+/** how far (cm) a test's start has the line tracker from a line on the floor at most (more: a line follower that doesn't drive straight on a plain floor circles on the start) */
 export const LINE_NEAR_CM = 10;
 const LINE_TRACKER_AHEAD_CM = 5;
 
@@ -216,12 +241,13 @@ function lineDistance(world: SIM.SimWorld, start: SIM.SimStart): number {
  * for a start beside the line (`beside`: its input class) but starts on one (2026-11-06: 2 of 3 "Started beside the line" tests had a line drawn
  * through their start, by the recipe for a start on the line)
  */
-export function lineProblems(world: SIM.SimWorld, start: SIM.SimStart, beside: string = null): string[] {
+export function lineProblems(world: SIM.SimWorld, start: SIM.SimStart, beside: string = null, floor: Floor = null): string[] {
     if (!start) {
         return [];
     }
     const nearest = lineDistance(world, start);
-    if (nearest > LINE_NEAR_CM) {
+    if (nearest > LINE_NEAR_CM && floorMoves(floor) !== 'straight') {
+        // a program that drives straight on a plain floor gets to the scenario's thing without a line (the Lab's run on a plain floor)
         return [
             'start "' +
                 start.id +
@@ -680,7 +706,7 @@ export function checkTests(
                 const beside = arrayOf(t.input_selection && t.input_selection.equivalence_partitions)
                     .map((e: any) => e && e.class)
                     .filter((c: any) => isText(c) && BESIDE.test(c) && !/\bon the line\b/i.test(c))[0];
-                lineProblems(w.data.world, (w.data.world.starts || []).filter((s) => s.id === t.start)[0], beside).forEach((m) => add(m));
+                lineProblems(w.data.world, (w.data.world.starts || []).filter((s) => s.id === t.start)[0], beside, index.floor).forEach((m) => add(m));
                 // a line follower is tested by where it gets to, not by how it steers: its positive checks only "whenever it sees (no) line, it turns"
                 // or "always turns" repeat the program (2026-11-06: 7 of 8 tests of a line follower were such)
                 const positive = t.checks.filter((c: any) => POSITIVE.indexOf(c.check) >= 0);

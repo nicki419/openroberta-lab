@@ -493,6 +493,61 @@ generate `none`.
     class, and one wrote no such test.
 - 3 runs per session are few: these are signs, not rates.
 
+### E15: Tunnels and the plain floor (2026-11-06)
+
+**The problem.** The user's last request on L8 ("follow the black line"; telemetry 727 to 739) gave 5 tests, and the
+learner's program failed 3 of them for reasons of the tests:
+- both tests of "turns away from walls in dim light" put a 2 × 2.5 cm box inside a 15 cm tunnel, in the robot's way,
+  and the robot bumped into it ("the robot bumped into "Wall on the left" after 3.2 s"). `tests.md` asked for exactly
+  that: "Boxes for LEFT or RIGHT fit inside it", and its box for LEFT stood inside the robot's width (the sensors look
+  forward, so what LEFT sees is in front of the robot's left half);
+- both tunnel tests had a line through the tunnel. The program reads the line tracker, so the server told the model
+  "every test starts on a line … On a plain floor it circles on the start", and the Lab sent back every test without a
+  line under its start. This program steers only over black (below 45 %) or white (above 90 %): on the peach floor it
+  drives straight on;
+- "Started beside the line, it finds it" wasn't checked: the robot drove past the line, straight on.
+- All calls ran at effort none: `.env` has `DEEPSEEK_EFFORT_GENERATE=none` (changed 2026-11-05), whatever else was set.
+
+**What the simulator says** (the program the model got, rebuilt from the prompt's NEPO; the runs in the headless Chrome,
+`nepoTest.ai` `runTests`):
+
+| World | Result |
+|---|---|
+| a plain floor, 4 s | drives straight on, 35 cm/s, heading 0 throughout |
+| the model's two tunnel worlds | bumps into the box (76 and 900 frames of bumping), both fail |
+| a straight tunnel, 15 cm | through, no bump |
+| a tunnel bending right or left, 15, 20 and 30 cm wide, start before or inside | through without bumping (the outer wall comes in front of the robot's half, it turns 20° at a time), reaches a goal after the exit |
+| a wall across a 15 cm tunnel | stops in front of it, no bump |
+| a 40 cm dark room with a wall at an angle | bumps; 60 cm: through |
+| `whenever` `obstacle_left` → `turns_right` in the bends | fails on every run: between its 20° steps the robot drives on for a frame while the wall is in view |
+
+**The changes:**
+- **The program on a plain floor:** the Lab runs it for 3 s there before the analysis (`floorRun`) and the model is
+  told what it did; the line rule (server and `lineProblems`) applies only to a program that doesn't drive straight on.
+- **Nothing inside a tunnel:** `tunnelProblems` sends back an obstacle inside a tunnel narrower than 30 cm that doesn't
+  close it; `simulator.md` and `tests.md` say why, and give the bent tunnel for walls at the sides in the dark, with
+  `never_bumps` and `reaches` as its checks.
+- The recipe "Something only the LEFT sensor sees" is gone; "A line beside the start" takes the side from the run on
+  the plain floor, and defers the class for a program that drives straight on.
+
+**The check:** the request replayed with the new context pack and message: analyze at none, then one generate call
+per scenario, 3 chains with generate at none and 3 at low (DeepSeek; `e15-tunnels/`). Their first answers, checked as
+the Lab checks them and run on the simulator with the program:
+
+| | none (3 chains) | low (3 chains) |
+|---|---|---|
+| tests | 14, 13 pass | 13, 13 pass |
+| dim-light tests | 5, all a bent tunnel with nothing inside, no line; all pass | 6, the same; all pass |
+| wall tests with a line | 1 of 4 | 0 of 4 |
+| "beside the line" | 3 tests, 2 pass | deferred in all 3: "your program drives straight on … it drives past the line" |
+| problems the Lab would send back | 0 | 0 |
+| time per generate call | 9 to 32 s | 40 to 102 s |
+
+- The tunnel tests are right at either effort: the context pack and the facts made the difference, not the effort.
+  At low, the model also left out "beside the line" for this program, as `tests.md` now asks.
+- Before: 5 tests, 2 pass (the 2 tunnel tests and "beside the line" failed or weren't checked).
+- 6 chains on one program are few: these are signs, not rates. The Lab's repairs weren't part of the replay.
+
 ## Summary
 
 | | DeepSeek | UCloud |
@@ -599,6 +654,9 @@ Configuration (`.env`; presets in `openRoberta.properties`):
 - **No guess on a run** (2026-11-06, not an experiment: the user's decision): infer is gone, and its effort setting
   with it. The assistant works only when the learner asks, from the sentence they write; analyze, generate and fix are
   as measured here. Contract 1.4. The infer times above (2 to 13 s) no longer apply.
+- **The program on a plain floor, nothing inside a tunnel** (after E15): the Lab runs the program 3 s on a plain floor
+  before the analysis and tells the model what it did; the line rule only for a program that doesn't drive straight on;
+  an obstacle inside a narrow tunnel goes back for a repair; walls at the sides in the dark are a bent tunnel.
 
 Fixes from these tests: the HARICA root for UCloud (E6.1); repairs that are shortened, not refused (E6.2); the reasoning
 read from `reasoning` too (E1); and the full telemetry of every call (prompts, answers, reasoning, tries, times; see
@@ -620,6 +678,7 @@ Each folder has the scripts and their raw outputs:
 | `e6-live-session/` | `today.py`, `today.txt`: the live session's events; `fix_times.py` |
 | `e7-learners-tests-count/` | `dup_check.py` (old against new rules), `dup_summary.py`, `summary.txt`, `out_*.json` |
 | `e8-one-call-per-scenario/` | `per_scenario.py` (the replay and its evaluation), `results.json` |
+| `e15-tunnels/` | `tunnel_chain.py` (the replay of telemetry 728 to 735: `results.json`), `run_tests.py` (the Lab's checks and the simulator runs: `runs.json`); the simulator runs of the model's worlds and of the recipes were made with `tunnel_probe` 1 and 2 in the browser |
 | `e14-no-boundaries/` | `no_bva_chain.py` (the replay: `results.json` both sessions, `results_l2-curves_beside1.json` with the beside recipe, `results_l2-curves.json` with the side rule), `beside_repair.py`, `results_beside_repair.json` |
 | `e13-sensors-it-reads/` | `sensors_chain.py`, `results.json` |
 | `e12-fewer-scenarios/` | `chain.py` (DeepSeek), `chain_ucloud.py` (the run), `results_ucloud.json` |

@@ -163,6 +163,7 @@ public class AiPromptsTest {
             "The learner's tests",
             "What the learner said before",
             "The program's decisions",
+            "The program on a plain floor",
             "The analysis",
             "Task: analyze",
             "Task: generate",
