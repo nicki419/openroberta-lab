@@ -100,8 +100,8 @@ public class AiServiceTest {
     }
 
     private AiService service(String key) {
-        AiService service = new AiService(new AiSettings(url(), "deepseek-flash", key, false, null, this.folder.getRoot().getPath(), "low", "high"), 10);
-        service.setTimeouts(1500, 1500);
+        AiService service = new AiService(new AiSettings(url(), "deepseek-flash", key, false, null, this.folder.getRoot().getPath(), "high"), 10);
+        service.setTimeout(1500);
         return service;
     }
 
@@ -109,7 +109,7 @@ public class AiServiceTest {
     private static final String SDU_MODEL = "deepseek-ai/DeepSeek-V4.1-Flash-1017";
 
     /**
-     * DeepSeek at {url}/deepseek first (efforts as preset: low, low, none, low), then UCloud at {url}/ucloud (generate at high, to tell them apart);
+     * DeepSeek at {url}/deepseek first (efforts: analyze low, generate none, fix low), then UCloud at {url}/ucloud (generate at high, to tell them apart);
      * the same fake server: the path tells them apart
      */
     private AiService serviceWithTwo() {
@@ -117,13 +117,13 @@ public class AiServiceTest {
             new AiSettings(
                 Arrays
                     .asList(
-                        new AiSettings.Provider("deepseek", url() + "deepseek", "deepseek-flash", KEY, AiSettings.efforts("low", "low", "none", "low")),
-                        new AiSettings.Provider("ucloud", url() + "ucloud", SDU_MODEL, UCLOUD_KEY, AiSettings.efforts("low", "low", "high", "low"))),
+                        new AiSettings.Provider("deepseek", url() + "deepseek", "deepseek-flash", KEY, AiSettings.efforts("low", "none", "low")),
+                        new AiSettings.Provider("ucloud", url() + "ucloud", SDU_MODEL, UCLOUD_KEY, AiSettings.efforts("low", "high", "low"))),
                 false,
                 null,
                 this.folder.getRoot().getPath());
         AiService service = new AiService(settings, 10);
-        service.setTimeouts(1500, 1500);
+        service.setTimeout(1500);
         return service;
     }
 
@@ -179,15 +179,6 @@ public class AiServiceTest {
             .toString();
     }
 
-    private static JSONObject inferAnswer() {
-        return new JSONObject()
-            .put("intent", "Follow the black line to Goal 1.")
-            .put("confidence", 0.8)
-            .put("ask", true)
-            .put("same_as_declined", false)
-            .put("not_covered", "There are no tests yet.");
-    }
-
     private static JSONObject generateAnswer() {
         JSONObject test =
             new JSONObject()
@@ -213,17 +204,17 @@ public class AiServiceTest {
                     .put("edpy", EDPY))
             .put("tests", JSONObject.NULL)
             .put("said", new JSONArray())
+            .put("sentence", "Follow the black line to Goal 1.")
             .put("fingerprint", "f00d");
     }
 
     @Test
-    public void inferSendsThePackFirstAndReturnsTheCheckedAnswer() throws Exception {
-        script(200, completion(inferAnswer(), "stop"));
+    public void aCallSendsThePackFirstAndReturnsTheCheckedAnswer() throws Exception {
+        script(200, completion(analyzeAnswer(), "stop"));
         AiService service = service(KEY);
-        AiService.Outcome outcome = service.call(AiService.INFER, 7, data().put("declined", "Drive to the goal."));
+        AiService.Outcome outcome = service.call(AiService.ANALYZE, 7, data());
         Assert.assertTrue(outcome.message, outcome.ok);
-        Assert.assertEquals("Follow the black line to Goal 1.", outcome.answer.getString("intent"));
-        Assert.assertTrue(outcome.answer.getBoolean("ask"));
+        Assert.assertEquals("Follow the line.", outcome.answer.getJSONObject("likely_intent").getString("description"));
         Assert.assertEquals(8960, outcome.meta.getJSONObject("tokens").getInt("cached"));
         Assert.assertEquals(80, outcome.meta.getJSONObject("tokens").getInt("reasoning"));
         Assert.assertEquals(service.pack().getVersion(), outcome.meta.getString("promptVersion"));
@@ -235,7 +226,7 @@ public class AiServiceTest {
         JSONObject body = new JSONObject(request.getString("body"));
         Assert.assertEquals("deepseek-flash", body.getString("model"));
         Assert.assertEquals("json_object", body.getJSONObject("response_format").getString("type"));
-        Assert.assertEquals("low", body.getString("reasoning_effort"));
+        Assert.assertEquals("high", body.getString("reasoning_effort"));
         JSONArray messages = body.getJSONArray("messages");
         Assert.assertEquals(2, messages.length());
         Assert.assertEquals("system", messages.getJSONObject(0).getString("role"));
@@ -244,30 +235,30 @@ public class AiServiceTest {
         Assert.assertTrue(prompt.startsWith("## The program\n\nNEPO:\n```xml\n<block_set robottype=\"edison\">"));
         Assert.assertFalse(prompt.contains("01-first-steps"));
         Assert.assertTrue(prompt.contains("<block type=\"robActions_motorDiff_on\" id=\"Pd2\">")); // the ids stay: the analysis names blocks by them
-        Assert.assertFalse(prompt.contains("## The program's decisions")); // only for analyze, generate and fix
-        Assert.assertFalse(prompt.contains("## The analysis"));
+        Assert.assertTrue(prompt.contains("## The program's decisions\n\nNot available.\n\n"));
+        Assert.assertFalse(prompt.contains("## The analysis")); // only for generate and fix
         Assert.assertFalse(prompt.contains("robBrick_Edison-Brick"));
         Assert.assertTrue(prompt.contains("EdPy:\n```python\nwhile True:\n    _diffDrive(Ed.FORWARD, 40, Ed.DISTANCE_UNLIMITED)\n```"));
         Assert.assertFalse(prompt.contains("_shorten"));
         Assert.assertTrue(prompt.contains("## The learner's tests\n\nNone yet."));
-        Assert.assertTrue(prompt.endsWith("## Task: infer\n\nThe guess the learner declined: \"Drive to the goal.\"\n"));
+        Assert.assertTrue(prompt, prompt.endsWith("## Task: analyze\n\nThe learner's sentence: \"Follow the black line to Goal 1.\"\n"));
 
         JSONObject event = outcome.event;
         Assert.assertEquals("ai_call", event.getString("kind"));
         Assert.assertTrue(event.getBoolean("ai"));
-        Assert.assertEquals("infer", event.getString("call"));
+        Assert.assertEquals("analyze", event.getString("call"));
         Assert.assertEquals("ok", event.getString("status"));
         Assert.assertEquals("01-first-steps/04-follow", event.getString("level"));
         Assert.assertEquals("f00d", event.getString("fingerprint"));
         Assert.assertEquals(prompt, event.getString("prompt"));
-        Assert.assertEquals(inferAnswer().toString(), event.getString("answer"));
+        Assert.assertEquals(analyzeAnswer().toString(), event.getString("answer"));
         Assert.assertEquals("I think.", event.getString("reasoning"));
         Assert.assertEquals(outcome.meta.getString("callId"), event.getString("callId"));
     }
 
     @Test
     public void theModelGetsNothingOfTheLevel() throws Exception {
-        script(200, completion(inferAnswer(), "stop"));
+        script(200, completion(analyzeAnswer(), "stop"));
         JSONObject level =
             new JSONObject()
                 .put("id", "01-first-steps/02-around-the-red-area")
@@ -275,7 +266,7 @@ public class AiServiceTest {
                 .put("instructions", "Drive around it to the green area.")
                 .put("timeLimit", 15)
                 .put("world", new JSONObject().put("background", "peach").put("items", new JSONArray().put(new JSONObject().put("id", "secretGoal"))));
-        AiService.Outcome outcome = service(KEY).call(AiService.INFER, 1, data().put("level", level));
+        AiService.Outcome outcome = service(KEY).call(AiService.ANALYZE, 1, data().put("level", level));
         Assert.assertTrue(outcome.message, outcome.ok);
         String body = this.requests.get(0).getString("body");
         for ( String secret : new String[] {
@@ -295,7 +286,6 @@ public class AiServiceTest {
         script(200, completion(generateAnswer(), "stop"));
         JSONObject data =
             data()
-                .put("intent", "Follow the black line to Goal 1.")
                 .put("sentence", "This program should follow a black line and stop if it senses an obstacle")
                 .put("said", new JSONArray().put("It follows the line."))
                 .put("repair", new JSONObject().put("answer", generateAnswer()).put("problems", new JSONArray().put("test \"From A\": start C is not in the world")));
@@ -311,7 +301,7 @@ public class AiServiceTest {
         Assert.assertTrue(
             prompt
                 .endsWith(
-                    "## Task: generate\n\nThe intent you guessed: \"Follow the black line to Goal 1.\"\nThe learner's sentence: \"This program should follow a black line and stop if it senses an obstacle\"\n"));
+                    "## Task: generate\n\nThe learner's sentence: \"This program should follow a black line and stop if it senses an obstacle\"\n"));
         Assert.assertEquals("assistant", messages.getJSONObject(2).getString("role"));
         Assert.assertEquals(generateAnswer().toString(), messages.getJSONObject(2).getString("content"));
         Assert.assertTrue(messages.getJSONObject(3).getString("content").contains("- test \"From A\": start C is not in the world\n"));
@@ -351,7 +341,7 @@ public class AiServiceTest {
     public void analyzeSendsTheProgramsDecisions() throws Exception {
         script(200, completion(analyzeAnswer(), "stop"));
         AiService service = service(KEY);
-        JSONObject data = data().put("intent", "Follow the black line.").put("sentence", JSONObject.NULL).put("decisions", decisions());
+        JSONObject data = data().put("sentence", "Follow the black line.").put("decisions", decisions());
         AiService.Outcome outcome = service.call(AiService.ANALYZE, 7, data);
         Assert.assertTrue(outcome.message, outcome.ok);
         Assert.assertEquals("analyze", outcome.event.getString("call"));
@@ -366,7 +356,7 @@ public class AiServiceTest {
                     .contains(
                         "\n\n## The program's decisions\n\n- D1: block b3, if \"if get line light senso...\"\n  - D1.1: the condition holds\n  - D1.else: the condition doesn't hold: the else part runs\n\n## The learner's tests"));
         Assert.assertFalse(prompt.contains("## The analysis"));
-        Assert.assertTrue(prompt, prompt.endsWith("## Task: analyze\n\nThe intent you guessed: \"Follow the black line.\"\nThe learner wrote no sentence.\n"));
+        Assert.assertTrue(prompt, prompt.endsWith("## Task: analyze\n\nThe learner's sentence: \"Follow the black line.\"\n"));
 
         script(200, completion(analyzeAnswer().put("scenarios", new JSONArray()), "stop"));
         Assert.assertEquals("bad_answer", service.call(AiService.ANALYZE, 7, data).error); // ok, but no scenarios
@@ -376,11 +366,11 @@ public class AiServiceTest {
         Assert.assertTrue(service.call(AiService.ANALYZE, 7, data).ok);
         JSONArray bad = decisions();
         bad.getJSONObject(0).getJSONArray("outcomes").getJSONObject(1).put("id", "D2.else");
-        Assert.assertEquals("bad_request", service.call(AiService.ANALYZE, 7, data().put("intent", "Drive.").put("decisions", bad)).error); // not an outcome of D1
+        Assert.assertEquals("bad_request", service.call(AiService.ANALYZE, 7, data().put("decisions", bad)).error); // not an outcome of D1
         Assert.assertEquals(4, this.requests.size());
 
         script(200, completion(generateAnswer(), "stop"));
-        JSONObject generate = data().put("intent", "Follow the black line.").put("decisions", decisions()).put("analysis", analyzeAnswer());
+        JSONObject generate = data().put("decisions", decisions()).put("analysis", analyzeAnswer());
         Assert.assertTrue(service.call(AiService.GENERATE, 7, generate).ok);
         String prompt2 = new JSONObject(this.requests.get(4).getString("body")).getJSONArray("messages").getJSONObject(1).getString("content");
         Assert.assertTrue(prompt2, prompt2.contains("## The analysis\n\n```json\n" + analyzeAnswer() + "\n```\n\n## Task: generate"));
@@ -399,7 +389,7 @@ public class AiServiceTest {
                 .put("tests", failed)
                 .put("results", new JSONArray().put("test \"From A, it reaches Goal 1\" (world \"Follow the line\"): failed\nChecks:\n- failed: the robot did not reach \"Goal 1\""))
                 .put("kept", new JSONArray().put(new JSONObject().put("test", "Stops at the box").put("world", "A box")));
-        JSONObject data = data().put("intent", "Follow the black line to Goal 1.").put("sentence", JSONObject.NULL).put("fix", fix);
+        JSONObject data = data().put("fix", fix);
         AiService service = service(KEY);
         AiService.Outcome outcome = service.call(AiService.FIX, 7, data);
         Assert.assertTrue(outcome.message, outcome.ok);
@@ -411,7 +401,7 @@ public class AiServiceTest {
         JSONArray messages = body.getJSONArray("messages");
         Assert.assertEquals(2, messages.length());
         String prompt = messages.getJSONObject(1).getString("content");
-        Assert.assertTrue(prompt, prompt.contains("## Task: fix\n\nThe intent you guessed: \"Follow the black line to Goal 1.\"\nThe learner wrote no sentence.\n"));
+        Assert.assertTrue(prompt, prompt.contains("## Task: fix\n\nThe learner's sentence: \"Follow the black line to Goal 1.\"\n"));
         Assert.assertTrue(prompt, prompt.contains("These tests you wrote failed when they ran on the learner's program:\n\n```json\n" + failed + "\n```\n"));
         Assert
             .assertTrue(
@@ -427,15 +417,15 @@ public class AiServiceTest {
         Assert.assertTrue(fixed.message, fixed.ok);
         Assert.assertEquals(0, fixed.answer.getJSONArray("program_wrong").length()); // missing: none
         Assert.assertEquals(0, fixed.answer.getJSONArray("doubtful").length());
-        Assert.assertEquals("bad_request", service.call(AiService.FIX, 7, data().put("intent", "Drive.")).error); // no failed tests
+        Assert.assertEquals("bad_request", service.call(AiService.FIX, 7, data()).error); // no failed tests
         Assert.assertEquals(3, this.requests.size());
     }
 
     @Test
     public void aServerErrorIsTriedOnceMore() {
         script(503, "{\"error\": \"busy\"}");
-        script(200, completion(inferAnswer(), "stop"));
-        AiService.Outcome outcome = service(KEY).call(AiService.INFER, 1, data());
+        script(200, completion(analyzeAnswer(), "stop"));
+        AiService.Outcome outcome = service(KEY).call(AiService.ANALYZE, 1, data());
         Assert.assertTrue(outcome.message, outcome.ok);
         Assert.assertEquals(2, outcome.meta.getInt("attempts"));
         Assert.assertEquals(2, this.requests.size());
@@ -445,7 +435,7 @@ public class AiServiceTest {
     public void tooManyRequestsTwiceFails() {
         script(429, "{\"error\": \"rate limit\"}");
         script(429, "{\"error\": \"rate limit\"}");
-        AiService.Outcome outcome = service(KEY).call(AiService.INFER, 1, data());
+        AiService.Outcome outcome = service(KEY).call(AiService.ANALYZE, 1, data());
         Assert.assertFalse(outcome.ok);
         Assert.assertEquals("http_429", outcome.error);
         Assert.assertEquals(2, this.requests.size());
@@ -455,7 +445,7 @@ public class AiServiceTest {
     @Test
     public void aBadKeyIsNotTriedAgain() {
         script(401, "{\"error\": {\"message\": \"Authentication Fails, your api key: " + KEY + " is invalid\"}}");
-        AiService.Outcome outcome = service(KEY).call(AiService.INFER, 1, data());
+        AiService.Outcome outcome = service(KEY).call(AiService.ANALYZE, 1, data());
         Assert.assertEquals("http_401", outcome.error);
         Assert.assertEquals(1, this.requests.size());
         Assert.assertFalse(outcome.message.contains(KEY));
@@ -464,8 +454,8 @@ public class AiServiceTest {
 
     @Test
     public void aTimeoutIsNotTriedAgain() {
-        this.answers.add(new Object[] {200, completion(inferAnswer(), "stop"), 3000});
-        AiService.Outcome outcome = service(KEY).call(AiService.INFER, 1, data());
+        this.answers.add(new Object[] {200, completion(analyzeAnswer(), "stop"), 3000});
+        AiService.Outcome outcome = service(KEY).call(AiService.ANALYZE, 1, data());
         Assert.assertEquals("timeout", outcome.error);
         Assert.assertEquals(1, this.requests.size());
     }
@@ -473,29 +463,31 @@ public class AiServiceTest {
     @Test
     public void answersThatCantBeUsed() {
         script(200, completion("Sure! Here are your tests.", "stop"));
-        AiService.Outcome notJson = service(KEY).call(AiService.INFER, 1, data());
+        AiService.Outcome notJson = service(KEY).call(AiService.ANALYZE, 1, data());
         Assert.assertEquals("bad_answer", notJson.error);
         Assert.assertEquals("Sure! Here are your tests.", notJson.event.getString("answer"));
 
         script(200, completion("{\"worlds\": [{\"name\": \"w\", \"tes", "length"));
-        AiService.Outcome cutOff = service(KEY).call(AiService.GENERATE, 1, data().put("intent", "Drive."));
+        AiService.Outcome cutOff = service(KEY).call(AiService.GENERATE, 1, data());
         Assert.assertEquals("cut_off", cutOff.error);
 
-        script(200, completion(new JSONObject().put("intent", "Drive.").put("ask", "maybe"), "stop"));
-        Assert.assertEquals("bad_answer", service(KEY).call(AiService.INFER, 1, data()).error);
+        script(200, completion(analyzeAnswer().put("analysis_status", "maybe"), "stop"));
+        Assert.assertEquals("bad_answer", service(KEY).call(AiService.ANALYZE, 1, data()).error);
 
         script(200, completion("```json\n" + generateAnswer() + "\n```", "stop"));
-        Assert.assertTrue(service(KEY).call(AiService.GENERATE, 1, data().put("intent", "Drive.")).ok);
+        Assert.assertTrue(service(KEY).call(AiService.GENERATE, 1, data()).ok);
     }
 
     @Test
     public void requestsThatCantBeMade() {
-        Assert.assertEquals("not_configured", service(null).call(AiService.INFER, 1, data()).error);
+        Assert.assertEquals("not_configured", service(null).call(AiService.ANALYZE, 1, data()).error);
         AiService service = service(KEY);
-        Assert.assertEquals("bad_request", service.call(AiService.INFER, 1, data().put("program", new JSONObject())).error);
-        Assert.assertEquals("bad_request", service.call(AiService.GENERATE, 1, data()).error); // no intent
-        String tooLong = String.join("", Collections.nCopies(201, "x"));
-        Assert.assertEquals("too_large", service.call(AiService.GENERATE, 1, data().put("intent", "Drive.").put("sentence", tooLong)).error);
+        Assert.assertEquals("bad_request", service.call(AiService.ANALYZE, 1, data().put("program", new JSONObject())).error);
+        Assert.assertEquals("bad_request", service.call(AiService.GENERATE, 1, data().put("sentence", JSONObject.NULL)).error); // the learner asked nothing
+        Assert.assertEquals("bad_request", service.call(AiService.ANALYZE, 1, data().put("sentence", " ")).error);
+        Assert.assertEquals("bad_request", service.call("infer", 1, data()).error); // gone since 2026-11-06
+        String tooLong = String.join("", Collections.nCopies(AiPrompts.MAX_SENTENCE + 1, "x"));
+        Assert.assertEquals("too_large", service.call(AiService.GENERATE, 1, data().put("sentence", tooLong)).error);
         Assert.assertEquals("bad_request", service.call("delete", 1, data()).error);
         Assert.assertEquals(0, this.requests.size());
     }
@@ -504,18 +496,18 @@ public class AiServiceTest {
     public void limitsPerSession() {
         long[] now = {0};
         Map<String, Integer> perHour = new HashMap<>();
-        perHour.put(AiService.INFER, 2);
+        perHour.put(AiService.ANALYZE, 2);
         AiLimits limits = new AiLimits(perHour, () -> now[0]);
-        Assert.assertNull(limits.acquire(1, AiService.INFER));
-        Assert.assertEquals("busy", limits.acquire(1, AiService.INFER));
-        Assert.assertNull(limits.acquire(2, AiService.INFER)); // another session
-        limits.release(1, AiService.INFER);
-        Assert.assertNull(limits.acquire(1, AiService.INFER));
-        limits.release(1, AiService.INFER);
-        Assert.assertEquals("limit", limits.acquire(1, AiService.INFER));
+        Assert.assertNull(limits.acquire(1, AiService.ANALYZE));
+        Assert.assertEquals("busy", limits.acquire(1, AiService.ANALYZE));
+        Assert.assertNull(limits.acquire(2, AiService.ANALYZE)); // another session
+        limits.release(1, AiService.ANALYZE);
+        Assert.assertNull(limits.acquire(1, AiService.ANALYZE));
+        limits.release(1, AiService.ANALYZE);
+        Assert.assertEquals("limit", limits.acquire(1, AiService.ANALYZE));
         Assert.assertEquals("limit", limits.acquire(1, AiService.GENERATE)); // no calls of this kind allowed
         now[0] = 3600 * 1000L + 1;
-        Assert.assertNull(limits.acquire(1, AiService.INFER));
+        Assert.assertNull(limits.acquire(1, AiService.ANALYZE));
     }
 
     @Test
@@ -528,7 +520,7 @@ public class AiServiceTest {
                     new JSONArray().put(new JSONObject().put("id", "S1").put("title", "Follows the line")).put(new JSONObject().put("id", "S2").put("title", "Stops at a wall")));
         script(200, completion(generateAnswer(), "stop"));
         AiService service = service(KEY);
-        JSONObject data = data().put("intent", "Drive.").put("analysis", analysis).put("scenarios", new JSONArray().put("S2")).put("maxTests", 4);
+        JSONObject data = data().put("analysis", analysis).put("scenarios", new JSONArray().put("S2")).put("maxTests", 4);
         Assert.assertTrue(service.call(AiService.GENERATE, 7, data).ok);
         String prompt = new JSONObject(this.requests.get(0).getString("body")).getJSONArray("messages").getJSONObject(1).getString("content");
         Assert
@@ -553,7 +545,7 @@ public class AiServiceTest {
         // 2026-11-06: a line follower that reads only the line tracker got a test in a dim tunnel
         script(200, completion(analyzeAnswer(), "stop"));
         AiService service = service(KEY);
-        JSONObject data = data().put("intent", "Follow the line.").put("decisions", decisions()).put("sensors", new JSONArray().put("LINETRACKER"));
+        JSONObject data = data().put("decisions", decisions()).put("sensors", new JSONArray().put("LINETRACKER"));
         Assert.assertTrue(service.call(AiService.ANALYZE, 7, data).ok);
         String prompt = new JSONObject(this.requests.get(0).getString("body")).getJSONArray("messages").getJSONObject(1).getString("content");
         Assert.assertTrue(prompt, prompt.contains("The sensors it reads: the line tracker (the brightness of the floor under it"));
@@ -567,7 +559,7 @@ public class AiServiceTest {
     public void generateMayRunSixCallsAtOnceTheOthersOne() {
         Map<String, Integer> perHour = new HashMap<>();
         perHour.put(AiService.GENERATE, 100);
-        perHour.put(AiService.INFER, 100);
+        perHour.put(AiService.ANALYZE, 100);
         AiLimits limits = new AiLimits(perHour, Collections.singletonMap(AiService.GENERATE, AiService.GENERATE_AT_ONCE), () -> 0L);
         for ( int i = 0; i < AiService.GENERATE_AT_ONCE; i++ ) {
             Assert.assertNull(limits.acquire(1, AiService.GENERATE));
@@ -576,33 +568,8 @@ public class AiServiceTest {
         Assert.assertNull(limits.acquire(2, AiService.GENERATE)); // another session
         limits.release(1, AiService.GENERATE);
         Assert.assertNull(limits.acquire(1, AiService.GENERATE));
-        Assert.assertNull(limits.acquire(1, AiService.INFER));
-        Assert.assertEquals("busy", limits.acquire(1, AiService.INFER)); // one at a time
-    }
-
-    @Test
-    public void analyzeAndGenerateGetWhatTheLearnersTestsDontCheckYet() throws Exception {
-        // 2026-11-05: without it, every offer wrote the line-following tests the learner already had again
-        String gap = "No test checks that your robot turns away from a wall on its left when the light is dim.";
-        script(200, completion(analyzeAnswer(), "stop"));
-        script(200, completion(generateAnswer(), "stop"));
-        script(200, completion(inferAnswer(), "stop"));
-        AiService service = service(KEY);
-        JSONObject data = data().put("intent", "Follow the line.").put("sentence", JSONObject.NULL).put("decisions", decisions()).put("notCovered", gap);
-        Assert.assertTrue(service.call(AiService.ANALYZE, 7, data).ok);
-        Assert.assertTrue(service.call(AiService.GENERATE, 7, new JSONObject(data.toString()).put("analysis", analyzeAnswer())).ok);
-        Assert.assertTrue(service.call(AiService.INFER, 7, data().put("notCovered", gap)).ok);
-        String line = "What the learner's tests don't check yet (your guess): \"" + gap + "\"\n";
-        for ( int i = 0; i < 2; i++ ) {
-            String prompt = new JSONObject(this.requests.get(i).getString("body")).getJSONArray("messages").getJSONObject(1).getString("content");
-            Assert.assertTrue(prompt, prompt.endsWith("The learner wrote no sentence.\n" + line));
-        }
-        String infer = new JSONObject(this.requests.get(2).getString("body")).getJSONArray("messages").getJSONObject(1).getString("content");
-        Assert.assertFalse(infer.contains("don't check yet")); // infer finds the gap itself
-        script(200, completion(generateAnswer(), "stop"));
-        Assert.assertTrue(service.call(AiService.GENERATE, 7, data().put("intent", "Drive.").put("notCovered", String.join("", Collections.nCopies(400, "x")))).ok);
-        String cut = new JSONObject(this.requests.get(3).getString("body")).getJSONArray("messages").getJSONObject(1).getString("content");
-        Assert.assertTrue(cut.endsWith("(your guess): \"" + String.join("", Collections.nCopies(AiPrompts.MAX_GUESS, "x")) + "\"\n")); // cut, not refused
+        Assert.assertNull(limits.acquire(1, AiService.ANALYZE));
+        Assert.assertEquals("busy", limits.acquire(1, AiService.ANALYZE)); // one at a time
     }
 
     @Test
@@ -623,7 +590,7 @@ public class AiServiceTest {
             problems.put("test \"T" + i + "\": no checks");
         }
         script(200, completion(generateAnswer(), "stop"));
-        JSONObject data = data().put("intent", "Drive.").put("repair", new JSONObject().put("answer", generateAnswer()).put("problems", problems));
+        JSONObject data = data().put("repair", new JSONObject().put("answer", generateAnswer()).put("problems", problems));
         AiService.Outcome outcome = service(KEY).call(AiService.GENERATE, 7, data);
         Assert.assertTrue(outcome.message, outcome.ok);
         String repair = new JSONObject(this.requests.get(0).getString("body")).getJSONArray("messages").getJSONObject(3).getString("content");
@@ -635,18 +602,18 @@ public class AiServiceTest {
     @Test
     public void theFirstApiIsAskedFirstWithItsOwnEfforts() throws Exception {
         script(200, completion(generateAnswer(), "stop"));
-        script(200, completion(inferAnswer(), "stop"));
+        script(200, completion(analyzeAnswer(), "stop"));
         AiService service = serviceWithTwo();
-        AiService.Outcome outcome = service.call(AiService.GENERATE, 1, data().put("intent", "Drive."));
+        AiService.Outcome outcome = service.call(AiService.GENERATE, 1, data());
         Assert.assertTrue(outcome.message, outcome.ok);
-        Assert.assertTrue(service.call(AiService.INFER, 1, data()).ok);
+        Assert.assertTrue(service.call(AiService.ANALYZE, 1, data()).ok);
         Assert.assertEquals(2, this.requests.size());
         Assert.assertEquals("/deepseek/chat/completions", this.requests.get(0).getString("path"));
         Assert.assertEquals("Bearer " + KEY, this.requests.get(0).getString("authorization"));
         JSONObject generate = new JSONObject(this.requests.get(0).getString("body"));
         Assert.assertEquals("deepseek-flash", generate.getString("model"));
         Assert.assertEquals("none", generate.getString("reasoning_effort")); // DeepSeek's generate
-        Assert.assertEquals("low", new JSONObject(this.requests.get(1).getString("body")).getString("reasoning_effort")); // its infer
+        Assert.assertEquals("low", new JSONObject(this.requests.get(1).getString("body")).getString("reasoning_effort")); // its analyze
         JSONObject event = outcome.event;
         Assert.assertEquals("deepseek", event.getString("provider"));
         Assert.assertEquals("127.0.0.1", event.getString("host"));
@@ -666,7 +633,7 @@ public class AiServiceTest {
         script(200, vllmCompletion(generateAnswer()));
         AiService service = serviceWithTwo();
         service.setClock(() -> now[0]);
-        AiService.Outcome outcome = service.call(AiService.GENERATE, 1, data().put("intent", "Drive."));
+        AiService.Outcome outcome = service.call(AiService.GENERATE, 1, data());
         Assert.assertTrue(outcome.message, outcome.ok);
         Assert.assertEquals(3, this.requests.size());
         Assert.assertEquals("/deepseek/chat/completions", this.requests.get(1).getString("path"));
@@ -696,22 +663,22 @@ public class AiServiceTest {
         Assert.assertEquals("ucloud", outcome.meta.getString("provider"));
 
         now[0] += AiService.COOL_DOWN_MS - 1; // still cooling down: UCloud first
-        script(200, vllmCompletion(inferAnswer()));
-        Assert.assertEquals("ucloud", service.call(AiService.INFER, 1, data()).event.getString("provider"));
+        script(200, vllmCompletion(analyzeAnswer()));
+        Assert.assertEquals("ucloud", service.call(AiService.ANALYZE, 1, data()).event.getString("provider"));
         Assert.assertEquals("/ucloud/chat/completions", this.requests.get(3).getString("path"));
 
         now[0] += 2; // DeepSeek first again
-        script(200, completion(inferAnswer(), "stop"));
-        Assert.assertEquals("deepseek", service.call(AiService.INFER, 1, data()).event.getString("provider"));
+        script(200, completion(analyzeAnswer(), "stop"));
+        Assert.assertEquals("deepseek", service.call(AiService.ANALYZE, 1, data()).event.getString("provider"));
         Assert.assertEquals("/deepseek/chat/completions", this.requests.get(4).getString("path"));
         Assert.assertEquals(5, this.requests.size());
     }
 
     @Test
     public void aTimeoutOfTheFirstGoesToTheNext() {
-        this.answers.add(new Object[] {200, completion(inferAnswer(), "stop"), 3000}); // later than the 1.5 s timeout
-        script(200, vllmCompletion(inferAnswer()));
-        AiService.Outcome outcome = serviceWithTwo().call(AiService.INFER, 1, data());
+        this.answers.add(new Object[] {200, completion(analyzeAnswer(), "stop"), 3000}); // later than the 1.5 s timeout
+        script(200, vllmCompletion(analyzeAnswer()));
+        AiService.Outcome outcome = serviceWithTwo().call(AiService.ANALYZE, 1, data());
         Assert.assertTrue(outcome.message, outcome.ok);
         Assert.assertEquals("timeout", outcome.event.getJSONArray("tries").getJSONObject(0).getString("error"));
         Assert.assertEquals("ucloud", outcome.event.getString("provider"));
@@ -722,9 +689,9 @@ public class AiServiceTest {
     public void anAnswerThatCantBeUsedIsNotAskedAgainAtTheNext() {
         script(200, completion("Sure! Here are your tests.", "stop"));
         AiService service = serviceWithTwo();
-        Assert.assertEquals("bad_answer", service.call(AiService.INFER, 1, data()).error);
+        Assert.assertEquals("bad_answer", service.call(AiService.ANALYZE, 1, data()).error);
         script(200, completion("{\"worlds\": [{\"name\": \"w\", \"tes", "length"));
-        Assert.assertEquals("cut_off", service.call(AiService.GENERATE, 1, data().put("intent", "Drive.")).error);
+        Assert.assertEquals("cut_off", service.call(AiService.GENERATE, 1, data()).error);
         Assert.assertEquals(2, this.requests.size());
         Assert.assertTrue(this.requests.stream().allMatch(r -> r.getString("path").startsWith("/deepseek/")));
     }
@@ -733,7 +700,7 @@ public class AiServiceTest {
     public void whenBothFailTheErrorIsTheLastsAndBothAreInTheTelemetry() {
         script(401, "{\"error\": \"invalid key " + KEY + "\"}");
         script(401, "{\"error\": \"invalid key " + UCLOUD_KEY + "\"}");
-        AiService.Outcome outcome = serviceWithTwo().call(AiService.INFER, 1, data());
+        AiService.Outcome outcome = serviceWithTwo().call(AiService.ANALYZE, 1, data());
         Assert.assertFalse(outcome.ok);
         Assert.assertEquals("http_401", outcome.error);
         Assert.assertEquals(2, this.requests.size());
@@ -751,7 +718,7 @@ public class AiServiceTest {
     public void theTelemetryHasWhatWasSentAndWhatCameBack() throws Exception {
         script(200, completion(generateAnswer(), "stop"));
         AiService service = service(KEY);
-        JSONObject data = data().put("intent", "Drive.").put("repair", new JSONObject().put("answer", generateAnswer()).put("problems", new JSONArray().put("test \"From A\": no checks")));
+        JSONObject data = data().put("repair", new JSONObject().put("answer", generateAnswer()).put("problems", new JSONArray().put("test \"From A\": no checks")));
         long before = System.currentTimeMillis();
         AiService.Outcome outcome = service.call(AiService.GENERATE, 7, data);
         Assert.assertTrue(outcome.message, outcome.ok);
@@ -772,8 +739,8 @@ public class AiServiceTest {
         Assert.assertTrue(saved.isFile());
         Assert.assertEquals(messages.getJSONObject(0).getString("content"), new String(Files.readAllBytes(saved.toPath()), StandardCharsets.UTF_8));
         long saveTime = saved.lastModified();
-        script(200, completion(inferAnswer(), "stop"));
-        Assert.assertTrue(service.call(AiService.INFER, 7, data()).ok);
+        script(200, completion(analyzeAnswer(), "stop"));
+        Assert.assertTrue(service.call(AiService.ANALYZE, 7, data()).ok);
         Assert.assertEquals(saveTime, saved.lastModified());
         Assert.assertEquals(1, new File(this.folder.getRoot(), AiService.PROMPTS_DIR).list().length);
     }
@@ -826,7 +793,7 @@ public class AiServiceTest {
             Assert.assertEquals(SDU_MODEL, providers.get(1).getModel()); // the default
             Assert.assertEquals("none", providers.get(0).effort(AiService.GENERATE)); // the presets: one generate call per scenario, at none
             Assert.assertEquals("none", providers.get(0).effort(AiService.ANALYZE));
-            Assert.assertEquals("low", providers.get(0).effort(AiService.INFER));
+            Assert.assertNull(providers.get(0).effort("infer")); // gone since 2026-11-06
             Assert.assertEquals("low", providers.get(0).effort(AiService.FIX));
             Assert.assertEquals("high", providers.get(1).effort(AiService.GENERATE)); // from .env
             Assert.assertFalse(settings.toString().contains(KEY));
@@ -838,7 +805,7 @@ public class AiServiceTest {
             script(401, "{\"error\": \"invalid key " + KEY + "\"}");
             script(401, "{\"error\": \"invalid key " + UCLOUD_KEY + "\"}");
             AiService service = new AiService(settings, 10);
-            AiService.Outcome outcome = service.call(AiService.INFER, 1, data());
+            AiService.Outcome outcome = service.call(AiService.ANALYZE, 1, data());
             Assert.assertEquals("http_401", outcome.error);
             Assert.assertEquals(2, this.requests.size()); // both asked
             Assert.assertFalse("the telemetry", outcome.event.toString().contains(KEY));

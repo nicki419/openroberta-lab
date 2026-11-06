@@ -416,6 +416,7 @@ OpenRobertaWeb/src/app/nepotest/nepoTest.simEditor.ts  the Simulation panel: dra
 OpenRobertaWeb/src/app/nepotest/nepotest.worker.js     module Web Worker: Pyodide + nepotest.browser
 OpenRobertaWeb/src/app/roberta/controller/tests.controller.ts   the tab: workspace, dropdowns, panels, running
 OpenRobertaServer/staticResources/index.html          #tabTests, pane #tests (#testsBlocklyDiv, #testsSide ...)
+OpenRobertaWeb/src/app/levels/levels.aiAssistant.ts    the AI test assistant: its panel in the side's tab "AI Assistant" (#testsAiPane)
 OpenRobertaWeb/css/roberta.css                         the tab's styles (section "the Tests tab")
 NepoTest/nepotest/blocks.py                            test blocks -> NepoTest JSON (+ problems with block ids)
 NepoTest/nepotest/browser.py                           the functions the worker calls (JSON strings in and out)
@@ -428,6 +429,10 @@ The wiring into the Lab consists of:
 - `tsconfig.json`: `paths` (also `robot.edison`, which `nepoTest.simRun` imports);
 - `guiState.controller.js`: a `tabTests` branch in `setView`, which keeps the program menu, and `addLanguageListener`;
 - `program.controller.js`: the persistence hooks (§3).
+- **The AI test assistant** (`docs/ai/nepo-ai-tests.md`, since 2026-11-06): the side's fourth tab, "AI Assistant"
+  (`#testsAiTab`, pane `#testsAiPane`), there while the AI is on (`tests.controller` `setAiTab`; `onSideShown` tells
+  the assistant which tab is shown). The learner writes what their program should do, and the tests it writes and they
+  keep are added to this workspace. (Before, it was a panel beside the levels' simulator.)
 
 **Running a suite** (`tests.controller.ts runTests`):
 1. The program workspace XML goes to `POST /rest/projectWorkflow/sourceForTest` (`nepo-unit-testing.md` §3). The

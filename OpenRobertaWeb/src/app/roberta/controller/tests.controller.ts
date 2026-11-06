@@ -7,6 +7,7 @@
  * - "Test runner" converts the program with the Lab (REST /projectWorkflow/sourceForTest: EdPy + source map) and runs the suite in the browser
  *   with NepoTest in Pyodide (nepoTest.runner); the tests of simulation worlds run on the Lab's simulator (nepoTest.simRun). Results come back
  *   per test, errors per block (the block coverage only if SHOW_COVERAGE)
+ * - "AI Assistant" (while the AI is on: setAiTab) holds the AI test assistant (levels.aiAssistant), which writes tests when the learner asks
  * - "Simulation" shows the selected simulation world and its tests (nepoTest.simEditor): the world is drawn there, its tests are run and
  *   replayed. The world is the world block's data (JSON), so it is saved with the suite, and undo of a deleted block brings it back.
  * - A failed check of a simulation test comes with why (nepoTest.simVerdict: the block to blame). The program's blocks in it are chips: a click
@@ -169,6 +170,10 @@ function initEvents(): void {
         e.preventDefault();
         showSide('sim');
     });
+    $('#testsAiTab').onWrap('click', function (e) {
+        e.preventDefault();
+        showSide('ai');
+    });
     $('#testsCodeJson').onWrap('click', function () {
         codeView = 'json';
         refreshCode();
@@ -195,6 +200,30 @@ function resize(): void {
         Blockly.svgResize(workspace);
     }
     simEditor && $('#testsSimPane').is(':visible') && simEditor.resize();
+}
+
+let side = 'runner'; // the side's tab shown: runner, code, sim or ai
+const sideListeners: ((which: string) => void)[] = [];
+
+/**
+ * the side's tab "AI Assistant" (levels.aiAssistant: its panel is in #testsAiPane): there while the AI is on; hidden, its tab gives way to the Test
+ * runner
+ */
+export function setAiTab(available: boolean): void {
+    $('#testsAiTabItem').toggle(available);
+    if (!available && side === 'ai') {
+        showSide('runner');
+    }
+}
+
+/** told which of the side's tabs is shown, whenever one is chosen */
+export function onSideShown(listener: (which: string) => void): void {
+    sideListeners.push(listener);
+}
+
+/** a block of the program, shown in the Program tab (for the AI test assistant's chips) */
+export function aiShowBlock(blockId: string): void {
+    selectBlock(blockId, 'program');
 }
 
 /** the Tests tab only exists for robots NepoTest supports; called on start and when the robot changes (via loadSuite) */
@@ -661,18 +690,22 @@ function loadSuite(testsXml: string): void {
 // ------------------------------------------------------------------------------------------------ the side panel
 
 function showSide(which: string): void {
+    side = which;
     $('#testsRunnerTab').toggleClass('active', which === 'runner');
     $('#testsCodeTab').toggleClass('active', which === 'code');
     $('#testsSimTab').toggleClass('active', which === 'sim');
+    $('#testsAiTab').toggleClass('active', which === 'ai');
     $('#testsRunnerPane').toggle(which === 'runner');
     $('#testsCodePane').toggle(which === 'code');
     $('#testsSimPane').css('display', which === 'sim' ? 'flex' : 'none');
+    $('#testsAiPane').css('display', which === 'ai' ? 'flex' : 'none');
     if (which === 'code') {
         refreshCode();
     }
     if (which === 'sim') {
         simEditor.resize();
     }
+    sideListeners.forEach((listener) => listener(which));
 }
 
 // ------------------------------------------------------------------------------------------------ simulation worlds

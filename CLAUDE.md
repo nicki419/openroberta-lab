@@ -126,10 +126,10 @@ Read it before changing the simulator's level hooks, the level format or the tel
 designers' guide.
 
 **`docs/ai/nepo-ai-tests.md`** documents the **AI test assistant**. DeepSeek-V4.1-Flash, called through the Lab server
-(`/rest/ai/infer`, `/rest/ai/analyze`, `/rest/ai/generate`, `/rest/ai/fix`; at DeepSeek's own API, with SDU's UCloud as
+(`/rest/ai/analyze`, `/rest/ai/generate`, `/rest/ai/fix`; at DeepSeek's own API, with SDU's UCloud as
 the backup, each with its own reasoning effort per call; the API keys stay on the server and are never logged; every
 call's prompt, answer, reasoning and timing go into the telemetry; the evaluation of the two APIs and the efforts:
-`docs/ai/nepo-ai-model-evaluation.md`), guesses what a program is meant to do and writes scenario tests for it, following the testing strategy of
+`docs/ai/nepo-ai-model-evaluation.md`), writes scenario tests when the learner asks (they write what their program should do into its box; no guess on a run since 2026-11-06), following the testing strategy of
 `docs/tests/*_v3.md`:
 - an analysis first: the program's decisions (found by code: `nepoTest.aiStrategy.ts`), the paths that target their
   outcomes, the input classes (no boundary value analysis since 2026-11-06);
@@ -140,13 +140,13 @@ call's prompt, answer, reasoning and timing go into the telemetry; the evaluatio
 The model gets the program, the learner's sentences and
 their tests, **never the level** (no title, instructions or world): it draws each test's world itself. Its prompt is the
 context pack in `OpenRobertaServer/src/main/resources/ai/`. Its test JSON becomes Tests-tab blocks through
-`nepoTest.aiFormat.ts`, checked and repaired by `nepoTest.ai.ts`. The assistant's panel sits to the right of the levels'
-simulator (`levels.aiAssistant.ts`): a run of a changed program brings a guess and an offer, and the learner reviews the
-tests. The tests they keep run on the simulator before they are added (`nepoTest.ai` `runTests`). For those that fail
+`nepoTest.aiFormat.ts`, checked and repaired by `nepoTest.ai.ts`. The assistant (`levels.aiAssistant.ts`) is a tab of the
+Tests tab's side, "AI Assistant" (beside Test runner, Code and Simulation; not beside the simulator any more): the learner
+writes what their program should do into its box (it grows with the text), and reviews the tests. The tests they keep run on the simulator before they are added (`nepoTest.ai` `runTests`). For those that fail
 or aren't checked, the learner chooses "Add anyway" (a failing test can show what the program doesn't do yet) or
 "Discard"; the model's fix (`fix`: it fixes the tests or says the program is wrong) is switched off (`FIX_TESTS` in
-`levels.aiAssistant.ts`), its code kept. If the learner has tests, the offer and the new tests are about what theirs
-don't check yet (the guess's `not_covered`; generate defers the rest as `tested by`). Nothing is added until every failed test is decided, and
+`levels.aiAssistant.ts`), its code kept. If the learner has tests, the new tests are about what theirs don't test yet
+(the analysis' `tested_by`; generate defers the rest as `tested by`). Nothing is added until every failed test is decided, and
 in the Tests tab the added tests don't run by themselves. It is switched on and off in the Edit menu, per test subject on the server
 (`/rest/ai/switch`). The learner's sentences are saved with the program (`nepoAi_notes`). Its events go into the study's
 telemetry, and every telemetry event says whether the AI was on (`ai`). Read it before changing the prompt, the test

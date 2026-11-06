@@ -75,7 +75,6 @@ Nothing yet.
 
 ### Task: analyze
 
-The intent you guessed: "Wait until the PLAY key is pressed, then drive forward and stop."
 The learner's sentence: "When I press play, the robot drives into the box and parks there."
 
 ## The answer (analyze)
@@ -111,7 +110,6 @@ The same parts, with the analysis before the task, then:
 
 ### Task: generate
 
-The intent you guessed: "Wait until the PLAY key is pressed, then drive forward and stop."
 The learner's sentence: "When I press play, the robot drives into the box and parks there."
 Write tests only for scenarios S1 "Parks after PLAY", S2 "Waits without PLAY": the analysis' other scenarios get their own calls, or the learner's tests already test them.
 

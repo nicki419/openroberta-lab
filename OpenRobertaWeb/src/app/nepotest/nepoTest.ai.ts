@@ -1,6 +1,7 @@
 /**
- * The AI test assistant's calls to the Lab server (AiController: /rest/ai/infer, /rest/ai/analyze, /rest/ai/generate, /rest/ai/fix; the browser never
- * talks to DeepSeek). Writing tests is a chain of two calls (docs/tests: AnalysisAgent, then TestGenerationAgent), each answer checked before the next
+ * The AI test assistant's calls to the Lab server (AiController: /rest/ai/analyze, /rest/ai/generate, /rest/ai/fix; the browser never talks to
+ * DeepSeek), each for the learner's sentence: what they asked the assistant for (until 2026-11-06 a guess of the program's intent came first: infer).
+ * Writing tests is a chain of two calls (docs/tests: AnalysisAgent, then TestGenerationAgent), each answer checked before the next
  * step uses it:
  * - analyze: the program's decisions (found in its blocks: nepoTest.aiStrategy indexOf), the paths that target their outcomes, the inputs of each path,
  *   the scenarios; checked against the program's decisions and the learner's sentence (nepoTest.aiStrategy checkAnalysis), repaired at most REPAIRS
@@ -97,7 +98,7 @@ export interface Analyzed {
     message: string;
 }
 
-/** the tests written for an intent (or fixed), checked; what was left out, and why */
+/** the tests written for the learner's sentence (or fixed), checked; what was left out, and why */
 export interface Generated {
     ok: boolean;
     worlds: FORMAT.Resolved[]; // the tests to offer (none if !ok)
@@ -161,27 +162,22 @@ export async function callReadable(kind: string, data: any, calls?: any[]): Prom
     return call(kind, data);
 }
 
-/** what is the program meant to do? answer: {intent, confidence, ask, same_as_declined, not_covered} */
-export function infer(request: Request, declined: string): Promise<Call> {
-    return callReadable('infer', Object.assign({}, request, { declined: declined || null }));
-}
-
-/** the program's decisions, the intent and the sentence: what analyze, generate and fix get besides the request */
-function strategyData(request: Request, intent: string, sentence: string, index: STRATEGY.Index, analysis: any): any {
-    const data: any = Object.assign({}, request, { intent: intent, sentence: sentence || null, decisions: STRATEGY.decisionsForModel(index), sensors: index.sensors || [] });
+/** the program's decisions and the learner's sentence: what analyze, generate and fix get besides the request */
+function strategyData(request: Request, sentence: string, index: STRATEGY.Index, analysis: any): any {
+    const data: any = Object.assign({}, request, { sentence: sentence || null, decisions: STRATEGY.decisionsForModel(index), sensors: index.sensors || [] });
     analysis && (data.analysis = analysis);
     return data;
 }
 
 /**
- * the analysis of the program for the intent (and the learner's sentence): checked against the program's decisions, repaired at most REPAIRS times;
+ * the analysis of the program for the learner's sentence: checked against the program's decisions, repaired at most REPAIRS times;
  * not ok if it is still wrong after that
  *
  * @param index the program's decisions (nepoTest.aiStrategy indexOf of the program the request has)
  */
-export async function analyze(request: Request, intent: string, sentence: string, index: STRATEGY.Index): Promise<Analyzed> {
+export async function analyze(request: Request, sentence: string, index: STRATEGY.Index): Promise<Analyzed> {
     const out: Analyzed = { ok: false, analysis: null, insufficient: false, problems: [], repairs: 0, calls: [], answers: [], error: null, message: '' };
-    const data = strategyData(request, intent, sentence, index, null);
+    const data = strategyData(request, sentence, index, null);
     let result = await callReadable('analyze', data, out.calls);
     for (let round = 0; ; round++) {
         result.meta && out.calls.push(result.meta);
@@ -216,7 +212,7 @@ function testNames(tests: FORMAT.AiTests): string[] {
 }
 
 /**
- * scenario tests for the intent (and the learner's sentence, if they wrote one), from the checked analysis: one call per scenario that the learner's
+ * scenario tests for the learner's sentence, from the checked analysis: one call per scenario that the learner's
  * tests don't test yet (STRATEGY.scenariosToWrite), at most GENERATE_AT_ONCE at once, each checked against its part of the analysis and repaired
  * on its own, with its share of the tests (at least 2); then merged: worlds with the same name told apart, duplicates across the calls left out,
  * the coverage plan computed for the whole analysis, with the scenarios the learner's tests test deferred as "tested by" them. Not ok only if every
@@ -226,9 +222,9 @@ function testNames(tests: FORMAT.AiTests): string[] {
  * @param ctx what the answer is checked against (tests.controller aiContext)
  * @param programXml the program (for the translator's name checks)
  */
-export async function generate(request: Request, intent: string, sentence: string, ctx: FORMAT.Context, programXml: string, strategy: Strategy): Promise<Generated> {
+export async function generate(request: Request, sentence: string, ctx: FORMAT.Context, programXml: string, strategy: Strategy): Promise<Generated> {
     const todo = STRATEGY.scenariosToWrite(strategy.analysis);
-    const data = strategyData(request, intent, sentence, strategy.index, strategy.analysis);
+    const data = strategyData(request, sentence, strategy.index, strategy.analysis);
     const maxTests = Math.max(1, Math.floor(STRATEGY.MAX_TESTS / Math.max(1, todo.write.length)));
     const results: Generated[] = new Array(todo.write.length);
     const one = (i: number) => {
@@ -360,7 +356,6 @@ function merged(results: Generated[], todo: { write: string[]; tested: { id: str
  */
 export function fix(
     request: Request,
-    intent: string,
     sentence: string,
     failed: Ran[],
     kept: { test: string; world: string }[],
@@ -378,7 +373,7 @@ export function fix(
         }
         w.tests.push(r.test);
     });
-    const data = Object.assign(strategyData(request, intent, sentence, strategy.index, strategy.analysis), {
+    const data = Object.assign(strategyData(request, sentence, strategy.index, strategy.analysis), {
         fix: { tests: { worlds: worlds }, results: failed.map((r) => resultText(r, label, strategy.index)), kept: kept },
     });
     return written('fix', data, ctx, programXml, failed, strategy, sentence);

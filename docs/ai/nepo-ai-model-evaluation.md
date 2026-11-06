@@ -596,6 +596,9 @@ Configuration (`.env`; presets in `openRoberta.properties`):
   The settings are `<NAME>_EFFORT_INFER`, `_ANALYZE`, `_GENERATE`, `_FIX`.
 - The panel says "Usually under a minute" for writing tests, and "Usually under a minute, sometimes up to 3" for a fix.
 - **No boundary value analysis** (after E14): the tests take a typical case of each input class. Contract 1.3.
+- **No guess on a run** (2026-11-06, not an experiment: the user's decision): infer is gone, and its effort setting
+  with it. The assistant works only when the learner asks, from the sentence they write; analyze, generate and fix are
+  as measured here. Contract 1.4. The infer times above (2 to 13 s) no longer apply.
 
 Fixes from these tests: the HARICA root for UCloud (E6.1); repairs that are shortened, not refused (E6.2); the reasoning
 read from `reasoning` too (E1); and the full telemetry of every call (prompts, answers, reasoning, tries, times; see

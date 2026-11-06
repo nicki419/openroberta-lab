@@ -17,10 +17,10 @@ import org.json.JSONObject;
  *  tests: the learner's tests as test JSON (or null),
  *  said: [the learner's earlier sentences about this program],
  *  levelId, fingerprint: the level played and the program's fingerprint (only logged),
- *  infer:    declined: the guess the learner declined (or null)
+ *  sentence: what the learner asked the assistant for, in their words (required; until 2026-11-06 it was optional, and a guessed intent came
+ *            with it: infer)
  *  analyze:  decisions: [{id: D1, block: b7, kind: if | wait | while, label, outcomes: [{id: D1.1, outcome}, ...]}] (the browser finds them in
- *            the program's blocks: nepoTest.aiStrategy decisionIndex), intent: the guess, sentence: the learner's sentence (or null),
- *            notCovered: what the learner's tests don't check yet (the guess's not_covered; only if they have tests, or null),
+ *            the program's blocks: nepoTest.aiStrategy decisionIndex),
  *            sensors: the sensors its blocks that run read ([LINETRACKER, LLIGHT, RLIGHT, OBSTACLE_FRONT, …, SOUND, KEY, IR]),
  *            repair: {answer: the answer with problems, problems: ["...", ...]} (or null)
  *  generate: as analyze, and analysis: the checked answer of analyze, scenarios: [the ids of the scenarios this call writes tests for] (or
@@ -40,9 +40,9 @@ public final class AiPrompts {
     public static final int MAX_NEPO = 60000; // longer: left out (the EdPy says the same)
     public static final int MAX_EDPY = 30000;
     public static final int MAX_TESTS = 60000;
-    public static final int MAX_SENTENCE = 200;
+    public static final int MAX_SENTENCE = 500; // the box in the browser grows with it (levels.aiAssistant MAX_SENTENCE)
     public static final int MAX_SAID = 5; // the last ones
-    public static final int MAX_GUESS = 300;
+    public static final int MAX_GUESS = 300; // a test's or a world's name
     public static final int MAX_PROBLEMS = 40; // more: the first ones, and how many more
     public static final int MAX_PROBLEM = 800; // longer: cut (the strategy's problems quote dimensions and classes: 300 to 500 characters)
     public static final int MAX_ANSWER = 60000;
@@ -72,7 +72,7 @@ public final class AiPrompts {
     }
 
     /**
-     * @param task {@link AiService#INFER}, {@link AiService#ANALYZE}, {@link AiService#GENERATE} or {@link AiService#FIX}
+     * @param task {@link AiService#ANALYZE}, {@link AiService#GENERATE} or {@link AiService#FIX}
      * @param data the browser's data (see the class comment)
      * @return the user message
      * @throws AiException bad_request (something required is missing) or too_large
@@ -95,11 +95,8 @@ public final class AiPrompts {
             m.append("NEPO:\n```xml\n").append(nepo).append("\n```\n\n");
         }
         m.append(edpy.isEmpty() ? "EdPy: (not available)\n\n" : "EdPy:\n```python\n" + edpy + "\n```\n\n");
-        boolean infer = AiService.INFER.equals(task);
-        if ( !infer ) {
-            appendDecisions(m, data.opt("decisions"));
-            appendSensors(m, data.opt("sensors"));
-        }
+        appendDecisions(m, data.opt("decisions"));
+        appendSensors(m, data.opt("sensors"));
 
         m.append("## The learner's tests\n\n");
         Object tests = data.opt("tests");
@@ -120,36 +117,24 @@ public final class AiPrompts {
             m.append('\n');
         }
 
-        if ( !infer && !AiService.ANALYZE.equals(task) ) {
+        if ( !AiService.ANALYZE.equals(task) ) {
             m.append("## The analysis\n\n");
             JSONObject analysis = data.optJSONObject("analysis");
             m.append(analysis == null ? "None.\n\n" : "```json\n" + limited("the analysis", analysis.toString(), MAX_ANALYSIS) + "\n```\n\n");
         }
 
-        if ( infer ) {
-            String declined = optText(data, "declined");
-            m.append("## Task: infer\n\n");
-            m.append("The guess the learner declined: ").append(declined == null ? "none." : quote(limited("the declined guess", declined, MAX_GUESS))).append('\n');
-        } else {
-            String intent = optText(data, "intent");
-            if ( intent == null ) {
-                throw new AiException("bad_request", "the intent is missing");
-            }
-            String sentence = optText(data, "sentence");
-            boolean fix = AiService.FIX.equals(task);
-            m.append(fix ? "## Task: fix\n\n" : AiService.ANALYZE.equals(task) ? "## Task: analyze\n\n" : "## Task: generate\n\n");
-            m.append("The intent you guessed: ").append(quote(limited("the intent", intent, MAX_GUESS))).append('\n');
-            m.append(sentence == null ? "The learner wrote no sentence.\n" : "The learner's sentence: " + quote(limited("the sentence", sentence, MAX_SENTENCE)) + "\n");
-            String notCovered = optText(data, "notCovered"); // the guess's not_covered, sent when the learner has tests: cut, not refused
-            if ( !fix && notCovered != null ) {
-                m.append("What the learner's tests don't check yet (your guess): ").append(quote(line(notCovered, MAX_GUESS))).append('\n');
-            }
-            if ( AiService.GENERATE.equals(task) ) {
-                appendScenarios(m, data);
-            }
-            if ( fix ) {
-                appendFix(m, data.optJSONObject("fix"));
-            }
+        String sentence = optText(data, "sentence");
+        if ( sentence == null ) {
+            throw new AiException("bad_request", "the learner's sentence is missing");
+        }
+        boolean fix = AiService.FIX.equals(task);
+        m.append(fix ? "## Task: fix\n\n" : AiService.ANALYZE.equals(task) ? "## Task: analyze\n\n" : "## Task: generate\n\n");
+        m.append("The learner's sentence: ").append(quote(limited("the sentence", sentence, MAX_SENTENCE))).append('\n');
+        if ( AiService.GENERATE.equals(task) ) {
+            appendScenarios(m, data);
+        }
+        if ( fix ) {
+            appendFix(m, data.optJSONObject("fix"));
         }
         return m.toString();
     }
@@ -418,31 +403,6 @@ public final class AiPrompts {
             s = s.substring(end + FIXED_START_END.length());
         }
         return s.replaceAll("^\\s*\n", "").replaceAll("\\s+$", "");
-    }
-
-    /**
-     * @param content the model's answer to infer
-     * @return {intent, confidence, ask, same_as_declined, not_covered}, checked, with the types of the schema
-     * @throws AiException bad_answer
-     */
-    public static JSONObject checkInfer(String content) {
-        JSONObject answer = parse(content);
-        String intent = answer.optString("intent", "").trim();
-        if ( intent.isEmpty() ) {
-            throw new AiException("bad_answer", "the answer has no intent");
-        }
-        Object ask = answer.opt("ask");
-        if ( !(ask instanceof Boolean) ) {
-            throw new AiException("bad_answer", "the answer's ask is not true or false");
-        }
-        double confidence = answer.optDouble("confidence", Double.NaN);
-        Object notCovered = answer.opt("not_covered");
-        return new JSONObject()
-            .put("intent", intent.length() > MAX_GUESS ? intent.substring(0, MAX_GUESS) : intent)
-            .put("confidence", Double.isNaN(confidence) ? JSONObject.NULL : Math.max(0, Math.min(1, confidence)))
-            .put("ask", ask)
-            .put("same_as_declined", answer.optBoolean("same_as_declined", false))
-            .put("not_covered", notCovered instanceof String && !((String) notCovered).trim().isEmpty() ? ((String) notCovered).trim() : JSONObject.NULL);
     }
 
     /**

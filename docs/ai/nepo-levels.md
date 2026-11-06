@@ -19,11 +19,11 @@ Designers' guide: `levels/README.md`. Configuration: `.env.example`.
 | Level format, parsing, checks, file names, `fetchSets()` | `OpenRobertaWeb/src/app/levels/level.model.ts` |
 | Playing levels in the simulator: scene, referee, bar, messages, progress | `OpenRobertaWeb/src/app/levels/levels.player.ts` |
 | Autosave | `OpenRobertaWeb/src/app/levels/levels.autosave.ts` |
-| Telemetry | `OpenRobertaWeb/src/app/levels/levels.telemetry.ts` (an attempt's EdPy is asked for once: `attemptSource`, also used by the AI test assistant) |
+| Telemetry | `OpenRobertaWeb/src/app/levels/levels.telemetry.ts` (an attempt's EdPy is asked for once: `attemptSource`, also used by the AI test assistant when the learner asks for tests) |
 | The Level designer tab | `OpenRobertaWeb/src/app/roberta/controller/levels.controller.ts`; markup `#tabLevels`, `#levels` in `index.html` |
 | The world editor (level mode) | `OpenRobertaWeb/src/app/nepotest/nepoTest.simEditor.ts` (`mode: 'level'`) |
 | Hooks in the simulator | `simulation.scene.ts` (`ILevelHost`, `showFullyLoadedSim`, `update`, `handleKeyEvent`, `centerBackground` with `insetRight`), `simulation.roberta.ts` (`levelHost`, `level()`, `stopProgram`, `callbackOnTermination`, `resetPose`) |
-| A panel beside the scene (the AI test assistant's, `docs/ai/nepo-ai-tests.md`) | an element of `#simDiv` with the class `levelSidePanel`: the scene is centred in the rest (`levels.player` `insetRight`, `sidePanelChanged`) |
+| A panel beside the scene (none at present; the AI test assistant's until 2026-11-06, now a tab of the Tests tab: `docs/ai/nepo-ai-tests.md`) | an element of `#simDiv` with the class `levelSidePanel`: the scene is centred in the rest (`levels.player` `insetRight`, `sidePanelChanged`) |
 | Progress in the program XML | `nepoTest.suite.ts` (`setLevelProgress`, `split`/`merge`, `loadExtras`); NepoTest's `blocks.py` `split_program` leaves it out |
 | Tests | `LevelsControllerTest`, `EnvFileTest`, `NepoTestSuitePersistenceTest` (progress survives import and load), `NepoTest/tests/test_blocks.py` |
 
@@ -136,7 +136,7 @@ The server adds `serverTime`, `userId`, `account` and `session`.
 | `attempt_ended` | `level`, `set`, `attempt`, `outcome`, `simTime` (s), `item` (the obstacle hit), `activeMs`, `tests`, `testsAdded` (how many), `aiTestsAdded`, and the AI tests' counts |
 | `level_beaten` | `level`, `set`, `attempts`, `winningAttempt`, `activeMs`, `wallMs` (since first opened), `testsAtStart`, `tests`, `testsAdded` ([{id, name, ai, copy, edited}]), `testRuns`, `aiTestRuns` (runs with AI tests), and the AI tests' counts |
 | `test_run` | `level`, `set`, `from` (runner or simulation), `passed`, `failed`, `error`, `skipped`, `tests`, `outcomes` ([{id, outcome, ai}]), `aiTestsRun`, `aiTestsEditedRun`, `aiPassed`, `aiFailed`, `aiError`, `aiSkipped`, and the AI tests' counts |
-| the AI test assistant's events | `ai_switched`, `ai_inferred`, `ai_offer_shown`, `ai_offer_answered`, `ai_tests_generated`, `ai_tests_checked`, `ai_failed_answered`, `ai_tests_fixed`, `ai_tests_added`, `ai_ask_again`, and the server's `ai_call`: `docs/ai/nepo-ai-tests.md` |
+| the AI test assistant's events | `ai_switched`, `ai_panel`, `ai_asked`, `ai_analyzed`, `ai_tests_generated`, `ai_tests_checked`, `ai_failed_answered`, `ai_tests_fixed`, `ai_stale`, `ai_tests_added`, and the server's `ai_call` (until 2026-11-06 also `ai_inferred`, `ai_offer_shown`, `ai_offer_answered`, `ai_ask_again`): `docs/ai/nepo-ai-tests.md` |
 
 **The AI tests' counts** (tests the AI test assistant wrote, told apart from the learner's own): `aiTests` (how many there
 are now, copies included), `aiTestsEdited` (changed since they were added: name, run length, switch, start, set-up,

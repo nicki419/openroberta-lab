@@ -6,7 +6,6 @@ nepo-edison.md
 simulator.md
 tests.md
 tasks.md
-schemas/infer.schema.json
 schemas/analyze.schema.json
 schemas/generate.schema.json
 schemas/fix.schema.json

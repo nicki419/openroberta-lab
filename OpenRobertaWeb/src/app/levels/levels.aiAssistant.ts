@@ -1,7 +1,9 @@
 /**
- * The AI test assistant beside the Program tab's simulator (Edison, while a level of the sets is played). When the learner runs a changed program, it
- * guesses what the program is meant to do (nepoTest.ai infer) and offers to write scenario tests for it; the learner can say in one sentence what the
- * program should do. Writing them is the testing strategy of docs/tests (nepoTest.aiStrategy): the program is analysed first (analyze: its decisions,
+ * The AI test assistant: the tab "AI Assistant" of the Tests tab's side, beside Test runner, Code and Simulation (Edison; there while the AI is on).
+ * It works only when the learner asks: they write what their program should do into its box (it grows with the text, so all of it stays visible) and
+ * press "Write tests" (or Enter). Until 2026-11-06 it was a panel beside the Program tab's simulator while a level was played, and a run of a changed
+ * program brought a guess of what it is meant to do and an offer (infer); both are gone. Writing the tests is the testing strategy of
+ * docs/tests (nepoTest.aiStrategy): the program is analysed first (analyze: its decisions,
  * the paths that target their outcomes, the inputs of each path, the scenarios), then the tests are written from the analysis (generate). The review
  * list says where each test's expectation comes from (the learner's words, a guess from the blocks, safety) and which outcomes of the program's
  * decisions the tests plan to try. The tests the learner ticks first run on the simulator, for the program as it is (nepoTest.ai runTests); the runs
@@ -17,23 +19,19 @@
  * - The switch: "AI test assistant" in the Edit menu. It is kept per test subject by the server (POST /rest/ai/switch, beside the telemetry), so it
  *   holds after a reload and on another machine; without a logged-in account it holds for the open page only. An account never switched has the
  *   server's default (AI_TESTS_DEFAULT). Greyed out if the server has no API key.
- * - The panel: to the right of the scene while the AI is on and a level of the sets is played (not one tried from the Level designer).
- * - A run of a changed program starts a guess (its blocks and their values count; ids and positions don't, so moving a block doesn't); a run of an
- *   unchanged one changes nothing, and no call is made. The run never waits for the AI. While tests are written or reviewed, a run doesn't
- *   interrupt: its change is looked at with the next run.
- * - What it shows: idle, thinking (from Play), the offer, the guess alone (after "Not now": until the guess means something new and at least
- *   DECLINED_RUNS changed runs have passed), nothing new to test, writing, the review list (all ticked), checking (the ticked tests run), the
- *   results (what failed, and the questions: fix or discard; add anyway or discard), fixing, done, no new tests, discarded, no suggestions on this
- *   level, an error. An answer that comes after the AI was switched off, or after a newer run began, is dropped; so is a check that runs then.
- * - Its notes are saved with the program (nepoTest.suite): the learner's sentences word for word (sent with later calls), the guess declined
- *   and the changed runs since, the levels it doesn't ask on, the tests it added (so the telemetry can tell which were deleted).
- * The EdPy of a run is the one the telemetry asks for (levels.telemetry attemptSource): one request serves both.
+ * - The panel (#aiAssistant) is the side's pane #testsAiPane; tests.controller shows its tab (setAiTab) while the AI is on and switches the panes.
+ * - What it shows: the box to ask (idle; again under done, no new tests, discarded and an error), writing, the review list (all ticked), checking
+ *   (the ticked tests run), the results (what failed, and the questions: fix or discard; add anyway or discard), fixing, done, no new tests,
+ *   discarded, an error. An answer that comes after the AI was switched off, or after another program was loaded, is dropped; so is a check that
+ *   runs then.
+ * - Its notes are saved with the program (nepoTest.suite): the learner's sentences word for word (sent with later calls), the tests it added (so
+ *   the telemetry can tell which were deleted). Notes of version 1 also had a declined guess and levels not to ask on: they are dropped.
+ * The program and its EdPy are taken when the learner asks (levels.telemetry attemptSource, which a run of the same program shares).
  *
  * The study's telemetry (levels.telemetry record; every event also says whether the AI was on):
  * - ai_switched: on or off, and why (menu: the Edit menu; account: the account's switch after a login; default: an account never switched)
- * - ai_inferred: a guess (its call, the fingerprint, the answer, what was shown; stale: it came too late and was dropped)
- * - ai_offer_shown; ai_offer_answered: write, not_now, never_here or ignored (the offer was replaced: why), the sentence word for word (also
- *   one typed but not sent), the guess answered, the time to answer
+ * - ai_panel: the tab "AI Assistant" shown (open) or left for another of the side's tabs
+ * - ai_asked: the learner asked for tests: the sentence word for word, the level
  * - ai_analyzed: the analysis (the program's decisions, the answer), its repairs and what was still wrong, the calls, the time, the tokens
  * - ai_tests_generated: the tests offered (JSON), the coverage plan, the repairs, what was left out and why, the duplicates, the calls, the time, the
  *   tokens
@@ -45,7 +43,7 @@
  * - ai_stale: the program changed between writing and checking the tests, and what the learner chose
  * - ai_tests_added: the tests added (ticked; whether each passed, how often it was fixed), those unticked, the failed ones not added, their worlds;
  *   discarded: none added
- * - ai_ask_again: "Suggest tests again" on a level
+ * Until 2026-11-06 there were also ai_inferred, ai_offer_shown, ai_offer_answered and ai_ask_again (the guess and its offer).
  */
 import * as GUISTATE_C from 'guiState.controller';
 import * as COMM from 'comm';
@@ -61,8 +59,7 @@ import * as VERDICT from 'nepoTest.simVerdict';
 
 const GROUP = 'edison';
 const TICK_MS = 1000;
-const DECLINED_RUNS = 3; // after "Not now": changed runs before it offers again
-const MAX_SENTENCE = 200;
+const MAX_SENTENCE = 500; // as the server's AiPrompts.MAX_SENTENCE
 const MAX_SAID = 50; // sentences kept in the notes (the server sends the last 5)
 const FIXES = 2; // how often the assistant tries to fix the tests of a batch
 /**
@@ -71,40 +68,20 @@ const FIXES = 2; // how often the assistant tries to fix the tests of a batch
  */
 const FIX_TESTS = false;
 
-type State =
-    | 'idle'
-    | 'thinking'
-    | 'offer'
-    | 'guess'
-    | 'nothing'
-    | 'writing'
-    | 'review'
-    | 'checking'
-    | 'results'
-    | 'fixing'
-    | 'done'
-    | 'empty'
-    | 'discarded'
-    | 'quiet'
-    | 'stale'
-    | 'error';
+type State = 'idle' | 'writing' | 'review' | 'checking' | 'results' | 'fixing' | 'done' | 'empty' | 'discarded' | 'stale' | 'error';
 
 /** what the learner told the assistant about the program: saved with it */
 export interface Notes {
     version: number;
-    said: { text: string; time: string; level: string; answer: string }[]; // word for word; answer: write | not_now
-    declined: { intent: string; runs: number } | null; // the guess declined ("Not now") and the changed runs since
-    quiet: string[]; // the levels it doesn't ask on ("Don't ask on this level")
+    said: { text: string; time: string; level: string }[]; // word for word (version 1 also had answer)
     added: string[]; // the ids of the test blocks it added
 }
 
 interface View {
     state: State;
-    since?: number; // thinking, writing, fixing: since when (ms)
+    since?: number; // writing, fixing: since when (ms)
     phase?: string; // writing: analysing | writing
-    intent?: string;
-    gap?: string; // offer: what the learner's tests don't check yet (the guess's not_covered), shown when they have tests
-    for?: string; // writing: the sentence, or the guess
+    for?: string; // writing: the sentence
     progress?: { index: number; count: number; name: string }; // checking: the test that runs
     count?: number; // fixing: how many tests
     added?: { tests: number; worlds: FORMAT.Resolved[]; failing: number; unchecked: number; notAdded: number };
@@ -139,7 +116,6 @@ interface Candidate {
 interface Batch {
     call: string; // the generate call
     prefix: string; // of the blocks added
-    intent: string;
     sentence: string;
     before: string[]; // the learner's sentences before (said)
     worlds: FORMAT.Resolved[]; // the worlds of the answer
@@ -156,43 +132,28 @@ let on = false;
 let available = false;
 let account: string = undefined; // whose switch it is (null: nobody is logged in)
 let switchedByHand = false; // switched while nobody was logged in: kept for an account that logs in and was never switched
-let lastFingerprint: string = null; // the program of the last changed run looked at
 let token = 0; // an answer counts only while this is unchanged
 let view: View = { state: 'idle' };
-let request: AI.Request = null; // the last guess's
-let guess: any = null; // its answer {intent, confidence, ask, same_as_declined, not_covered}
+let request: AI.Request = null; // the last request's
 let generated: AI.Generated = null;
 let ticked: boolean[][] = [];
-let writing: { intent: string; sentence: string; before: string[]; strategy: AI.Strategy } = null; // what the tests of the review list were written for, and from
-let index: STRATEGY.Index = null; // the decisions of the program of the last guess (its blocks' short ids: the model's)
-let runProgram: string = null; // the program of the last guess, as the Program tab had it (its blocks' own ids)
+let writing: { sentence: string; before: string[]; strategy: AI.Strategy } = null; // what the tests of the review list were written for, and from
+let index: STRATEGY.Index = null; // the decisions of the program of the last request (its blocks' short ids: the model's)
+let runProgram: string = null; // the program of the last request, as the Program tab had it (its blocks' own ids)
 let batch: Batch = null;
 let notes: Notes = newNotes();
-let guessCall: any = null; // the meta of the guess's call
-let offer: { intent: string; call: string; shownAt: number } = null; // the offer shown and not answered yet
+let draft = ''; // what is typed into the box and not sent yet: kept while the panel is drawn anew
+let tabShown = false; // the tab "AI Assistant" is the side's tab shown
 const ui: { [name: string]: any } = {};
 
 const TEXT: { [key: string]: string } = {
     menu: 'AI test assistant',
     menuUnavailable: 'The Lab server has no API key for the AI.',
-    head: 'Test assistant',
-    idle: "Run your program, and I'll suggest tests for it.",
-    thinkingHead: 'Thinking',
-    thinking: 'Looking at what your program does …',
-    since: 'Since you pressed Play, {0} s ago. It goes on after the run ends; the answer usually takes a few seconds.',
-    offerHead: 'Test suggestion',
-    looksLike: 'It looks like your program should:',
-    question: 'Should I write tests that check this?',
-    questionGap: "Should I write tests for what your tests don't check yet?",
-    sentenceLabel: 'In your own words: what should your program do? (optional)',
+    idle: "Tell me what your program should do, and I'll write tests that check it.",
+    sentenceLabel: 'What should your program do?',
     sentencePlaceholder: 'This program should follow a black line and stop if it senses an obstacle',
+    sentenceKeys: 'Enter writes the tests; Shift+Enter starts a new line.',
     write: 'Write tests',
-    notNow: 'Not now',
-    quietLink: "Don't ask on this level",
-    guessHead: 'Your program',
-    guessNote: "I'll suggest tests again when your program does something new.",
-    nothingHead: 'Nothing new to test',
-    nothing: "Your tests already check this. I'll look again after your next change.",
     writingHead: 'Writing tests',
     writingFor: 'For: ',
     writingNote: 'Usually under a minute. You can keep working meanwhile.',
@@ -219,7 +180,7 @@ const TEXT: { [key: string]: string } = {
     addOne: 'Add 1 test',
     discard: 'Discard',
     doneHead: 'Done',
-    done: '{0} added to the Tests tab, {1}. {2}',
+    done: '{0} added, {1}. {2}',
     passedOne: 'It passed on your program.',
     passedMany: 'They passed on your program.',
     failingOne: '1 of them fails on your program: you added it anyway.',
@@ -235,8 +196,6 @@ const TEXT: { [key: string]: string } = {
     inYourWorld: 'in your world {0}',
     inWorlds: 'in the worlds {0}',
     and: ' and ',
-    doneNote: 'The assistant stays like this until the next changed run.',
-    openTests: 'Open Tests tab',
     checkingHead: 'Checking the tests',
     checking: 'Test {0} of {1} runs on your program: “{2}”',
     checkingNote: 'Each test runs in its own world on the simulator.',
@@ -279,13 +238,9 @@ const TEXT: { [key: string]: string } = {
     empty: 'The tests I wrote were already there or had problems, so none were added.',
     emptyTested: 'Your tests already check what I would test, so I wrote no new ones.',
     discardedHead: 'No tests added',
-    again: "I'll look again after your next change.",
-    quietHead: 'No suggestions here',
-    quiet: "I won't suggest tests on this level.",
-    quietUndo: 'Suggest tests again',
+    askMore: 'Want other tests? Tell me what your program should do.',
     errorHead: 'Something went wrong',
-    noAnswerInfer: "The assistant didn't answer.",
-    noAnswerGenerate: "The test writer didn't answer.",
+    noAnswer: "The test writer didn't answer.",
     badAnalysis: "I couldn't make sense of your program's decisions.",
     limit: "That's a lot of suggestions for one hour. Try again later.",
     busy: 'The assistant is still busy with an earlier request. Try again in a moment.',
@@ -309,7 +264,7 @@ function html(tag: string, cls: string, parent: Element, content?: string): any 
 }
 
 function newNotes(): Notes {
-    return { version: 1, said: [], declined: null, quiet: [], added: [] };
+    return { version: 2, said: [], added: [] };
 }
 
 /** an event for the study's telemetry */
@@ -330,12 +285,14 @@ export function init(): void {
     on = available && !!server.default;
     SUITE.setAiNotes(serializeNotes, loadNotes);
     TELEMETRY.setAi({ isOn: () => on, addedTests: () => notes.added.slice() });
-    PLAYER.onEvent(levelEvent);
     build();
     $('#menuAiTests').on('click', function (e: Event) {
         e.preventDefault();
         !$(this).parent().hasClass('disabled') && switchTo(!on, 'menu');
     });
+    TESTS_C.onSideShown(sideShown);
+    $('#tabTests').on('shown.bs.tab', fitSentence); // measured only while it is seen
+    $(window).on('resize', fitSentence);
     setInterval(tick, TICK_MS);
     tick();
 }
@@ -347,29 +304,26 @@ export function isOn(): boolean {
 
 /** the notes to save with the program (JSON), once there is something in them (else null: the program stays as it is) */
 function serializeNotes(): string {
-    return notes.said.length || notes.declined || notes.quiet.length || notes.added.length ? JSON.stringify(notes) : null;
+    return notes.said.length || notes.added.length ? JSON.stringify(notes) : null;
 }
 
-/** the notes of a loaded program (null: none); the assistant starts anew with the program */
+/** the notes of a loaded program (null: none); the assistant starts anew with the program (version 1's declined guess and quiet levels are dropped) */
 function loadNotes(json: string): void {
     let loaded = newNotes();
     try {
         const n = json ? JSON.parse(json) : null;
         if (n && typeof n === 'object') {
             loaded.said = Array.isArray(n.said) ? n.said.filter((s: any) => s && typeof s.text === 'string') : [];
-            loaded.declined = n.declined && typeof n.declined.intent === 'string' ? { intent: n.declined.intent, runs: Number(n.declined.runs) || 0 } : null;
-            loaded.quiet = Array.isArray(n.quiet) ? n.quiet.filter((q: any) => typeof q === 'string') : [];
             loaded.added = Array.isArray(n.added) ? n.added.filter((a: any) => typeof a === 'string') : [];
         }
     } catch (e) {
         console.warn("the AI test assistant's notes are not readable: it starts anew", e);
         loaded = newNotes();
     }
-    closeOffer('program_loaded');
     notes = loaded;
-    lastFingerprint = null;
+    draft = '';
     token++;
-    show({ state: isQuiet() ? 'quiet' : 'idle' });
+    show({ state: 'idle' });
 }
 
 /** the notes changed: an unsaved change of the program (autosave saves it) */
@@ -422,12 +376,10 @@ function switchTo(value: boolean, cause: string): void {
     if (value && !available) {
         return;
     }
-    !value && closeOffer('switched_off');
     on = value;
     token++; // an answer on its way is dropped
     if (on) {
-        lastFingerprint = null; // the next run is looked at
-        show({ state: isQuiet() ? 'quiet' : 'idle' });
+        show({ state: 'idle' });
     }
     if (cause === 'menu') {
         account ? askServer({ on: on }) : (switchedByHand = true);
@@ -445,164 +397,104 @@ function renderMenu(): void {
     $('#menuAiTestsTick').text(on ? '✓' : '');
 }
 
-// ------------------------------------------------------------------------------------------------ the runs
+// ------------------------------------------------------------------------------------------------ asking
 
-/** the level played (one of the sets) */
+/** the level played (one of the sets), or null: only logged */
 function levelNow(): string {
     const level = PLAYER.currentLevel();
     return level ? level.id : null;
 }
 
-function isQuiet(): boolean {
+/** the tab "AI Assistant": while the AI is on */
+function offered(): boolean {
+    return on && available && GUISTATE_C.getRobotGroup() === GROUP;
+}
+
+/** "Write tests" (or Enter in the box): the learner's sentence is kept word for word, and the tests are written for it */
+function ask(): void {
+    const sentence = draft.trim().substring(0, MAX_SENTENCE);
+    if (!sentence || !on) {
+        return;
+    }
+    const before = notes.said.map((s) => s.text);
     const level = levelNow();
-    return !!level && notes.quiet.indexOf(level) >= 0;
+    notes.said.push({ text: sentence, time: new Date().toISOString(), level: level });
+    notes.said.length > MAX_SAID && notes.said.splice(0, notes.said.length - MAX_SAID);
+    notesChanged();
+    record('ai_asked', { sentence: sentence, level: level, before: before.length });
+    draft = '';
+    write(sentence, before);
 }
 
-function shown(): boolean {
-    return on && GUISTATE_C.getRobotGroup() === GROUP && !!levelNow();
-}
-
-function busy(): boolean {
-    return ['writing', 'review', 'checking', 'results', 'fixing'].indexOf(view.state) >= 0;
-}
-
-function levelEvent(kind: string, data: any): void {
-    if (kind === 'attempt_started') {
-        on && attemptStarted(data);
-    } else if (kind === 'level_opened' && !busy()) {
-        if (notes.quiet.indexOf(data.level) >= 0) {
-            closeOffer('level_changed');
-            token++;
-            show({ state: 'quiet' });
-        } else if (view.state === 'quiet') {
-            show({ state: 'idle' });
-        }
-    }
-}
-
-/** a run on a level: a changed program is looked at, an unchanged one changes nothing */
-function attemptStarted(data: any): void {
-    const run = TELEMETRY.attemptSource(data.level, data.attempt);
-    const print = fingerprint(run.program);
-    if (print === lastFingerprint || busy()) {
-        return;
-    }
-    lastFingerprint = print;
-    closeOffer('new_run');
-    if (notes.declined) {
-        notes.declined.runs++;
-        notesChanged();
-    }
-    if (notes.quiet.indexOf(data.level) >= 0) {
-        show({ state: 'quiet' });
-        return;
-    }
-    think(data.level, run, print);
-}
-
-/** the guess: thinking from Play until it is in */
-async function think(level: string, run: { program: string; edpy: Promise<{ edpy: string; error: string }> }, print: string): Promise<void> {
+/**
+ * the tests for the learner's sentence: the program as it is now (and its EdPy), analysed, the analysis checked and repaired; then the tests
+ * written from it, checked and repaired; then the review list
+ *
+ * @param before the learner's sentences before this one
+ */
+async function write(sentence: string, before: string[]): Promise<void> {
     const mine = ++token;
-    show({ state: 'thinking', since: Date.now() });
+    show({ state: 'writing', since: Date.now(), for: sentence, phase: 'analysing' });
+    const level = levelNow();
+    const run = TELEMETRY.attemptSource(level, 0);
     const source = await run.edpy;
     if (mine !== token) {
         return;
     }
-    index = STRATEGY.indexOf(run.program, TESTS_C.aiBlockLabel);
+    const decisions = STRATEGY.indexOf(run.program, TESTS_C.aiBlockLabel);
+    index = decisions;
     runProgram = run.program;
+    const tests = TESTS_C.aiTests();
     request = {
         levelId: level,
-        program: { nepo: index.nepo, edpy: source.edpy || '' }, // its blocks with short ids (b1, …): the analysis and the tests name them
-        tests: TESTS_C.aiTests(),
-        said: notes.said.map((s) => s.text),
-        fingerprint: print,
+        program: { nepo: decisions.nepo, edpy: source.edpy || '' }, // its blocks with short ids (b1, …): the analysis and the tests name them
+        tests: tests,
+        said: before,
+        fingerprint: fingerprint(run.program),
     };
-    const declined = notes.declined ? notes.declined.intent : null;
-    const result = await AI.infer(request, declined);
-    const event: any = Object.assign({ level: level, fingerprint: print, edpyError: source.error || null, declined: declined, ok: result.ok, error: result.error }, callOf(result.meta));
-    result.ok && Object.assign(event, result.answer);
-    if (mine !== token || !on) {
-        record('ai_inferred', Object.assign(event, { stale: true, shown: null }));
-        return; // a newer run, or switched off meanwhile: dropped
-    }
-    if (!result.ok) {
-        record('ai_inferred', Object.assign(event, { shown: 'error' }));
-        show(errorView('infer', result, () => think(level, run, print)));
-        return;
-    }
-    guess = result.answer;
-    guessCall = result.meta;
-    const held = !!notes.declined && (guess.same_as_declined || notes.declined.runs < DECLINED_RUNS);
-    const state: State = held ? 'guess' : guess.ask ? 'offer' : 'nothing';
-    record('ai_inferred', Object.assign(event, { shown: state, declinedRuns: notes.declined ? notes.declined.runs : null }));
-    show({ state: state, intent: guess.intent, gap: gapOf(request.tests) });
-}
-
-/**
- * what the learner's tests don't check yet (the guess's not_covered), if they have tests: the offer says it, and analyze and generate get it, so the
- * new tests are about what is missing and don't repeat theirs (2026-11-05: a line follower got its line-following tests again with every offer)
- */
-function gapOf(tests: any): string {
-    const has = !!tests && Array.isArray(tests.worlds) && tests.worlds.some((w: any) => w && Array.isArray(w.tests) && w.tests.length);
-    const gap = guess && typeof guess.not_covered === 'string' ? guess.not_covered.trim() : '';
-    return has && gap ? gap : null;
-}
-
-/**
- * "Write tests": the tests for the guess (and the learner's sentence), checked and repaired; then the review list
- *
- * @param before the learner's sentences before this one
- */
-async function write(intent: string, sentence: string, before: string[]): Promise<void> {
-    const mine = ++token;
-    show({ state: 'writing', since: Date.now(), for: sentence || intent, intent: intent, phase: 'analysing' });
-    const tests = TESTS_C.aiTests();
-    const data = Object.assign({}, request, { tests: tests, said: before, notCovered: gapOf(tests) });
-    const decisions = index;
     let started = Date.now();
-    const analyzed = await AI.analyze(data, intent, sentence, decisions);
+    const analyzed = await AI.analyze(request, sentence, decisions);
     let stale = mine !== token || !on;
-    recordAnalyzed(intent, sentence, analyzed, decisions, Date.now() - started, stale);
+    recordAnalyzed(sentence, analyzed, decisions, Date.now() - started, stale, source.error);
     if (stale) {
         return;
     }
     if (!analyzed.ok) {
-        show(errorView('analyze', analyzed, () => write(intent, sentence, before)));
+        show(errorView('analyze', analyzed, () => write(sentence, before)));
         return;
     }
     if (analyzed.insufficient) {
         const why = (analyzed.analysis.uncertainties || []).filter((u: any) => typeof u === 'string')[0];
-        show({ state: 'empty', intent: intent, phase: 'insufficient', message: why || text('insufficient') });
+        show({ state: 'empty', phase: 'insufficient', message: why || text('insufficient') });
         return;
     }
-    show({ state: 'writing', since: view.since, for: sentence || intent, intent: intent, phase: 'writing' });
+    show({ state: 'writing', since: view.since, for: sentence, phase: 'writing' });
     const strategy: AI.Strategy = { index: decisions, analysis: analyzed.analysis };
     started = Date.now();
-    const result = await AI.generate(data, intent, sentence, TESTS_C.aiContext(), runProgram, strategy);
+    const result = await AI.generate(request, sentence, TESTS_C.aiContext(), runProgram, strategy);
     stale = mine !== token || !on;
-    recordGenerated(intent, sentence, result, Date.now() - started, stale);
+    recordGenerated(sentence, result, Date.now() - started, stale);
     if (stale) {
         return;
     }
     if (!result.ok) {
-        show(errorView('generate', result, () => write(intent, sentence, before)));
+        show(errorView('generate', result, () => write(sentence, before)));
         return;
     }
     generated = result;
-    writing = { intent: intent, sentence: sentence, before: before, strategy: strategy };
+    writing = { sentence: sentence, before: before, strategy: strategy };
     ticked = result.worlds.map((w) => w.tests.map(() => true));
     const none = !result.worlds.some((w) => w.tests.length);
     // nothing new: the learner's tests test every scenario that could be tested (no call was made)
     const tested = none && (result.testedBy || []).length > 0 && !(result.scenarios || []).length;
-    show({ state: none ? 'empty' : 'review', intent: intent, phase: tested ? 'tested' : undefined });
+    show({ state: none ? 'empty' : 'review', phase: tested ? 'tested' : undefined });
 }
 
 /** ai_analyzed: the program's decisions, the analysis, its repairs and what was still wrong, the calls */
-function recordAnalyzed(intent: string, sentence: string, result: AI.Analyzed, decisions: STRATEGY.Index, ms: number, stale: boolean): void {
+function recordAnalyzed(sentence: string, result: AI.Analyzed, decisions: STRATEGY.Index, ms: number, stale: boolean, edpyError: string): void {
     record('ai_analyzed', {
-        intent: intent,
-        sentence: sentence || null,
-        guessCall: guessCall ? guessCall.callId : null,
+        sentence: sentence,
+        edpyError: edpyError || null,
         ok: result.ok,
         error: result.error,
         message: result.message || null,
@@ -635,11 +527,9 @@ function planOfLog(plan: STRATEGY.Plan): any {
 }
 
 /** ai_tests_generated: the tests offered, the coverage plan, the repairs, what was left out, the calls */
-function recordGenerated(intent: string, sentence: string, result: AI.Generated, ms: number, stale: boolean): void {
+function recordGenerated(sentence: string, result: AI.Generated, ms: number, stale: boolean): void {
     record('ai_tests_generated', {
-        intent: intent,
-        sentence: sentence || null,
-        guessCall: guessCall ? guessCall.callId : null,
+        sentence: sentence,
         ok: result.ok,
         error: result.error,
         message: result.message || null,
@@ -668,24 +558,6 @@ function tokensOf(calls: any[]): any {
     return tokens;
 }
 
-/** the offer shown is answered (write, not_now, never_here) or, replaced by something else, ignored (reason: what replaced it) */
-function closeOffer(answer: string, sentence?: string): void {
-    if (!offer) {
-        return;
-    }
-    const typed = ui.sentence ? String(ui.sentence.value).trim().substring(0, MAX_SENTENCE) : '';
-    const ignored = ['write', 'not_now', 'never_here'].indexOf(answer) < 0;
-    record('ai_offer_answered', {
-        answer: ignored ? 'ignored' : answer,
-        reason: ignored ? answer : null,
-        sentence: (ignored ? typed : sentence) || null,
-        intent: offer.intent,
-        guessCall: offer.call,
-        msToAnswer: Date.now() - offer.shownAt,
-    });
-    offer = null;
-}
-
 function errorView(kind: string, result: { error: string; message: string }, retry: () => void, other?: { label: string; action: () => void }): View {
     const e = result.error || '';
     const message =
@@ -694,7 +566,7 @@ function errorView(kind: string, result: { error: string; message: string }, ret
             : e === 'invalid_analysis'
             ? text('badAnalysis')
             : e === 'timeout' || e === 'network' || e === 'unreachable' || e.indexOf('http_') === 0
-            ? text(kind === 'infer' ? 'noAnswerInfer' : 'noAnswerGenerate')
+            ? text('noAnswer')
             : e === 'limit'
             ? text('limit')
             : e === 'busy'
@@ -703,55 +575,6 @@ function errorView(kind: string, result: { error: string; message: string }, ret
             ? text('notConfigured')
             : text('unusable', e);
     return { state: 'error', error: e, message: message, retry: e === 'not_configured' ? null : retry, other: other };
-}
-
-/** the learner's sentence, if they wrote one: kept word for word */
-function said(answer: string): string {
-    const sentence = ui.sentence ? String(ui.sentence.value).trim().substring(0, MAX_SENTENCE) : '';
-    if (sentence) {
-        notes.said.push({ text: sentence, time: new Date().toISOString(), level: request ? request.levelId : levelNow(), answer: answer });
-        notes.said.length > MAX_SAID && notes.said.splice(0, notes.said.length - MAX_SAID);
-        notesChanged();
-    }
-    return sentence;
-}
-
-function writeTests(): void {
-    const before = notes.said.map((s) => s.text);
-    const sentence = said('write');
-    closeOffer('write', sentence);
-    if (notes.declined) {
-        notes.declined = null;
-        notesChanged();
-    }
-    write(guess.intent, sentence, before);
-}
-
-function notNow(): void {
-    closeOffer('not_now', said('not_now'));
-    notes.declined = { intent: guess.intent, runs: 0 };
-    notesChanged();
-    show({ state: 'guess', intent: guess.intent });
-}
-
-function dontAskHere(): void {
-    closeOffer('never_here', said('never_here'));
-    const level = levelNow();
-    if (level && notes.quiet.indexOf(level) < 0) {
-        notes.quiet.push(level);
-        notesChanged();
-    }
-    token++;
-    show({ state: 'quiet' });
-}
-
-function askHereAgain(): void {
-    const level = levelNow();
-    record('ai_ask_again', { level: level });
-    notes.quiet = notes.quiet.filter((q) => q !== level);
-    notesChanged();
-    lastFingerprint = null; // the next run is looked at
-    show({ state: 'idle' });
 }
 
 /** "Add n tests": the ticked ones run on the program first (checking); if the program changed since they were written, the learner chooses first */
@@ -768,7 +591,6 @@ function chooseTests(): void {
     batch = {
         call: meta.callId || null,
         prefix: AI.prefixOf(meta, generated.repairs),
-        intent: writing.intent,
         sentence: writing.sentence,
         before: writing.before,
         worlds: generated.worlds,
@@ -790,15 +612,7 @@ function answerStale(answer: 'write_again' | 'check_anyway'): void {
         chooseTests();
         return;
     }
-    const run = TELEMETRY.attemptSource(levelNow() || (request && request.levelId), 0);
-    const print = fingerprint(run.program);
-    run.edpy.then((source) => {
-        index = STRATEGY.indexOf(run.program, TESTS_C.aiBlockLabel);
-        runProgram = run.program;
-        request = Object.assign({}, request, { program: { nepo: index.nepo, edpy: source.edpy || '' }, fingerprint: print });
-        lastFingerprint = print;
-        write(writing.intent, writing.sentence, writing.before);
-    });
+    write(writing.sentence, writing.before); // for the program as it is now
 }
 
 /** the tests in their worlds, as an answer has them (a world: the tests of the list that are in it) */
@@ -945,7 +759,6 @@ async function fix(toFix: Candidate[]): Promise<void> {
     const started = Date.now();
     const result = await AI.fix(
         data,
-        batch.intent,
         batch.sentence,
         toFix.map((c) => c.ran),
         kept.map((c) => ({ test: c.test.name, world: c.world.name })),
@@ -1106,10 +919,6 @@ function discard(): void {
     show({ state: 'discarded' });
 }
 
-function openTests(): void {
-    $('#tabTests').tabWrapShow();
-}
-
 /**
  * the program's blocks and their values: its XML without ids and positions, and without the program's description and tags; the top blocks in an
  * order of their own (Blockly orders them by position). Moving a block doesn't change it.
@@ -1159,41 +968,80 @@ function tick(): void {
     }
     renderMenu();
     renderVisibility();
-    if (ui.since && view.since && view.state === 'thinking') {
-        ui.since.textContent = text('since', Math.round((Date.now() - view.since) / 1000));
-    }
 }
 
+/** the panel, in the Tests tab's side: the pane of the tab "AI Assistant" */
 function build(): void {
-    const simDiv = document.getElementById('simDiv');
-    ui.panel = html('div', 'levelSidePanel', simDiv);
+    const pane = document.getElementById('testsAiPane');
+    if (!pane) {
+        return;
+    }
+    ui.panel = html('div', '', pane);
     ui.panel.id = 'aiAssistant';
     ui.panel.setAttribute('aria-live', 'polite');
-    const head = html('div', 'aiHead', ui.panel);
-    html('span', 'aiDot', head).setAttribute('aria-hidden', 'true');
-    html('span', '', head, text('head'));
     ui.body = html('div', 'aiBody', ui.panel);
     render();
 }
 
-/** the panel is there while the AI is on and a level of the sets is played; the scene makes room for it */
+/** the tab "AI Assistant" is there while the AI is on (hidden, its pane gives way to the Test runner) */
 function renderVisibility(): void {
-    const simDiv = $('#simDiv');
-    const visible = shown();
-    if (simDiv.hasClass('nepoAi') !== visible) {
-        simDiv.toggleClass('nepoAi', visible);
-        PLAYER.sidePanelChanged();
+    TESTS_C.setAiTab(offered());
+}
+
+/** one of the Tests tab's side tabs was chosen: ai_panel when the assistant's is shown or left */
+function sideShown(which: string): void {
+    const shown = which === 'ai';
+    if (shown !== tabShown) {
+        tabShown = shown;
+        record('ai_panel', { open: shown });
     }
+    shown && fitSentence();
 }
 
 function show(next: View): void {
-    next.state !== 'offer' && closeOffer(next.state); // replaced: ignored
     view = next;
     render();
-    if (next.state === 'offer') {
-        offer = { intent: next.intent, call: guessCall ? guessCall.callId : null, shownAt: Date.now() };
-        record('ai_offer_shown', { intent: next.intent, guessCall: offer.call });
+}
+
+/** the box grows with what is typed, so all of it is visible (it is measured only while it is seen) */
+function fitSentence(): void {
+    const box: HTMLTextAreaElement = ui.sentence;
+    if (!box || !box.offsetParent) {
+        return;
     }
+    box.style.height = 'auto';
+    const border = box.offsetHeight - box.clientHeight;
+    box.style.height = box.scrollHeight + border + 'px';
+}
+
+/** the box to ask for tests, and "Write tests" (disabled while it is empty) */
+function renderAsk(body: Element, button: (parent: Element, label: string, cls: string, action: () => void) => any): void {
+    const label = html('label', 'aiLabel', body, text('sentenceLabel'));
+    label.setAttribute('for', 'aiSentence');
+    const box: HTMLTextAreaElement = html('textarea', 'aiSentence', body);
+    box.id = 'aiSentence';
+    box.rows = 1;
+    box.maxLength = MAX_SENTENCE;
+    box.placeholder = text('sentencePlaceholder');
+    box.value = draft;
+    ui.sentence = box;
+    const row = html('div', 'aiButtons', body);
+    const write = button(row, text('write'), 'btn-primary aiWrite', ask);
+    write.disabled = !draft.trim();
+    html('p', 'aiNote aiKeys', body, text('sentenceKeys'));
+    box.addEventListener('input', () => {
+        draft = box.value;
+        write.disabled = !draft.trim();
+        fitSentence();
+    });
+    box.addEventListener('keydown', (e: KeyboardEvent) => {
+        e.stopPropagation(); // not Blockly's or the simulator's keys
+        if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) {
+            e.preventDefault();
+            ask();
+        }
+    });
+    fitSentence();
 }
 
 function render(): void {
@@ -1203,15 +1051,10 @@ function render(): void {
     const body = ui.body;
     body.innerHTML = '';
     ui.sentence = null;
-    ui.since = null;
     body.setAttribute('data-state', view.state);
     const head = (key: string) => html('p', 'aiEyebrow', body, text(key));
     const note = (s: string) => html('p', 'aiNote', body, s);
     const progress = () => html('i', '', html('div', 'aiProgress', body)).parentElement.setAttribute('aria-hidden', 'true');
-    const intent = () => {
-        html('p', '', body, text('looksLike'));
-        html('blockquote', 'aiIntent', body, view.intent || '');
-    };
     const buttons = () => html('div', 'aiButtons', body);
     const button = (parent: Element, label: string, cls: string, action: () => void) => {
         const b = html('button', 'btn ' + cls, parent, label);
@@ -1222,45 +1065,15 @@ function render(): void {
         });
         return b;
     };
-    const link = (label: string, action: () => void) => button(body, label, 'aiLink', action);
+    const askMore = () => {
+        html('hr', 'aiRule', body);
+        html('p', '', body, text('askMore'));
+        renderAsk(body, button);
+    };
     switch (view.state) {
         case 'idle':
             html('p', '', body, text('idle'));
-            break;
-        case 'thinking':
-            head('thinkingHead');
-            html('p', '', body, text('thinking'));
-            progress();
-            ui.since = note(text('since', Math.round((Date.now() - view.since) / 1000)));
-            break;
-        case 'offer': {
-            head('offerHead');
-            intent();
-            view.gap && html('p', 'aiGap', body, view.gap);
-            html('p', '', body, view.gap ? text('questionGap') : text('question'));
-            const label = html('label', 'aiLabel', body, text('sentenceLabel'));
-            label.setAttribute('for', 'aiSentence');
-            ui.sentence = html('input', 'aiSentence', body);
-            ui.sentence.id = 'aiSentence';
-            ui.sentence.type = 'text';
-            ui.sentence.maxLength = MAX_SENTENCE;
-            ui.sentence.placeholder = text('sentencePlaceholder');
-            ui.sentence.addEventListener('keydown', (e: KeyboardEvent) => e.stopPropagation()); // not Blockly's or the simulator's keys
-            const row = buttons();
-            button(row, text('write'), 'btn-primary aiWrite', writeTests);
-            button(row, text('notNow'), 'btn-default aiNotNow', notNow);
-            link(text('quietLink'), dontAskHere).classList.add('aiQuiet');
-            break;
-        }
-        case 'guess':
-            head('guessHead');
-            intent();
-            note(text('guessNote'));
-            break;
-        case 'nothing':
-            head('nothingHead');
-            intent();
-            html('p', '', body, text('nothing'));
+            renderAsk(body, button);
             break;
         case 'writing': {
             head('writingHead');
@@ -1304,14 +1117,13 @@ function render(): void {
                 : text(one ? 'passedOne' : 'passedMany');
             html('p', '', body, text('done', one ? text('oneTest') : text('tests', added.tests), whereAdded(added.worlds), how));
             added.notAdded && note(added.notAdded === 1 ? text('notAddedOne') : text('notAddedMany', added.notAdded));
-            note(text('doneNote'));
-            button(buttons(), text('openTests'), 'btn-primary aiOpenTests', openTests);
+            askMore();
             break;
         }
         case 'empty':
             head(view.phase === 'insufficient' ? 'insufficientHead' : 'emptyHead');
             html('p', '', body, view.phase === 'insufficient' ? view.message : view.phase === 'tested' ? text('emptyTested') : text('empty'));
-            note(text('again'));
+            askMore();
             break;
         case 'stale': {
             head('staleHead');
@@ -1324,12 +1136,7 @@ function render(): void {
         case 'discarded':
             head('discardedHead');
             view.message && html('p', '', body, view.message);
-            note(text('again'));
-            break;
-        case 'quiet':
-            head('quietHead');
-            html('p', '', body, text('quiet'));
-            link(text('quietUndo'), askHereAgain).classList.add('aiQuietUndo');
+            askMore();
             break;
         case 'error':
             head('errorHead');
@@ -1339,17 +1146,15 @@ function render(): void {
                 view.retry && button(row, text('tryAgain'), 'btn-primary aiRetry', view.retry);
                 view.other && button(row, view.other.label, 'btn-default aiOther', view.other.action);
             }
+            view.retry && !view.other && askMore(); // not while tests wait to be decided
             break;
     }
 }
 
-/** a block of the program as a chip: a click selects it in the Program tab */
+/** a block of the program as a chip: a click shows it in the Program tab */
 function chip(block: string): HTMLElement {
     const e = html('span', 'nepoChip', null, TESTS_C.aiBlockLabel(block));
-    e.addEventListener('click', () => {
-        const b = GUISTATE_C.getBlocklyWorkspace() && GUISTATE_C.getBlocklyWorkspace().getBlockById(block);
-        b && b.select();
-    });
+    e.addEventListener('click', () => TESTS_C.aiShowBlock(block));
     return e;
 }
 

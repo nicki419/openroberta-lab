@@ -307,10 +307,16 @@ body.blocklyMinimalBody * {
     touch-action: none;
 }
 
-/* the Tests tab (tests.controller.ts): test workspace on the left, test runner and code on the right */
+/* the Tests tab (tests.controller.ts): test workspace on the left; on the right the side with its tabs: test runner, code, simulation and
+   the AI test assistant */
 #tests {
     position: relative;
     height: 100%;
+    --tests-side: 38%;
+}
+
+#tests.nepoSimWide {
+    --tests-side: 62%;
 }
 
 #testsBlocklyDiv {
@@ -318,7 +324,7 @@ body.blocklyMinimalBody * {
     left: 0;
     top: 0;
     bottom: 0;
-    right: 38%;
+    right: var(--tests-side);
     overflow: hidden;
     touch-action: none;
 }
@@ -328,7 +334,7 @@ body.blocklyMinimalBody * {
     top: 0;
     right: 0;
     bottom: 0;
-    width: 38%;
+    width: var(--tests-side);
     display: flex;
     flex-direction: column;
     background: #fff;
@@ -473,19 +479,30 @@ body.blocklyMinimalBody * {
     word-break: break-word;
 }
 
-/* the Simulation tab of the Tests tab (nepoTest.simEditor.ts) */
-#tests.nepoSimWide #testsBlocklyDiv {
-    right: 62%;
-}
-
-#tests.nepoSimWide #testsSide {
-    width: 62%;
-}
+/* the Simulation tab of the Tests tab (nepoTest.simEditor.ts) widens the side: --tests-side, above */
 
 #testsSimPane {
     flex: 1 1 auto;
     min-height: 0;
     padding: 6px 10px;
+    flex-direction: column;
+}
+
+/* the side's tab "AI Assistant" (levels.aiAssistant.ts): the sparkles of AI before its name */
+#testsAiTab .testsAiStar {
+    display: inline-block;
+    margin-right: 5px;
+    color: #1f8f3a;
+    vertical-align: -2px;
+}
+
+#testsAiTab .testsAiStar svg {
+    display: block;
+}
+
+#testsAiPane {
+    flex: 1 1 auto;
+    min-height: 0;
     flex-direction: column;
 }
 
@@ -664,26 +681,13 @@ body.blocklyMinimalBody * {
     margin-top: 8px;
 }
 
-/* the AI test assistant beside the levels' simulator (levels.aiAssistant.ts): a panel on the scene's right while the AI is on */
+/* the AI test assistant (levels.aiAssistant.ts): the pane of the Tests tab's side tab "AI Assistant" (#testsAiPane, above) */
 #aiAssistant {
-    display: none;
-}
-
-#simDiv.nepoLevels.nepoAi {
-    --nepo-side-panel: min(320px, 45%);
-}
-
-#simDiv.nepoLevels.nepoAi #aiAssistant {
     display: flex;
+    flex: 1 1 auto;
+    min-height: 0;
     flex-direction: column;
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    width: var(--nepo-side-panel);
-    z-index: 98;
     background: #fff;
-    border-left: 1px solid #c8c8c8;
     overflow-y: auto;
     font-size: 14px;
     line-height: 1.45;
@@ -691,33 +695,15 @@ body.blocklyMinimalBody * {
     -webkit-user-select: text;
 }
 
-#simDiv.nepoLevels.nepoAi #levelBar {
-    right: calc(var(--nepo-side-panel) + 12px);
-}
-
-#simDiv.nepoLevels.nepoAi #levelMessage {
-    left: calc((100% - var(--nepo-side-panel)) / 2);
-}
-
 #menuAiTestsItem {
     border-top: 1px solid #e0e0e0;
 }
 
-.aiHead {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 14px;
-    border-bottom: 1px solid #e0e0e0;
-    background: #f4f4f4;
-    font-weight: bold;
-}
-
-.aiDot {
-    width: 9px;
-    height: 9px;
-    border-radius: 50%;
-    background: #1f8f3a;
+.aiBody hr.aiRule {
+    margin: 4px 0;
+    border: 0;
+    border-top: 1px solid #e0e0e0;
+    opacity: 1;
 }
 
 .aiBody {
@@ -744,14 +730,6 @@ body.blocklyMinimalBody * {
     color: #666;
 }
 
-.aiIntent {
-    margin: 0;
-    padding: 8px 10px;
-    border-radius: 6px;
-    background: #e8f3ea;
-    font-weight: bold;
-}
-
 .aiLabel {
     margin: 0;
     font-size: 12px;
@@ -759,11 +737,24 @@ body.blocklyMinimalBody * {
     color: #555;
 }
 
+/* the box to ask: it grows with what is typed (levels.aiAssistant fitSentence), so all of it is visible */
 .aiSentence {
+    display: block;
     width: 100%;
+    min-height: 34px;
     padding: 6px 8px;
     border: 1px solid #bbb;
     border-radius: 4px;
+    font: inherit;
+    line-height: 1.4;
+    resize: none;
+    overflow: hidden;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+}
+
+.aiBody p.aiKeys {
+    margin-top: -4px;
 }
 
 .aiButtons {
@@ -874,14 +865,6 @@ body.blocklyMinimalBody * {
 .aiAssumptions {
     font-size: 12px;
     color: #555;
-}
-
-/* the offer: what the learner's tests don't check yet */
-.aiBody p.aiGap {
-    margin: 4px 0 8px;
-    padding-left: 8px;
-    border-left: 3px solid #f0ad4e;
-    font-size: 13px;
 }
 
 .aiAssumptions summary {

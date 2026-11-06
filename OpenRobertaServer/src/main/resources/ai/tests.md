@@ -137,7 +137,7 @@ The answer around the worlds:
 - **Positive and negative checks**: `never_bumps` and `never_touches` are negative: they hold for a robot that never
   moves. Every test needs at least one positive check (`reaches`, `ends_in`, `does`, `whenever`, `after`,
   `variable`) that shows its scenario happened, **taken from the scenario's expected behaviour, never invented**. If
-  the only expectation is negative ("it doesn't bump into walls") and neither the learner nor the intent says what the
+  the only expectation is negative ("it doesn't bump into walls") and neither the learner nor the program's goal says what the
   robot should do there, the scenario gets no test: defer it ("nothing to expect that shows it happened"). Don't add
   "drives forward" or "stands still" that nobody asked for, to have a positive check.
 
@@ -215,8 +215,9 @@ without decisions has one straight path: test its scenarios.
 
 **3. A complete test = path + inputs + expected results + postconditions.**
 - `expected_results` and `postconditions` say what the checks decide; every postcondition names its checks.
-- **Where the expectation comes from** (`oracle.basis`): `learner_description` only if the learner wrote a sentence and
-  the expectation follows from it; `inferred_from_program` for an expectation taken from your guess of the intent
+- **Where the expectation comes from** (`oracle.basis`): `learner_description` only if the expectation follows from the
+  learner's sentence (or what they said before); `inferred_from_program` for one their words don't give, taken from
+  the program's plausible goal
   (say what you assumed); `applicable_safety` for "doesn't bump into it" or "doesn't touch the fail area" where it
   fits the scenario, not everywhere. `review_required` is false only for a learner_description expectation with no
   assumption.

@@ -1,6 +1,6 @@
 # Example 1: a line follower that stops at obstacles
 
-## The call (infer)
+## The call (analyze)
 
 ### The program
 
@@ -86,6 +86,13 @@ while True:
         _diffCurve(Ed.FORWARD, 40, 10, Ed.DISTANCE_UNLIMITED)
 ```
 
+### The program's decisions
+
+- D1: block b3, if "if get obstacle infrare..."
+  - D1.1: condition 1 holds
+  - D1.2: condition 2 holds (the ones before it don't)
+  - D1.else: no condition holds: the else part runs
+
 ### The learner's tests
 
 None yet.
@@ -94,30 +101,8 @@ None yet.
 
 Nothing yet.
 
-### Task: infer
-
-The guess the learner declined: none.
-
-## The answer (infer)
-
-```json
-{"intent":"Follow the black line, and stop when something is in the way.","confidence":0.75,"ask":true,"same_as_declined":false,"not_covered":"There are no tests yet."}
-```
-
-## The call (analyze)
-
-The same parts, with the program's decisions after the program, then:
-
-### The program's decisions
-
-- D1: block b3, if "if get obstacle infrare..."
-  - D1.1: condition 1 holds
-  - D1.2: condition 2 holds (the ones before it don't)
-  - D1.else: no condition holds: the else part runs
-
 ### Task: analyze
 
-The intent you guessed: "Follow the black line, and stop when something is in the way."
 The learner's sentence: "This program should follow a black line and stop if it senses an obstacle"
 
 ## The answer (analyze)
@@ -155,7 +140,6 @@ The same parts, with the analysis (your answer to analyze, as above) before the 
 
 ### Task: generate
 
-The intent you guessed: "Follow the black line, and stop when something is in the way."
 The learner's sentence: "This program should follow a black line and stop if it senses an obstacle"
 Write tests only for scenarios S1 "Follows the line", S2 "Stops at an obstacle on the line": the analysis' other scenarios get their own calls, or the learner's tests already test them.
 

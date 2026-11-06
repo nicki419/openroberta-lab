@@ -14,7 +14,7 @@ import org.junit.Test;
  * the context pack and the parts of a prompt: the pack loads, its examples use the format of the per-call message and their answers pass the checks
  */
 public class AiPromptsTest {
-    private static final Pattern ANSWER = Pattern.compile("## The answer \\((infer|analyze|generate|fix)\\)\\n.*?```json\\n(.*?)\\n```", Pattern.DOTALL);
+    private static final Pattern ANSWER = Pattern.compile("## The answer \\((analyze|generate|fix)\\)\\n.*?```json\\n(.*?)\\n```", Pattern.DOTALL);
 
     @Test
     public void trimNepo() {
@@ -52,7 +52,8 @@ public class AiPromptsTest {
         Assert.assertTrue(pack.getFiles().contains("schemas/generate.schema.json"));
         Assert.assertTrue(pack.getVersion().matches("[0-9a-f]{12}"));
         Assert.assertTrue(pack.getText().startsWith("# You are the test assistant of the Open Roberta Lab"));
-        Assert.assertTrue(pack.getText().contains("# The JSON schema schemas/infer.schema.json\n\n```json\n{"));
+        Assert.assertTrue(pack.getText().contains("# The JSON schema schemas/analyze.schema.json\n\n```json\n{"));
+        Assert.assertFalse(pack.getText().contains("infer.schema")); // no guess since 2026-11-06
         File folder = new File("src/main/resources/ai");
         if ( folder.isDirectory() ) { // the tests run in OpenRobertaServer
             Assert.assertEquals(pack.getVersion(), ContextPack.fromDirectory(folder).getVersion());
@@ -70,7 +71,7 @@ public class AiPromptsTest {
             Assert.assertTrue(schemas.group(1), new JSONObject(schemas.group(2)).has("$schema"));
             found++;
         }
-        Assert.assertEquals(4, found);
+        Assert.assertEquals(3, found);
     }
 
     @Test
@@ -135,15 +136,13 @@ public class AiPromptsTest {
         ContextPack pack = ContextPack.fromResources();
         Matcher answers = ANSWER.matcher(pack.getText());
         List<String> kinds = new ArrayList<>();
+        int testedBy = 0;
         while ( answers.find() ) {
             kinds.add(answers.group(1));
-            if ( "infer".equals(answers.group(1)) ) {
-                JSONObject answer = AiPrompts.checkInfer(answers.group(2));
-                Assert.assertEquals(new JSONObject(answers.group(2)).getString("intent"), answer.getString("intent"));
-                Assert.assertTrue(new JSONObject(answers.group(2)).keySet().equals(answer.keySet()));
-            } else if ( "analyze".equals(answers.group(1)) ) {
+            if ( "analyze".equals(answers.group(1)) ) {
                 JSONObject answer = AiPrompts.checkAnalyze(answers.group(2));
-                Assert.assertTrue(answer.getJSONArray("decision_points").length() > 0);
+                Assert.assertTrue(answer.getJSONArray("scenarios").length() > 0);
+                testedBy += answer.getJSONArray("scenarios").getJSONObject(0).getJSONArray("tested_by").length();
             } else if ( "fix".equals(answers.group(1)) ) {
                 JSONObject answer = AiPrompts.checkFix(answers.group(2));
                 Assert.assertEquals(1, answer.getJSONArray("worlds").length());
@@ -152,7 +151,8 @@ public class AiPromptsTest {
                 AiPrompts.checkGenerate(answers.group(2));
             }
         }
-        Assert.assertEquals("[infer, analyze, generate, infer, analyze, generate, fix]", kinds.toString());
+        Assert.assertEquals("[analyze, generate, analyze, analyze, generate, fix]", kinds.toString());
+        Assert.assertEquals(1, testedBy); // example 2: the learner's test already tests it
     }
 
     @Test
@@ -164,7 +164,6 @@ public class AiPromptsTest {
             "What the learner said before",
             "The program's decisions",
             "The analysis",
-            "Task: infer",
             "Task: analyze",
             "Task: generate",
             "Task: fix"
@@ -177,7 +176,8 @@ public class AiPromptsTest {
         Assert.assertFalse("the start block's data is left out", text.contains("learningRate"));
         Assert.assertTrue(text.contains("### The program's decisions\n\n- D1: block b3, if \""));
         Assert.assertTrue(text.contains("EdPy:\n```python\nwhile True:\n"));
-        Assert.assertTrue(text.contains("The guess the learner declined: none."));
+        Assert.assertTrue(text.contains("### The program's decisions\n\nNone: the program has no if"));
+        Assert.assertFalse("no guess since 2026-11-06", text.contains("Task: infer") || text.contains("The intent you guessed"));
         Assert.assertTrue(text.contains("The learner's sentence: \"This program should follow a black line and stop if it senses an obstacle\""));
         Assert.assertTrue(text.contains("How they ran:\n\n- test \"On the line, it follows it to the goal\" (world \"A line to a goal\"): failed\n  The run ended after 8 s"));
         Assert.assertTrue(text.contains("These tests of your answer passed, and the learner keeps them:\n\n- \"Started beside the line, it finds it\""));

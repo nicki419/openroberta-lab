@@ -8,8 +8,9 @@
  *   time), the active time on the level so far, the tests
  * - level_beaten: the attempts, the active time, the time since the level was first opened, the tests added since then, the test runs
  * - test_run: a run of tests (the Test runner, or the Simulation panel of the Tests tab) while a level is played
- * - the AI test assistant's events (levels.aiAssistant, through record): ai_switched, ai_inferred, ai_offer_shown, ai_offer_answered,
- *   ai_tests_generated, ai_tests_added, ai_ask_again; the server writes ai_call
+ * - the AI test assistant's events (levels.aiAssistant, through record): ai_switched, ai_panel, ai_asked, ai_analyzed, ai_tests_generated,
+ *   ai_tests_checked, ai_failed_answered, ai_tests_fixed, ai_stale, ai_tests_added (until 2026-11-06 also ai_inferred, ai_offer_shown,
+ *   ai_offer_answered, ai_ask_again); the server writes ai_call
  * Every event says whether the AI test assistant was on when it happened (ai), so any measure can be split by condition. attempt_ended,
  * level_beaten and test_run count the AI tests apart from the learner's own: how many there are, how many the learner edited or deleted, how
  * many ran and how.

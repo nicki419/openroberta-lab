@@ -13,7 +13,7 @@
  *   says what happened.
  * - Above the scene: the set, the level (beaten ✓, locked 🔒), its title and instructions, the time left.
  * - "Try in simulator" in the Level designer plays a level of its own (tryLevel): no progress.
- * - A panel beside the scene (an element of #simDiv with the class levelSidePanel, such as the AI test assistant's) takes the scene's right:
+ * - A panel beside the scene (an element of #simDiv with the class levelSidePanel; the AI test assistant's until 2026-11-06, none since) takes the scene's right:
  *   the scene is centred in the rest (insetRight; sidePanelChanged when it is shown or hidden).
  * - The progress (per set the level played and the levels beaten, per level the attempts) is saved with the program (nepoTest.suite), once
  *   the learner has played; loading a program brings its progress back (a program without one starts anew). A change of the progress is an

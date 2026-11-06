@@ -94,7 +94,6 @@ Nothing yet.
 
 ### Task: fix
 
-The intent you guessed: "Follow the black line, steering back onto it whenever the line tracker loses it."
 The learner's sentence: "This program should follow a black line and stop if it senses an obstacle"
 
 These tests you wrote failed when they ran on the learner's program:

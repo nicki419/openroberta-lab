@@ -2,9 +2,11 @@
 
 The model is DeepSeek-V4.1-Flash, at DeepSeek's own API, with SDU's UCloud as the backup (see "The calls").
 
-When a learner runs a changed program on a level, the assistant guesses what the program is meant to do and offers
-to write **scenario-based simulation tests** for it. The learner can say in one sentence what the program should do.
-The tests are chosen by the testing strategy of `docs/tests/*_v3.md` (see "The testing strategy" below):
+The assistant works **only when the learner asks**: they write what their program should do into its box, and it writes
+**scenario-based simulation tests** for that. It is a tab of the Tests tab's side, "AI Assistant", beside Test runner,
+Code and Simulation. (Until 2026-11-06 it was a panel beside the Program tab's simulator, and a run of a changed program
+brought a guess of what it is meant to do and an offer to write tests: the call infer. Both are gone, see "Only on
+request".) The tests are chosen by the testing strategy of `docs/tests/*_v3.md` (see "The testing strategy" below):
 1. the program is analysed first: its decisions and their outcomes, the paths that target them (branch coverage), the
    inputs of each path (equivalence classes; no boundary value analysis since 2026-11-06, see "Deliberate deviations");
 2. the tests are written from that analysis, each a complete case: path, inputs, expected results, postconditions,
@@ -17,7 +19,7 @@ in the Tests tab.
 This document covers:
 - the calls through the Lab server (phase 1);
 - the test JSON both ways (phase 2);
-- the assistant beside the simulator, with its switch (phase 3);
+- the assistant in the Tests tab, with its switch (phase 3);
 - its events in the study's telemetry (phase 4);
 - the check and fix of the chosen tests (2026-11-03);
 - the testing strategy (2026-11-04).
@@ -29,7 +31,7 @@ This document covers:
   - for analyze, generate and fix: the program's decisions, which the browser finds in the blocks;
   - the learner's tests, as test JSON;
   - the learner's earlier sentences about the program;
-  - the task (infer, analyze, generate or fix), with the guess and the learner's sentence. Generate and fix also get
+  - the task (analyze, generate or fix), with the learner's sentence: what they asked for. Generate and fix also get
     the checked analysis; a fix also gets the tests that failed or weren't checked, and how they ran on the simulator,
     in the tests' own worlds.
 - **It never gets the level** the learner plays: no title, instructions, time limit or world (lines, areas, obstacles,
@@ -43,12 +45,12 @@ This document covers:
 
 | What | Where |
 |---|---|
-| REST: `POST /rest/ai/infer`, `POST /rest/ai/analyze`, `POST /rest/ai/generate`, `POST /rest/ai/fix` (the usual request envelope; the response has `answer`, `meta`, or `aiError` and `aiMessage`) | `javaServer/restServices/all/controller/AiController`, `AiResponse` |
-| the calls: limits per session (one of each kind at a time, but 6 generates; 60 infers, 30 analyses, 150 generates, 30 fixes per hour), the context pack first, the answer checked for its shape, the `ai_call` event; analyze and fix as generate (180 s, at most 32,000 tokens with the reasoning, repairs); each call its own effort per API; every call's meta has `contract` (`AiService.CONTRACT`: 1.2 since 2026-11-05, with `tested_by` and one generate call per scenario; 1.1 before) | `ai/AiService` |
-| the per-call message (`## The program`, `## The program's decisions` (not for infer), `## The learner's tests`, `## What the learner said before`, `## The analysis` (generate, fix), `## Task: …`), the trimming of NEPO XML (positions, configuration and the start block's `<data>` go; the block ids stay) and EdPy, the answer checks (`checkAnalyze`: status, intent, arrays; `checkGenerate`: no worlds only with `generation_status` `no_valid_scenarios`; `checkFix`: `worlds`, `program_wrong` and `doubtful`, not all empty) | `ai/AiPrompts` |
-| the model's chat API (OpenAI-compatible): JSON mode, reasoning effort, timeouts (infer 20 s; analyze, generate and fix 180 s), one more try after 429, 5xx or no connection; the reasoning from `reasoning_content` (DeepSeek) or `reasoning` (UCloud's vLLM) | `ai/DeepSeekClient` |
+| REST: `POST /rest/ai/analyze`, `POST /rest/ai/generate`, `POST /rest/ai/fix` (`/rest/ai/infer` until 2026-11-06; the usual request envelope; the response has `answer`, `meta`, or `aiError` and `aiMessage`) | `javaServer/restServices/all/controller/AiController`, `AiResponse` |
+| the calls: limits per session (one of each kind at a time, but 6 generates; 30 analyses, 150 generates, 30 fixes per hour), the context pack first, the answer checked for its shape, the `ai_call` event; analyze and fix as generate (180 s, at most 32,000 tokens with the reasoning, repairs); each call its own effort per API; every call's meta has `contract` (`AiService.CONTRACT`: 1.4 since 2026-11-06, no infer and the learner's sentence required; 1.3 the same day, no boundary value analysis; 1.2 since 2026-11-05, with `tested_by` and one generate call per scenario; 1.1 before) | `ai/AiService` |
+| the per-call message (`## The program`, `## The program's decisions`, `## The learner's tests`, `## What the learner said before`, `## The analysis` (generate, fix), `## Task: …` with "The learner's sentence", required: `bad_request` without it), the trimming of NEPO XML (positions, configuration and the start block's `<data>` go; the block ids stay) and EdPy, the answer checks (`checkAnalyze`: status, intent, arrays; `checkGenerate`: no worlds only with `generation_status` `no_valid_scenarios`; `checkFix`: `worlds`, `program_wrong` and `doubtful`, not all empty) | `ai/AiPrompts` |
+| the model's chat API (OpenAI-compatible): JSON mode, reasoning effort, timeouts (180 s; `AiService.setTimeout`), one more try after 429, 5xx or no connection; the reasoning from `reasoning_content` (DeepSeek) or `reasoning` (UCloud's vLLM) | `ai/DeepSeekClient` |
 | **two APIs, the same model** (DeepSeek-V4.1-Flash), asked in the order of `AI_PROVIDERS` (since 2026-11-05: DeepSeek's own API first, SDU's UCloud as the backup; before that the other way round). A call without an answer from the first (it can't be reached, doesn't answer in time, or an HTTP error) is made again at the next, and for the next 5 minutes the first is asked last (`COOL_DOWN_MS`). An answer that can't be used (cut off, not the JSON asked for) isn't made again: the browser repairs it. A timeout of the first followed by the next can make a call take up to 6 minutes | `ai/AiService` `order`; `AiServiceTest withoutAnAnswerFromTheFirst…`, `aTimeoutOfTheFirstGoesToTheNext`, `anAnswerThatCantBeUsedIsNotAskedAgainAtTheNext` |
-| **the reasoning effort per API and call:** `<NAME>_EFFORT_INFER`, `_ANALYZE`, `_GENERATE`, `_FIX` (none, low, high, max); preset for both: low, low, none, low (`docs/ai/nepo-ai-model-evaluation.md`: generate at none took about 17 s instead of 1 to 2.5 minutes, with first answers as valid; the analysis stays at low). Each try is sent with its API's effort | `ai/AiSettings.Provider` `effort`; `AiServiceTest theFirstApiIsAskedFirstWithItsOwnEfforts` |
+| **the reasoning effort per API and call:** `<NAME>_EFFORT_ANALYZE`, `_GENERATE`, `_FIX` (none, low, high, max); preset for both: none, none, low (`docs/ai/nepo-ai-model-evaluation.md`: generate at none took about 17 s instead of 1 to 2.5 minutes, with first answers as valid). `_EFFORT_INFER` is no longer read. Each try is sent with its API's effort | `ai/AiSettings.Provider` `effort`; `AiServiceTest theFirstApiIsAskedFirstWithItsOwnEfforts` |
 | **HTTPS trust:** the AI's calls trust the JDK's roots and the roots in `src/main/resources/ai/certs/` (`DeepSeekClient.EXTRA_ROOTS`): HARICA TLS RSA Root CA 2021, which signs UCloud's certificate (via GÉANT TLS RSA 1) and which older JDKs don't trust (13.0.2: "PKIX path building failed", so every call to UCloud failed). Taken from the Windows root store, SHA-256 `D9:5D:0E:8E:…:EC:CB:7B:1D`, valid until 2045. The JVM's own trust doesn't change | `ai/DeepSeekClient` `trustManager`; `AiServiceTest theAiCallsTrustTheUniversitysRootBesidesTheJdks` |
 | a repair's problems are hints: more than 40 are cut to the first 40 (and how many more), one longer than 800 characters is cut; a fix's run text longer than 4,000 characters is cut. Before 2026-11-05 they were refused (`too_large`), and a refused repair lost the tests it would have saved | `ai/AiPrompts` `repairMessages`, `appendFix`; `AiServiceTest aRepairWithLongOrManyProblemsIsCutNotRefused` |
 | the context pack: the system prompt, its `promptVersion` (hash); each version is saved once as `<telemetry>/ai-prompts/<promptVersion>.md` | `ai/ContextPack`, `src/main/resources/ai/` (`pack.txt` lists the files) |
@@ -74,24 +76,23 @@ which adds `serverTime`, `userId`, `account` and `session`):
 Measured on 2026-11-05: the experiments, their results and the discussion (why the same model behaves differently at
 the two APIs) are in **`docs/ai/nepo-ai-model-evaluation.md`**. In short, with the presets (analyze low, generate
 none), writing tests takes about 67 s at DeepSeek and 93 s at UCloud (medians); with both at low, about 2 and 2¾ minutes.
-Earlier (2026-11-03, `deepseek-flash`, a prompt of 12,700 tokens): infer 3 to 5 s; generate 7 to 18 s at effort low,
+Earlier (2026-11-03, `deepseek-flash`, a prompt of 12,700 tokens): infer (the guess, gone since 2026-11-06) 3 to 5 s; generate 7 to 18 s at effort low,
 71 s at high.
 
-## The assistant beside the simulator (`OpenRobertaWeb/src/app/levels/levels.aiAssistant.ts`)
+## The assistant in the Tests tab (`OpenRobertaWeb/src/app/levels/levels.aiAssistant.ts`)
 
 | What | Where |
 |---|---|
 | **The switch:** "AI test assistant" in the Edit menu (`#menuAiTestsItem`, Edison only), with a tick; greyed out if the server has no API key (`server.ai.available`) | `index.html`, `levels.aiAssistant` `switchTo`, `renderMenu` |
 | kept per test subject on the server: `POST /rest/ai/switch` (`{on}` switches, `{}` asks; the answer `{on: true, false or null, stored}`), in `ai-switch.json` beside the telemetry, keyed as the telemetry files (`user-<id>-<account>`). A POST, as every call that knows the session. An account never switched gets the default (`AI_TESTS_DEFAULT`), or the page's switch if it was switched before logging in. Nobody logged in: the open page only | `AiController.aiSwitch`, `ai/AiSwitches`; `AiSwitchesTest` |
-| **The panel** (`#aiAssistant`, class `levelSidePanel`): to the right of the scene while the AI is on and a level of the sets is played (not "Try in simulator"); the scene is centred in the rest, the level bar and its messages move over | `levels.aiAssistant` `renderVisibility`; `levels.player` `insetRight`; `roberta.css` (`#simDiv.nepoAi`) |
-| **The trigger:** `attempt_started` of a level (Play). A changed program starts a guess: the fingerprint is the program's XML without ids, positions, description and tags, its top blocks sorted (moving a block doesn't count). An unchanged run makes no call. While tests are written or reviewed, a run doesn't interrupt | `levels.aiAssistant` `attemptStarted`, `fingerprint` |
-| one EdPy request per attempt, shared with the telemetry | `levels.telemetry` `attemptSource` |
+| **The panel** (`#aiAssistant`): the pane (`#testsAiPane`) of the Tests tab's side tab **"AI Assistant"** (`#testsAiTab`, with the sparkles of AI before its name), beside Test runner, Code and Simulation. The tab is there while the AI is on; switched off, it is hidden, and if it was shown the Test runner is. A program's blocks in the panel are chips: a click shows the block in the Program tab. Until 2026-11-06 the panel sat to the right of the levels' simulator while a level was played (class `levelSidePanel`; the scene made room for it), and for a few hours of that day it also opened in the Tests tab from a ✦ button beside the workspace | `levels.aiAssistant` `build`, `renderVisibility`, `sideShown`; `tests.controller` `setAiTab`, `onSideShown`, `showSide`, `aiShowBlock`; `index.html` (`#testsSideTabs`); `roberta.css` (`#testsAiPane`) |
+| **Only on request** (since 2026-11-06): the learner writes what their program should do into the box ("What should your program do?", at most 500 characters) and presses "Write tests" or Enter (Shift+Enter: a new line). The box grows with the text, so all of it is visible (`fitSentence`: its height is its `scrollHeight`). "Write tests" is greyed out while the box is empty. Then the program and its EdPy are taken as they are, analysed and the tests written. Before, every run of a changed program brought a guess (infer) and an offer with "Not now" and "Don't ask on this level": learners hadn't asked for it | `levels.aiAssistant` `ask`, `write`, `renderAsk` |
+| the program's EdPy: the request the telemetry makes for a run (`attemptSource`, shared if the program is the same) | `levels.telemetry` `attemptSource` |
 | **The check** of the tests the learner keeps, and "Add anyway" for those that fail (the fix is switched off: `FIX_TESTS`): see below | `levels.aiAssistant` `chooseTests`, `check`, `decide`, `fix`, `finish`; `nepoTest.ai` `runTests`, `resultText`, `fix` |
-| **The states:** idle, thinking (from Play, with the seconds since), the offer (the guess, an optional sentence of at most 200 characters, "Write tests", "Not now", "Don't ask on this level"), the guess alone, nothing new to test (`ask` false), writing, the review list (all ticked; untick any), checking (test i of n runs), the results (each test: passed, failed with its failed checks and why, the program's blocks as chips; the questions), fixing, done ("Open Tests tab"; the tests don't run there by themselves), no new tests, discarded, no suggestions on this level ("Suggest tests again"), an error ("Try again"). Answers that come after the AI was switched off, or after a newer run began, are dropped | `levels.aiAssistant` `render` |
-| **After "Not now":** every changed run still gets a guess (with the declined one); the offer comes back only when the model says it means something new (`same_as_declined` false) and at least 3 changed runs have passed | `DECLINED_RUNS` |
-| **Tests the learner has count** (since 2026-11-05): if the learner has tests, the offer shows what they don't check yet (the guess's `not_covered`, with an orange bar) and asks "Should I write tests for what your tests don't check yet?"; analyze and generate get it too (`notCovered`, "What the learner's tests don't check yet" in the task). The context pack (`tests.md`, "The learner's tests count") has generate defer what one of the learner's tests already tests, with the reason `tested by "<their test>"`, and counts a test that differs from theirs only in its numbers as the same. If nothing is left, generate answers with no tests: "Your tests already check what I would test". Before, every offer wrote the learner's line-following tests again (same world, starts 0.1 to 2 cm apart); in a replay of that call, the new rules wrote none of them in 2 of 2 runs, the old ones 7 in 3 | `levels.aiAssistant` `gapOf`; `AiPrompts` (`notCovered`); `AiServiceTest analyzeAndGenerateGetWhatTheLearnersTestsDontCheckYet` |
+| **The states:** idle (the box), writing (analysing, then writing), the review list (all ticked; untick any), checking (test i of n runs), the results (each test: passed, failed with its failed checks and why, the program's blocks as chips; the questions), fixing, done (the tests are in the workspace beside it; they don't run by themselves), no new tests, discarded, an error ("Try again"). After done, no new tests, discarded and an error of a call, the box comes again ("Want other tests?"). Answers that come after the AI was switched off, or after another program was loaded, are dropped | `levels.aiAssistant` `render` |
+| **Tests the learner has count** (since 2026-11-05): analyze says which of the learner's tests already test each scenario (`tested_by`), and those scenarios get no generate call. (Until 2026-11-06 the guess also said what their tests don't check yet, `not_covered`, shown with the offer and sent as `notCovered`.) The context pack (`tests.md`, "The learner's tests count") has generate defer what one of the learner's tests already tests, with the reason `tested by "<their test>"`, and counts a test that differs from theirs only in its numbers as the same. If nothing is left, generate answers with no tests: "Your tests already check what I would test". Before, every offer wrote the learner's line-following tests again (same world, starts 0.1 to 2 cm apart); in a replay of that call, the new rules wrote none of them in 2 of 2 runs, the old ones 7 in 3 | `nepoTest.aiStrategy` `scenariosToWrite`; the context pack's example 2 |
 | **An answer that can't be read** (`bad_answer`: not JSON, or not the shape asked for) is asked for once more by itself, as it can't be repaired (2026-11-05: 1 of 3 generate answers at effort none was broken JSON) | `nepoTest.ai` `callReadable` |
-| **The notes**, saved with the program as one more instance (`nepoAi_notes`, as the level progress): the learner's sentences word for word (`{text, time, level, answer: write, not_now or never_here}`, sent as `said` with later calls), the guess declined and the changed runs since, the levels it doesn't ask on, the ids of the tests it added | `nepoTest.suite` `setAiNotes`, `loadExtras`; `NepoTestSuitePersistenceTest`, `NepoTest/tests/test_blocks.py` |
+| **The notes**, saved with the program as one more instance (`nepoAi_notes`, as the level progress): the learner's sentences word for word (`{text, time, level}`, sent as `said` with later calls), the ids of the tests it added. Version 2 since 2026-11-06; version 1 also had `answer` per sentence, the guess declined and the levels it didn't ask on: dropped when loaded | `nepoTest.suite` `setAiNotes`, `loadExtras`; `NepoTestSuitePersistenceTest`, `NepoTest/tests/test_blocks.py` |
 | the added tests: `tests.controller` `addAiTests` (one undo step), with their provenance (the call that wrote them, and how they ran: `checked`) | `levels.aiAssistant` `finish` |
 
 ## Checking the chosen tests, and fixing those that fail
@@ -287,8 +288,9 @@ by the model and checked by code:
   for what slips through.
 
 **Deliberate deviations from the specification:**
-- **The UX:** the spec's popup becomes the panel beside the simulator, with the guess first. The review and the check
-  happen there, not in the Tests tab (decided 2026-11-03).
+- **The UX:** the spec's popup becomes a tab of the Tests tab's side, "AI Assistant", that works only when the learner
+  asks (since 2026-11-06; before, it was a panel beside the simulator, and a guess and an offer came after every changed
+  run). The review and the check happen there.
 - **No level:** the model never gets the level.
 - **The sentence is kept** with the program, for the study (the spec: not by default).
 - **The fix:** learner-initiated, inputs only, at most 2 fixes. This is the bounded correction of an invalid or
@@ -318,18 +320,20 @@ off. The learner's sentences are kept word for word.
 | kind | fields |
 |---|---|
 | `ai_switched` | `on`, `cause` (`menu`: the Edit menu; `account`: the account's switch after a login; `default`: an account never switched), `stored` (kept for the account). The switches in order give each test subject's order of the conditions |
-| `ai_inferred` | `level`, `fingerprint`, `ok`, `error`, the answer (`intent`, `confidence`, `ask`, `same_as_declined`, `not_covered`), `declined` (the declined guess sent) and `declinedRuns`, `shown` (`offer`, `guess`, `nothing`, `error`), `stale` (the answer came after a newer run or the switch-off: dropped), `edpyError`, the call (`callId`, `model`, `promptVersion`, `latencyMs`, `attempts`, `tokens`: `in`, `cached`, `out`, `reasoning`) |
-| `ai_offer_shown` | `level`, `intent`, `guessCall` (the `callId` of the guess) |
-| `ai_offer_answered` | `answer` (`write`, `not_now`, `never_here`, `ignored`), `reason` (what replaced an ignored offer: `new_run`, `switched_off`, `level_changed`, `program_loaded`), `sentence` (word for word, or null; for an ignored offer what was typed), `intent` (the guess answered), `guessCall`, `msToAnswer` |
-| `ai_analyzed` | the analysis before the tests: `intent`, `sentence`, `guessCall`, `ok`, `error` (`invalid_analysis`: still wrong after the repairs), `message`, `stale`, `decisions` (the program's: [{id, block, short, kind, outcomes}]), `status` (`ok`, `insufficient_evidence`), `analysis` (the answer), `problems` (those left after the repairs), `repairs`, `calls`, `latencyMs`, `tokens` |
-| `ai_tests_generated` | `intent`, `sentence`, `guessCall`, `ok`, `error`, `message`, `stale`, `count`, `tests` (the tests offered, as test JSON, with what each is for), `status` (`generation_status`), `plan` (the coverage plan computed from the tests offered: per outcome the tests that plan it and why not; `target`, `planned`, `deferred`, `lost`, `deferredInputs`, `deferredScenarios`, `corrected`), `warnings` (the answer's warnings and consolidation notes), `unresolved` (the answer's problems left after the repairs), `repairs`, `leftOut` (the problems of the tests left out), `duplicates`, `calls` (each call's meta), `latencyMs` (all of it), `tokens` (summed) |
+| `ai_panel` | `open`: true when the side's tab "AI Assistant" is shown, false when another of the side's tabs is shown after it |
+| `ai_asked` | the learner asked for tests: `sentence` (word for word), `level`, `before` (how many sentences they wrote before) |
+| `ai_analyzed` | the analysis before the tests: `sentence`, `edpyError`, `ok`, `error` (`invalid_analysis`: still wrong after the repairs), `message`, `stale`, `decisions` (the program's: [{id, block, short, kind, outcomes}]), `status` (`ok`, `insufficient_evidence`), `analysis` (the answer), `problems` (those left after the repairs), `repairs`, `calls`, `latencyMs`, `tokens` |
+| `ai_tests_generated` | `sentence`, `ok`, `error`, `message`, `stale`, `count`, `tests` (the tests offered, as test JSON, with what each is for), `status` (`generation_status`), `plan` (the coverage plan computed from the tests offered: per outcome the tests that plan it and why not; `target`, `planned`, `deferred`, `lost`, `deferredInputs`, `deferredScenarios`, `corrected`), `warnings` (the answer's warnings and consolidation notes), `unresolved` (the answer's problems left after the repairs), `repairs`, `leftOut` (the problems of the tests left out), `duplicates`, `calls` (each call's meta), `latencyMs` (all of it), `tokens` (summed) |
 | `ai_tests_checked` | a run of the chosen tests (`fix` 0) or of the tests a fix fixed (`fix` 1, 2): `call` (the generate call), `ok` (false: the runner failed, `error`), `passed`, `failed`, `notChecked`, `latencyMs`, `tests` ([{name, world, outcome, state (passed, failed, notChecked), fixes, failed: the failed checks' texts, why: their verdicts' kinds, notChecked: why not checked, planned, seen: how often the run took each outcome}]), `plan` (with `seen`: all runs of the batch) |
 | `ai_failed_answered` | `group` (`failed`: the tests that failed or weren't checked; `flagged`: those the model thinks right or doubtful), `answer` (`fix` or `discard`; `add` or `discard`), `fix` (the fixes before), `tests` ([{name, world}]) |
 | `ai_tests_fixed` | `call`, `fix` (1, 2), `failed` (the tests sent: [{name, world, state: failed or not_checked}]), `ok`, `error`, `message`, `stale`, `count`, `tests` (the fixed tests, as test JSON), `programWrong` ([{test, world, reason}]), `doubtful` ([{test, world, reason}]), `repairs`, `leftOut`, `duplicates`, `calls`, `latencyMs`, `tokens` |
 | `ai_stale` | `call`, `answer` (`write_again`, `check_anyway`): the program changed between writing and choosing the tests |
 | `ai_tests_added` | `call`, `discarded` (none added), `added` ([{id, name, passed (true, false: added anyway, null: added without running), fixes, basis}]), `unticked` ([{name, world}]), `failed` (the failed tests not added: [{name, world, fixes, how: `discarded`, `left_out` or `gave_up`, reason, notChecked}]), `leftOut`, `fixes`, `worlds` ([{name, existing, tests}]), `stale`, `plan` |
-| `ai_ask_again` | `level`: "Suggest tests again" |
 | `ai_call` | the server's, see above |
+
+Until 2026-11-06 there were also `ai_inferred` (a guess: its answer `intent`, `confidence`, `ask`, `same_as_declined`,
+`not_covered`; what was shown), `ai_offer_shown`, `ai_offer_answered` (`write`, `not_now`, `never_here`, `ignored`, with
+the sentence) and `ai_ask_again`; `ai_analyzed` and `ai_tests_generated` then had `intent` and `guessCall`.
 
 **AI tests apart from the learner's own** (`attempt_ended`, `level_beaten`, `test_run`): how many there are, how many the
 learner edited, copied or deleted, and how many ran and how. An AI test is a test block with provenance
@@ -370,7 +374,7 @@ its world: start, set-up, checks, the world's things) differs from the one recor
 | an answer made whole and checked (`checkAnswer`): its structure, every item and start of a drawn world (on the floor, kinds, roles, sizes), names (not taken), ids, roles of the items the checks name, the program's variables; `without` leaves out what has problems | `nepoTest.aiFormat.ts` |
 | duplicates (`meaningOf`, `dropDuplicates`): the same floor and things (without ids and names), start pose, set-up, end of the run and checks | `nepoTest.aiFormat.ts` |
 | JSON → blocks (`suiteXml`, `worldXml`, `testXml`; `addToWorkspace`: one undo step, new worlds to the right, tests of a learner's world after its tests; every ticked test runs, so no run blocks) | `nepoTest.aiFormat.ts`; `tests.controller` `addAiTests` |
-| the calls and the checks of an answer: format, then NepoTest's translator in the worker (a start outside the floor or on an obstacle, …), then the testing strategy, then at most 2 repairs, then duplicates out, then the coverage plan | `nepotest/nepoTest.ai.ts` (`infer`, `analyze`, `generate`, `fix`, `check`) |
+| the calls and the checks of an answer: format, then NepoTest's translator in the worker (a start outside the floor or on an obstacle, …), then the testing strategy, then at most 2 repairs, then duplicates out, then the coverage plan | `nepotest/nepoTest.ai.ts` (`analyze`, `generate`, `fix`, `check`) |
 | the testing strategy: the program's decisions and the short ids of its blocks, the checks of an analysis and of the tests, the coverage plan and what the runs took, "not checked", what a fix may not change | `nepotest/nepoTest.aiStrategy.ts` (`indexOf`, `checkAnalysis`, `checkTests`, `planOf`, `seenIn`, `notCheckedWhy`, `frozenProblems`) |
 | what an answer is checked against: the learner's tests, the program's variables, the names taken | `tests.controller` `aiContext`, `aiTests`, `aiProgramXml` |
 
@@ -403,7 +407,7 @@ drawn world, so editing the world keeps the provenance. It holds:
   the simulator (the line tests pass; "stops before the box" fails, as it should: the program has no obstacle stop).
 
 **Phase 3 in headless Chrome (2026-11-03, the line follower and a "drive to the wall" program, level "Drive to the
-goal"):**
+goal"; with the guess and the offer, gone since 2026-11-06):**
 - **The switch:** switched on in the Edit menu, the panel shows, and the scene moves left to make room for it. The
   server stores the switch for the account; after a reload and a new login it is on again. With nobody logged in, the
   switch holds for the page and makes no server call. The panel is hidden while the AI is off and while a level is
@@ -420,7 +424,7 @@ goal"):**
 - **The other states:** switching off during a guess dropped its answer; a (faked) timeout showed "Try again", which
   worked; "Don't ask on this level" stopped the calls on the level, and "Suggest tests again" brought them back.
 
-**Phase 4 in headless Chrome (2026-11-03):** one session of the test account wrote 41 events of 13 kinds. Every one
+**Phase 4 in headless Chrome (2026-11-03, with the guess):** one session of the test account wrote 41 events of 13 kinds. Every one
 of them had `ai`: `level_opened` before the login said false; after the account's switch came in, every event said
 true; after "AI test assistant" was switched off, `ai_switched` and the run's `attempt_started` and `attempt_ended`
 said false. The new kinds were all there:
@@ -518,16 +522,21 @@ deleted. The Test runner's `test_run` said that 1 AI test ran (edited) and passe
 
 ## Open points
 
-- **Earlier sentences pin the guess.** The model takes the intent from the learner's words first, so a sentence about
-  an earlier version of the program decides later guesses too. Seen on 2026-11-03: after "drive to the wall and stop",
-  the program was rebuilt into a line follower, and the guess stayed "drive to the wall" with "nothing new to test".
+- **Earlier sentences count.** Every call gets the learner's last 5 sentences ("What the learner said before"), so a
+  sentence about an earlier version of the program can colour the analysis of a rebuilt one. Seen on 2026-11-03, with
+  the guess: after "drive to the wall and stop", the program was rebuilt into a line follower, and the guess stayed
+  "drive to the wall".
+- **A sentence about one part** ("test that it stops at the wall") still gets the whole program analysed: every
+  outcome must lie on a scenario's path, so the scenarios cover the rest too, and generate writes tests for them
+  unless the learner's tests test them.
 
 - The model takes the worked examples as models: given the same sentence as example 1, it drew nearly the same
   worlds. Keep the examples varied.
 - Whether a start really is on the line a scenario means can't be checked; the review list (phase 3), the check run
   and the learner catch that.
-- **A fix can only judge from the learner's words.** Without a sentence, "the program is wrong" rests on the guess. (A
-  fix can no longer make a test weaker: since 2026-11-04 it may change only the test's inputs.)
+- **A fix can only judge from the learner's words.** Where the sentence says nothing, "the program is wrong" rests on
+  the analysis' guess of the intent. (A fix can no longer make a test weaker: since 2026-11-04 it may change only the
+  test's inputs.)
 - **Coverage counts the decisions the simulator instruments:** if / else if / else, wait until, repeat while / until.
   Not counted: a function's conditional return (`robProcedures_ifreturn`), counting loops (`repeat n times`), and the
   parts of a condition (`and`, `or`: branch, not condition coverage). The coverage seen counts only the runs of the

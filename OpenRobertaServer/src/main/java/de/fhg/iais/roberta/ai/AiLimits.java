@@ -21,7 +21,7 @@ final class AiLimits {
     private final Map<String, Deque<Long>> calls = new HashMap<>();
 
     /**
-     * @param perHour the most calls of a kind ("infer", "generate") per session and hour
+     * @param perHour the most calls of a kind ("analyze", "generate") per session and hour
      * @param clock the time in ms
      */
     AiLimits(Map<String, Integer> perHour, LongSupplier clock) {
@@ -29,7 +29,7 @@ final class AiLimits {
     }
 
     /**
-     * @param perHour the most calls of a kind ("infer", "generate") per session and hour
+     * @param perHour the most calls of a kind ("analyze", "generate") per session and hour
      * @param atOnce the most calls of a kind that may run at the same time per session (missing: 1)
      * @param clock the time in ms
      */

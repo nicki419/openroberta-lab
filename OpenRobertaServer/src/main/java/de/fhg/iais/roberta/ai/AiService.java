@@ -37,19 +37,20 @@ import de.fhg.iais.roberta.util.ServerProperties;
  * &lt;telemetry&gt;/ai-prompts/&lt;promptVersion&gt;.md), a repair's earlier answer and problems, the effort, token limit and timeout, every API asked
  * (tries: provider, host, model, effort, status, error, attempts, latency), the answer, the model's reasoning, the tokens, the finish reason, the start
  * time and the time taken.
+ * Every call is for the learner's sentence: what they asked the assistant for (it works only when they ask). Until 2026-11-06 a fifth call, infer,
+ * guessed the program's intent after every changed run and offered tests for it.
  * <ul>
- * <li>infer: what is the program meant to do? {intent, confidence, ask, same_as_declined, not_covered}; short, 20 s.</li>
  * <li>analyze (the AnalysisAgent of docs/tests): the program's decisions and their outcomes, the paths that target them (branch coverage), the
  * input classes of each path (no boundaries: boundary value analysis is left out), the scenarios and where their expected behaviour comes from; 180 s; repairs as generate.</li>
- * <li>generate (the TestGenerationAgent): scenario tests for the intent and the analysis, as test JSON {worlds: [...], coverage_plan, ...}; 180 s;
+ * <li>generate (the TestGenerationAgent): scenario tests for the sentence and the analysis, as test JSON {worlds: [...], coverage_plan, ...}; 180 s;
  * with a repair: the earlier answer and its problems follow, as a conversation.</li>
  * <li>fix: the tests of an answer that failed (or weren't checked) when they ran on the learner's program, with how they ran: {worlds: [the fixed
  * tests: only their inputs changed], program_wrong: [{test, world, reason}: the program is wrong], doubtful: [{test, world, reason}: the test may
  * expect more than the learner said]}; as generate (its effort, 180 s, repairs).</li>
  * </ul>
- * The reasoning effort of each call is a setting per API (&lt;NAME&gt;_EFFORT_INFER, _ANALYZE, _GENERATE, _FIX; preset low, low, none, low).
- * Measured on 2026-11-05 (docs/ai/nepo-ai-model-evaluation.md): at low, infer 2-8 s; analyze 34-147 s at DeepSeek, 51-116 s at UCloud (it reasons
- * longer); generate 54-132 s and 52-151 s; at none, generate 8-20 s on both, with first answers as valid by the Lab's rules.
+ * The reasoning effort of each call is a setting per API (&lt;NAME&gt;_EFFORT_ANALYZE, _GENERATE, _FIX; preset none, none, low).
+ * Measured on 2026-11-05 (docs/ai/nepo-ai-model-evaluation.md): at low, analyze 34-147 s at DeepSeek, 51-116 s at UCloud (it reasons longer);
+ * generate 54-132 s and 52-151 s; at none, generate 8-20 s on both, with first answers as valid by the Lab's rules.
  * Every call's meta has the contract version of the answers ({@link #CONTRACT}).
  * <p>
  * One instance serves the whole server (the limits per session are here).
@@ -57,16 +58,16 @@ import de.fhg.iais.roberta.util.ServerProperties;
 @Singleton
 public class AiService {
     private static final Logger LOG = LoggerFactory.getLogger(AiService.class);
-    public static final String INFER = "infer";
     public static final String GENERATE = "generate";
     public static final String FIX = "fix";
     public static final String ANALYZE = "analyze";
     /**
      * the version of the answers' contracts (docs/tests: AnalysisAgent and TestGenerationAgent 1.1; the fix's own). 1.2 (2026-11-05): analyze says
      * which of the learner's tests test each scenario (tested_by), and generate writes the scenarios its task names (one call per scenario). 1.3
-     * (2026-11-06): no boundary value analysis: analyze gives no boundary_candidates, generate no boundary_values
+     * (2026-11-06): no boundary value analysis: analyze gives no boundary_candidates, generate no boundary_values. 1.4 (2026-11-06): no infer; every
+     * call is for the learner's sentence (required), without a guessed intent or what the learner's tests don't check yet
      */
-    public static final String CONTRACT = "1.3";
+    public static final String CONTRACT = "1.4";
     private static final int MAX_REASONING = 200000; // characters of the reasoning kept in the telemetry (32,000 tokens are about 130,000)
     public static final String PROMPTS_DIR = "ai-prompts"; // in the telemetry folder: the system prompt of each promptVersion
     public static final long COOL_DOWN_MS = 5 * 60 * 1000; // after the first API failed, it is asked last for so long
@@ -76,8 +77,7 @@ public class AiService {
     private final List<DeepSeekClient> clients; // one per API that can be called, in the order they are asked
     private final AiLimits limits;
     private ContextPack resourcePack; // the pack in the resources, loaded once
-    private int inferTimeoutMs = 20000;
-    private int generateTimeoutMs = 180000;
+    private int timeoutMs = 180000;
     private LongSupplier clock = System::currentTimeMillis;
     private volatile long firstDownUntil = 0; // the first API failed: until then, it is asked last
     public static final int MAX_TOKENS = 32000; // analyze, generate, fix: the reasoning counts (a hard program took 22,000 tokens at SDU, 116 s)
@@ -99,7 +99,6 @@ public class AiService {
         }
         this.clients = Collections.unmodifiableList(clients);
         Map<String, Integer> perHour = new HashMap<>();
-        perHour.put(INFER, 60);
         perHour.put(GENERATE, 150); // one call per scenario, and its repairs
         perHour.put(FIX, 30);
         perHour.put(ANALYZE, 30);
@@ -113,12 +112,10 @@ public class AiService {
     }
 
     /**
-     * @param inferMs how long to wait for DeepSeek's answer to infer (default 20 s)
-     * @param generateMs … to analyze, generate and fix (default 180 s)
+     * @param ms how long to wait for an API's answer to a call (default 180 s)
      */
-    public void setTimeouts(int inferMs, int generateMs) {
-        this.inferTimeoutMs = inferMs;
-        this.generateTimeoutMs = generateMs;
+    public void setTimeout(int ms) {
+        this.timeoutMs = ms;
     }
 
     /**
@@ -181,7 +178,7 @@ public class AiService {
     /**
      * a call of the assistant. Never throws.
      *
-     * @param kind {@link #INFER}, {@link #ANALYZE}, {@link #GENERATE} or {@link #FIX}
+     * @param kind {@link #ANALYZE}, {@link #GENERATE} or {@link #FIX}
      * @param session the session's number (the limits are per session)
      * @param data the browser's data (see {@link AiPrompts})
      */
@@ -195,7 +192,7 @@ public class AiService {
         event.put("fingerprint", data == null ? JSONObject.NULL : data.opt("fingerprint"));
         event.put("model", this.settings.getModel());
         event.put("contract", CONTRACT);
-        if ( !INFER.equals(kind) && !ANALYZE.equals(kind) && !GENERATE.equals(kind) && !FIX.equals(kind) || data == null ) {
+        if ( !ANALYZE.equals(kind) && !GENERATE.equals(kind) && !FIX.equals(kind) || data == null ) {
             return outcome.fail("bad_request", "unknown call " + kind);
         }
         if ( !this.settings.isAvailable() ) {
@@ -209,19 +206,16 @@ public class AiService {
             ContextPack pack = pack();
             event.put("promptVersion", pack.getVersion());
             savePrompt(pack);
-            boolean infer = INFER.equals(kind);
-            int maxTokens = infer ? 4000 : MAX_TOKENS;
-            int timeoutMs = infer ? this.inferTimeoutMs : this.generateTimeoutMs;
+            int maxTokens = MAX_TOKENS;
+            int timeoutMs = this.timeoutMs;
             event.put("maxTokens", maxTokens).put("timeoutMs", timeoutMs);
             String prompt = AiPrompts.userMessage(kind, data);
             event.put("prompt", prompt);
             JSONArray messages = new JSONArray().put(message("system", pack.getText())).put(message("user", prompt));
-            if ( !infer ) {
-                String[] repair = AiPrompts.repairMessages(data);
-                if ( repair != null ) {
-                    messages.put(message("assistant", repair[0])).put(message("user", repair[1]));
-                    event.put("repairAnswer", repair[0]).put("repair", repair[1]);
-                }
+            String[] repair = AiPrompts.repairMessages(data);
+            if ( repair != null ) {
+                messages.put(message("assistant", repair[0])).put(message("user", repair[1]));
+                event.put("repairAnswer", repair[0]).put("repair", repair[1]);
             }
             // the APIs in their order, the next only if one gave no answer (an answer that can't be used is repaired by the browser, not asked again)
             DeepSeekClient.Result result = null;
@@ -300,11 +294,9 @@ public class AiService {
                 return outcome.fail("cut_off", "the answer was cut off (too long)");
             }
             outcome.answer =
-                infer
-                    ? AiPrompts.checkInfer(result.content)
-                    : FIX.equals(kind)
-                        ? AiPrompts.checkFix(result.content)
-                        : ANALYZE.equals(kind) ? AiPrompts.checkAnalyze(result.content) : AiPrompts.checkGenerate(result.content);
+                FIX.equals(kind)
+                    ? AiPrompts.checkFix(result.content)
+                    : ANALYZE.equals(kind) ? AiPrompts.checkAnalyze(result.content) : AiPrompts.checkGenerate(result.content);
             outcome.ok = true;
             event.put("status", "ok").put("error", JSONObject.NULL);
             return outcome;

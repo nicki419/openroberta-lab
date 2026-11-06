@@ -19,7 +19,7 @@ import de.fhg.iais.roberta.util.ServerProperties;
 
 /**
  * the settings of the AI test assistant: the APIs it calls, in the order they are asked (ai.providers, AI_PROVIDERS in .env; usually DeepSeek's own
- * API first, SDU's UCloud when it gives no answer), each with its address, model, API key and the reasoning effort of each call (infer, analyze,
+ * API first, SDU's UCloud when it gives no answer), each with its address, model, API key and the reasoning effort of each call (analyze,
  * generate, fix); the default of the switch, the folder of the context pack and of the telemetry. All but the keys are server properties (usually from
  * .env, see {@link EnvFile}). The keys are read on their own, from the environment or .env (&lt;NAME&gt;_API_KEY: {@link EnvFile#DEEPSEEK_API_KEY},
  * {@link EnvFile#UCLOUD_API_KEY}), and kept here only: they are never server properties, because the server logs every define, they are never logged,
@@ -44,20 +44,11 @@ public final class AiSettings {
      * @param defaultOn whether the assistant is on for a learner who was never switched
      * @param packDir the folder of the context pack; null or empty: the pack in the server's resources
      * @param telemetryDir the folder of the study's telemetry (levels.telemetry.dir)
-     * @param effortInfer the model's reasoning effort for a guess (none, low, high, max); null or empty: the model's default
-     * @param effortGenerate … for analyze, generate and fix
+     * @param effort the model's reasoning effort for analyze, generate and fix (none, low, high, max); null or empty: the model's default
      */
-    public AiSettings(
-        String url,
-        String model,
-        String key,
-        boolean defaultOn,
-        String packDir,
-        String telemetryDir,
-        String effortInfer,
-        String effortGenerate) {
+    public AiSettings(String url, String model, String key, boolean defaultOn, String packDir, String telemetryDir, String effort) {
         this(
-            Collections.singletonList(new Provider(DEFAULT_PROVIDER, url, model, key, efforts(effortInfer, effortGenerate, effortGenerate, effortGenerate))),
+            Collections.singletonList(new Provider(DEFAULT_PROVIDER, url, model, key, efforts(effort, effort, effort))),
             defaultOn,
             packDir,
             telemetryDir);
@@ -87,11 +78,10 @@ public final class AiSettings {
     }
 
     /**
-     * @return the efforts of the calls: {infer, analyze, generate, fix → effort}
+     * @return the efforts of the calls: {analyze, generate, fix → effort}
      */
-    public static Map<String, String> efforts(String infer, String analyze, String generate, String fix) {
+    public static Map<String, String> efforts(String analyze, String generate, String fix) {
         Map<String, String> efforts = new HashMap<>();
-        efforts.put(AiService.INFER, infer);
         efforts.put(AiService.ANALYZE, analyze);
         efforts.put(AiService.GENERATE, generate);
         efforts.put(AiService.FIX, fix);
@@ -130,7 +120,6 @@ public final class AiSettings {
                         serverProperties.getStringProperty(p + "model"),
                         key,
                         efforts(
-                            serverProperties.getStringProperty(p + "effort.infer"),
                             serverProperties.getStringProperty(p + "effort.analyze"),
                             serverProperties.getStringProperty(p + "effort.generate"),
                             serverProperties.getStringProperty(p + "effort.fix"))));
@@ -278,7 +267,7 @@ public final class AiSettings {
         }
 
         /**
-         * @param call infer, analyze, generate or fix
+         * @param call analyze, generate or fix
          * @return its reasoning effort, or null: the model's default
          */
         public String effort(String call) {
@@ -312,9 +301,7 @@ public final class AiSettings {
                 + this.model
                 + ", key "
                 + (this.key == null ? "not set" : "set")
-                + ", effort infer/analyze/generate/fix "
-                + effort(AiService.INFER)
-                + "/"
+                + ", effort analyze/generate/fix "
                 + effort(AiService.ANALYZE)
                 + "/"
                 + effort(AiService.GENERATE)

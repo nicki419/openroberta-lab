@@ -29,7 +29,6 @@ public final class EnvFile {
 
     /** the AI's calls, each with its own reasoning effort per API */
     public static final String[] AI_CALLS = {
-        "infer",
         "analyze",
         "generate",
         "fix"
