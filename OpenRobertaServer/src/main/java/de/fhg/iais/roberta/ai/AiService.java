@@ -40,7 +40,7 @@ import de.fhg.iais.roberta.util.ServerProperties;
  * <ul>
  * <li>infer: what is the program meant to do? {intent, confidence, ask, same_as_declined, not_covered}; short, 20 s.</li>
  * <li>analyze (the AnalysisAgent of docs/tests): the program's decisions and their outcomes, the paths that target them (branch coverage), the
- * input classes and boundaries of each path, the scenarios and where their expected behaviour comes from; 180 s; repairs as generate.</li>
+ * input classes of each path (no boundaries: boundary value analysis is left out), the scenarios and where their expected behaviour comes from; 180 s; repairs as generate.</li>
  * <li>generate (the TestGenerationAgent): scenario tests for the intent and the analysis, as test JSON {worlds: [...], coverage_plan, ...}; 180 s;
  * with a repair: the earlier answer and its problems follow, as a conversation.</li>
  * <li>fix: the tests of an answer that failed (or weren't checked) when they ran on the learner's program, with how they ran: {worlds: [the fixed
@@ -63,9 +63,10 @@ public class AiService {
     public static final String ANALYZE = "analyze";
     /**
      * the version of the answers' contracts (docs/tests: AnalysisAgent and TestGenerationAgent 1.1; the fix's own). 1.2 (2026-11-05): analyze says
-     * which of the learner's tests test each scenario (tested_by), and generate writes the scenarios its task names (one call per scenario)
+     * which of the learner's tests test each scenario (tested_by), and generate writes the scenarios its task names (one call per scenario). 1.3
+     * (2026-11-06): no boundary value analysis: analyze gives no boundary_candidates, generate no boundary_values
      */
-    public static final String CONTRACT = "1.2";
+    public static final String CONTRACT = "1.3";
     private static final int MAX_REASONING = 200000; // characters of the reasoning kept in the telemetry (32,000 tokens are about 130,000)
     public static final String PROMPTS_DIR = "ai-prompts"; // in the telemetry folder: the system prompt of each promptVersion
     public static final long COOL_DOWN_MS = 5 * 60 * 1000; // after the first API failed, it is asked last for so long

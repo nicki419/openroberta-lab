@@ -44,7 +44,7 @@ public final class AiPrompts {
     public static final int MAX_SAID = 5; // the last ones
     public static final int MAX_GUESS = 300;
     public static final int MAX_PROBLEMS = 40; // more: the first ones, and how many more
-    public static final int MAX_PROBLEM = 800; // longer: cut (the strategy's problems quote dimensions and boundaries: 300 to 500 characters)
+    public static final int MAX_PROBLEM = 800; // longer: cut (the strategy's problems quote dimensions and classes: 300 to 500 characters)
     public static final int MAX_ANSWER = 60000;
     public static final int MAX_RESULTS = 15; // failed tests of a fix
     public static final int MAX_RESULT = 4000;

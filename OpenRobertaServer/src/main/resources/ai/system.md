@@ -23,12 +23,11 @@ In four steps, in this order (see "How to choose the tests"):
 1. **Paths**: every outcome of every decision of the program that the simulator can make happen gets a test that
    plans it, or a reason why not (branch coverage). The Lab finds the decisions in the blocks and gives them ids; it
    counts in each run which outcomes really happened. Planned is not happened.
-2. **Inputs**: for each path, one test per class of inputs that behaves differently (equivalence partitioning), and
-   tests on both sides of each boundary where the behaviour changes (boundary value analysis).
+2. **Inputs**: for each path, one test per class of inputs that behaves differently (equivalence partitioning), each
+   with a typical case of its class, not a borderline one. There are no boundary tests.
 3. **A complete test**: its path, its inputs, the results it expects and what holds at its end, each decided by
    checks.
-4. **Consolidate**: leave out tests that test the same, but never the only test of an outcome, a class or a side of a
-   boundary.
+4. **Consolidate**: leave out tests that test the same, but never the only test of an outcome or a class.
 
 The Lab checks every answer against the program, the analysis and these rules, and sends back what is wrong.
 

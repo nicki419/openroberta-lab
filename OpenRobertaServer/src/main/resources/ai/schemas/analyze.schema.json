@@ -79,12 +79,11 @@
             "type": "array",
             "items": {
               "type": "object",
-              "required": ["dimension", "equivalence_classes", "boundary_candidates"],
+              "required": ["dimension", "equivalence_classes"],
               "additionalProperties": false,
               "properties": {
                 "dimension": {"type": "string", "minLength": 1},
-                "equivalence_classes": {"type": "array", "items": {"type": "string", "minLength": 1}},
-                "boundary_candidates": {"type": "array", "items": {"type": "string", "minLength": 1}}
+                "equivalence_classes": {"type": "array", "items": {"type": "string", "minLength": 1}}
               }
             }
           },
@@ -118,7 +117,7 @@
           "tested_by": {"type": "array", "items": {"type": "string"}, "description": "the names of the learner's tests that already test this scenario; [] if none"},
           "path_ids": {"type": "array", "minItems": 1, "items": {"type": "string"}},
           "title": {"type": "string", "minLength": 1, "maxLength": 80},
-          "category": {"enum": ["nominal", "alternative", "boundary", "adverse", "recovery", "timing", "safety"]},
+          "category": {"enum": ["nominal", "alternative", "adverse", "recovery", "timing", "safety"]},
           "initial_condition": {"type": "string"},
           "trigger": {"type": "string"},
           "coded_response": {"type": "string"},

@@ -6,12 +6,14 @@
  *    until, the decisions nepoTest.simProgram scanDecisions instruments), with ids (D1, D1.1, D1.else, …) the model must use. The analysis (task
  *    analyze) says which outcomes the simulator can make happen and plans paths that target them (checkAnalysis). The runs show which outcomes really
  *    happened (seenIn: the run report's trace counts each decision's outcomes): planned is never taken for happened;
- * 2. equivalence partitioning and boundary value analysis: every test names the input class and the boundary side it stands for, word for word from
- *    the analysis, and what of the test realizes it (checkTests);
+ * 2. equivalence partitioning: every test names the input classes it stands for, word for word from the analysis, and what of the test realizes
+ *    them (checkTests). Boundary value analysis, the spec's other half of this step, is left out (2026-11-06): its tests were about details a learner
+ *    doesn't read (the line's edge, the edge of the sensors' range) and sat close to where readings change. An older answer's boundary_candidates and
+ *    boundary_values are ignored;
  * 3. a complete test: its path, its inputs, its expected results, its postconditions (with the checks that decide them), where its expectation
  *    comes from (oracle), and at least one positive check (anti-triviality);
- * 4. consolidation: every outcome, class and boundary side of the analysis is tested or deferred with a reason (checkTests); the coverage plan is
- *    computed from the tests that are left (planOf), never taken from the model.
+ * 4. consolidation: every outcome and class of the analysis is tested or deferred with a reason (checkTests); the coverage plan is computed from the
+ *    tests that are left (planOf), never taken from the model.
  *
  * And the semantics of a run: a test that passed but had a check with nothing to decide, or whose planned outcome never happened, is not checked
  * (notCheckedWhy); a fix may change only a test's inputs, never what it expects (frozenProblems).
@@ -31,10 +33,9 @@ const RUNS = ['robControls_start', 'robProcedures_defnoreturn', 'robProcedures_d
 const POSITIVE = ['reaches', 'ends_in', 'does', 'whenever', 'after', 'variable']; // the others (never_bumps, never_touches) hold for a robot that never moves
 const TESTABILITY = ['supported', 'uncertain', 'unsupported'];
 const CONFIDENCE = ['low', 'medium', 'high'];
-const CATEGORIES = ['nominal', 'alternative', 'boundary', 'adverse', 'recovery', 'timing', 'safety'];
+const CATEGORIES = ['nominal', 'alternative', 'adverse', 'recovery', 'timing', 'safety']; // the spec's 'boundary' is left out (no BVA)
 const SCENARIO_BASES = ['learner_description', 'inferred', 'applicable_safety', 'unknown'];
 const ORACLE_BASES = ['learner_description', 'inferred_from_program', 'applicable_safety'];
-const SIDES = ['below', 'at', 'above', 'inside', 'outside'];
 const STATUSES = ['ready_for_review', 'partial', 'no_valid_scenarios'];
 
 export interface Outcome {
@@ -184,14 +185,11 @@ function sensorsRead(blocks: Element[]): string[] {
 export const LINE_NEAR_CM = 10;
 const LINE_TRACKER_AHEAD_CM = 5;
 
-/**
- * for a program that follows a line (index.lineTracker): a test whose start has no line near the line tracker (2026-11-05: "the wall already in
- * sight" stood on a plain floor; the line follower read 83 % there and circled on the start instead of driving up to the wall)
- */
-export function lineProblems(world: SIM.SimWorld, start: SIM.SimStart): string[] {
-    if (!start) {
-        return [];
-    }
+const ON_LINE_CM = 1.5; // the line tracker closer to a line's middle than this is on its black core (0.74 cm to each side) or at its edge
+const BESIDE = /beside|next to|off the line|away from the line/i; // an input class of a start beside the line
+
+/** how far the line tracker of a start is from the middle of the nearest line on the floor (cm; Infinity without lines) */
+function lineDistance(world: SIM.SimWorld, start: SIM.SimStart): number {
     const h = (start.heading * Math.PI) / 180; // counterclockwise from +x, y down
     const px = start.x + LINE_TRACKER_AHEAD_CM * Math.cos(h);
     const py = start.y - LINE_TRACKER_AHEAD_CM * Math.sin(h);
@@ -209,13 +207,39 @@ export function lineProblems(world: SIM.SimWorld, start: SIM.SimStart): string[]
                 nearest = Math.min(nearest, Math.hypot(px - (x1 + t * dx), py - (y1 + t * dy)));
             }
         });
-    return nearest <= LINE_NEAR_CM
-        ? []
-        : [
-              'start "' +
-                  start.id +
-                  '": there is no line near it (the line tracker is 5 cm ahead of the start). The program follows a line: on a plain floor it circles on the start. Draw a line through the start ("A line through the start" in "Tests"), with the scenario\'s things on it',
-          ];
+    return nearest;
+}
+
+/**
+ * for a program that follows a line (index.lineTracker): a test whose start has no line near the line tracker (2026-11-05: "the wall already in
+ * sight" stood on a plain floor; the line follower read 83 % there and circled on the start instead of driving up to the wall), or that stands
+ * for a start beside the line (`beside`: its input class) but starts on one (2026-11-06: 2 of 3 "Started beside the line" tests had a line drawn
+ * through their start, by the recipe for a start on the line)
+ */
+export function lineProblems(world: SIM.SimWorld, start: SIM.SimStart, beside: string = null): string[] {
+    if (!start) {
+        return [];
+    }
+    const nearest = lineDistance(world, start);
+    if (nearest > LINE_NEAR_CM) {
+        return [
+            'start "' +
+                start.id +
+                '": there is no line near it (the line tracker is 5 cm ahead of the start). The program follows a line: on a plain floor it circles on the start. Draw a line through the start ("A line through the start" in "Tests"), with the scenario\'s things on it',
+        ];
+    }
+    if (beside && nearest < ON_LINE_CM) {
+        return [
+            'start "' +
+                start.id +
+                '": the test stands for "' +
+                beside +
+                '", but its line tracker is on a line (' +
+                Math.round(nearest * 10) / 10 +
+                ' cm from its middle). Draw no line through this start: the line 8 cm to its side ("A line beside the start" in "Tests")',
+        ];
+    }
+    return [];
 }
 
 /** does a block run: is it in an instance that begins with the start block or a function's definition? */
@@ -414,8 +438,8 @@ export function checkAnalysis(answer: any, index: Index, sentence: string, learn
         for (const dim of arrayOf(p.input_dimensions)) {
             if (!dim || !isText(dim.dimension)) {
                 add('path ' + p.id + ': an input dimension needs its name (dimension)');
-            } else if (!Array.isArray(dim.equivalence_classes) || !Array.isArray(dim.boundary_candidates)) {
-                add('path ' + p.id + ', dimension "' + dim.dimension + '": it needs equivalence_classes and boundary_candidates (lists; may be empty)');
+            } else if (!Array.isArray(dim.equivalence_classes)) {
+                add('path ' + p.id + ', dimension "' + dim.dimension + '": it needs equivalence_classes (a list)');
             }
         }
     }
@@ -457,7 +481,7 @@ export function checkAnalysis(answer: any, index: Index, sentence: string, learn
     // per boundary, and so 8 tests, 7 of them about its steering)
     const ids = Object.keys(scenarios);
     ids.length > MAX_SCENARIOS &&
-        add('there are ' + ids.length + ' scenarios, at most ' + MAX_SCENARIOS + ': a scenario is a situation the learner would name, not one per decision outcome or per boundary; merge them');
+        add('there are ' + ids.length + ' scenarios, at most ' + MAX_SCENARIOS + ': a scenario is a situation the learner would name, not one per decision outcome or per input class; merge them');
     const outcomesOf = (id: string) =>
         arrayOf(scenarios[id].path_ids)
             .map((p: string) => paths[p])
@@ -469,7 +493,7 @@ export function checkAnalysis(answer: any, index: Index, sentence: string, learn
     ids.forEach((a, i) =>
         ids.slice(i + 1).forEach((b) => {
             const same = outcomesOf(a);
-            same && same === outcomesOf(b) && add('scenarios ' + a + ' and ' + b + ' take the same outcomes (' + same + '): they are one situation; merge them (a boundary is an input of the path, not a scenario)');
+            same && same === outcomesOf(b) && add('scenarios ' + a + ' and ' + b + ' take the same outcomes (' + same + '): they are one situation; merge them (an input class is an input of the path, not a scenario)');
         })
     );
     return problems;
@@ -531,19 +555,18 @@ export function testedDeferrals(analysis: any, tested: { id: string; by: string[
     return { scenarios: scenarios, branches: branches };
 }
 
-/** the input classes and boundaries of the analysis (of the paths that aren't unsupported): {dimension → {classes, boundaries}} */
-function inputsOf(analysis: any): { [dimension: string]: { classes: string[]; boundaries: string[] } } {
-    const out: { [dimension: string]: { classes: string[]; boundaries: string[] } } = {};
-    arrayOf(analysis.scenario_paths)
-        .filter((p: any) => p && p.testability !== 'unsupported')
+/** the input classes of the analysis' paths (all of them, or those that aren't unsupported): {dimension → classes} */
+function classesOf(analysis: any, unsupportedToo: boolean): { [dimension: string]: string[] } {
+    const out: { [dimension: string]: string[] } = {};
+    arrayOf(analysis && analysis.scenario_paths)
+        .filter((p: any) => p && (unsupportedToo || p.testability !== 'unsupported'))
         .forEach((p: any) =>
             arrayOf(p.input_dimensions).forEach((d: any) => {
                 if (!d || !isText(d.dimension)) {
                     return;
                 }
-                const e = (out[d.dimension] = out[d.dimension] || { classes: [], boundaries: [] });
-                arrayOf(d.equivalence_classes).forEach((c: string) => isText(c) && e.classes.indexOf(c) < 0 && e.classes.push(c));
-                arrayOf(d.boundary_candidates).forEach((b: string) => isText(b) && e.boundaries.indexOf(b) < 0 && e.boundaries.push(b));
+                const e = (out[d.dimension] = out[d.dimension] || []);
+                arrayOf(d.equivalence_classes).forEach((c: string) => isText(c) && e.indexOf(c) < 0 && e.push(c));
             })
         );
     return out;
@@ -565,9 +588,9 @@ function realizationProblems(r: any, test: FORMAT.AiTest, world: FORMAT.Resolved
 
 /**
  * the problems of an answer's tests (generate, or the tests of a fix), checked against the analysis (TestGenerationAgent_v3 §8): each test's
- * scenario, paths, planned outcomes, input classes and boundaries (and what realizes them), expected results, postconditions, oracle, a positive
- * check, its blocks; then, for generate (not a fix), the answer: at most MAX_TESTS tests, every target outcome planned or deferred, every class and
- * both sides of every boundary tested or deferred, every scenario tested or deferred, the status.
+ * scenario, paths, planned outcomes, input classes (and what realizes them), expected results, postconditions, oracle, a positive check, its
+ * blocks; then, for generate (not a fix), the answer: at most MAX_TESTS tests, every target outcome planned or deferred, every class tested or
+ * deferred, every scenario tested or deferred, the status. No boundaries: boundary value analysis is left out (see the top).
  */
 export function checkTests(
     answer: any,
@@ -578,25 +601,16 @@ export function checkTests(
     fix: boolean,
     maxTests: number = MAX_TESTS,
     only: string[] = null, // one generate call of several: the scenarios it writes (the analysis is their part)
-    whole: any = null // … and the whole analysis: a test's classes and boundaries may come from any of its paths
+    whole: any = null // … and the whole analysis: a test's classes may come from any of its paths
 ): FORMAT.Problem[] {
     const problems: FORMAT.Problem[] = [];
     analysis = analysis || {};
-    // the classes and boundaries a test may name: those of every path of the (whole) analysis (2026-11-05: "dimension not of its paths" left out
-    // good tests on every effort and API, for a test of one path that needs an input of another: a bright floor in a test of stopping at a wall)
-    const named: { [d: string]: { classes: string[]; boundaries: string[] } } = {};
-    arrayOf((whole || analysis).scenario_paths).forEach((p: any) =>
-        arrayOf(p && p.input_dimensions).forEach((d: any) => {
-            if (d && isText(d.dimension)) {
-                const e = (named[d.dimension] = named[d.dimension] || { classes: [], boundaries: [] });
-                e.classes.push(...arrayOf(d.equivalence_classes));
-                e.boundaries.push(...arrayOf(d.boundary_candidates));
-            }
-        })
-    );
+    // the classes a test may name: those of every path of the (whole) analysis (2026-11-05: "dimension not of its paths" left out good tests on
+    // every effort and API, for a test of one path that needs an input of another: a bright floor in a test of stopping at a wall)
+    const named = classesOf(whole || analysis, true);
     const scenarios: { [id: string]: any } = {};
     arrayOf(analysis.scenarios).forEach((s: any) => s && (scenarios[s.id] = s));
-    const dims = inputsOf(analysis);
+    const dims = classesOf(analysis, false);
     let count = 0;
     for (const w of worlds) {
         for (const t of w.tests) {
@@ -622,23 +636,15 @@ export function checkTests(
             // nearly every wall test, which drives with nothing ahead, D1.else, before it sees the wall); "not checked" shows if one never happens
             arrayOf(t.planned_branch_ids).forEach((b: string) => !index.outcome[b] && add('planned_branch_ids: "' + b + '" is not an outcome of the program\'s decisions'));
             const sel = t.input_selection;
-            if (!sel || !Array.isArray(sel.equivalence_partitions) || !Array.isArray(sel.boundary_values)) {
-                add('input_selection needs equivalence_partitions and boundary_values (lists; may be empty)');
+            if (!sel || !Array.isArray(sel.equivalence_partitions)) {
+                add('input_selection needs equivalence_partitions (a list; may be empty)');
             } else {
-                const ownDims = named;
-                const where = (d: string) => (ownDims[d] ? '' : 'dimension "' + d + '" is not one of the analysis\' (' + (Object.keys(ownDims).map((x) => '"' + x + '"').join(', ') || 'none') + ')');
+                const where = (d: string) => (named[d] ? '' : 'dimension "' + d + '" is not one of the analysis\' (' + (Object.keys(named).map((x) => '"' + x + '"').join(', ') || 'none') + ')');
                 for (const e of sel.equivalence_partitions) {
-                    const bad = !e ? 'an empty class' : where(e.dimension) || (ownDims[e.dimension].classes.indexOf(e.class) < 0 ? 'class "' + e.class + '" is not one of "' + e.dimension + '" (' + ownDims[e.dimension].classes.map((c) => '"' + c + '"').join(', ') + ')' : '');
+                    const bad = !e ? 'an empty class' : where(e.dimension) || (named[e.dimension].indexOf(e.class) < 0 ? 'class "' + e.class + '" is not one of "' + e.dimension + '" (' + named[e.dimension].map((c) => '"' + c + '"').join(', ') + ')' : '');
                     bad && add('input_selection: ' + bad);
                     e && !isText(e.selected_realization) && add('input_selection: class "' + e.class + '" needs its selected_realization');
                     e && realizationProblems(e.realized_by, t, w).forEach((m) => add('input_selection, class "' + e.class + '": ' + m));
-                }
-                for (const b of sel.boundary_values) {
-                    const bad = !b ? 'an empty boundary' : where(b.dimension) || (ownDims[b.dimension].boundaries.indexOf(b.boundary) < 0 ? 'boundary "' + b.boundary + '" is not one of "' + b.dimension + '" (' + ownDims[b.dimension].boundaries.map((c) => '"' + c + '"').join(', ') + ')' : '');
-                    bad && add('input_selection: ' + bad);
-                    b && SIDES.indexOf(b.side) < 0 && add('input_selection: boundary "' + b.boundary + '": side must be one of ' + SIDES.join(', '));
-                    b && (!isText(b.selected_realization) || !isText(b.rationale)) && add('input_selection: boundary "' + b.boundary + '" needs its selected_realization and rationale');
-                    b && realizationProblems(b.realized_by, t, w).forEach((m) => add('input_selection, boundary "' + b.boundary + '": ' + m));
                 }
             }
             arrayOf(t.expected_results).filter(isText).length || add('expected_results: say what the robot should observably do (at least one)');
@@ -671,7 +677,10 @@ export function checkTests(
                     )
                 );
             if (index.lineTracker && w.data && w.data.world) {
-                lineProblems(w.data.world, (w.data.world.starts || []).filter((s) => s.id === t.start)[0]).forEach((m) => add(m));
+                const beside = arrayOf(t.input_selection && t.input_selection.equivalence_partitions)
+                    .map((e: any) => e && e.class)
+                    .filter((c: any) => isText(c) && BESIDE.test(c) && !/\bon the line\b/i.test(c))[0];
+                lineProblems(w.data.world, (w.data.world.starts || []).filter((s) => s.id === t.start)[0], beside).forEach((m) => add(m));
                 // a line follower is tested by where it gets to, not by how it steers: its positive checks only "whenever it sees (no) line, it turns"
                 // or "always turns" repeat the program (2026-11-06: 7 of 8 tests of a line follower were such)
                 const positive = t.checks.filter((c: any) => POSITIVE.indexOf(c.check) >= 0);
@@ -703,23 +712,13 @@ export function checkTests(
         (b) => planned.indexOf(b) < 0 && deferredBranches.indexOf(b) < 0 && add('outcome ' + b + ' is on a path of the analysis, but no test plans it: write a test whose run takes it, or defer it (coverage_plan.deferred_branch_ids, with the reason)')
     );
     const deferredInputs = arrayOf(plan.deferred_inputs).filter((d: any) => d && isText(d.reason));
-    const isDeferred = (dimension: string, value: string) => deferredInputs.some((d: any) => d.dimension === dimension && (d.value === value || String(d.value).indexOf(value + ':') === 0));
-    Object.keys(dims).forEach((dimension) => {
-        const classes = dims[dimension].classes;
-        classes.forEach((c) => {
+    const isDeferred = (dimension: string, value: string) => deferredInputs.some((d: any) => d.dimension === dimension && d.value === value);
+    Object.keys(dims).forEach((dimension) =>
+        dims[dimension].forEach((c) => {
             const tested = tests.some((t) => arrayOf(t.input_selection && t.input_selection.equivalence_partitions).some((e: any) => e && e.dimension === dimension && e.class === c));
             tested || isDeferred(dimension, c) || add('input class "' + c + '" of "' + dimension + '": no test stands for it: write one, or defer it (coverage_plan.deferred_inputs, with the reason)');
-        });
-        dims[dimension].boundaries.forEach((b) => {
-            const sides: string[] = [];
-            tests.forEach((t) => arrayOf(t.input_selection && t.input_selection.boundary_values).forEach((v: any) => v && v.dimension === dimension && v.boundary === b && sides.indexOf(v.side) < 0 && sides.push(v.side)));
-            sides.length >= 2 ||
-                isDeferred(dimension, b) ||
-                add(
-                    'boundary "' + b + '" of "' + dimension + '": ' + (sides.length ? 'only the side ' + sides[0] + ' is tested' : 'no test is close to it') + ': test both sides, or defer the missing side (coverage_plan.deferred_inputs: value "' + b + ': <side>", with the reason)'
-                );
-        });
-    });
+        })
+    );
     const deferredScenarios = arrayOf(answer && answer.deferred_scenarios).filter((d: any) => d && isText(d.reason)).map((d: any) => d.scenario_id);
     Object.keys(scenarios).forEach((id) => {
         const s = scenarios[id];
@@ -893,10 +892,7 @@ function checksOf(test: FORMAT.AiTest, world: FORMAT.Resolved): string {
 
 function selectionOf(test: FORMAT.AiTest): string {
     const sel = test.input_selection || {};
-    return canonical({
-        classes: arrayOf(sel.equivalence_partitions).map((e: any) => e && [e.dimension, e.class]),
-        boundaries: arrayOf(sel.boundary_values).map((b: any) => b && [b.dimension, b.boundary, b.side]),
-    });
+    return canonical(arrayOf(sel.equivalence_partitions).map((e: any) => e && [e.dimension, e.class]));
 }
 
 /**
@@ -907,6 +903,6 @@ export function frozenProblems(fixed: FORMAT.AiTest, fixedWorld: FORMAT.Resolved
     const out: string[] = [];
     FROZEN.forEach((k) => canonical((fixed as any)[k]) !== canonical((original as any)[k]) && out.push(k));
     checksOf(fixed, fixedWorld) !== checksOf(original, originalWorld) && out.push('checks');
-    selectionOf(fixed) !== selectionOf(original) && out.push('the classes and boundaries of input_selection');
+    selectionOf(fixed) !== selectionOf(original) && out.push('the classes of input_selection');
     return out.length ? ['a fix may change only the world, start, until, max_time_ms, the set-up (world, globals) and the realizations of its inputs; it changed ' + out.join(', ') + ': keep them as they were'] : [];
 }

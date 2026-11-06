@@ -143,7 +143,7 @@
     },
     "input_selection": {
       "type": "object",
-      "required": ["equivalence_partitions", "boundary_values"],
+      "required": ["equivalence_partitions"],
       "additionalProperties": false,
       "properties": {
         "equivalence_partitions": {
@@ -157,22 +157,6 @@
               "class": {"type": "string"},
               "selected_realization": {"type": "string", "minLength": 1},
               "realized_by": {"$ref": "#/$defs/realized_by"}
-            }
-          }
-        },
-        "boundary_values": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "required": ["dimension", "boundary", "side", "selected_realization", "realized_by", "rationale"],
-            "additionalProperties": false,
-            "properties": {
-              "dimension": {"type": "string"},
-              "boundary": {"type": "string"},
-              "side": {"enum": ["below", "at", "above", "inside", "outside"]},
-              "selected_realization": {"type": "string", "minLength": 1},
-              "realized_by": {"$ref": "#/$defs/realized_by"},
-              "rationale": {"type": "string", "minLength": 1}
             }
           }
         }

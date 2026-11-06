@@ -6,7 +6,7 @@ When a learner runs a changed program on a level, the assistant guesses what the
 to write **scenario-based simulation tests** for it. The learner can say in one sentence what the program should do.
 The tests are chosen by the testing strategy of `docs/tests/*_v3.md` (see "The testing strategy" below):
 1. the program is analysed first: its decisions and their outcomes, the paths that target them (branch coverage), the
-   inputs of each path (equivalence classes and boundaries);
+   inputs of each path (equivalence classes; no boundary value analysis since 2026-11-06, see "Deliberate deviations");
 2. the tests are written from that analysis, each a complete case: path, inputs, expected results, postconditions,
    and where its expectation comes from.
 
@@ -121,8 +121,7 @@ program as it is in the Program tab, each in its own world (`nepoTest.ai` `runTe
   - **Fix** (`FIX_TESTS` only): the model gets the tests as it wrote them, how each ran (and which planned outcomes it took), and the
     names of the tests that passed (the task fix, `/rest/ai/fix`). For each test it decides one of three things:
     - **The test is wrong:** its world, start, set-up or timing don't make its scenario happen. It fixes **only the
-      test's inputs**: the world, start, `until`, `max_time_ms`, the set-up and the realizations of its classes and
-      boundaries.
+      test's inputs**: the world, start, `until`, `max_time_ms`, the set-up and the realizations of its classes.
     - **The program is wrong:** the test makes its scenario happen, and the program doesn't do what the learner said.
       It leaves the test as it is and says why, for the learner (`program_wrong`), because a test changed until a
       wrong program passes it would hide the mistake.
@@ -175,9 +174,9 @@ by the model and checked by code:
 | Step | Technique | Model | Code (`OpenRobertaWeb/src/app/nepotest/nepoTest.aiStrategy.ts`) |
 |---|---|---|---|
 | 1 | Decisions and paths: **branch coverage** | analyze: what each decision means, whether the simulator can make each outcome happen (`feasibility`), a small set of paths that target every supported outcome, the scenarios (AA §A1–A6) | `indexOf`: the program's decisions (every if / else if / else, wait until, repeat while / until in a running instance), their outcomes with ids (`D1.1`, `D1.else`, `D1.waits`, `D1.repeats`, `D1.ends`), the blocks' short ids. `checkAnalysis`: every decision with exactly its outcomes, every supported outcome on a path, paths and scenarios naming each other, real blocks, `basis` matching the sentence, the enums |
-| 2 | Inputs: **equivalence partitioning** and **boundary value analysis** | analyze: each path's input dimensions with classes and boundary candidates (only from numbers in the program and the simulator's "Where readings change", `simulator.md`); generate: each test's `input_selection`, what of the test realizes it | `checkTests`: every class and boundary word for word from the test's paths, `side` (below, at, above, inside, outside), `realized_by` naming the test's own start, things, events or variables |
+| 2 | Inputs: **equivalence partitioning** (the spec's **boundary value analysis** is left out since 2026-11-06, see "Deliberate deviations") | analyze: each path's input dimensions with their classes; generate: each test's `input_selection`, a typical case of each class (clear of where readings change, `simulator.md`), what of the test realizes it | `checkTests`: every class word for word from the analysis, `realized_by` naming the test's own start, things, events or variables; for a line follower, a test of a class "beside the line" must not start on a line (`lineProblems`) |
 | 3 | A complete test: **path + inputs + expected results + postconditions** | generate: `scenario_id`, `path_ids`, `planned_branch_ids`, `expected_results`, `postconditions` (with `check_indices`), `oracle` (`basis`, `confidence`, `assumptions`, `review_required`) | `checkTests`: everything resolves to the analysis, the indices to real checks, `learner_description` only with a sentence, a scenario with an `unknown` oracle gets no test, at least one positive check (anti-triviality) |
-| 4 | **Consolidation** keeping unique coverage | generate: merges and leaves out, `coverage_plan`, `consolidation_notes`, `deferred_scenarios` | `checkTests`: at most 8 tests (`MAX_TESTS`); every target outcome planned or deferred with a reason; every class tested or deferred; every boundary tested on two sides, or the missing side deferred; every scenario tested or deferred. `planOf`: the coverage plan computed from the tests that are left (after repairs, left-out tests and duplicates), never taken from the model (`corrected` says whether the model's differed) |
+| 4 | **Consolidation** keeping unique coverage | generate: merges and leaves out, `coverage_plan`, `consolidation_notes`, `deferred_scenarios` | `checkTests`: at most 6 tests (`MAX_TESTS`); every target outcome planned or deferred with a reason; every class tested or deferred; every scenario tested or deferred. `planOf`: the coverage plan computed from the tests that are left (after repairs, left-out tests and duplicates), never taken from the model (`corrected` says whether the model's differed) |
 
 **One generate call per scenario** (since 2026-11-05, `nepoTest.ai` `generate`):
 - **Analyze says what is tested already:** each scenario's `tested_by` names the learner's tests that already test it
@@ -186,8 +185,8 @@ by the model and checked by code:
   `tested_by` (`scenariosToWrite`), at most 6 at once (`GENERATE_AT_ONCE`; the server allows as many per session,
   `AiLimits`, and 150 generates per hour).
 - **What each call gets and is checked against:** the whole analysis, with "Write tests only for scenario S2 "…", at
-  most N tests" in its task (N = 8 / the number of calls, at least 2). Its checks and repairs are against its
-  scenario's part of the analysis (`analysisFor`: its paths, outcomes, classes and boundaries).
+  most N tests" in its task (N = 6 / the number of calls, at least 1). Its checks and repairs are against its
+  scenario's part of the analysis (`analysisFor`: its paths, outcomes and classes).
 - **The merge:** worlds with the same name are told apart ("… 2"), duplicates across the calls are left out, and the
   coverage plan is computed for the whole analysis. The `tested_by` scenarios and their outcomes are deferred as
   `tested by "<their tests>"` (`testedDeferrals`).
@@ -240,18 +239,25 @@ by the model and checked by code:
   notice ("It reads no light sensor: dim light … changes nothing it reads"). Before, a line follower got a test in a
   dim tunnel: the model had taken the line tracker's "light %" for dim light.
 - **Few, readable tests** (2026-11-06, `nepo-ai-model-evaluation.md` E12):
-  - at most 4 scenarios, each a situation the learner would name, not one per decision outcome or boundary
+  - at most 4 scenarios, each a situation the learner would name, not one per decision outcome or input class
     (`checkAnalysis`: more than `MAX_SCENARIOS`, or two scenarios with the same outcomes, go back for a repair);
   - at most 6 tests (`MAX_TESTS`), at least 1 per scenario;
-  - boundary tests only where the learner would see the difference, not the line's edge;
   - a line follower is tested by where it gets to: a test whose only positive checks are about steering
     ("whenever it sees the line, it turns", "always turns") goes back for a repair (`checkTests`).
 
-  Before, a line follower got 8 tests, 7 of them about its steering. This narrows the spec's "BVA wherever the program
-  has a boundary" (TGA §6) to the boundaries the learner would notice.
+  Before, a line follower got 8 tests, 7 of them about its steering.
+- **No boundary value analysis** (2026-11-06, `nepo-ai-model-evaluation.md` E14): analyze gives each input dimension
+  its classes only (no `boundary_candidates`), and generate takes a typical case of each class, clear of where the
+  readings change (no `boundary_values`, no tests just below, at or above a threshold). `checkTests` no longer asks for
+  two sides of a boundary; an older answer's boundary fields are ignored. Contract 1.3.
+- **A start beside the line** (2026-11-06, E14): the recipe "A line beside the start" (`tests.md`) draws the line
+  8 cm to the side the program turns to on the plain floor. A test of a class "beside the line" whose line tracker
+  is on a line goes back for a repair (`lineProblems`). Before, most such tests either had a line through their start
+  or the line on the side the robot turns away from, where a right program never finds it (a real session: it spun
+  left for 90 s with the line on its right, and the test failed).
 - **Two checks are looser than TGA §8:** a planned outcome must be an outcome of the program, not necessarily of the
   test's paths (a run takes outcomes on its way: a wall test drives with nothing ahead before it sees the wall). A
-  class or boundary must be one of the analysis' (`whole`), not necessarily of the test's paths. Both had left out
+  class must be one of the analysis' (`whole`), not necessarily of the test's paths. Both had left out
   most good tests. A planned outcome that never happens still makes the test "not checked".
 
 **The semantics of a run:**
@@ -274,7 +280,7 @@ by the model and checked by code:
     the telemetry, in `plan` of `ai_tests_generated`, `ai_tests_checked` and `ai_tests_added`: per outcome `planned`,
     `deferred` (why not), `seen`; also `deferredInputs` and `deferredScenarios`;
   - the tests left out (with their problems: `leftOut`) and the duplicates (`duplicates`) of `ai_tests_generated`;
-  - the classes, boundaries and postconditions: in the telemetry and in the tests' provenance.
+  - the classes and postconditions: in the telemetry and in the tests' provenance.
 - **Spoken to the learner:** the model's texts (scenarios, assumptions, reasons, warnings) say "you" and "your
   program", never "the learner" (`system.md`, `tasks.md`). A fix's reason that speaks of "the learner" is sent back for
   a repair (`nepoTest.ai` `SPEAKS_OF_LEARNER`). The panel shows the model's texts in the "you" form anyway (`toYou`),
@@ -291,8 +297,14 @@ by the model and checked by code:
 - **No hash or agent echo:** the answers don't echo `schema_version`, `agent`, `robot` or `source_hash`. The browser
   binds every answer to its call (the fingerprint, the stale check before choosing), and the server adds `contract`
   to the meta.
-- **The test's inputs:** a test's executable fields are its `specific_inputs`. The `realized_by` of each class and
-  boundary links them.
+- **The test's inputs:** a test's executable fields are its `specific_inputs`. The `realized_by` of each class links
+  them.
+- **No boundary value analysis** (since 2026-11-06): TGA §G1b and ORCH §6.3 step 2 ask for tests just below, at and
+  above each boundary. They didn't work for us: the boundaries the model found were mostly the line's edge and the
+  edge of the sensors' range, details a learner doesn't read, which a line follower crosses all the time anyway; they
+  made the scenarios and tests many and in-depth, and tests close to where readings change were placed wrong more
+  often. Step 2 is equivalence partitioning only, with a typical case of each class. The price: a fault exactly at a
+  threshold (`>` for `>=`, 3 claps where 2 should do) is found only if a class's typical case happens to lie there.
 - **Not tested:** whether the tests find seeded faults (ORCH phase 5, mutation tests). That is phase 5 of the plan,
   parked until it is discussed.
 
@@ -460,7 +472,8 @@ deleted. The Test runner's `test_run` said that 1 AI test ran (edited) and passe
   2. **Repairs:**
      - an analysis missing an outcome and naming `D7.1` was repaired;
      - an answer was repaired too, with these problems: a check index that doesn't exist, a negative-only test, a
-       class that isn't the analysis', a class not tested, a boundary with no side tested.
+       class that isn't the analysis', a class not tested, a boundary with no side tested (boundaries were checked
+       until 2026-11-06).
   3. **Not checked:**
      - a test that passed in a world without an obstacle was shown as not checked, with "?", "nothing to decide for …"
        and "[if …] condition 1 holds: never happened", and "Seen in the runs: 2 of 3";
@@ -471,7 +484,7 @@ deleted. The Test runner's `test_run` said that 1 AI test ran (edited) and passe
      with `stale`; "Write them again" analysed the changed program anew.
   6. **Insufficient evidence:** "Nothing to test yet" with the analysis' reason.
   7. **Nine tests:** "at most 8" sent back.
-- **Live (DeepSeek, effort low):**
+- **Live (DeepSeek, effort low; 2026-11-04, with boundary value analysis, left out since 2026-11-06):**
   - **Example 1's line follower, with example 1's sentence:** 7 tests in 26.5 s for analyze and generate, all passed,
     every planned outcome seen. The model copied example 1's answer.
   - **The same program without a sentence:** again example 1's tests, now all labelled "Suggested from your blocks"
@@ -525,9 +538,10 @@ deleted. The Test runner's `test_run` said that 1 AI test ran (edited) and passe
   says "Usually under a minute" (with analyze and generate at none, about 35 s); for a fix (still at low), "Usually under a minute, sometimes up to 3" (fixes took 2
   to 33 s, but one took 177 s at DeepSeek, 28,800 tokens, near both the token cap and the timeout). At UCloud, low
   and high make no measurable difference.
-- **Generate at none plans less of the boundaries:** in the evaluation, the test at exactly the count of 3 claps was
-  missing in 3 of 4 runs at none, and one answer had no tests (a repair asks again). See
-  `docs/ai/nepo-ai-model-evaluation.md`.
-- **A deferral is judged only by its reason:** the code checks that every outcome, class and boundary side is tested
-  or deferred with a reason, but not whether the reason is sound. The rule against deferring what the program would
+- **No boundary tests:** since 2026-11-06 the tests take a typical case of each input class. A fault right at a
+  threshold (an off-by-one in a comparison, a count of 3 that should be 2) can pass them all; the learner can add such
+  a test in the Tests tab. (Before, at effort none, the test at exactly the count of 3 claps was missing in 3 of 4
+  runs anyway: `docs/ai/nepo-ai-model-evaluation.md`.)
+- **A deferral is judged only by its reason:** the code checks that every outcome and class is tested or deferred with
+  a reason, but not whether the reason is sound. The rule against deferring what the program would
   fail is in the prompt only.

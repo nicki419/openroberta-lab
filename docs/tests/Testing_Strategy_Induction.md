@@ -337,6 +337,12 @@ The exception separates a **test that is wrong** (its scenario never happened) f
 3. **EP and BVA in a continuous physical simulation are fuzzy.** The classes are "conceptual" (AA §A4), and thresholds are unknown by design.
 
    Boundary tests risk being flaky, or being boundaries only in name. The specification's answer is to defer a case or record the limitation, which is honest but limits what BVA can deliver.
+
+   **How the implementation handles it (2026-11-06): BVA is left out.**
+   - In practice, the boundaries the model found were mostly the line's edge and the edge of the sensors' range. Learners don't read such details, and a line follower crosses the line's edge all the time anyway.
+   - The boundary tests made the suites many and in-depth, and their inputs, close to where readings change, were placed wrong more often.
+   - Step 2 is now equivalence partitioning only, with a typical case of each class (`docs/ai/nepo-ai-tests.md`, "Deliberate deviations"; `docs/ai/nepo-ai-model-evaluation.md`, E14).
+   - The price, for the Discussion: a fault exactly at a threshold (an off-by-one in a comparison) is found only by chance.
 4. **The oracle can't be better than one sentence.** Without a description, every oracle is derived from the program and only weakly independent of it (E1).
 
    The labels make that visible, but the burden moves to a novice who, per Slides L6 p.66, often can't evaluate. This is the *human-oracle cost* that Barr et al. (2015) identify.

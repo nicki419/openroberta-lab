@@ -132,9 +132,9 @@ call's prompt, answer, reasoning and timing go into the telemetry; the evaluatio
 `docs/ai/nepo-ai-model-evaluation.md`), guesses what a program is meant to do and writes scenario tests for it, following the testing strategy of
 `docs/tests/*_v3.md`:
 - an analysis first: the program's decisions (found by code: `nepoTest.aiStrategy.ts`), the paths that target their
-  outcomes, the input classes and boundaries;
+  outcomes, the input classes (no boundary value analysis since 2026-11-06);
 - then the tests, each with its path, inputs, expected results, postconditions and the provenance of its expectation;
-- every outcome, class and boundary side is tested or deferred, checked by code;
+- every outcome and class is tested or deferred, checked by code;
 - the check runs measure which outcomes happened.
 
 The model gets the program, the learner's sentences and

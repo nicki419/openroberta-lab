@@ -66,7 +66,7 @@ export interface AiTest {
     scenario_id?: string;
     path_ids?: string[];
     planned_branch_ids?: string[];
-    input_selection?: any; // {equivalence_partitions: [{dimension, class, selected_realization, realized_by}], boundary_values: [... side, rationale]}
+    input_selection?: any; // {equivalence_partitions: [{dimension, class, selected_realization, realized_by}]} (older answers: boundary_values too, ignored)
     expected_results?: string[];
     postconditions?: { description: string; check_indices: number[] }[];
     oracle?: { basis: string; confidence: string; assumptions: string[]; review_required: boolean };

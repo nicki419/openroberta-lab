@@ -10,7 +10,7 @@ This document records the tests we ran on 2026-11-05, to decide two things:
 
 The four calls are:
 - **infer:** guess what the program is meant to do;
-- **analyze:** the program's decisions, paths, input classes and boundaries;
+- **analyze:** the program's decisions, paths and input classes (and boundaries, until E14);
 - **generate:** write the tests from the analysis;
 - **fix:** repair tests that failed.
 
@@ -439,6 +439,60 @@ see. The context pack's many recipes for dim light and tunnels, written for anot
 - the tests were "On the line, it follows it to the goal" and "Started beside the line, it finds it", plus one "Past
   the line's end, it drives straight".
 
+### E14: No boundary value analysis (2026-11-06)
+
+**The problem.** Boundary value analysis didn't work for us. The boundaries the model found were mostly the line's
+edge and the edge of the obstacle sensors' range: details a learner doesn't read, and a line follower crosses the
+line's edge all the time anyway. In the last real session of the tunnel level (telemetry line 420), the analysis had
+6 boundary candidates, the guess offered to test "what happens right around the light level where it changes", and 2
+of the 5 tests were boundary tests ("With the line just left, it turns right towards it", "Just below 45, it turns
+left").
+
+**The changes** (contract 1.3):
+- **Analyze:** classes only. `boundary_candidates` and the scenario category `boundary` are gone from the schema and
+  `tasks.md`.
+- **Generate:** a typical case of each class, clear of where the readings change (`tests.md` step 2, `simulator.md`
+  "Where readings change"). No `boundary_values`, and no recipes for "just not seen" or "just below p %". Example 1
+  lost its four boundary tests (just on and just off the line's edge, the box just in and just out of range).
+- **The Lab:** `checkTests` no longer asks for both sides of a boundary. An older answer's boundary fields are ignored.
+
+**The check:** two real sessions, replayed as the Lab runs them now: infer, analyze, then one generate call per
+scenario, 3 times each. On DeepSeek (UCloud didn't answer that morning), with the presets: infer `low`, analyze and
+generate `none`.
+
+| Session | Before (the session itself, old context pack) | After (3 runs) |
+|---|---|---|
+| Tunnel level (line 420) | 7 scenarios, 6 boundary candidates; 5 tests, 2 at a boundary | 3 or 4 scenarios, no boundary fields; 2, 0 and 0 new tests (the learner's tests already test the rest); the 2: a wall seen at once (x + 8) and one it drives up to (x + 30), each with its own line |
+| Curves, a line follower (line 680) | 2 scenarios, 1 boundary candidate; 2 tests | 1 to 3 scenarios, no boundary fields; 2 tests in each run: from on the line and from beside it |
+
+- 0 of 6 analyses had a boundary field, and no test sat at a threshold.
+- The new guesses asked for situations, not thresholds: "what it does in dim light when there is no wall on its left
+  or right", "a wall straight ahead while it is in dim light".
+- Time at DeepSeek: infer 3 to 13 s, analyze 5 to 11 s, each generate call 4 to 6 s.
+
+**What it found besides: a start beside the line.**
+- **The finding:**
+  - In 2 of 3 runs, the test "Started beside the line, it finds it" had a line drawn through its start (the recipe
+    "A line through the start").
+  - Where the line was beside the start, it was mostly on the wrong side: the program spins left on the plain floor,
+    but the line lay on its right, copied from example 1. A right program never finds it there.
+  - The user's real session with the old context pack had the same: the test failed after 90 s of spinning (line 684,
+    the "turns left" outcome taken 1,800 times) and was added anyway.
+- **The changes:**
+  - a recipe "A line beside the start" (`tests.md`): 8 cm to the side, on the side the program turns to on the plain
+    floor, read from the program;
+  - example 1 says why its line is on the right;
+  - a Lab check (`lineProblems`): a test of a class "beside the line" whose line tracker is on a line goes back for a
+    repair.
+- **The check:**
+  - **The new check** flagged exactly the 3 tests with a line through their start, and none of the 3 right ones.
+  - **One repair round** moved the line beside the start in all 3 (5 to 6 s each), but on the right in 2 of them.
+  - **Before the side rule,** 5 of 6 lines beside a start were on the side the robot turns away from.
+  - **With it** (3 more runs): one test had the line on its left, as the program needs, and the reason in its
+    realization. Its start B was missing from the world, which the format check sends back. One run deferred the
+    class, and one wrote no such test.
+- 3 runs per session are few: these are signs, not rates.
+
 ## Summary
 
 | | DeepSeek | UCloud |
@@ -540,7 +594,8 @@ Configuration (`.env`; presets in `openRoberta.properties`):
     for the far side of the sensors' range.
 
   The settings are `<NAME>_EFFORT_INFER`, `_ANALYZE`, `_GENERATE`, `_FIX`.
-- The panel says "Usually 1 to 2 minutes" for writing tests, and "Usually under a minute, sometimes up to 3" for a fix.
+- The panel says "Usually under a minute" for writing tests, and "Usually under a minute, sometimes up to 3" for a fix.
+- **No boundary value analysis** (after E14): the tests take a typical case of each input class. Contract 1.3.
 
 Fixes from these tests: the HARICA root for UCloud (E6.1); repairs that are shortened, not refused (E6.2); the reasoning
 read from `reasoning` too (E1); and the full telemetry of every call (prompts, answers, reasoning, tries, times; see
@@ -562,6 +617,7 @@ Each folder has the scripts and their raw outputs:
 | `e6-live-session/` | `today.py`, `today.txt`: the live session's events; `fix_times.py` |
 | `e7-learners-tests-count/` | `dup_check.py` (old against new rules), `dup_summary.py`, `summary.txt`, `out_*.json` |
 | `e8-one-call-per-scenario/` | `per_scenario.py` (the replay and its evaluation), `results.json` |
+| `e14-no-boundaries/` | `no_bva_chain.py` (the replay: `results.json` both sessions, `results_l2-curves_beside1.json` with the beside recipe, `results_l2-curves.json` with the side rule), `beside_repair.py`, `results_beside_repair.json` |
 | `e13-sensors-it-reads/` | `sensors_chain.py`, `results.json` |
 | `e12-fewer-scenarios/` | `chain.py` (DeepSeek), `chain_ucloud.py` (the run), `results_ucloud.json` |
 | `e11-dim-light-no-walls/` | `dim_check.py`, `results.json` |

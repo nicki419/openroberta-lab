@@ -7,8 +7,8 @@
  *   times; an analysis still wrong after that isn't used.
  * - generate, from the checked analysis: an answer is checked before anyone sees it:
  *   1. made whole and checked against the learner's tests and the program (nepoTest.aiFormat checkAnswer), and against the analysis and the testing
- *      strategy (nepoTest.aiStrategy checkTests: paths, input classes and boundaries, expected results, postconditions, oracle, a positive check, the
- *      coverage of every outcome, class and boundary side);
+ *      strategy (nepoTest.aiStrategy checkTests: paths, input classes, expected results, postconditions, oracle, a positive check, the coverage of
+ *      every outcome and class; no boundaries);
  *   2. translated, as a suite of its own, by NepoTest's translator in the worker (blocks.py, as the Tests tab does): starts outside the floor or on an
  *      obstacle, and the rest of its rules;
  *   3. if something is wrong, the problems go back to the model with its answer (a repair), at most REPAIRS times; tests still wrong after that are
@@ -66,7 +66,7 @@ export interface Strategy {
     analysis: any;
     maxTests?: number; // one generate call of several: its share of STRATEGY.MAX_TESTS
     only?: string[]; // … and the scenarios it writes (the analysis is their part)
-    whole?: any; // … and the whole analysis (the classes and boundaries a test may name)
+    whole?: any; // … and the whole analysis (the classes a test may name)
 }
 
 /** at most so many generate calls at once (the server's AiService.GENERATE_AT_ONCE) */

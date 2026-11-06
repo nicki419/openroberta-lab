@@ -89,27 +89,26 @@ Their `role`:
   robot moving while it goes on.
 - When the program ends, the robot stops.
 
-## Where readings change (the boundaries the simulator has)
+## Where readings change
 
-The simulator is exact and the same in every run, so a test close to one of these places runs the same way each time.
+Place a test's things clear of these places, so that each test is a typical case of its situation.
 
 - **The line's edge**: the line tracker sees black while it is over the line's black core, which is 1.48 cm wide:
-  up to about 0.7 cm from the line's middle. Just inside: about 0.3 cm off the middle; just outside: about 1.5 to 2 cm
-  off the middle, on the white band (the line tracker then reads about 100 %, the peach floor about 83 %). A start
-  facing along a straight line puts the line tracker as far off the line as the start is.
+  up to about 0.7 cm from the line's middle. A start on the line: on its middle; beside it: 1.5 to 2 cm off the
+  middle, on the white band (about 100 %), or 5 cm or more, on the peach floor (about 83 %). A start facing along a
+  straight line puts the line tracker as far off the line as the start is.
 - **The obstacle sensors' range**: an obstacle is seen while it is less than 3 cm ahead of the sensors, which are 6 cm
-  ahead of the axle: an obstacle 8 cm ahead of a start is seen at once (just inside), one 10 cm ahead isn't (just
-  outside). The robot's front is 6.2 cm ahead of the axle.
+  ahead of the axle: an obstacle 8 cm ahead of a start is seen at once; one 30 cm ahead isn't, until the robot drives
+  up to it. The robot's front is 6.2 cm ahead of the axle.
 - **Which obstacle sensor sees it**: all three look forward. For a start at (x, y) with heading 0 (facing right), each
   sees from about x + 6 to x + 9, in a fan about 2.3 cm wide: LEFT from y − 3.8 to y − 1.5, FRONT from y − 1.2 to
   y + 1.2, RIGHT from y + 1.5 to y + 3.8. A wall beside the robot, running along it, is seen by none of them; "a wall
   on the left" for a program that reads LEFT is something in front of the robot's left half.
 - **Light under a tunnel's roof**: the light sensors read 100 % at an opening and 40 % from 15 cm inside on, linear in
   between (measured from the nearer opening, at the sensors, 5.5 cm ahead of the axle): a reading of p % is at
-  (100 − p) / 4 cm inside. A program that compares the light with 70 % changes at 7.5 cm inside.
+  (100 − p) / 4 cm inside. A program that compares the light with 70 % changes at 7.5 cm inside; from 15 cm inside
+  on, the light is 40 %, below any such threshold.
 - **Claps and keys over time**: a clap is heard from its `at` for about 0.3 s, a key is held from its `at` for
-  0.2 s. A "wait until" that begins later than that misses it, so the boundary of "before the wait begins" lies 0.3 s
-  (clap) or 0.2 s (key) before the moment the program reaches the wait. That moment follows from the blocks before it:
-  a drive of d cm at p % takes about d / (0.35 × p) s, a wait t ms.
-- **Numbers the program compares with**: a count, a variable, a light %, a repeat count are whole numbers: below, at
-  and above are exact (2, 3 and 4 claps for "3 claps").
+  0.2 s. A "wait until" that begins later than that misses it: let a clap or key come at least 0.5 s after the moment
+  the program reaches the wait. That moment follows from the blocks before it: a drive of d cm at p % takes about
+  d / (0.35 × p) s, a wait t ms.
