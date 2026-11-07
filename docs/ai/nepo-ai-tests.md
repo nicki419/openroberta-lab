@@ -265,14 +265,28 @@ by the model and checked by code:
   program that read the line tracker was told "on a plain floor it circles", and the Lab sent back every test without a
   line: a program that steers only over black or white (it drives straight on) got lines in its tunnel tests. The
   recipe "A line beside the start" takes the side from this run too; for a program that drives straight on, "beside the
-  line" is the plain floor, and the class is deferred.
+  line" is the plain floor, and the class is deferred. **Since 2026-11-07 (phase 5) a start beside the line is tested only
+  if the learner says the robot should find the line**; otherwise the class is deferred ("you didn't say it should find
+  the line"): a learner's robot starts on the line, and the side came from the program, which in the study is broken
+  (a broken line follower that turns the other way put the line where every right program turns away from it).
 - **Nothing inside a tunnel** (2026-11-06, E15): an obstacle inside a tunnel narrower than 30 cm that doesn't close it
   goes back for a repair (`nepoTest.aiFormat` `tunnelProblems`): the robot is 7.5 cm wide and bumps into it. Walls at the
   robot's sides in the dark are the tunnel's own walls, in a bend ("Dim light: walls on its left or right" in
-  `tests.md`), checked by where the robot gets to (`never_bumps` the tunnel, `reaches` a goal after the exit), not by
+  `tests.md`), checked by where the robot gets to (`never_bumps` the tunnel, `reaches` a goal inside the tunnel after
+  the bend; a goal after the exit until 2026-11-07), not by
   `whenever` `obstacle_left` → `turns_right`, which fails on a program that turns in steps. Before, `tests.md` itself
   said "Boxes for LEFT or RIGHT fit inside it", and its box for LEFT stood inside the robot's width: every such test
   bumped into it, on a right program.
+- **Tunnels drawn as a light-dependent program needs them** (2026-11-07, phase 5,
+  `nepo-ai-technique-compliance.md`): under the roof the light falls over the first 15 cm, so a program that compares it
+  with 70 % switches 7.5 cm inside and still follows the line there. `simulator.md` says so, and the recipes of `tests.md`
+  ("Driving through a tunnel", "Dim light: walls on its left or right") let the line run 15 cm into the tunnel, bring
+  the robot to it along 40 cm of straight line, and put the goal **inside the tunnel**, where it is dark. No goal after
+  the exit: the robot comes out of the dark a little to one side, and a line follower finds the line again only from
+  one side, so 5 of 9 right programs of the phase 5 corpus missed it (`evaluation/phase5/check_recipes.py`). No wall
+  across a tunnel unless the learner says what the robot should do at a wall in the dark: a program that checks the
+  light first never gets to its wall-stop there. `line_end` is not for line followers (they leave the black core all
+  the time). Before, these made 37 of the 39 false alarms of phase 5's first measurement.
 - **Two checks are looser than TGA §8:** a planned outcome must be an outcome of the program, not necessarily of the
   test's paths (a run takes outcomes on its way: a wall test drives with nothing ahead before it sees the wall). A
   class must be one of the analysis' (`whole`), not necessarily of the test's paths. Both had left out

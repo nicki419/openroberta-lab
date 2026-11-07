@@ -1,0 +1,369 @@
+{
+ "job": {
+  "id": "followInTheDark__B-light-above__precise__r2__plain",
+  "function": "followInTheDark",
+  "version": "followInTheDark/B-light-above",
+  "sentenceKind": "precise",
+  "sentence": "In the dark, follow a black line when there is one under the robot, and drive straight where there is none; in the light, follow the line as before.",
+  "repeat": 2,
+  "pipeline": "plain",
+  "name": "p5_followInTheDark_B_light_above"
+ },
+ "ms": {
+  "total": 114226,
+  "generate": 114226
+ },
+ "calls": [
+  {
+   "tokens": {
+    "in": 14074,
+    "cached": 13824,
+    "out": 16019,
+    "reasoning": 14729
+   },
+   "latencyMs": 114092
+  }
+ ],
+ "generate": {
+  "ok": true,
+  "repairs": 0,
+  "dropped": [],
+  "worlds": [
+   {
+    "name": "A line in the light",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 40,
+        "y": 100,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "l1",
+        "kind": "line",
+        "points": [
+         [
+          30,
+          100
+         ],
+         [
+          170,
+          100
+         ]
+        ],
+        "width": 1.48
+       },
+       {
+        "id": "g1",
+        "kind": "rect",
+        "name": "Goal 1",
+        "role": "goal",
+        "x": 155,
+        "y": 85,
+        "w": 30,
+        "h": 30
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Follows the line in the light",
+      "scenario": "Given a black line on a bright floor, when your program runs, then it follows the line and reaches its end.",
+      "start": "A",
+      "until": "g1",
+      "max_time_ms": 25000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "g1"
+       },
+       {
+        "check": "never_bumps"
+       },
+       {
+        "check": "does",
+        "does": "drives_forward",
+        "after_ms": 500
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "A line in a dark tunnel",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 30,
+        "y": 100,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "t1",
+        "kind": "tunnel",
+        "name": "Tunnel",
+        "role": "obstacle",
+        "points": [
+         [
+          20,
+          100
+         ],
+         [
+          200,
+          100
+         ]
+        ],
+        "width": 15
+       },
+       {
+        "id": "l1",
+        "kind": "line",
+        "points": [
+         [
+          25,
+          100
+         ],
+         [
+          190,
+          100
+         ]
+        ],
+        "width": 1.48
+       },
+       {
+        "id": "g1",
+        "kind": "rect",
+        "name": "Goal 1",
+        "role": "goal",
+        "x": 80,
+        "y": 95,
+        "w": 10,
+        "h": 10
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Follows the line in the dark",
+      "scenario": "Given a black line on the floor of a dark tunnel, when your program runs, then it follows the line on through the dark.",
+      "start": "A",
+      "until": "g1",
+      "max_time_ms": 20000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "g1"
+       },
+       {
+        "check": "never_bumps",
+        "item": "t1"
+       },
+       {
+        "check": "does",
+        "does": "drives_forward",
+        "after_ms": 500
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "A dark tunnel without a line",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 30,
+        "y": 100,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "t1",
+        "kind": "tunnel",
+        "name": "Tunnel",
+        "role": "obstacle",
+        "points": [
+         [
+          20,
+          100
+         ],
+         [
+          200,
+          100
+         ]
+        ],
+        "width": 15
+       },
+       {
+        "id": "g1",
+        "kind": "rect",
+        "name": "Goal 1",
+        "role": "goal",
+        "x": 80,
+        "y": 95,
+        "w": 10,
+        "h": 10
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Drives straight in the dark",
+      "scenario": "Given a dark tunnel with no black line on its floor, when your program runs, then it drives straight on through the dark.",
+      "start": "A",
+      "until": "g1",
+      "max_time_ms": 15000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "g1"
+       },
+       {
+        "check": "never_bumps",
+        "item": "t1"
+       },
+       {
+        "check": "does",
+        "does": "drives_forward",
+        "after_ms": 500
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "A line that bends in the light",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 40,
+        "y": 60,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "l1",
+        "kind": "line",
+        "points": [
+         [
+          30,
+          60
+         ],
+         [
+          90,
+          60
+         ],
+         [
+          120,
+          85
+         ],
+         [
+          130,
+          125
+         ]
+        ],
+        "smooth": true,
+        "width": 1.48
+       },
+       {
+        "id": "g1",
+        "kind": "rect",
+        "name": "Goal 1",
+        "role": "goal",
+        "x": 115,
+        "y": 110,
+        "w": 30,
+        "h": 30
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Follows a bending line in the light",
+      "scenario": "Given a black line that bends to the right on a bright floor, when your program runs, then it follows the line around the bend to its end.",
+      "start": "A",
+      "until": "g1",
+      "max_time_ms": 30000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "g1"
+       },
+       {
+        "check": "never_bumps"
+       },
+       {
+        "check": "does",
+        "does": "drives_forward",
+        "after_ms": 500
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "duplicates": 0
+ }
+}

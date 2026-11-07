@@ -6,7 +6,8 @@ import json
 import os
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-R = os.path.join(HERE, 'results')
+RESULTS = os.environ.get('PHASE5_RESULTS', 'results')  # the folder of a round's results (2026-11-07: results-r2 after the tuning)
+R = os.path.join(HERE, RESULTS)
 redo = []
 for f in glob.glob(os.path.join(R, 'generated', '*.json')):
     r = json.load(open(f, encoding='utf-8'))

@@ -1,0 +1,209 @@
+{
+ "job": {
+  "id": "avoidWalls__A-swapped__precise__r2__plain",
+  "function": "avoidWalls",
+  "version": "avoidWalls/A-swapped",
+  "sentenceKind": "precise",
+  "sentence": "Inside a dark tunnel, steer away from its walls: when a wall is close on the left, turn right, and when one is close on the right, turn left, so the robot gets through a bending tunnel without touching it.",
+  "repeat": 2,
+  "pipeline": "plain",
+  "name": "p5_avoidWalls_A_swapped"
+ },
+ "ms": {
+  "total": 93956,
+  "generate": 93956
+ },
+ "calls": [
+  {
+   "tokens": {
+    "in": 13080,
+    "cached": 2304,
+    "out": 13344,
+    "reasoning": 12675
+   },
+   "latencyMs": 93816
+  }
+ ],
+ "generate": {
+  "ok": true,
+  "repairs": 0,
+  "dropped": [],
+  "worlds": [
+   {
+    "name": "A dark tunnel bending right",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 60,
+        "y": 50,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "t1",
+        "kind": "tunnel",
+        "name": "Tunnel",
+        "role": "obstacle",
+        "points": [
+         [
+          50,
+          50
+         ],
+         [
+          110,
+          50
+         ],
+         [
+          150,
+          80
+         ],
+         [
+          165,
+          120
+         ],
+         [
+          165,
+          165
+         ]
+        ],
+        "smooth": true,
+        "width": 20
+       },
+       {
+        "id": "g1",
+        "kind": "rect",
+        "name": "Goal 1",
+        "role": "goal",
+        "x": 160,
+        "y": 130,
+        "w": 10,
+        "h": 10
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Gets through the right bend",
+      "scenario": "Given a dark tunnel that bends to the right, when your program drives through it, then it turns away from the wall on its left and gets to the goal after the bend without touching the tunnel.",
+      "start": "A",
+      "until": "g1",
+      "max_time_ms": 40000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "never_bumps",
+        "item": "t1"
+       },
+       {
+        "check": "reaches",
+        "item": "g1"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "A dark tunnel bending left",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 60,
+        "y": 150,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "t1",
+        "kind": "tunnel",
+        "name": "Tunnel",
+        "role": "obstacle",
+        "points": [
+         [
+          50,
+          150
+         ],
+         [
+          110,
+          150
+         ],
+         [
+          150,
+          120
+         ],
+         [
+          165,
+          80
+         ],
+         [
+          165,
+          35
+         ]
+        ],
+        "smooth": true,
+        "width": 20
+       },
+       {
+        "id": "g1",
+        "kind": "rect",
+        "name": "Goal 1",
+        "role": "goal",
+        "x": 160,
+        "y": 60,
+        "w": 10,
+        "h": 10
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Gets through the left bend",
+      "scenario": "Given a dark tunnel that bends to the left, when your program drives through it, then it turns away from the wall on its right and gets to the goal after the bend without touching the tunnel.",
+      "start": "A",
+      "until": "g1",
+      "max_time_ms": 40000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "never_bumps",
+        "item": "t1"
+       },
+       {
+        "check": "reaches",
+        "item": "g1"
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "duplicates": 0
+ }
+}

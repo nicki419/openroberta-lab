@@ -14,8 +14,9 @@ import threading
 import browser
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-OUT = os.path.join(HERE, 'results', 'evaluated')
-SOURCES = {'full': os.path.join(HERE, 'results', 'generated'), 'plain': os.path.join(HERE, 'results', 'plain')}
+RESULTS = os.environ.get('PHASE5_RESULTS', 'results')  # the folder of a round's results (2026-11-07: results-r2 after the tuning)
+OUT = os.path.join(HERE, RESULTS, 'evaluated')
+SOURCES = {'full': os.path.join(HERE, RESULTS, 'generated'), 'plain': os.path.join(HERE, RESULTS, 'plain')}
 
 
 def usable(versions, fn):
@@ -62,7 +63,8 @@ def main(pipelines):
                         batch = jobs[i:i + 4]
                         r = browser.run_js(browser.fill('eval.js', JOBS=batch))
                         # 2026-11-07: two processes on one Chrome once swapped their scripts (_run_<port>.js), and 4 requests got the runs of others
-                        if sorted(x['key'] for x in r['results']) != sorted(j['key'] for j in batch) or                                 any((t['world'], t['test']) not in mine for x in r['results'] for t in x.get('tests', [])):
+                        if sorted(x['key'] for x in r['results']) != sorted(j['key'] for j in batch) or \
+                                any((t['world'], t['test']) not in mine for x in r['results'] for t in x.get('tests', [])):
                             raise RuntimeError('the runs are of another request (two processes on one Chrome?)')
                         for x in r['results']:
                             runs[x['key']] = x

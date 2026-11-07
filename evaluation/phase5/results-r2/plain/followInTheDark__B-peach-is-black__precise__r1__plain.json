@@ -1,0 +1,360 @@
+{
+ "job": {
+  "id": "followInTheDark__B-peach-is-black__precise__r1__plain",
+  "function": "followInTheDark",
+  "version": "followInTheDark/B-peach-is-black",
+  "sentenceKind": "precise",
+  "sentence": "In the dark, follow a black line when there is one under the robot, and drive straight where there is none; in the light, follow the line as before.",
+  "repeat": 1,
+  "pipeline": "plain",
+  "name": "p5_followInTheDark_B_peach_is_black"
+ },
+ "ms": {
+  "total": 191670,
+  "generate": 191670
+ },
+ "calls": [
+  {
+   "tokens": {
+    "in": 14075,
+    "cached": 10112,
+    "out": 30349,
+    "reasoning": 29037
+   },
+   "latencyMs": 191531
+  }
+ ],
+ "generate": {
+  "ok": true,
+  "repairs": 0,
+  "dropped": [],
+  "worlds": [
+   {
+    "name": "A line in the light",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 30,
+        "y": 100,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "l1",
+        "kind": "line",
+        "points": [
+         [
+          20,
+          100
+         ],
+         [
+          130,
+          100
+         ]
+        ],
+        "width": 1.48
+       },
+       {
+        "id": "g1",
+        "kind": "rect",
+        "name": "Goal 1",
+        "role": "goal",
+        "x": 115,
+        "y": 85,
+        "w": 15,
+        "h": 30
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Follows the line in the light",
+      "scenario": "Given a black line on a bright floor, when your program runs for 15 s, then the robot follows the line and reaches the goal at its end.",
+      "start": "A",
+      "until": "g1",
+      "max_time_ms": 15000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "g1"
+       },
+       {
+        "check": "does",
+        "does": "drives_forward",
+        "after_ms": 300
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "A line in a dark tunnel",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 40,
+        "y": 100,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "t1",
+        "kind": "tunnel",
+        "name": "Tunnel",
+        "role": "obstacle",
+        "points": [
+         [
+          20,
+          100
+         ],
+         [
+          250,
+          100
+         ]
+        ],
+        "width": 15
+       },
+       {
+        "id": "l1",
+        "kind": "line",
+        "points": [
+         [
+          20,
+          100
+         ],
+         [
+          250,
+          100
+         ]
+        ],
+        "width": 1.48
+       },
+       {
+        "id": "g1",
+        "kind": "rect",
+        "name": "Goal 1",
+        "role": "goal",
+        "x": 105,
+        "y": 95,
+        "w": 10,
+        "h": 10
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Follows the line in the dark",
+      "scenario": "Given a black line lying in a dark tunnel, when your program runs for 15 s, then the robot follows the line and reaches the goal inside the tunnel without bumping into its walls.",
+      "start": "A",
+      "until": "g1",
+      "max_time_ms": 15000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "g1"
+       },
+       {
+        "check": "never_bumps",
+        "item": "t1"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "A dark tunnel without a line",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 50,
+        "y": 100,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "t1",
+        "kind": "tunnel",
+        "name": "Tunnel",
+        "role": "obstacle",
+        "points": [
+         [
+          40,
+          100
+         ],
+         [
+          250,
+          100
+         ]
+        ],
+        "width": 15
+       },
+       {
+        "id": "g1",
+        "kind": "rect",
+        "name": "Goal 1",
+        "role": "goal",
+        "x": 110,
+        "y": 95,
+        "w": 10,
+        "h": 10
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Drives straight in the dark",
+      "scenario": "Given a dark tunnel with no line under the robot, when your program runs for 12 s, then the robot drives straight ahead and reaches the goal inside the tunnel without bumping into its walls.",
+      "start": "A",
+      "until": "g1",
+      "max_time_ms": 12000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "g1"
+       },
+       {
+        "check": "never_bumps",
+        "item": "t1"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "A line into a tunnel",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 30,
+        "y": 100,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "l1",
+        "kind": "line",
+        "points": [
+         [
+          20,
+          100
+         ],
+         [
+          200,
+          100
+         ]
+        ],
+        "width": 1.48
+       },
+       {
+        "id": "t1",
+        "kind": "tunnel",
+        "name": "Tunnel",
+        "role": "obstacle",
+        "points": [
+         [
+          70,
+          100
+         ],
+         [
+          200,
+          100
+         ]
+        ],
+        "width": 15
+       },
+       {
+        "id": "g1",
+        "kind": "rect",
+        "name": "Goal 1",
+        "role": "goal",
+        "x": 110,
+        "y": 95,
+        "w": 10,
+        "h": 10
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Follows the line into the dark",
+      "scenario": "Given a black line that runs from the bright floor into a dark tunnel, when your program runs for 15 s, then the robot follows the line into the dark and reaches the goal inside the tunnel without bumping into its walls.",
+      "start": "A",
+      "until": "g1",
+      "max_time_ms": 15000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "g1"
+       },
+       {
+        "check": "never_bumps",
+        "item": "t1"
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "duplicates": 0
+ }
+}

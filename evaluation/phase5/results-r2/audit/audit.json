@@ -1,0 +1,59 @@
+{
+ "first_answers": {
+  "analyze 1.4": {
+   "answers": 82,
+   "sent_back": 6,
+   "by_technique": {
+    "Traceability (ids)": 1,
+    "Consolidation and limits": 3,
+    "World and format (not a technique)": 1,
+    "Branch coverage": 3
+   },
+   "problem_lines": {
+    "Traceability (ids)": 1,
+    "Consolidation and limits": 3,
+    "World and format (not a technique)": 1,
+    "Branch coverage": 3
+   }
+  },
+  "generate 1.4": {
+   "answers": 186,
+   "sent_back": 29,
+   "by_technique": {
+    "World and format (not a technique)": 27,
+    "Equivalence partitioning": 12
+   },
+   "problem_lines": {
+    "World and format (not a technique)": 42,
+    "Equivalence partitioning": 28
+   }
+  }
+ },
+ "rules": {},
+ "after_repairs": {},
+ "runs": {
+  "tests": 0,
+  "states": {},
+  "planned_outcomes": 0,
+  "happened": 0,
+  "tests_with_an_outcome_that_never_happened": 0
+ },
+ "deferred": [],
+ "reasoning": {
+  "analyze 1.4": {
+   "calls": 88,
+   "efforts": {
+    "low": 88
+   },
+   "with_reasoning": 88
+  },
+  "generate 1.4": {
+   "calls": 220,
+   "efforts": {
+    "low": 220
+   },
+   "with_reasoning": 220
+  }
+ },
+ "orphan_repairs": 0
+}

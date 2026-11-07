@@ -1,0 +1,1962 @@
+{
+ "edpyError": null,
+ "floor": {
+  "seconds": 3,
+  "moved_cm": 26,
+  "turned_deg": -258
+ },
+ "decisions": [
+  {
+   "id": "D1",
+   "block": "p5_2690",
+   "short": "b5",
+   "kind": "if",
+   "outcomes": [
+    "D1.1",
+    "D1.else"
+   ]
+  },
+  {
+   "id": "D2",
+   "block": "p5_2694",
+   "short": "b9",
+   "kind": "if",
+   "outcomes": [
+    "D2.1",
+    "D2.2",
+    "D2.else"
+   ]
+  },
+  {
+   "id": "D3",
+   "block": "p5_2710",
+   "short": "b25",
+   "kind": "if",
+   "outcomes": [
+    "D3.1",
+    "D3.else"
+   ]
+  },
+  {
+   "id": "D4",
+   "block": "p5_2714",
+   "short": "b29",
+   "kind": "if",
+   "outcomes": [
+    "D4.1",
+    "D4.2",
+    "D4.else"
+   ]
+  },
+  {
+   "id": "D5",
+   "block": "p5_2726",
+   "short": "b41",
+   "kind": "if",
+   "outcomes": [
+    "D5.1",
+    "D5.else"
+   ]
+  },
+  {
+   "id": "D6",
+   "block": "p5_2734",
+   "short": "b49",
+   "kind": "if",
+   "outcomes": [
+    "D6.1",
+    "D6.else"
+   ]
+  },
+  {
+   "id": "D7",
+   "block": "p5_2739",
+   "short": "b54",
+   "kind": "if",
+   "outcomes": [
+    "D7.1",
+    "D7.else"
+   ]
+  }
+ ],
+ "nepo": "<block_set xmlns=\"http://de.fhg.iais.roberta.blockly\" robottype=\"edison\" xmlversion=\"3.1\" description=\"\" tags=\"\"><instance x=\"40\" y=\"40\"><block type=\"robControls_start\" id=\"b1\" intask=\"true\" deletable=\"false\"><mutation declare=\"false\"/><field name=\"DEBUG\">FALSE</field><data>{\"learningRate\":0.03,\"regularizationRate\":0,\"noise\":0,\"batchSize\":10,\"discretize\":false,\"percTrainData\":50,\"activationKey\":\"linear\",\"activation\":{},\"regularization\":null,\"initUntil\":null,\"collectStats\":false,\"numHiddenLayers\":0,\"networkShape\":[],\"weights\":[[[\"1\"]],[[]]],\"biases\":[[\"0\"],[\"0\"]],\"precision\":\"2\",\"weightArcMaxSize\":8,\"weightSuppressMultOp\":true,\"inputs\":[\"n1\"],\"outputs\":[\"n2\"],\"hiddenNeurons\":[]}</data></block><block type=\"robControls_loopForever\" id=\"b2\" intask=\"true\"><statement name=\"DO\"><block type=\"robProcedures_callnoreturn\" id=\"b3\" intask=\"true\"><mutation name=\"followInTheDark\"/></block></statement></block></instance><instance x=\"420\" y=\"40\"><block type=\"robProcedures_defnoreturn\" id=\"b4\" intask=\"true\"><mutation declare=\"false\"/><field name=\"NAME\">followInTheDark</field><statement name=\"STACK\"><block type=\"robControls_ifElse\" id=\"b5\" intask=\"true\"><mutation else=\"1\"/><repetitions><value name=\"IF0\"><block type=\"logic_compare\" id=\"b6\" intask=\"true\"><field name=\"OP\">LT</field><value name=\"A\"><block type=\"robSensors_light_getSample\" id=\"b7\" intask=\"true\"><mutation mode=\"LIGHT\"/><field name=\"MODE\">LIGHT</field><field name=\"SENSORPORT\">RLIGHT</field><field name=\"SLOT\"/></block></value><value name=\"B\"><block type=\"math_integer\" id=\"b8\" intask=\"true\"><field name=\"NUM\">60</field></block></value></block></value><statement name=\"DO0\"><block type=\"robControls_ifElse\" id=\"b9\" intask=\"true\"><mutation elseif=\"1\" else=\"1\"/><repetitions><value name=\"IF0\"><block type=\"logic_compare\" id=\"b10\" intask=\"true\"><field name=\"OP\">LT</field><value name=\"A\"><block type=\"robSensors_light_getSample\" id=\"b11\" intask=\"true\"><mutation mode=\"LIGHT\"/><field name=\"MODE\">LIGHT</field><field name=\"SENSORPORT\">LLIGHT</field><field name=\"SLOT\"/></block></value><value name=\"B\"><block type=\"math_integer\" id=\"b12\" intask=\"true\"><field name=\"NUM\">45</field></block></value></block></value><statement name=\"DO0\"><block type=\"robActions_motorDiff_curve\" id=\"b13\" intask=\"true\"><field name=\"DIRECTION\">FOREWARD</field><value name=\"POWER_LEFT\"><block type=\"math_integer\" id=\"b14\" intask=\"true\"><field name=\"NUM\">15</field></block></value><value name=\"POWER_RIGHT\"><block type=\"math_integer\" id=\"b15\" intask=\"true\"><field name=\"NUM\">35</field></block></value></block></statement><value name=\"IF1\"><block type=\"logic_compare\" id=\"b16\" intask=\"true\"><field name=\"OP\">GT</field><value name=\"A\"><block type=\"robSensors_light_getSample\" id=\"b17\" intask=\"true\"><mutation mode=\"LIGHT\"/><field name=\"MODE\">LIGHT</field><field name=\"SENSORPORT\">LINETRACKER</field><field name=\"SLOT\"/></block></value><value name=\"B\"><block type=\"math_integer\" id=\"b18\" intask=\"true\"><field name=\"NUM\">95</field></block></value></block></value><statement name=\"DO1\"><block type=\"robActions_motorDiff_curve\" id=\"b19\" intask=\"true\"><field name=\"DIRECTION\">FOREWARD</field><value name=\"POWER_LEFT\"><block type=\"math_integer\" id=\"b20\" intask=\"true\"><field name=\"NUM\">35</field></block></value><value name=\"POWER_RIGHT\"><block type=\"math_integer\" id=\"b21\" intask=\"true\"><field name=\"NUM\">15</field></block></value></block></statement><statement name=\"ELSE\"><block type=\"robProcedures_callnoreturn\" id=\"b22\" intask=\"true\"><mutation name=\"avoidWalls\"/></block></statement></repetitions></block></statement><statement name=\"ELSE\"><block type=\"robProcedures_callnoreturn\" id=\"b23\" intask=\"true\"><mutation name=\"avoidWalls\"/></block></statement></repetitions></block></statement></block></instance><instance x=\"800\" y=\"40\"><block type=\"robProcedures_defnoreturn\" id=\"b24\" intask=\"true\"><mutation declare=\"false\"/><field name=\"NAME\">avoidWalls</field><statement name=\"STACK\"><block type=\"robControls_ifElse\" id=\"b25\" intask=\"true\"><mutation else=\"1\"/><repetitions><value name=\"IF0\"><block type=\"logic_compare\" id=\"b26\" intask=\"true\"><field name=\"OP\">LT</field><value name=\"A\"><block type=\"robSensors_light_getSample\" id=\"b27\" intask=\"true\"><mutation mode=\"LIGHT\"/><field name=\"MODE\">LIGHT</field><field name=\"SENSORPORT\">LLIGHT</field><field name=\"SLOT\"/></block></value><value name=\"B\"><block type=\"math_integer\" id=\"b28\" intask=\"true\"><field name=\"NUM\">70</field></block></value></block></value><statement name=\"DO0\"><block type=\"robControls_ifElse\" id=\"b29\" intask=\"true\"><mutation elseif=\"1\" else=\"1\"/><repetitions><value name=\"IF0\"><block type=\"robSensors_infrared_getSample\" id=\"b30\" intask=\"true\"><mutation mode=\"OBSTACLE\"/><field name=\"MODE\">OBSTACLE</field><field name=\"SENSORPORT\">LEFT</field><field name=\"SLOT\"/></block></value><statement name=\"DO0\"><block type=\"robActions_motorDiff_turn_for\" id=\"b31\" intask=\"true\"><field name=\"DIRECTION\">RIGHT</field><value name=\"POWER\"><block type=\"math_integer\" id=\"b32\" intask=\"true\"><field name=\"NUM\">30</field></block></value><value name=\"DEGREE\"><block type=\"math_integer\" id=\"b33\" intask=\"true\"><field name=\"NUM\">20</field></block></value></block></statement><value name=\"IF1\"><block type=\"robSensors_infrared_getSample\" id=\"b34\" intask=\"true\"><mutation mode=\"OBSTACLE\"/><field name=\"MODE\">OBSTACLE</field><field name=\"SENSORPORT\">RIGHT</field><field name=\"SLOT\"/></block></value><statement name=\"DO1\"><block type=\"robActions_motorDiff_turn_for\" id=\"b35\" intask=\"true\"><field name=\"DIRECTION\">LEFT</field><value name=\"POWER\"><block type=\"math_integer\" id=\"b36\" intask=\"true\"><field name=\"NUM\">30</field></block></value><value name=\"DEGREE\"><block type=\"math_integer\" id=\"b37\" intask=\"true\"><field name=\"NUM\">20</field></block></value></block></statement><statement name=\"ELSE\"><block type=\"robProcedures_callnoreturn\" id=\"b38\" intask=\"true\"><mutation name=\"driveInTheDark\"/></block></statement></repetitions></block></statement><statement name=\"ELSE\"><block type=\"robProcedures_callnoreturn\" id=\"b39\" intask=\"true\"><mutation name=\"driveInTheDark\"/></block></statement></repetitions></block></statement></block></instance><instance x=\"420\" y=\"300\"><block type=\"robProcedures_defnoreturn\" id=\"b40\" intask=\"true\"><mutation declare=\"false\"/><field name=\"NAME\">driveInTheDark</field><statement name=\"STACK\"><block type=\"robControls_ifElse\" id=\"b41\" intask=\"true\"><mutation else=\"1\"/><repetitions><value name=\"IF0\"><block type=\"logic_compare\" id=\"b42\" intask=\"true\"><field name=\"OP\">LT</field><value name=\"A\"><block type=\"robSensors_light_getSample\" id=\"b43\" intask=\"true\"><mutation mode=\"LIGHT\"/><field name=\"MODE\">LIGHT</field><field name=\"SENSORPORT\">LLIGHT</field><field name=\"SLOT\"/></block></value><value name=\"B\"><block type=\"math_integer\" id=\"b44\" intask=\"true\"><field name=\"NUM\">70</field></block></value></block></value><statement name=\"DO0\"><block type=\"robActions_motorDiff_on\" id=\"b45\" intask=\"true\"><field name=\"DIRECTION\">FOREWARD</field><value name=\"POWER\"><block type=\"math_integer\" id=\"b46\" intask=\"true\"><field name=\"NUM\">30</field></block></value></block></statement><statement name=\"ELSE\"><block type=\"robProcedures_callnoreturn\" id=\"b47\" intask=\"true\"><mutation name=\"stopAtWall\"/></block></statement></repetitions></block></statement></block></instance><instance x=\"800\" y=\"300\"><block type=\"robProcedures_defnoreturn\" id=\"b48\" intask=\"true\"><mutation declare=\"false\"/><field name=\"NAME\">stopAtWall</field><statement name=\"STACK\"><block type=\"robControls_ifElse\" id=\"b49\" intask=\"true\"><mutation else=\"1\"/><repetitions><value name=\"IF0\"><block type=\"robSensors_infrared_getSample\" id=\"b50\" intask=\"true\"><mutation mode=\"OBSTACLE\"/><field name=\"MODE\">OBSTACLE</field><field name=\"SENSORPORT\">FRONT</field><field name=\"SLOT\"/></block></value><statement name=\"DO0\"><block type=\"robActions_motorDiff_stop\" id=\"b51\" intask=\"true\"/></statement><statement name=\"ELSE\"><block type=\"robProcedures_callnoreturn\" id=\"b52\" intask=\"true\"><mutation name=\"followLine\"/></block></statement></repetitions></block></statement></block></instance><instance x=\"420\" y=\"560\"><block type=\"robProcedures_defnoreturn\" id=\"b53\" intask=\"true\"><mutation declare=\"false\"/><field name=\"NAME\">followLine</field><statement name=\"STACK\"><block type=\"robControls_ifElse\" id=\"b54\" intask=\"true\"><mutation else=\"1\"/><repetitions><value name=\"IF0\"><block type=\"robSensors_light_getSample\" id=\"b55\" intask=\"true\"><mutation mode=\"LINE\"/><field name=\"MODE\">LINE</field><field name=\"SENSORPORT\">LINETRACKER</field><field name=\"SLOT\"/></block></value><statement name=\"DO0\"><block type=\"robActions_motorDiff_curve\" id=\"b56\" intask=\"true\"><field name=\"DIRECTION\">FOREWARD</field><value name=\"POWER_LEFT\"><block type=\"math_integer\" id=\"b57\" intask=\"true\"><field name=\"NUM\">10</field></block></value><value name=\"POWER_RIGHT\"><block type=\"math_integer\" id=\"b58\" intask=\"true\"><field name=\"NUM\">40</field></block></value></block></statement><statement name=\"ELSE\"><block type=\"robActions_motorDiff_curve\" id=\"b59\" intask=\"true\"><field name=\"DIRECTION\">FOREWARD</field><value name=\"POWER_LEFT\"><block type=\"math_integer\" id=\"b60\" intask=\"true\"><field name=\"NUM\">40</field></block></value><value name=\"POWER_RIGHT\"><block type=\"math_integer\" id=\"b61\" intask=\"true\"><field name=\"NUM\">10</field></block></value></block></statement></repetitions></block></statement></block></instance></block_set>",
+ "edpy": "import Ed\n\ndef _diffCurve(direction, leftSpeed, rightSpeed, distance):\n    if (leftSpeed < 0): \n        _leftSpeed = _shorten(-leftSpeed)\n        _reverseLeft = True\n    else: \n        _leftSpeed = _shorten(leftSpeed)\n        _reverseLeft = False\n    if (rightSpeed < 0): \n        _rightSpeed = _shorten(-rightSpeed)\n        _reverseRight = True\n    else: \n        _rightSpeed = _shorten(rightSpeed)\n        _reverseRight = False\n    if (_leftSpeed > _rightSpeed):\n        if (_rightSpeed == 0):\n            Ed.DriveRightMotor(Ed.STOP, 0, 0)\n        else:\n            Ed.DriveLeftMotor(_getDirection(direction, _reverseLeft), _leftSpeed, Ed.DISTANCE_UNLIMITED)\n            Ed.DriveRightMotor(_getDirection(direction, _reverseRight), _rightSpeed, Ed.DISTANCE_UNLIMITED)\n        Ed.DriveLeftMotor(_getDirection(direction, _reverseLeft), _leftSpeed, distance)\n        if (distance != Ed.DISTANCE_UNLIMITED): \n            Ed.Drive(Ed.STOP, 1, 1)\n    elif (_leftSpeed < _rightSpeed):\n        if (_leftSpeed == 0):\n            Ed.DriveLeftMotor(Ed.STOP, 0, 0)\n        else:\n            Ed.DriveRightMotor(_getDirection(direction, _reverseRight), _rightSpeed, Ed.DISTANCE_UNLIMITED)\n            Ed.DriveLeftMotor(_getDirection(direction, _reverseLeft), _leftSpeed, Ed.DISTANCE_UNLIMITED)\n        Ed.DriveRightMotor(_getDirection(direction, _reverseRight), _rightSpeed, distance)\n        if (distance != Ed.DISTANCE_UNLIMITED): \n            Ed.Drive(Ed.STOP, 1, 1)\n    else:\n        if (_leftSpeed == 0):\n            Ed.Drive(Ed.STOP, 1, 1)\n        else:\n            Ed.Drive(_getDirection(direction, _reverseLeft), _leftSpeed, distance)\n\ndef _diffDrive(direction, speed, distance):\n    _reverse = False\n    if speed < 0:\n        _reverse = True\n        _speed = _shorten(-speed)\n    else: \n        _speed = _shorten(speed)\n    if (_speed == 0): \n        Ed.Drive(Ed.STOP, 1, 1)\n    else: \n        Ed.Drive(_getDirection(direction, _reverse), _speed, distance)\n\ndef _diffTurn(direction, speed, degree):\n    _reverse = False\n    if speed < 0:\n        _reverse = True\n        _speed = _shorten(-speed)\n    else: \n        _speed = _shorten(speed)\n    if (_speed == 0): \n        Ed.Drive(Ed.STOP, 1, 1)\n    elif _reverse:\n        if direction == Ed.SPIN_RIGHT: \n            Ed.Drive(Ed.SPIN_LEFT, _speed, degree)\n        else: \n            Ed.Drive(Ed.SPIN_RIGHT, _speed, degree)\n    else: \n        Ed.Drive(direction, _speed, degree)\n\ndef _getDirection(dir, reverse):\n    if reverse:\n        if (dir == Ed.FORWARD): \n            return Ed.BACKWARD\n        else: \n            return Ed.FORWARD\n    else: \n        return dir\n\ndef _obstacleDetection(mode):\n    global obstacleDetectionOn\n    if (obstacleDetectionOn == False):\n        Ed.ObstacleDetectionBeam(Ed.ON)\n        obstacleDetectionOn = True\n    return Ed.ReadObstacleDetection() == mode\n\ndef _shorten(num): \n    return ((num+5)/10)\n\nEd.EdisonVersion = Ed.V2\nEd.DistanceUnits = Ed.CM\nEd.Tempo = Ed.TEMPO_SLOW\nobstacleDetectionOn = False\nEd.LineTrackerLed(Ed.ON)\nEd.ReadClapSensor()\nEd.ReadLineState()\nEd.TimeWait(250, Ed.TIME_MILLISECONDS)\n\ndef ____followInTheDark():\n    if Ed.ReadRightLightLevel() / 10 < 60:\n        if Ed.ReadLeftLightLevel() / 10 < 45:\n            _diffCurve(Ed.FORWARD, 15, 35, Ed.DISTANCE_UNLIMITED)\n        elif Ed.ReadLineTracker() / 10 > 95:\n            _diffCurve(Ed.FORWARD, 35, 15, Ed.DISTANCE_UNLIMITED)\n        else:\n            ____avoidWalls()\n    else:\n        ____avoidWalls()\n\ndef ____avoidWalls():\n    if Ed.ReadLeftLightLevel() / 10 < 70:\n        if _obstacleDetection(Ed.OBSTACLE_LEFT):\n            _diffTurn(Ed.SPIN_RIGHT, 30, 20)\n            Ed.ReadClapSensor()\n        elif _obstacleDetection(Ed.OBSTACLE_RIGHT):\n            _diffTurn(Ed.SPIN_LEFT, 30, 20)\n            Ed.ReadClapSensor()\n        else:\n            ____driveInTheDark()\n    else:\n        ____driveInTheDark()\n\ndef ____driveInTheDark():\n    if Ed.ReadLeftLightLevel() / 10 < 70:\n        _diffDrive(Ed.FORWARD, 30, Ed.DISTANCE_UNLIMITED)\n    else:\n        ____stopAtWall()\n\ndef ____stopAtWall():\n    if _obstacleDetection(Ed.OBSTACLE_AHEAD):\n        Ed.Drive(Ed.STOP, Ed.SPEED_1, 1)\n        Ed.ReadClapSensor()\n    else:\n        ____followLine()\n\ndef ____followLine():\n    if (Ed.ReadLineState() == Ed.LINE_ON_BLACK):\n        _diffCurve(Ed.FORWARD, 10, 40, Ed.DISTANCE_UNLIMITED)\n    else:\n        _diffCurve(Ed.FORWARD, 40, 10, Ed.DISTANCE_UNLIMITED)\n\n\nwhile True:\n    ____followInTheDark()\n\n",
+ "ms": {
+  "prepare": 604,
+  "analyze": 162061,
+  "generate": 158474,
+  "total": 321139
+ },
+ "analyze": {
+  "ok": true,
+  "insufficient": false,
+  "error": null,
+  "message": null,
+  "repairs": 0,
+  "problems": [],
+  "analysis": {
+   "unsupported_features": [],
+   "program_facts": {
+    "variables": [],
+    "sensors": [
+     {
+      "source_block_ids": [
+       "b7"
+      ],
+      "name": "right light sensor RLIGHT (the light from above)"
+     },
+     {
+      "source_block_ids": [
+       "b11",
+       "b27",
+       "b43"
+      ],
+      "name": "left light sensor LLIGHT (the light from above)"
+     },
+     {
+      "source_block_ids": [
+       "b17"
+      ],
+      "name": "line tracker, as a brightness in %"
+     },
+     {
+      "source_block_ids": [
+       "b55"
+      ],
+      "name": "line tracker, sees black"
+     },
+     {
+      "source_block_ids": [
+       "b30"
+      ],
+      "name": "obstacle sensor LEFT"
+     },
+     {
+      "source_block_ids": [
+       "b34"
+      ],
+      "name": "obstacle sensor RIGHT"
+     },
+     {
+      "source_block_ids": [
+       "b50"
+      ],
+      "name": "obstacle sensor FRONT"
+     }
+    ],
+    "functions": [
+     "followInTheDark",
+     "avoidWalls",
+     "driveInTheDark",
+     "stopAtWall",
+     "followLine"
+    ],
+    "actions": [
+     {
+      "source_block_ids": [
+       "b13"
+      ],
+      "name": "curve forward, left wheel 15 %, right 35 %"
+     },
+     {
+      "source_block_ids": [
+       "b19"
+      ],
+      "name": "curve forward, left wheel 35 %, right 15 %"
+     },
+     {
+      "source_block_ids": [
+       "b31"
+      ],
+      "name": "turn right 20\u00b0 at 30 %"
+     },
+     {
+      "source_block_ids": [
+       "b35"
+      ],
+      "name": "turn left 20\u00b0 at 30 %"
+     },
+     {
+      "source_block_ids": [
+       "b45"
+      ],
+      "name": "drive forward at 30 % without end"
+     },
+     {
+      "source_block_ids": [
+       "b51"
+      ],
+      "name": "stop"
+     },
+     {
+      "source_block_ids": [
+       "b56"
+      ],
+      "name": "curve forward, left wheel 10 %, right 40 %"
+     },
+     {
+      "source_block_ids": [
+       "b59"
+      ],
+      "name": "curve forward, left wheel 40 %, right 10 %"
+     }
+    ],
+    "control_flow": [
+     "Forever: call followInTheDark.",
+     "followInTheDark: if RLIGHT < 60: (if LLIGHT < 45: curve 15/35; elif line tracker > 95 %: curve 35/15; else: avoidWalls) else avoidWalls.",
+     "avoidWalls: if LLIGHT < 70: (if obstacle LEFT: turn right 20\u00b0; elif obstacle RIGHT: turn left 20\u00b0; else: driveInTheDark) else driveInTheDark.",
+     "driveInTheDark: if LLIGHT < 70: drive forward 30 %; else: stopAtWall.",
+     "stopAtWall: if obstacle FRONT: stop; else: followLine.",
+     "followLine: if the line tracker sees black: curve 10/40; else curve 40/10."
+    ]
+   },
+   "likely_intent": {
+    "confidence": "high",
+    "description": "In the dark, follow a black line when one is under the robot and drive straight when there is none; in the light, follow the line as before.",
+    "basis": "learner_description"
+   },
+   "decision_points": [
+    {
+     "source_block_ids": [
+      "b5",
+      "b6",
+      "b7"
+     ],
+     "condition": "the right light sensor reads below 60 % (the robot is deep enough in a tunnel)",
+     "id": "D1",
+     "branches": [
+      {
+       "feasibility": "supported",
+       "reason": null,
+       "id": "D1.1",
+       "outcome": "the right light is below 60 %: it goes into the dark handling"
+      },
+      {
+       "feasibility": "supported",
+       "reason": null,
+       "id": "D1.else",
+       "outcome": "the right light is 60 % or more: it calls avoidWalls"
+      }
+     ]
+    },
+    {
+     "source_block_ids": [
+      "b9",
+      "b10",
+      "b11",
+      "b16",
+      "b17"
+     ],
+     "condition": "first: the left light is below 45 %; second: the line tracker reads more than 95 %",
+     "id": "D2",
+     "branches": [
+      {
+       "feasibility": "supported",
+       "reason": null,
+       "id": "D2.1",
+       "outcome": "the left light is below 45 %: it curves left at 15/35"
+      },
+      {
+       "feasibility": "supported",
+       "reason": null,
+       "id": "D2.2",
+       "outcome": "not that dark, the line tracker reads more than 95 %: it curves right at 35/15"
+      },
+      {
+       "feasibility": "supported",
+       "reason": null,
+       "id": "D2.else",
+       "outcome": "not that dark, the line tracker reads 95 % or less: it calls avoidWalls"
+      }
+     ]
+    },
+    {
+     "source_block_ids": [
+      "b25",
+      "b26",
+      "b27"
+     ],
+     "condition": "the left light is below 70 %",
+     "id": "D3",
+     "branches": [
+      {
+       "feasibility": "supported",
+       "reason": null,
+       "id": "D3.1",
+       "outcome": "the left light is below 70 %: it checks the obstacle sensors"
+      },
+      {
+       "feasibility": "supported",
+       "reason": null,
+       "id": "D3.else",
+       "outcome": "the left light is 70 % or more: it calls driveInTheDark"
+      }
+     ]
+    },
+    {
+     "source_block_ids": [
+      "b29",
+      "b30",
+      "b34"
+     ],
+     "condition": "first: an obstacle is seen on the LEFT; second: an obstacle is seen on the RIGHT",
+     "id": "D4",
+     "branches": [
+      {
+       "feasibility": "supported",
+       "reason": null,
+       "id": "D4.1",
+       "outcome": "an obstacle on the left: it turns right 20\u00b0"
+      },
+      {
+       "feasibility": "supported",
+       "reason": null,
+       "id": "D4.2",
+       "outcome": "no obstacle on the left, one on the right: it turns left 20\u00b0"
+      },
+      {
+       "feasibility": "supported",
+       "reason": null,
+       "id": "D4.else",
+       "outcome": "no obstacle on either side: it calls driveInTheDark"
+      }
+     ]
+    },
+    {
+     "source_block_ids": [
+      "b41",
+      "b42",
+      "b43"
+     ],
+     "condition": "the left light is below 70 %",
+     "id": "D5",
+     "branches": [
+      {
+       "feasibility": "supported",
+       "reason": null,
+       "id": "D5.1",
+       "outcome": "the left light is below 70 %: it drives forward at 30 %"
+      },
+      {
+       "feasibility": "supported",
+       "reason": null,
+       "id": "D5.else",
+       "outcome": "the left light is 70 % or more: it calls stopAtWall"
+      }
+     ]
+    },
+    {
+     "source_block_ids": [
+      "b49",
+      "b50"
+     ],
+     "condition": "an obstacle is seen in FRONT",
+     "id": "D6",
+     "branches": [
+      {
+       "feasibility": "supported",
+       "reason": null,
+       "id": "D6.1",
+       "outcome": "an obstacle in front: it stops"
+      },
+      {
+       "feasibility": "supported",
+       "reason": null,
+       "id": "D6.else",
+       "outcome": "nothing in front: it calls followLine"
+      }
+     ]
+    },
+    {
+     "source_block_ids": [
+      "b54",
+      "b55"
+     ],
+     "condition": "the line tracker sees black",
+     "id": "D7",
+     "branches": [
+      {
+       "feasibility": "supported",
+       "reason": null,
+       "id": "D7.1",
+       "outcome": "black: it curves left at 10/40"
+      },
+      {
+       "feasibility": "supported",
+       "reason": null,
+       "id": "D7.else",
+       "outcome": "no black: it curves right at 40/10"
+      }
+     ]
+    }
+   ],
+   "analysis_status": "ok",
+   "scenario_paths": [
+    {
+     "branch_ids": [
+      "D1.else",
+      "D3.else",
+      "D5.else",
+      "D6.else",
+      "D7.1",
+      "D7.else"
+     ],
+     "input_dimensions": [
+      {
+       "equivalence_classes": [
+        "the black line",
+        "the bright band beside the line"
+       ],
+       "dimension": "what the line tracker sees"
+      },
+      {
+       "equivalence_classes": [
+        "nothing"
+       ],
+       "dimension": "what is ahead on the line"
+      }
+     ],
+     "testability": "supported",
+     "id": "P1",
+     "scenario_id": "S1"
+    },
+    {
+     "branch_ids": [
+      "D1.else",
+      "D3.else",
+      "D5.else",
+      "D6.else",
+      "D7.1",
+      "D7.else",
+      "D6.1"
+     ],
+     "input_dimensions": [
+      {
+       "equivalence_classes": [
+        "a wall across the line"
+       ],
+       "dimension": "what is ahead on the line"
+      }
+     ],
+     "testability": "supported",
+     "id": "P2",
+     "scenario_id": "S1"
+    },
+    {
+     "branch_ids": [
+      "D1.1",
+      "D2.else",
+      "D3.1",
+      "D4.else",
+      "D5.1"
+     ],
+     "input_dimensions": [
+      {
+       "equivalence_classes": [
+        "the black line"
+       ],
+       "dimension": "what the line tracker sees in the dark"
+      },
+      {
+       "equivalence_classes": [
+        "in the dim light near the opening"
+       ],
+       "dimension": "how dark it is in the tunnel"
+      }
+     ],
+     "testability": "supported",
+     "id": "P3",
+     "scenario_id": "S2"
+    },
+    {
+     "branch_ids": [
+      "D1.1",
+      "D2.2"
+     ],
+     "input_dimensions": [
+      {
+       "equivalence_classes": [
+        "the bright band beside the line"
+       ],
+       "dimension": "what the line tracker sees in the dark"
+      },
+      {
+       "equivalence_classes": [
+        "in the dim light near the opening"
+       ],
+       "dimension": "how dark it is in the tunnel"
+      }
+     ],
+     "testability": "supported",
+     "id": "P4",
+     "scenario_id": "S2"
+    },
+    {
+     "branch_ids": [
+      "D1.1",
+      "D2.1"
+     ],
+     "input_dimensions": [
+      {
+       "equivalence_classes": [
+        "in the darkest part"
+       ],
+       "dimension": "how dark it is in the tunnel"
+      }
+     ],
+     "testability": "supported",
+     "id": "P5",
+     "scenario_id": "S2"
+    },
+    {
+     "branch_ids": [
+      "D1.1",
+      "D2.else",
+      "D3.1",
+      "D4.1",
+      "D4.else",
+      "D5.1"
+     ],
+     "input_dimensions": [
+      {
+       "equivalence_classes": [
+        "in front of its left half"
+       ],
+       "dimension": "which side the wall is on"
+      }
+     ],
+     "testability": "supported",
+     "id": "P6",
+     "scenario_id": "S3"
+    },
+    {
+     "branch_ids": [
+      "D1.1",
+      "D2.else",
+      "D3.1",
+      "D4.2",
+      "D4.else",
+      "D5.1"
+     ],
+     "input_dimensions": [
+      {
+       "equivalence_classes": [
+        "in front of its right half"
+       ],
+       "dimension": "which side the wall is on"
+      }
+     ],
+     "testability": "supported",
+     "id": "P7",
+     "scenario_id": "S3"
+    }
+   ],
+   "scenarios": [
+    {
+     "path_ids": [
+      "P1",
+      "P2"
+     ],
+     "confidence": "high",
+     "coded_response": "It curves left at 10/40 on black and right at 40/10 otherwise; if an obstacle comes in front, it stops",
+     "initial_condition": "The robot starts on a black line, in bright light",
+     "testability": "supported",
+     "trigger": "The line tracker sees black, then the white band, again and again",
+     "title": "In the light, follows the line",
+     "assumptions": [
+      "You said to follow the line in the light; stopping at a wall in front is taken from your program, since you didn't say it."
+     ],
+     "tested_by": [],
+     "oracle_basis": "learner_description",
+     "source_block_ids": [
+      "b49",
+      "b50",
+      "b51",
+      "b54",
+      "b55",
+      "b56",
+      "b59"
+     ],
+     "id": "S1",
+     "category": "nominal",
+     "expected_response_hypothesis": "It follows the line, and it stops before a wall that stands across the line"
+    },
+    {
+     "path_ids": [
+      "P3",
+      "P4",
+      "P5"
+     ],
+     "confidence": "high",
+     "coded_response": "In dim light it curves left at 15/35 when the left light is below 45 %, curves right at 35/15 on the bright band, and otherwise turns away from walls or drives straight at 30 %; in the darkest part it only curves left at 15/35",
+     "initial_condition": "The robot is in a tunnel, in dim light near the opening or in the darkest part, with a black line, the bright band, or the plain floor under the line tracker",
+     "testability": "supported",
+     "trigger": "The light sensors read below 60 %",
+     "title": "In the dark, follows the line or drives straight",
+     "assumptions": [],
+     "tested_by": [],
+     "oracle_basis": "learner_description",
+     "source_block_ids": [
+      "b5",
+      "b6",
+      "b7",
+      "b9",
+      "b10",
+      "b11",
+      "b13",
+      "b16",
+      "b17",
+      "b19",
+      "b22",
+      "b23",
+      "b25",
+      "b27",
+      "b43",
+      "b45"
+     ],
+     "id": "S2",
+     "category": "nominal",
+     "expected_response_hypothesis": "It follows the black line when there is one under it, and drives straight when there is none"
+    },
+    {
+     "path_ids": [
+      "P6",
+      "P7"
+     ],
+     "confidence": "medium",
+     "coded_response": "It turns right 20\u00b0 for a wall on the left and left 20\u00b0 for a wall on the right, then drives on",
+     "initial_condition": "The robot is in a tunnel in dim light, with a wall in front of its left half or its right half",
+     "testability": "supported",
+     "trigger": "An obstacle sensor on the left or the right sees something less than 3 cm ahead",
+     "title": "In the dark, turns away from a wall beside it",
+     "assumptions": [
+      "You didn't say it, but in the dark your program turns away from walls beside it, so it should get through a bend without bumping."
+     ],
+     "tested_by": [],
+     "oracle_basis": "inferred",
+     "source_block_ids": [
+      "b25",
+      "b27",
+      "b29",
+      "b30",
+      "b31",
+      "b34",
+      "b35"
+     ],
+     "id": "S3",
+     "category": "safety",
+     "expected_response_hypothesis": "It turns away from the wall and gets on without bumping into it"
+    }
+   ],
+   "uncertainties": [
+    "Your dark handling only looks at the line tracker while the light is between 45 % and 60 %: deeper in a tunnel it curves left whatever is under the robot.",
+    "A line tracker reading above 95 % is the bright band beside a line, so your program only steers on that band, never on the black core.",
+    "You didn't say how dark counts as dark: your program uses the right light below 60 % for that, and the left light below 45 % for the darkest case.",
+    "'As before' in your sentence refers to nothing you said earlier: I take it as the line following your program does in the light.",
+    "The dim band where your program reads the line tracker is only about 10 to 14 cm inside a tunnel; from 15 cm inside the light is 40 %."
+   ]
+  }
+ },
+ "generate": {
+  "ok": true,
+  "error": null,
+  "message": null,
+  "repairs": 2,
+  "dropped": [],
+  "unresolved": [],
+  "duplicates": 0,
+  "scenarios": [
+   {
+    "scenario": "S1",
+    "ok": true,
+    "error": null,
+    "tests": 2,
+    "dropped": 0,
+    "repairs": 2,
+    "calls": 3,
+    "maxTests": 2
+   },
+   {
+    "scenario": "S2",
+    "ok": true,
+    "error": null,
+    "tests": 2,
+    "dropped": 0,
+    "repairs": 0,
+    "calls": 1,
+    "maxTests": 2
+   },
+   {
+    "scenario": "S3",
+    "ok": true,
+    "error": null,
+    "tests": 2,
+    "dropped": 0,
+    "repairs": 0,
+    "calls": 1,
+    "maxTests": 2
+   }
+  ],
+  "plan": {
+   "outcomes": [
+    {
+     "id": "D1.1",
+     "decision": "D1",
+     "block": "p5_2690",
+     "words": "the condition holds",
+     "planned": [
+      "In the dim light, it follows the line on into the dark",
+      "In the darkest part, it keeps to the line",
+      "Gets through the bend to the right",
+      "Gets through the bend to the left"
+     ],
+     "deferred": null,
+     "seen": null
+    },
+    {
+     "id": "D1.else",
+     "decision": "D1",
+     "block": "p5_2690",
+     "words": "the condition doesn't hold: the else part runs",
+     "planned": [
+      "In the light, it follows the line to the goal",
+      "Stops before a wall across the line"
+     ],
+     "deferred": null,
+     "seen": null
+    },
+    {
+     "id": "D2.1",
+     "decision": "D2",
+     "block": "p5_2694",
+     "words": "condition 1 holds",
+     "planned": [
+      "In the darkest part, it keeps to the line"
+     ],
+     "deferred": null,
+     "seen": null
+    },
+    {
+     "id": "D2.2",
+     "decision": "D2",
+     "block": "p5_2694",
+     "words": "condition 2 holds (the ones before it don't)",
+     "planned": [],
+     "deferred": "The bright band beside the line is only under the robot when it has already left the line, and you didn't say it should find the line again in the dark.",
+     "seen": null
+    },
+    {
+     "id": "D2.else",
+     "decision": "D2",
+     "block": "p5_2694",
+     "words": "no condition holds: the else part runs",
+     "planned": [
+      "In the dim light, it follows the line on into the dark",
+      "Gets through the bend to the right",
+      "Gets through the bend to the left"
+     ],
+     "deferred": null,
+     "seen": null
+    },
+    {
+     "id": "D3.1",
+     "decision": "D3",
+     "block": "p5_2710",
+     "words": "the condition holds",
+     "planned": [
+      "In the dim light, it follows the line on into the dark",
+      "Gets through the bend to the right",
+      "Gets through the bend to the left"
+     ],
+     "deferred": null,
+     "seen": null
+    },
+    {
+     "id": "D3.else",
+     "decision": "D3",
+     "block": "p5_2710",
+     "words": "the condition doesn't hold: the else part runs",
+     "planned": [
+      "In the light, it follows the line to the goal",
+      "Stops before a wall across the line"
+     ],
+     "deferred": null,
+     "seen": null
+    },
+    {
+     "id": "D4.1",
+     "decision": "D4",
+     "block": "p5_2714",
+     "words": "condition 1 holds",
+     "planned": [
+      "Gets through the bend to the right"
+     ],
+     "deferred": null,
+     "seen": null
+    },
+    {
+     "id": "D4.2",
+     "decision": "D4",
+     "block": "p5_2714",
+     "words": "condition 2 holds (the ones before it don't)",
+     "planned": [
+      "Gets through the bend to the left"
+     ],
+     "deferred": null,
+     "seen": null
+    },
+    {
+     "id": "D4.else",
+     "decision": "D4",
+     "block": "p5_2714",
+     "words": "no condition holds: the else part runs",
+     "planned": [
+      "In the dim light, it follows the line on into the dark",
+      "Gets through the bend to the right",
+      "Gets through the bend to the left"
+     ],
+     "deferred": null,
+     "seen": null
+    },
+    {
+     "id": "D5.1",
+     "decision": "D5",
+     "block": "p5_2726",
+     "words": "the condition holds",
+     "planned": [
+      "In the dim light, it follows the line on into the dark",
+      "Gets through the bend to the right",
+      "Gets through the bend to the left"
+     ],
+     "deferred": null,
+     "seen": null
+    },
+    {
+     "id": "D5.else",
+     "decision": "D5",
+     "block": "p5_2726",
+     "words": "the condition doesn't hold: the else part runs",
+     "planned": [
+      "In the light, it follows the line to the goal",
+      "Stops before a wall across the line"
+     ],
+     "deferred": null,
+     "seen": null
+    },
+    {
+     "id": "D6.1",
+     "decision": "D6",
+     "block": "p5_2734",
+     "words": "the condition holds",
+     "planned": [
+      "Stops before a wall across the line"
+     ],
+     "deferred": null,
+     "seen": null
+    },
+    {
+     "id": "D6.else",
+     "decision": "D6",
+     "block": "p5_2734",
+     "words": "the condition doesn't hold: the else part runs",
+     "planned": [
+      "In the light, it follows the line to the goal",
+      "Stops before a wall across the line"
+     ],
+     "deferred": null,
+     "seen": null
+    },
+    {
+     "id": "D7.1",
+     "decision": "D7",
+     "block": "p5_2739",
+     "words": "the condition holds",
+     "planned": [
+      "In the light, it follows the line to the goal",
+      "Stops before a wall across the line"
+     ],
+     "deferred": null,
+     "seen": null
+    },
+    {
+     "id": "D7.else",
+     "decision": "D7",
+     "block": "p5_2739",
+     "words": "the condition doesn't hold: the else part runs",
+     "planned": [
+      "In the light, it follows the line to the goal",
+      "Stops before a wall across the line"
+     ],
+     "deferred": null,
+     "seen": null
+    }
+   ],
+   "target": [
+    "D1.else",
+    "D3.else",
+    "D5.else",
+    "D6.else",
+    "D7.1",
+    "D7.else",
+    "D6.1",
+    "D1.1",
+    "D2.else",
+    "D3.1",
+    "D4.else",
+    "D5.1",
+    "D2.2",
+    "D2.1",
+    "D4.1",
+    "D4.2"
+   ],
+   "planned": [
+    "D1.else",
+    "D3.else",
+    "D5.else",
+    "D6.else",
+    "D7.1",
+    "D7.else",
+    "D6.1",
+    "D1.1",
+    "D2.else",
+    "D3.1",
+    "D4.else",
+    "D5.1",
+    "D2.1",
+    "D4.1",
+    "D4.2"
+   ],
+   "deferred": [
+    {
+     "reason": "The bright band beside the line is only under the robot when it has already left the line, and you didn't say it should find the line again in the dark.",
+     "branch_id": "D2.2"
+    }
+   ],
+   "lost": [],
+   "deferredInputs": [
+    {
+     "reason": "You didn't say the robot should find the line: your robot starts on it. Only two tests fit, and the second is needed for stopping at a wall.",
+     "dimension": "what the line tracker sees",
+     "value": "the bright band beside the line"
+    },
+    {
+     "reason": "Only two tests were allowed for this scenario, and the black line is what you said the robot should follow; the white band beside it is left out.",
+     "dimension": "what the line tracker sees in the dark",
+     "value": "the bright band beside the line"
+    }
+   ],
+   "deferredScenarios": [],
+   "corrected": true
+  },
+  "status": "ready_for_review",
+  "worlds": [
+   {
+    "name": "A line to a goal in the light",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 30,
+        "y": 140,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "t1",
+        "kind": "line",
+        "points": [
+         [
+          20,
+          140
+         ],
+         [
+          100,
+          140
+         ],
+         [
+          160,
+          90
+         ],
+         [
+          250,
+          90
+         ]
+        ],
+        "smooth": true,
+        "width": 1.48
+       },
+       {
+        "id": "t2",
+        "kind": "rect",
+        "name": "Goal 1",
+        "role": "goal",
+        "x": 225,
+        "y": 75,
+        "w": 30,
+        "h": 30
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "In the light, it follows the line to the goal",
+      "scenario": "Given the robot starts on the black line in bright light, when the program runs, then it follows the line and reaches Goal 1 at its end without bumping into anything.",
+      "start": "A",
+      "until": "t2",
+      "max_time_ms": 60000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "t2"
+       },
+       {
+        "check": "never_bumps"
+       }
+      ],
+      "scenario_id": "S1",
+      "path_ids": [
+       "P1"
+      ],
+      "planned_branch_ids": [
+       "D1.else",
+       "D3.else",
+       "D5.else",
+       "D6.else",
+       "D7.1",
+       "D7.else"
+      ],
+      "input_selection": {
+       "equivalence_partitions": [
+        {
+         "realized_by": {
+          "start": "A",
+          "items": [
+           "t1"
+          ]
+         },
+         "selected_realization": "start A stands on the line's first point, so the line tracker is on the black core, and the robot steers back onto it again and again",
+         "dimension": "what the line tracker sees",
+         "class": "the black line"
+        },
+        {
+         "realized_by": {
+          "items": [
+           "t1"
+          ]
+         },
+         "selected_realization": "the line runs to its end with nothing on it",
+         "dimension": "what is ahead on the line",
+         "class": "nothing"
+        }
+       ]
+      },
+      "expected_results": [
+       "It follows the line and reaches Goal 1 at the line's end."
+      ],
+      "postconditions": [
+       {
+        "check_indices": [
+         0
+        ],
+        "description": "By the end of the run, the robot has touched Goal 1."
+       },
+       {
+        "check_indices": [
+         1
+        ],
+        "description": "During the whole run, it never bumps into anything."
+       }
+      ],
+      "oracle": {
+       "confidence": "high",
+       "review_required": true,
+       "basis": "learner_description",
+       "assumptions": [
+        "The end of the line is where it should get to: you said to follow the line in the light."
+       ]
+      },
+      "source_block_ids": [
+       "b54",
+       "b55",
+       "b56",
+       "b59"
+      ],
+      "reason": "Following the line in the light from a start on it is what you said."
+     }
+    ]
+   },
+   {
+    "name": "A wall across the line",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 30,
+        "y": 60,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "t1",
+        "kind": "line",
+        "points": [
+         [
+          20,
+          60
+         ],
+         [
+          140,
+          60
+         ]
+        ],
+        "width": 1.48
+       },
+       {
+        "id": "t2",
+        "kind": "rect",
+        "name": "Wall",
+        "role": "obstacle",
+        "x": 90,
+        "y": 54,
+        "w": 2,
+        "h": 12
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Stops before a wall across the line",
+      "scenario": "Given a wall stands across the line 60 cm ahead, when the program runs, then the robot follows the line up to the wall and stops in front of it without bumping into it.",
+      "start": "A",
+      "until": null,
+      "max_time_ms": 30000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "never_bumps",
+        "item": "t2"
+       },
+       {
+        "check": "whenever",
+        "when": "obstacle_ahead",
+        "does": "stands_still",
+        "after_ms": 200
+       }
+      ],
+      "scenario_id": "S1",
+      "path_ids": [
+       "P2"
+      ],
+      "planned_branch_ids": [
+       "D1.else",
+       "D3.else",
+       "D5.else",
+       "D6.else",
+       "D7.1",
+       "D7.else",
+       "D6.1"
+      ],
+      "input_selection": {
+       "equivalence_partitions": [
+        {
+         "realized_by": {
+          "items": [
+           "t2"
+          ]
+         },
+         "selected_realization": "the wall t2 stands across the line, 60 cm ahead of start A",
+         "dimension": "what is ahead on the line",
+         "class": "a wall across the line"
+        },
+        {
+         "realized_by": {
+          "start": "A",
+          "items": [
+           "t1"
+          ]
+         },
+         "selected_realization": "start A stands on the line's middle",
+         "dimension": "what the line tracker sees",
+         "class": "the black line"
+        }
+       ]
+      },
+      "expected_results": [
+       "It follows the line and stops in front of the wall."
+      ],
+      "postconditions": [
+       {
+        "check_indices": [
+         0
+        ],
+        "description": "During the whole run, it never bumps into the wall."
+       },
+       {
+        "check_indices": [
+         1
+        ],
+        "description": "Whenever the wall is ahead, it stands still."
+       }
+      ],
+      "oracle": {
+       "confidence": "medium",
+       "review_required": true,
+       "basis": "inferred_from_program",
+       "assumptions": [
+        "You didn't say what to do at a wall across the line: your program stops when something is in front of it, so the robot should stop there."
+       ]
+      },
+      "source_block_ids": [
+       "b49",
+       "b50",
+       "b51"
+      ],
+      "reason": "The other class of what can be ahead on the line: a wall, where your program should stop."
+     }
+    ]
+   },
+   {
+    "name": "Dim light on the line in a tunnel",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 76,
+        "y": 100,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "t1",
+        "kind": "line",
+        "points": [
+         [
+          66,
+          100
+         ],
+         [
+          120,
+          100
+         ]
+        ],
+        "width": 1.48
+       },
+       {
+        "id": "t2",
+        "kind": "tunnel",
+        "role": "obstacle",
+        "points": [
+         [
+          70,
+          100
+         ],
+         [
+          190,
+          100
+         ]
+        ],
+        "width": 15
+       },
+       {
+        "id": "t3",
+        "kind": "rect",
+        "name": "Goal 1",
+        "role": "goal",
+        "x": 95,
+        "y": 93,
+        "w": 10,
+        "h": 14
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "In the dim light, it follows the line on into the dark",
+      "scenario": "Given the robot starts on a black line a little inside a tunnel, in dim light, when the program runs, then it follows the line further into the dark and reaches Goal 1 without bumping into the tunnel.",
+      "start": "A",
+      "until": "t3",
+      "max_time_ms": 20000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "t3"
+       },
+       {
+        "check": "never_bumps",
+        "item": "t2"
+       }
+      ],
+      "scenario_id": "S2",
+      "path_ids": [
+       "P3"
+      ],
+      "planned_branch_ids": [
+       "D1.1",
+       "D2.else",
+       "D3.1",
+       "D4.else",
+       "D5.1"
+      ],
+      "input_selection": {
+       "equivalence_partitions": [
+        {
+         "realized_by": {
+          "start": "A",
+          "items": [
+           "t1"
+          ]
+         },
+         "selected_realization": "the line t1 under the line tracker at the start, 11 cm inside the tunnel",
+         "dimension": "what the line tracker sees in the dark",
+         "class": "the black line"
+        },
+        {
+         "realized_by": {
+          "start": "A"
+         },
+         "selected_realization": "A, 11.5 cm inside the tunnel, where the light sensors read about 54 %",
+         "dimension": "how dark it is in the tunnel",
+         "class": "in the dim light near the opening"
+        }
+       ]
+      },
+      "expected_results": [
+       "It follows the black line in the dim light, on into the dark, and reaches Goal 1."
+      ],
+      "postconditions": [
+       {
+        "check_indices": [
+         0
+        ],
+        "description": "By the end of the run, the robot has touched Goal 1."
+       },
+       {
+        "check_indices": [
+         1
+        ],
+        "description": "During the whole run, it never bumps into the tunnel."
+       }
+      ],
+      "oracle": {
+       "confidence": "high",
+       "review_required": true,
+       "basis": "learner_description",
+       "assumptions": [
+        "You didn't say where the line leads, so the goal stands where the line's course goes."
+       ]
+      },
+      "source_block_ids": [
+       "b5",
+       "b9",
+       "b11",
+       "b17",
+       "b25",
+       "b43",
+       "b45"
+      ],
+      "reason": "You said that in the dark it should follow the black line under it, so this shows it does near a tunnel's opening."
+     }
+    ]
+   },
+   {
+    "name": "The darkest part of a tunnel",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 100,
+        "y": 100,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "t1",
+        "kind": "line",
+        "points": [
+         [
+          90,
+          100
+         ],
+         [
+          160,
+          100
+         ]
+        ],
+        "width": 1.48
+       },
+       {
+        "id": "t2",
+        "kind": "tunnel",
+        "role": "obstacle",
+        "points": [
+         [
+          90,
+          100
+         ],
+         [
+          200,
+          100
+         ]
+        ],
+        "width": 15
+       },
+       {
+        "id": "t3",
+        "kind": "rect",
+        "name": "Goal 1",
+        "role": "goal",
+        "x": 135,
+        "y": 93,
+        "w": 10,
+        "h": 14
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "In the darkest part, it keeps to the line",
+      "scenario": "Given the robot starts on a black line deep in a dark tunnel, when the program runs, then it follows the line through the dark and reaches Goal 1 without bumping into the tunnel.",
+      "start": "A",
+      "until": "t3",
+      "max_time_ms": 20000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "t3"
+       },
+       {
+        "check": "never_bumps",
+        "item": "t2"
+       }
+      ],
+      "scenario_id": "S2",
+      "path_ids": [
+       "P5"
+      ],
+      "planned_branch_ids": [
+       "D1.1",
+       "D2.1"
+      ],
+      "input_selection": {
+       "equivalence_partitions": [
+        {
+         "realized_by": {
+          "start": "A",
+          "items": [
+           "t1"
+          ]
+         },
+         "selected_realization": "the line t1 under the line tracker at the start, deep inside the tunnel",
+         "dimension": "what the line tracker sees in the dark",
+         "class": "the black line"
+        },
+        {
+         "realized_by": {
+          "start": "A"
+         },
+         "selected_realization": "A, 15.5 cm inside the tunnel, where the light sensors read 40 %",
+         "dimension": "how dark it is in the tunnel",
+         "class": "in the darkest part"
+        }
+       ]
+      },
+      "expected_results": [
+       "It follows the black line through the darkest part of the tunnel and reaches Goal 1."
+      ],
+      "postconditions": [
+       {
+        "check_indices": [
+         0
+        ],
+        "description": "By the end of the run, the robot has touched Goal 1."
+       },
+       {
+        "check_indices": [
+         1
+        ],
+        "description": "During the whole run, it never bumps into the tunnel."
+       }
+      ],
+      "oracle": {
+       "confidence": "high",
+       "review_required": true,
+       "basis": "learner_description",
+       "assumptions": [
+        "You didn't say where the line leads, so the goal stands where the line's course goes."
+       ]
+      },
+      "source_block_ids": [
+       "b5",
+       "b7",
+       "b9",
+       "b11",
+       "b13"
+      ],
+      "reason": "You said that in the dark it should follow the black line under it, so this shows it does in the darkest part of a tunnel."
+     }
+    ]
+   },
+   {
+    "name": "A tunnel bending to the right",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 30,
+        "y": 50,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "t1",
+        "kind": "line",
+        "points": [
+         [
+          20,
+          50
+         ],
+         [
+          85,
+          50
+         ]
+        ],
+        "width": 1.48
+       },
+       {
+        "id": "t2",
+        "kind": "tunnel",
+        "name": "Tunnel",
+        "role": "obstacle",
+        "points": [
+         [
+          70,
+          50
+         ],
+         [
+          130,
+          50
+         ],
+         [
+          170,
+          80
+         ],
+         [
+          185,
+          120
+         ],
+         [
+          185,
+          165
+         ]
+        ],
+        "smooth": true,
+        "width": 15
+       },
+       {
+        "id": "t3",
+        "kind": "rect",
+        "name": "Goal 1",
+        "role": "goal",
+        "x": 180,
+        "y": 135,
+        "w": 10,
+        "h": 10
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Gets through the bend to the right",
+      "scenario": "Given the robot follows the line into a tunnel that bends to the right, when the tunnel's left wall comes in front of its left side, then it turns away and gets through the bend to Goal 1 without bumping into the tunnel.",
+      "start": "A",
+      "until": "t3",
+      "max_time_ms": 60000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "never_bumps",
+        "item": "t2"
+       },
+       {
+        "check": "reaches",
+        "item": "t3"
+       }
+      ],
+      "scenario_id": "S3",
+      "path_ids": [
+       "P6"
+      ],
+      "planned_branch_ids": [
+       "D1.1",
+       "D2.else",
+       "D3.1",
+       "D4.1",
+       "D4.else",
+       "D5.1"
+      ],
+      "input_selection": {
+       "equivalence_partitions": [
+        {
+         "realized_by": {
+          "items": [
+           "t2"
+          ]
+         },
+         "selected_realization": "in the bend to the right, the tunnel's left wall comes in front of the robot's left half",
+         "dimension": "which side the wall is on",
+         "class": "in front of its left half"
+        }
+       ]
+      },
+      "expected_results": [
+       "It turns away from the wall, gets through the bend and reaches Goal 1 inside the tunnel."
+      ],
+      "postconditions": [
+       {
+        "check_indices": [
+         0
+        ],
+        "description": "During the whole run, the robot never bumps into the tunnel."
+       },
+       {
+        "check_indices": [
+         1
+        ],
+        "description": "By the end of the run, the robot has touched Goal 1 after the bend."
+       }
+      ],
+      "oracle": {
+       "confidence": "medium",
+       "review_required": true,
+       "basis": "inferred_from_program",
+       "assumptions": [
+        "You didn't say it, but in the dark your program turns away from walls beside it, so it should get through the bend without bumping."
+       ]
+      },
+      "source_block_ids": [
+       "b25",
+       "b27",
+       "b29",
+       "b30",
+       "b31",
+       "b34",
+       "b35"
+      ],
+      "reason": "In the dark your program turns away from a wall on its left: the bend to the right makes the tunnel's wall come in front of it."
+     }
+    ]
+   },
+   {
+    "name": "A tunnel bending to the left",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 30,
+        "y": 150,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "t1",
+        "kind": "line",
+        "points": [
+         [
+          20,
+          150
+         ],
+         [
+          85,
+          150
+         ]
+        ],
+        "width": 1.48
+       },
+       {
+        "id": "t2",
+        "kind": "tunnel",
+        "name": "Tunnel",
+        "role": "obstacle",
+        "points": [
+         [
+          70,
+          150
+         ],
+         [
+          130,
+          150
+         ],
+         [
+          170,
+          120
+         ],
+         [
+          185,
+          80
+         ],
+         [
+          185,
+          35
+         ]
+        ],
+        "smooth": true,
+        "width": 15
+       },
+       {
+        "id": "t3",
+        "kind": "rect",
+        "name": "Goal 1",
+        "role": "goal",
+        "x": 180,
+        "y": 55,
+        "w": 10,
+        "h": 10
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Gets through the bend to the left",
+      "scenario": "Given the robot follows the line into a tunnel that bends to the left, when the tunnel's right wall comes in front of its right side, then it turns away and gets through the bend to Goal 1 without bumping into the tunnel.",
+      "start": "A",
+      "until": "t3",
+      "max_time_ms": 60000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "never_bumps",
+        "item": "t2"
+       },
+       {
+        "check": "reaches",
+        "item": "t3"
+       }
+      ],
+      "scenario_id": "S3",
+      "path_ids": [
+       "P7"
+      ],
+      "planned_branch_ids": [
+       "D1.1",
+       "D2.else",
+       "D3.1",
+       "D4.2",
+       "D4.else",
+       "D5.1"
+      ],
+      "input_selection": {
+       "equivalence_partitions": [
+        {
+         "realized_by": {
+          "items": [
+           "t2"
+          ]
+         },
+         "selected_realization": "in the bend to the left, the tunnel's right wall comes in front of the robot's right half",
+         "dimension": "which side the wall is on",
+         "class": "in front of its right half"
+        }
+       ]
+      },
+      "expected_results": [
+       "It turns away from the wall, gets through the bend and reaches Goal 1 inside the tunnel."
+      ],
+      "postconditions": [
+       {
+        "check_indices": [
+         0
+        ],
+        "description": "During the whole run, the robot never bumps into the tunnel."
+       },
+       {
+        "check_indices": [
+         1
+        ],
+        "description": "By the end of the run, the robot has touched Goal 1 after the bend."
+       }
+      ],
+      "oracle": {
+       "confidence": "medium",
+       "review_required": true,
+       "basis": "inferred_from_program",
+       "assumptions": [
+        "You didn't say it, but in the dark your program turns away from walls beside it, so it should get through the bend without bumping."
+       ]
+      },
+      "source_block_ids": [
+       "b25",
+       "b27",
+       "b29",
+       "b30",
+       "b31",
+       "b34",
+       "b35"
+      ],
+      "reason": "In the dark your program turns away from a wall on its right: the bend to the left makes the tunnel's wall come in front of it."
+     }
+    ]
+   }
+  ]
+ },
+ "calls": [
+  {
+   "model": "deepseek-flash",
+   "tokens": {
+    "in": 36744,
+    "cached": 36608,
+    "reasoning": 22808,
+    "out": 25735
+   },
+   "latencyMs": 162037,
+   "attempts": 1
+  },
+  {
+   "model": "deepseek-flash",
+   "tokens": {
+    "in": 39823,
+    "cached": 36608,
+    "reasoning": 4583,
+    "out": 6319
+   },
+   "latencyMs": 39398,
+   "attempts": 1
+  },
+  {
+   "model": "deepseek-flash",
+   "tokens": {
+    "in": 41316,
+    "cached": 39808,
+    "reasoning": 4453,
+    "out": 6417
+   },
+   "latencyMs": 42856,
+   "attempts": 1
+  },
+  {
+   "model": "deepseek-flash",
+   "tokens": {
+    "in": 41845,
+    "cached": 39808,
+    "reasoning": 395,
+    "out": 1761
+   },
+   "latencyMs": 8943,
+   "attempts": 1
+  },
+  {
+   "model": "deepseek-flash",
+   "tokens": {
+    "in": 39826,
+    "cached": 39552,
+    "reasoning": 21591,
+    "out": 23219
+   },
+   "latencyMs": 158441,
+   "attempts": 1
+  },
+  {
+   "model": "deepseek-flash",
+   "tokens": {
+    "in": 39827,
+    "cached": 36608,
+    "reasoning": 5015,
+    "out": 6786
+   },
+   "latencyMs": 41156,
+   "attempts": 1
+  }
+ ],
+ "errs": [],
+ "job": {
+  "id": "followInTheDark__B-light-above__precise__r2__full",
+  "function": "followInTheDark",
+  "version": "followInTheDark/B-light-above",
+  "sentenceKind": "precise",
+  "sentence": "In the dark, follow a black line when there is one under the robot, and drive straight where there is none; in the light, follow the line as before.",
+  "repeat": 2,
+  "pipeline": "full",
+  "name": "p5_followInTheDark_B_light_above"
+ },
+ "wallSeconds": 323.8
+}

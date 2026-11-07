@@ -1,0 +1,213 @@
+{
+ "job": {
+  "id": "driveInTheDark__A-curves__vague__r2__plain",
+  "function": "driveInTheDark",
+  "version": "driveInTheDark/A-curves",
+  "sentenceKind": "vague",
+  "sentence": "Get through the tunnel.",
+  "repeat": 2,
+  "pipeline": "plain",
+  "name": "p5_driveInTheDark_A_curves"
+ },
+ "ms": {
+  "total": 88160,
+  "generate": 88160
+ },
+ "calls": [
+  {
+   "tokens": {
+    "in": 11971,
+    "cached": 11776,
+    "out": 12361,
+    "reasoning": 11666
+   },
+   "latencyMs": 88027
+  }
+ ],
+ "generate": {
+  "ok": true,
+  "repairs": 0,
+  "dropped": [],
+  "worlds": [
+   {
+    "name": "A tunnel on the line",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 50,
+        "y": 100,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "l1",
+        "kind": "line",
+        "points": [
+         [
+          40,
+          100
+         ],
+         [
+          105,
+          100
+         ]
+        ],
+        "width": 1.48
+       },
+       {
+        "id": "t1",
+        "kind": "tunnel",
+        "name": "Tunnel",
+        "role": "obstacle",
+        "points": [
+         [
+          90,
+          100
+         ],
+         [
+          210,
+          100
+         ]
+        ],
+        "width": 15
+       },
+       {
+        "id": "g1",
+        "kind": "rect",
+        "name": "Goal 1",
+        "role": "goal",
+        "x": 185,
+        "y": 95,
+        "w": 10,
+        "h": 10
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Drives through the tunnel",
+      "scenario": "Given a tunnel on your line, when your program follows the line into the tunnel, then it drives on through the dark to the far end of the tunnel without bumping into its walls.",
+      "start": "A",
+      "until": "g1",
+      "max_time_ms": 40000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "g1"
+       },
+       {
+        "check": "never_bumps",
+        "item": "t1"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "A long tunnel on the line",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 50,
+        "y": 100,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "l1",
+        "kind": "line",
+        "points": [
+         [
+          40,
+          100
+         ],
+         [
+          105,
+          100
+         ]
+        ],
+        "width": 1.48
+       },
+       {
+        "id": "t1",
+        "kind": "tunnel",
+        "name": "Tunnel",
+        "role": "obstacle",
+        "points": [
+         [
+          90,
+          100
+         ],
+         [
+          265,
+          100
+         ]
+        ],
+        "width": 15
+       },
+       {
+        "id": "g1",
+        "kind": "rect",
+        "name": "Goal 1",
+        "role": "goal",
+        "x": 240,
+        "y": 95,
+        "w": 10,
+        "h": 10
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Drives through a long tunnel",
+      "scenario": "Given a long tunnel on your line, when your program follows the line into the tunnel, then it keeps driving through the long dark part to the far end without bumping into the tunnel's walls.",
+      "start": "A",
+      "until": "g1",
+      "max_time_ms": 60000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "g1"
+       },
+       {
+        "check": "never_bumps",
+        "item": "t1"
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "duplicates": 0
+ }
+}

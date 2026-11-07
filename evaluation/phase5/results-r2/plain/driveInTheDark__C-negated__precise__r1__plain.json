@@ -1,0 +1,194 @@
+{
+ "job": {
+  "id": "driveInTheDark__C-negated__precise__r1__plain",
+  "function": "driveInTheDark",
+  "version": "driveInTheDark/C-negated",
+  "sentenceKind": "precise",
+  "sentence": "Follow the black line; inside a dark tunnel, where there is no line, drive straight through without touching its walls, and follow the line again after the tunnel.",
+  "repeat": 1,
+  "pipeline": "plain",
+  "name": "p5_driveInTheDark_C_negated"
+ },
+ "ms": {
+  "total": 166053,
+  "generate": 166053
+ },
+ "calls": [
+  {
+   "tokens": {
+    "in": 12043,
+    "cached": 9856,
+    "out": 24050,
+    "reasoning": 23454
+   },
+   "latencyMs": 165909
+  }
+ ],
+ "generate": {
+  "ok": true,
+  "repairs": 0,
+  "dropped": [],
+  "worlds": [
+   {
+    "name": "A line that bends up",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 40,
+        "y": 110,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "l1",
+        "kind": "line",
+        "points": [
+         [
+          30,
+          110
+         ],
+         [
+          80,
+          110
+         ],
+         [
+          100,
+          104
+         ],
+         [
+          114,
+          90
+         ],
+         [
+          120,
+          70
+         ],
+         [
+          120,
+          55
+         ]
+        ],
+        "smooth": true,
+        "width": 1.48
+       },
+       {
+        "id": "g1",
+        "kind": "rect",
+        "name": "Goal 1",
+        "role": "goal",
+        "x": 105,
+        "y": 40,
+        "w": 30,
+        "h": 30
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Follows the line around the bend",
+      "scenario": "Given a black line that bends up, when the program runs, then the robot follows the line and reaches the goal at its end.",
+      "start": "A",
+      "until": "g1",
+      "max_time_ms": 20000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "g1"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "A dark tunnel with no line",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 65,
+        "y": 100,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "t1",
+        "kind": "tunnel",
+        "name": "Tunnel",
+        "role": "obstacle",
+        "points": [
+         [
+          80,
+          100
+         ],
+         [
+          200,
+          100
+         ]
+        ],
+        "width": 15
+       },
+       {
+        "id": "g1",
+        "kind": "rect",
+        "name": "Goal 1",
+        "role": "goal",
+        "x": 145,
+        "y": 95,
+        "w": 10,
+        "h": 10
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Drives straight through the dark tunnel",
+      "scenario": "Given a dark tunnel with no line in it, when the program runs, then the robot drives straight through and reaches the goal inside without touching the walls.",
+      "start": "A",
+      "until": "g1",
+      "max_time_ms": 20000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "never_bumps",
+        "item": "t1"
+       },
+       {
+        "check": "reaches",
+        "item": "g1"
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "duplicates": 0
+ }
+}

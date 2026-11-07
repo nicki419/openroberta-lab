@@ -1,0 +1,328 @@
+{
+ "job": {
+  "id": "avoidWalls__A-swapped__vague__r2__plain",
+  "function": "avoidWalls",
+  "version": "avoidWalls/A-swapped",
+  "sentenceKind": "vague",
+  "sentence": "Don't hit the tunnel walls.",
+  "repeat": 2,
+  "pipeline": "plain",
+  "name": "p5_avoidWalls_A_swapped"
+ },
+ "ms": {
+  "total": 84544,
+  "generate": 84544
+ },
+ "calls": [
+  {
+   "tokens": {
+    "in": 13040,
+    "cached": 12800,
+    "out": 11980,
+    "reasoning": 10905
+   },
+   "latencyMs": 84393
+  }
+ ],
+ "generate": {
+  "ok": true,
+  "repairs": 0,
+  "dropped": [],
+  "worlds": [
+   {
+    "name": "A straight tunnel",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 30,
+        "y": 100,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "t1",
+        "kind": "line",
+        "points": [
+         [
+          20,
+          100
+         ],
+         [
+          85,
+          100
+         ]
+        ],
+        "width": 1.48
+       },
+       {
+        "id": "t2",
+        "kind": "tunnel",
+        "name": "Tunnel",
+        "role": "obstacle",
+        "points": [
+         [
+          70,
+          100
+         ],
+         [
+          190,
+          100
+         ]
+        ],
+        "width": 18
+       },
+       {
+        "id": "t3",
+        "kind": "rect",
+        "name": "Goal 1",
+        "role": "goal",
+        "x": 135,
+        "y": 95,
+        "w": 10,
+        "h": 10
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Drives straight through the tunnel",
+      "scenario": "Given a straight tunnel with a line leading into it, when your program runs, then it drives into the dark tunnel and reaches the goal inside without bumping into the tunnel walls.",
+      "start": "A",
+      "until": "t3",
+      "max_time_ms": 40000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "t3"
+       },
+       {
+        "check": "never_bumps",
+        "item": "t2"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "A tunnel that bends right",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 30,
+        "y": 50,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "t1",
+        "kind": "line",
+        "points": [
+         [
+          20,
+          50
+         ],
+         [
+          85,
+          50
+         ]
+        ],
+        "width": 1.48
+       },
+       {
+        "id": "t2",
+        "kind": "tunnel",
+        "name": "Tunnel",
+        "role": "obstacle",
+        "points": [
+         [
+          70,
+          50
+         ],
+         [
+          130,
+          50
+         ],
+         [
+          170,
+          80
+         ],
+         [
+          185,
+          120
+         ],
+         [
+          185,
+          160
+         ]
+        ],
+        "smooth": true,
+        "width": 18
+       },
+       {
+        "id": "t3",
+        "kind": "rect",
+        "name": "Goal 1",
+        "role": "goal",
+        "x": 180,
+        "y": 130,
+        "w": 10,
+        "h": 10
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Gets around the right bend",
+      "scenario": "Given a tunnel that bends to the right, when your program drives through it in the dark, then it gets around the bend without bumping into the tunnel walls and reaches the goal inside.",
+      "start": "A",
+      "until": "t3",
+      "max_time_ms": 40000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "t3"
+       },
+       {
+        "check": "never_bumps",
+        "item": "t2"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "A tunnel that bends left",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 30,
+        "y": 150,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "t1",
+        "kind": "line",
+        "points": [
+         [
+          20,
+          150
+         ],
+         [
+          85,
+          150
+         ]
+        ],
+        "width": 1.48
+       },
+       {
+        "id": "t2",
+        "kind": "tunnel",
+        "name": "Tunnel",
+        "role": "obstacle",
+        "points": [
+         [
+          70,
+          150
+         ],
+         [
+          130,
+          150
+         ],
+         [
+          170,
+          120
+         ],
+         [
+          185,
+          80
+         ],
+         [
+          185,
+          40
+         ]
+        ],
+        "smooth": true,
+        "width": 18
+       },
+       {
+        "id": "t3",
+        "kind": "rect",
+        "name": "Goal 1",
+        "role": "goal",
+        "x": 180,
+        "y": 60,
+        "w": 10,
+        "h": 10
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Gets around the left bend",
+      "scenario": "Given a tunnel that bends to the left, when your program drives through it in the dark, then it gets around the bend without bumping into the tunnel walls and reaches the goal inside.",
+      "start": "A",
+      "until": "t3",
+      "max_time_ms": 40000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "t3"
+       },
+       {
+        "check": "never_bumps",
+        "item": "t2"
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "duplicates": 0
+ }
+}

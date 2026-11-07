@@ -1,0 +1,314 @@
+{
+ "job": {
+  "id": "stopAtWall__B-no-handover__precise__r2__plain",
+  "function": "stopAtWall",
+  "version": "stopAtWall/B-no-handover",
+  "sentenceKind": "precise",
+  "sentence": "Follow the black line, and when a wall is right in front of the robot, stop before it without touching it and stay there.",
+  "repeat": 2,
+  "pipeline": "plain",
+  "name": "p5_stopAtWall_B_no_handover"
+ },
+ "ms": {
+  "total": 53388,
+  "generate": 53388
+ },
+ "calls": [
+  {
+   "tokens": {
+    "in": 11601,
+    "cached": 11392,
+    "out": 9228,
+    "reasoning": 8109
+   },
+   "latencyMs": 53255
+  }
+ ],
+ "generate": {
+  "ok": true,
+  "repairs": 0,
+  "dropped": [],
+  "worlds": [
+   {
+    "name": "A straight line to a goal",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 30,
+        "y": 100,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "t1",
+        "kind": "line",
+        "points": [
+         [
+          20,
+          100
+         ],
+         [
+          150,
+          100
+         ]
+        ],
+        "width": 1.48
+       },
+       {
+        "id": "g1",
+        "kind": "rect",
+        "name": "Goal 1",
+        "role": "goal",
+        "x": 135,
+        "y": 85,
+        "w": 30,
+        "h": 30
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Follows the line to the goal",
+      "scenario": "Given a black line straight ahead, when the program runs, then your program drives along the line and reaches the goal at its end.",
+      "start": "A",
+      "until": "g1",
+      "max_time_ms": 30000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "g1"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "A line with a bend",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 30,
+        "y": 100,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "t1",
+        "kind": "line",
+        "points": [
+         [
+          20,
+          100
+         ],
+         [
+          80,
+          100
+         ],
+         [
+          110,
+          80
+         ]
+        ],
+        "smooth": true,
+        "width": 1.48
+       },
+       {
+        "id": "g1",
+        "kind": "rect",
+        "name": "Goal 1",
+        "role": "goal",
+        "x": 100,
+        "y": 60,
+        "w": 30,
+        "h": 30
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Follows a line that bends",
+      "scenario": "Given a black line that bends to the left, when the program runs, then your program follows the line and reaches the goal at its end.",
+      "start": "A",
+      "until": "g1",
+      "max_time_ms": 40000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "g1"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "A wall across the line",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 30,
+        "y": 100,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "t1",
+        "kind": "line",
+        "points": [
+         [
+          20,
+          100
+         ],
+         [
+          100,
+          100
+         ]
+        ],
+        "width": 1.48
+       },
+       {
+        "id": "t2",
+        "kind": "rect",
+        "name": "Wall",
+        "role": "obstacle",
+        "x": 60,
+        "y": 94,
+        "w": 2,
+        "h": 12
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Stops before the wall across the line",
+      "scenario": "Given a wall across the line 30 cm ahead, when the program runs, then your program follows the line, stops before the wall without touching it and stays there.",
+      "start": "A",
+      "until": null,
+      "max_time_ms": 20000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "never_bumps",
+        "item": "t2"
+       },
+       {
+        "check": "whenever",
+        "when": "obstacle_ahead",
+        "does": "stands_still",
+        "after_ms": 0
+       },
+       {
+        "check": "after",
+        "event": "obstacle",
+        "within_ms": 1000,
+        "does": "stands_still"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "A wall right in front",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 30,
+        "y": 100,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "t1",
+        "kind": "rect",
+        "name": "Wall",
+        "role": "obstacle",
+        "x": 38,
+        "y": 94,
+        "w": 2,
+        "h": 12
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Stops at once at the wall in front",
+      "scenario": "Given a wall right in front of the robot, when the program runs, then your program stands still and does not touch the wall.",
+      "start": "A",
+      "until": null,
+      "max_time_ms": 10000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "does",
+        "does": "stands_still",
+        "after_ms": 500
+       },
+       {
+        "check": "never_bumps",
+        "item": "t1"
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "duplicates": 0
+ }
+}

@@ -1,0 +1,158 @@
+{
+ "job": {
+  "id": "stopAtWall__A-negated__vague__r2__plain",
+  "function": "stopAtWall",
+  "version": "stopAtWall/A-negated",
+  "sentenceKind": "vague",
+  "sentence": "Stop at the wall.",
+  "repeat": 2,
+  "pipeline": "plain",
+  "name": "p5_stopAtWall_A_negated"
+ },
+ "ms": {
+  "total": 50809,
+  "generate": 50809
+ },
+ "calls": [
+  {
+   "tokens": {
+    "in": 11528,
+    "cached": 11392,
+    "out": 7809,
+    "reasoning": 7394
+   },
+   "latencyMs": 50673
+  }
+ ],
+ "generate": {
+  "ok": true,
+  "repairs": 0,
+  "dropped": [],
+  "worlds": [
+   {
+    "name": "A close wall directly ahead",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 30,
+        "y": 100,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "t1",
+        "kind": "rect",
+        "name": "Wall",
+        "role": "obstacle",
+        "x": 38,
+        "y": 94,
+        "w": 2,
+        "h": 12
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Stops before the close wall",
+      "scenario": "Given a wall right in front of your robot, when your program runs, then your robot stands still and does not bump into the wall.",
+      "start": "A",
+      "until": null,
+      "max_time_ms": 3000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "never_bumps",
+        "item": "t1"
+       },
+       {
+        "check": "does",
+        "does": "stands_still",
+        "after_ms": 100
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "A wall some way ahead",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 30,
+        "y": 100,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "t1",
+        "kind": "rect",
+        "name": "Wall",
+        "role": "obstacle",
+        "x": 60,
+        "y": 94,
+        "w": 2,
+        "h": 12
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Drives up to the farther wall and stops",
+      "scenario": "Given a wall 30 cm ahead of your robot, when your program runs for up to 10 s, then your robot drives forward while the way is clear and stops when the wall is in front, without bumping into it.",
+      "start": "A",
+      "until": null,
+      "max_time_ms": 10000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "never_bumps",
+        "item": "t1"
+       },
+       {
+        "check": "whenever",
+        "when": "no_obstacle",
+        "does": "drives_forward",
+        "after_ms": 0
+       },
+       {
+        "check": "whenever",
+        "when": "obstacle_ahead",
+        "does": "stands_still",
+        "after_ms": 0
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "duplicates": 0
+ }
+}

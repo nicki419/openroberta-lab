@@ -1,0 +1,333 @@
+{
+ "job": {
+  "id": "driveInTheDark__B-floor-sensor__vague__r1__plain",
+  "function": "driveInTheDark",
+  "version": "driveInTheDark/B-floor-sensor",
+  "sentenceKind": "vague",
+  "sentence": "Get through the tunnel.",
+  "repeat": 1,
+  "pipeline": "plain",
+  "name": "p5_driveInTheDark_B_floor_sensor"
+ },
+ "ms": {
+  "total": 74732,
+  "generate": 74732
+ },
+ "calls": [
+  {
+   "tokens": {
+    "in": 12027,
+    "cached": 11776,
+    "out": 10743,
+    "reasoning": 9615
+   },
+   "latencyMs": 74586
+  }
+ ],
+ "generate": {
+  "ok": true,
+  "repairs": 0,
+  "dropped": [],
+  "worlds": [
+   {
+    "name": "A tunnel on the line",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 40,
+        "y": 100,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "t1",
+        "kind": "line",
+        "points": [
+         [
+          30,
+          100
+         ],
+         [
+          250,
+          100
+         ]
+        ],
+        "width": 1.48
+       },
+       {
+        "id": "t2",
+        "kind": "tunnel",
+        "name": "Tunnel",
+        "role": "obstacle",
+        "points": [
+         [
+          100,
+          100
+         ],
+         [
+          190,
+          100
+         ]
+        ],
+        "width": 15
+       },
+       {
+        "id": "t3",
+        "kind": "rect",
+        "name": "Beyond the tunnel",
+        "role": "goal",
+        "x": 210,
+        "y": 88,
+        "w": 28,
+        "h": 24
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Through a tunnel",
+      "scenario": "Given a line that leads into a tunnel, when your program runs, then it drives along the line, through the tunnel and reaches the area beyond the exit without bumping into the tunnel.",
+      "start": "A",
+      "until": "t3",
+      "max_time_ms": 30000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "t3"
+       },
+       {
+        "check": "never_bumps",
+        "item": "t2"
+       },
+       {
+        "check": "does",
+        "does": "drives_forward",
+        "after_ms": 500
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "A long tunnel on the line",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 40,
+        "y": 100,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "t1",
+        "kind": "line",
+        "points": [
+         [
+          30,
+          100
+         ],
+         [
+          280,
+          100
+         ]
+        ],
+        "width": 1.48
+       },
+       {
+        "id": "t2",
+        "kind": "tunnel",
+        "name": "Long tunnel",
+        "role": "obstacle",
+        "points": [
+         [
+          70,
+          100
+         ],
+         [
+          250,
+          100
+         ]
+        ],
+        "width": 15
+       },
+       {
+        "id": "t3",
+        "kind": "rect",
+        "name": "Deep in the tunnel",
+        "role": "goal",
+        "x": 155,
+        "y": 94,
+        "w": 12,
+        "h": 12
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Deep into a long tunnel",
+      "scenario": "Given a long tunnel with a line through it, when your program runs, then it drives along the line deep into the tunnel without bumping into the tunnel's walls.",
+      "start": "A",
+      "until": "t3",
+      "max_time_ms": 30000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "t3"
+       },
+       {
+        "check": "never_bumps",
+        "item": "t2"
+       },
+       {
+        "check": "does",
+        "does": "drives_forward",
+        "after_ms": 1000
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "Two tunnels on a line",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 40,
+        "y": 100,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "t1",
+        "kind": "line",
+        "points": [
+         [
+          30,
+          100
+         ],
+         [
+          275,
+          100
+         ]
+        ],
+        "width": 1.48
+       },
+       {
+        "id": "t2",
+        "kind": "tunnel",
+        "name": "First tunnel",
+        "role": "obstacle",
+        "points": [
+         [
+          80,
+          100
+         ],
+         [
+          140,
+          100
+         ]
+        ],
+        "width": 15
+       },
+       {
+        "id": "t3",
+        "kind": "tunnel",
+        "name": "Second tunnel",
+        "role": "obstacle",
+        "points": [
+         [
+          170,
+          100
+         ],
+         [
+          235,
+          100
+         ]
+        ],
+        "width": 15
+       },
+       {
+        "id": "t4",
+        "kind": "rect",
+        "name": "Past both tunnels",
+        "role": "goal",
+        "x": 250,
+        "y": 88,
+        "w": 30,
+        "h": 24
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Through two tunnels",
+      "scenario": "Given two tunnels one after the other on a line, when your program runs, then it drives through both tunnels and reaches the area past them, without bumping into either tunnel.",
+      "start": "A",
+      "until": "t4",
+      "max_time_ms": 40000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "t4"
+       },
+       {
+        "check": "never_bumps",
+        "item": "t2"
+       },
+       {
+        "check": "never_bumps",
+        "item": "t3"
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "duplicates": 0
+ }
+}

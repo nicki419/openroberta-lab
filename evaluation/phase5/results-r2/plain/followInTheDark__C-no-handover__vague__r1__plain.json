@@ -1,0 +1,281 @@
+{
+ "job": {
+  "id": "followInTheDark__C-no-handover__vague__r1__plain",
+  "function": "followInTheDark",
+  "version": "followInTheDark/C-no-handover",
+  "sentenceKind": "vague",
+  "sentence": "Follow the line in the dark too.",
+  "repeat": 1,
+  "pipeline": "plain",
+  "name": "p5_followInTheDark_C_no_handover"
+ },
+ "ms": {
+  "total": 75004,
+  "generate": 75004
+ },
+ "calls": [
+  {
+   "tokens": {
+    "in": 13912,
+    "cached": 13696,
+    "out": 11729,
+    "reasoning": 10734
+   },
+   "latencyMs": 74866
+  }
+ ],
+ "generate": {
+  "ok": true,
+  "repairs": 0,
+  "dropped": [],
+  "worlds": [
+   {
+    "name": "A line in a dark tunnel",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 50,
+        "y": 50,
+        "heading": 0
+       },
+       {
+        "id": "B",
+        "name": "B",
+        "x": 80,
+        "y": 110,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "t1",
+        "kind": "tunnel",
+        "name": "Tunnel 1",
+        "role": "obstacle",
+        "points": [
+         [
+          40,
+          50
+         ],
+         [
+          180,
+          50
+         ]
+        ],
+        "width": 16
+       },
+       {
+        "id": "t2",
+        "kind": "tunnel",
+        "name": "Tunnel 2",
+        "role": "obstacle",
+        "points": [
+         [
+          40,
+          110
+         ],
+         [
+          220,
+          110
+         ]
+        ],
+        "width": 16
+       },
+       {
+        "id": "l1",
+        "kind": "line",
+        "points": [
+         [
+          40,
+          50
+         ],
+         [
+          150,
+          50
+         ]
+        ],
+        "width": 1.48
+       },
+       {
+        "id": "l2",
+        "kind": "line",
+        "points": [
+         [
+          40,
+          110
+         ],
+         [
+          200,
+          110
+         ]
+        ],
+        "width": 1.48
+       },
+       {
+        "id": "g1",
+        "kind": "rect",
+        "name": "Goal 1",
+        "role": "goal",
+        "x": 100,
+        "y": 45,
+        "w": 10,
+        "h": 10
+       },
+       {
+        "id": "g2",
+        "kind": "rect",
+        "name": "Goal 2",
+        "role": "goal",
+        "x": 160,
+        "y": 105,
+        "w": 10,
+        "h": 10
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Follows the line to the goal in the dark",
+      "scenario": "Given your robot stands in a dark tunnel, on a line that runs on through the tunnel, when your program runs, then it follows the line in the dark and reaches the goal inside the tunnel without bumping into the tunnel.",
+      "start": "A",
+      "until": "g1",
+      "max_time_ms": 30000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "g1"
+       },
+       {
+        "check": "never_bumps",
+        "item": "t1"
+       }
+      ]
+     },
+     {
+      "name": "Follows the line further in a long dark tunnel",
+      "scenario": "Given your robot stands deep inside a long dark tunnel, on a line that runs on through the tunnel, when your program runs, then it follows the line in the dark and reaches the goal inside the tunnel without bumping into the tunnel.",
+      "start": "B",
+      "until": "g2",
+      "max_time_ms": 40000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "g2"
+       },
+       {
+        "check": "never_bumps",
+        "item": "t2"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "A line in the dark near a tunnel's end",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 50,
+        "y": 100,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "t1",
+        "kind": "tunnel",
+        "name": "Tunnel 1",
+        "role": "obstacle",
+        "points": [
+         [
+          40,
+          100
+         ],
+         [
+          160,
+          100
+         ]
+        ],
+        "width": 16
+       },
+       {
+        "id": "l1",
+        "kind": "line",
+        "points": [
+         [
+          40,
+          100
+         ],
+         [
+          150,
+          100
+         ]
+        ],
+        "width": 1.48
+       },
+       {
+        "id": "g1",
+        "kind": "rect",
+        "name": "Goal 1",
+        "role": "goal",
+        "x": 135,
+        "y": 95,
+        "w": 10,
+        "h": 10
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Follows the line through the dark up to the goal",
+      "scenario": "Given your robot starts in a dark tunnel, on a line that runs on through it, when your program runs, then it follows the line in the dark and reaches the goal inside the tunnel, near its end, without bumping into the tunnel.",
+      "start": "A",
+      "until": "g1",
+      "max_time_ms": 30000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "g1"
+       },
+       {
+        "check": "never_bumps",
+        "item": "t1"
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "duplicates": 0
+ }
+}

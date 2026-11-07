@@ -1,0 +1,274 @@
+{
+ "job": {
+  "id": "followLine__B-one-turn__vague__r2__plain",
+  "function": "followLine",
+  "version": "followLine/B-one-turn",
+  "sentenceKind": "vague",
+  "sentence": "Follow the line.",
+  "repeat": 2,
+  "pipeline": "plain",
+  "name": "p5_followLine_B_one_turn"
+ },
+ "ms": {
+  "total": 230763,
+  "generate": 230763
+ },
+ "calls": [
+  {
+   "tokens": {
+    "in": 11225,
+    "cached": 11008,
+    "out": 32000,
+    "reasoning": 32000
+   },
+   "latencyMs": 205449
+  },
+  {
+   "tokens": {
+    "in": 11252,
+    "cached": 11008,
+    "out": 3873,
+    "reasoning": 3248
+   },
+   "latencyMs": 25170
+  }
+ ],
+ "generate": {
+  "ok": true,
+  "repairs": 1,
+  "dropped": [],
+  "worlds": [
+   {
+    "name": "A straight line",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 30,
+        "y": 100,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "t1",
+        "kind": "line",
+        "points": [
+         [
+          20,
+          100
+         ],
+         [
+          260,
+          100
+         ]
+        ],
+        "width": 1.48
+       },
+       {
+        "id": "t2",
+        "kind": "rect",
+        "name": "Goal 1",
+        "role": "goal",
+        "x": 240,
+        "y": 85,
+        "w": 30,
+        "h": 30
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Follows a straight line to the goal",
+      "scenario": "Given a straight black line with a goal at its end, when the program runs, then the robot follows the line and reaches the goal.",
+      "start": "A",
+      "until": "t2",
+      "max_time_ms": 30000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "t2"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "A line bending right",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 30,
+        "y": 100,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "t1",
+        "kind": "line",
+        "points": [
+         [
+          20,
+          100
+         ],
+         [
+          80,
+          100
+         ],
+         [
+          120,
+          115
+         ],
+         [
+          160,
+          130
+         ],
+         [
+          200,
+          145
+         ]
+        ],
+        "smooth": true,
+        "width": 1.48
+       },
+       {
+        "id": "t2",
+        "kind": "rect",
+        "name": "Goal 1",
+        "role": "goal",
+        "x": 185,
+        "y": 130,
+        "w": 30,
+        "h": 30
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Follows a line that bends right",
+      "scenario": "Given a black line that bends to the right with a goal at its end, when the program runs, then the robot follows the line and reaches the goal.",
+      "start": "A",
+      "until": "t2",
+      "max_time_ms": 30000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "t2"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "A line bending left",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 30,
+        "y": 100,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "t1",
+        "kind": "line",
+        "points": [
+         [
+          20,
+          100
+         ],
+         [
+          80,
+          100
+         ],
+         [
+          120,
+          85
+         ],
+         [
+          160,
+          70
+         ],
+         [
+          200,
+          55
+         ]
+        ],
+        "smooth": true,
+        "width": 1.48
+       },
+       {
+        "id": "t2",
+        "kind": "rect",
+        "name": "Goal 1",
+        "role": "goal",
+        "x": 185,
+        "y": 40,
+        "w": 30,
+        "h": 30
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Follows a line that bends left",
+      "scenario": "Given a black line that bends to the left with a goal at its end, when the program runs, then the robot follows the line and reaches the goal.",
+      "start": "A",
+      "until": "t2",
+      "max_time_ms": 30000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "t2"
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "duplicates": 0
+ }
+}

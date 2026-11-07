@@ -10,7 +10,8 @@ The two questions (2026-11-06):
    (harnesses?).*
 2. *How can we know for certain that DeepSeek is using the testing techniques that we tell it to use?*
 
-Status: **phase 5: the first measurement is done** (see "Phase 5" at the end); prompt tuning may follow.
+Status: **phase 5: tuned once and measured again** (round 2, see "Phase 5" at the end); the false alarms left come mostly from
+the broken program (see "Next (open)").
 Last updated: 2026-11-07.
 
 ## The short answer
@@ -37,17 +38,19 @@ The harness for this exists, in three layers:
 
 What the harness can't decide is listed under "What nothing checks yet".
 
-**After phase 5 (2026-11-07)**, on 80 requests for broken programs of the study's kind, at effort low:
+**After phase 5 (2026-11-07)**, on 80 requests for broken programs of the study's kind, at effort low, before and after the tuning of
+the context pack (rounds 1 and 2):
 
 1. *Does it follow our guidance?* In the answers the learner gets, yes, for everything the code checks: the Lab sent back 4 of 82
-   first analyses and 27 of 188 first test answers (mostly for how the world was drawn), and after the repairs every answer passed
-   the checks. A rule only the prompt asks for broke once: an analysis saw that the program can't do what the learner said, and then
-   wrote no test.
+   first analyses and 27 of 188 first test answers in round 1, 6 of 82 and 29 of 186 in round 2 (mostly for how the world was drawn),
+   and after the repairs every answer passed the checks. A rule only the prompt asks for broke once: an analysis saw that the program
+   can't do what the learner said, and then wrote no test.
 2. *Does it use the techniques?* That can't be known from the inside. Phase 5 measured whether they pay off: the same model without
-   the strategy, in one plain call, caught nearly as many broken versions (60 % against 66 %) with more false alarms (48 % against
-   40 % of the sets), and neither difference is significant (p = 0.19 and 0.13). The techniques shape the answers; the quality of
-   the tests is decided by the expected behaviour (where the model draws the goal, and what it expects there), which no technique
-   checks.
+   the strategy, in one plain call, did about as well in both rounds (round 2: 82 % of the broken versions caught by both, false
+   alarms in 14 % against 20 % of the sets; no difference is significant). **What made the tests better was the knowledge of the
+   world, not the strategy**: the tuning of the facts and recipes (where a tunnel's light changes, where the goal goes, no start
+   beside the line) cut the sets with a false alarm from 40 % to 14 % and raised the good sets from 14 % to 48 %, in both pipelines.
+   The quality of the tests is decided by the expected behaviour and the world drawn for it, which no technique checks.
 
 ## What the Lab enforces, measures, or only asks for
 
@@ -280,10 +283,80 @@ function; one model; the plain pipeline also lacks the worked examples; L8 isn't
 **Effort low stays** (the user, 2026-11-07): no measurement at effort none. It is set in the local `.env`; the defaults in
 `openRoberta.properties` still say `none`.
 
+### The tuning (2026-11-07)
+
+The user asked to tune against the false alarms; they had seen that the model puts the goal after the tunnel, where on the levels a line
+takes over, and that it belongs inside the tunnel. The false alarms of the full pipeline, without the requests of the kept-out versions
+(39 tests), have four causes, three of them written into the context pack itself:
+
+| Cause | False alarms | Where it came from |
+|---|---|---|
+| **The tunnel's openings**: the line ends at the opening, so the robot loses it in the first 7.5 cm under the roof (the light falls over 15 cm, and a program with 70 % switches 7.5 cm inside) and turns into a wall; or the goal is after the exit, where a line follower circles | 20 | `tests.md`'s recipe: a tunnel without a line, the goal just after the exit; the same for the bend |
+| **A wall inside the dark tunnel**, with a stop or a turn expected: the right programs check the light first and never get to their wall-stop in the dark; the expectation came from the broken program (a negated light check stops there) | 9 | `simulator.md` and `tests.md`: "a wall across the whole tunnel, for a stop in the dark", "the class 'a wall ahead in the dark'" |
+| **A start beside the line**, on the side the right programs turn away from | 8 | `tests.md`: the line on the side the program turns to on the plain floor, which is the broken program's side (a broken "one turn" follower turns the other way) |
+| a bent tunnel for a program that drives straight in the dark (vague sentence); `after` `line_end` with a line follower | 2 | |
+
+What was changed (`OpenRobertaServer/src/main/resources/ai/`; the prompt's version is the hash of the pack, the answers' contract stays 1.4):
+
+1. **`simulator.md`**: the program switches inside the tunnel, 7.5 cm from each end, and does what it does in the light there; a line the
+   robot follows runs 15 cm or more into the tunnel; after the dark the robot comes out a little to one side, and a line follower finds the
+   line again only from one side.
+2. **`tests.md`**: the recipes "Dim light", **"Driving through a tunnel"** (the line through the start runs 15 cm into the tunnel, 40 cm of
+   straight line before it, **the goal inside the tunnel**, no goal after the exit) and the bent tunnel (the goal inside, after the bend);
+   no wall across a tunnel unless the learner says what the robot should do at a wall in the dark; a start beside the line only if the
+   learner says the robot should find the line, else the class is deferred; `line_start` and `line_end` aren't for line followers.
+3. **`tasks.md`**: a line follower gets into the dark on a line that runs into the tunnel; the goal of getting through is inside it.
+4. **Examples 1 and 4**: no start beside the line (example 1 defers the class: "You didn't say the robot should find the line").
+5. **The recipes were run on the simulator** (`evaluation/phase5/check_recipes.py`, every version of the tunnel functions): every right
+   version passes the goal inside the tunnel, the start in the dark and the bends (driveInTheDark aside, which has no wall avoidance). A
+   first draft with a second line after the tunnel and the goal over its end failed on 5 of the 9 right versions (they came out of the
+   dark on the side away from the line), so the pack has no goal after the exit.
+
+Not changed: the measures, the corpus, the sentences, the plain pipeline's prompt (it takes `simulator.md` and `tests.md` without "How to
+choose the tests", so it gets the new facts and recipes too).
+
+### Results after the tuning (round 2, 2026-11-07)
+
+The same 80 requests per pipeline with the tuned pack, the kept-out versions included (`evaluation/phase5/results-r2/`: `report.md`, and
+`compare.md` by `compare.py`). All 160 evaluations checked against their own requests.
+
+| | full, round 1 | full, round 2 | plain, round 1 | plain, round 2 |
+|---|---|---|---|---|
+| requests without a test | 2 | 1 | 0 | 0 |
+| tests per request (mean) | 3.1 | 2.6 | 3.0 | 2.9 |
+| **sets with a false alarm** | 40 % | **14 %** | 48 % | 20 % |
+| false alarms among the tests | 17 % | 6 % | 25 % | 8 % |
+| **broken versions caught** | 66 % | **82 %** | 60 % | 82 % |
+| **the broken version the assistant got, caught** | 55 % | **72 %** | 40 % | 70 % |
+| **good sets** (the user's rule) | 14 % | **48 %** | 9 % | 44 % |
+| time per request: median (90 %, max) | 131 s (239 s, 429 s) | 134 s (261 s, 321 s) | 90 s | 91 s |
+
+- **The tuning works, and not only on what it looked at.** Paired by version, sentence and repeat, round 2 of the full pipeline had fewer
+  false alarms in 31 of 80 pairs and more in 9 (sign test p = 0.001), and caught more broken versions in 40 and fewer in 15 (p = 0.001).
+  On the kept-out versions (20 requests), the good sets rose from 10 % to 40 %, the false alarms fell from 20 % to 15 % of the sets.
+- **The strategy still doesn't beat the plain call** (round 2, paired: fewer false alarms in 10, more in 5, p = 0.30; more caught in 14,
+  fewer in 21, p = 0.31). The plain call gets the same facts and recipes, and improved as much.
+- **By function** (full): `driveInTheDark` from 81 % to 19 % of the sets with a false alarm and from 0 % to 75 % good sets; `avoidWalls`
+  62 % to 6 % (good sets 6 % to 56 %); `followInTheDark` 31 % to 0 % (good sets 19 % to 69 %). **`stopAtWall` got worse**: no false alarm
+  in round 1, 31 % of its sets in round 2 (6 tests).
+- **The false alarms left** (13 tests, full pipeline): 9 come from the broken program, mostly with the vague sentence: the model expects
+  what the broken program does ("with nothing ahead, it stands still" for a negated check; "in dim light it curves left" for a line
+  follower that reads the light from above; "stops at the wall in the dark"), or draws the world for it (no line, because the broken
+  program drives straight on the plain floor while every right one circles there; a wall only in front of the right sensor, which the
+  broken program reads and two of the right ones don't). 1 still puts the goal after the tunnel's exit. 3 use a check too strictly for a
+  right program: `whenever` an obstacle is ahead, stand still, from 0 ms (a right version that reads RIGHT sees the wall a few frames
+  after FRONT does), and `whenever` a wall is on the right, turn left (a right program turns in steps of 20°).
+- **The techniques** (the telemetry since round 2 began, `results-r2/audit/`): 6 of 82 first analyses sent back (7 %: consolidation 3,
+  branch coverage 3), 29 of 186 first generate answers (16 %: drawing the world 27, equivalence classes 12); every call at effort low.
+- **Time**: unchanged (median 134 s per "Write tests"; 90 % within 261 s; the longest 321 s).
+
 ### Next (open)
 
-- Prompt tuning against the false alarms of the tunnel worlds (a line or the goal where the program gets after the tunnel), and for tests of
-  what the learner said when the program can't do it; then the same measurement again, the kept-out versions included.
+- **The false alarms from the broken program** (9 of 13): in the study, the program the model reads is broken, and the context pack still
+  lets it take from the program what the sentence doesn't say (`inferred_from_program`), and the world from what the program does on a
+  plain floor. Possible: expectations only from the sentence (what it doesn't say gets no test); a line wherever the learner's robot
+  follows one, whatever the program does on a plain floor; "a wall ahead" across the robot's whole front unless the learner says left
+  or right; `whenever` … `stands_still` with a margin. A change of the oracle rules: the user's decision.
 - The user's review of the corpus as the study's starter code (`evaluation/phase5/corpus/CORPUS.md`).
 
 ## Changes
@@ -295,3 +368,5 @@ function; one model; the plain pipeline also lacks the worked examples; L8 isn't
 - 2026-11-07: phase 5: effort low stays; the measurement at effort none is dropped.
 - 2026-11-07: phase 5: 4 evaluations of `avoidWalls` corrected (two processes on one Chrome had given them the runs of other
   requests; `evaluate.py` now refuses such runs); the full pipeline's numbers updated; the answer after phase 5 added.
+- 2026-11-07: phase 5: the tuning (the causes of the false alarms, what was changed in the context pack, the recipes checked).
+- 2026-11-07: phase 5: round 2 after the tuning (results, the false alarms left, the answer after phase 5 with both rounds).

@@ -1,0 +1,201 @@
+{
+ "job": {
+  "id": "stopAtWall__A-negated__vague__r1__plain",
+  "function": "stopAtWall",
+  "version": "stopAtWall/A-negated",
+  "sentenceKind": "vague",
+  "sentence": "Stop at the wall.",
+  "repeat": 1,
+  "pipeline": "plain",
+  "name": "p5_stopAtWall_A_negated"
+ },
+ "ms": {
+  "total": 87086,
+  "generate": 87086
+ },
+ "calls": [
+  {
+   "tokens": {
+    "in": 11528,
+    "cached": 11264,
+    "out": 14066,
+    "reasoning": 13364
+   },
+   "latencyMs": 86947
+  }
+ ],
+ "generate": {
+  "ok": true,
+  "repairs": 0,
+  "dropped": [],
+  "worlds": [
+   {
+    "name": "A wall across the line",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 30,
+        "y": 100,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "l1",
+        "kind": "line",
+        "points": [
+         [
+          20,
+          100
+         ],
+         [
+          100,
+          100
+         ]
+        ],
+        "width": 1.48
+       },
+       {
+        "id": "t1",
+        "kind": "rect",
+        "name": "Wall",
+        "role": "obstacle",
+        "x": 80,
+        "y": 94,
+        "w": 2,
+        "h": 12
+       },
+       {
+        "id": "g1",
+        "kind": "rect",
+        "name": "Goal 1",
+        "role": "goal",
+        "x": 60,
+        "y": 88,
+        "w": 10,
+        "h": 24
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Stops before the wall on the line",
+      "scenario": "Given a straight line with a wall 50 cm ahead across it, when your program runs, then the robot drives along the line up to the wall, stops in front of it and stays still without bumping into it.",
+      "start": "A",
+      "until": null,
+      "max_time_ms": 25000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "g1"
+       },
+       {
+        "check": "never_bumps",
+        "item": "t1"
+       },
+       {
+        "check": "whenever",
+        "when": "obstacle_ahead",
+        "does": "stands_still",
+        "after_ms": 400
+       },
+       {
+        "check": "does",
+        "does": "stands_still",
+        "after_ms": 18000
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "A wall right in front",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 30,
+        "y": 100,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "l1",
+        "kind": "line",
+        "points": [
+         [
+          20,
+          100
+         ],
+         [
+          70,
+          100
+         ]
+        ],
+        "width": 1.48
+       },
+       {
+        "id": "t1",
+        "kind": "rect",
+        "name": "Wall",
+        "role": "obstacle",
+        "x": 38,
+        "y": 94,
+        "w": 2,
+        "h": 12
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Stays still at a wall right in front",
+      "scenario": "Given a wall 8 cm in front of the robot on the line, when your program starts, then the robot stays still at the wall and doesn't bump into it.",
+      "start": "A",
+      "until": null,
+      "max_time_ms": 5000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "never_bumps",
+        "item": "t1"
+       },
+       {
+        "check": "does",
+        "does": "stands_still",
+        "after_ms": 1000
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "duplicates": 0
+ }
+}

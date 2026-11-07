@@ -1,0 +1,2802 @@
+{
+ "driveInTheDark/A-never-dark": {
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "Through the dark (goal inside)",
+    "test": "Gets through the dark",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 6.2 s"
+    ]
+   },
+   {
+    "world": "Follows the line after the tunnel",
+    "test": "Follows the line again after the tunnel",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t4\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 6.2 s"
+    ]
+   },
+   {
+    "world": "Starts in the dark",
+    "test": "Drives on in the dark",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 0.4 s"
+    ]
+   },
+   {
+    "world": "Bend to the right, width 15",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 6.1 s"
+    ]
+   },
+   {
+    "world": "Bend to the left, width 15",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   },
+   {
+    "world": "Bend to the right, width 20",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   },
+   {
+    "world": "Bend to the left, width 20",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   }
+  ],
+  "error": null
+ },
+ "driveInTheDark/A": {
+  "kind": "correct",
+  "tests": [
+   {
+    "world": "Through the dark (goal inside)",
+    "test": "Gets through the dark",
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Follows the line after the tunnel",
+    "test": "Follows the line again after the tunnel",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t4\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 15 s"
+    ]
+   },
+   {
+    "world": "Starts in the dark",
+    "test": "Drives on in the dark",
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Bend to the right, width 15",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 10.7 s"
+    ]
+   },
+   {
+    "world": "Bend to the left, width 15",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 10.7 s"
+    ]
+   },
+   {
+    "world": "Bend to the right, width 20",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 11.2 s"
+    ]
+   },
+   {
+    "world": "Bend to the left, width 20",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 11.2 s"
+    ]
+   }
+  ],
+  "error": null
+ },
+ "driveInTheDark/A-floor-sensor": {
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "Through the dark (goal inside)",
+    "test": "Gets through the dark",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 5.2 s"
+    ]
+   },
+   {
+    "world": "Follows the line after the tunnel",
+    "test": "Follows the line again after the tunnel",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t4\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 5.2 s"
+    ]
+   },
+   {
+    "world": "Starts in the dark",
+    "test": "Drives on in the dark",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 0.4 s"
+    ]
+   },
+   {
+    "world": "Bend to the right, width 15",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 5.1 s"
+    ]
+   },
+   {
+    "world": "Bend to the left, width 15",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 5.3 s"
+    ]
+   },
+   {
+    "world": "Bend to the right, width 20",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   },
+   {
+    "world": "Bend to the left, width 20",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   }
+  ],
+  "error": null
+ },
+ "driveInTheDark/A-negated": {
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "Through the dark (goal inside)",
+    "test": "Gets through the dark",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 5.4 s"
+    ]
+   },
+   {
+    "world": "Follows the line after the tunnel",
+    "test": "Follows the line again after the tunnel",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t4\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 5.4 s"
+    ]
+   },
+   {
+    "world": "Starts in the dark",
+    "test": "Drives on in the dark",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 0.4 s"
+    ]
+   },
+   {
+    "world": "Bend to the right, width 15",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 5.3 s"
+    ]
+   },
+   {
+    "world": "Bend to the left, width 15",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 5.5 s"
+    ]
+   },
+   {
+    "world": "Bend to the right, width 20",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   },
+   {
+    "world": "Bend to the left, width 20",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   }
+  ],
+  "error": null
+ },
+ "driveInTheDark/A-curves": {
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "Through the dark (goal inside)",
+    "test": "Gets through the dark",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 5.4 s"
+    ]
+   },
+   {
+    "world": "Follows the line after the tunnel",
+    "test": "Follows the line again after the tunnel",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t4\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 5.4 s"
+    ]
+   },
+   {
+    "world": "Starts in the dark",
+    "test": "Drives on in the dark",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 0.5 s"
+    ]
+   },
+   {
+    "world": "Bend to the right, width 15",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 5.3 s"
+    ]
+   },
+   {
+    "world": "Bend to the left, width 15",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 5.5 s"
+    ]
+   },
+   {
+    "world": "Bend to the right, width 20",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 5.6 s"
+    ]
+   },
+   {
+    "world": "Bend to the left, width 20",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 5.8 s"
+    ]
+   }
+  ],
+  "error": null
+ },
+ "driveInTheDark/B": {
+  "kind": "correct",
+  "tests": [
+   {
+    "world": "Through the dark (goal inside)",
+    "test": "Gets through the dark",
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Follows the line after the tunnel",
+    "test": "Follows the line again after the tunnel",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t4\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 12.6 s"
+    ]
+   },
+   {
+    "world": "Starts in the dark",
+    "test": "Drives on in the dark",
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Bend to the right, width 15",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 9.5 s"
+    ]
+   },
+   {
+    "world": "Bend to the left, width 15",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 9.4 s"
+    ]
+   },
+   {
+    "world": "Bend to the right, width 20",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 9.9 s"
+    ]
+   },
+   {
+    "world": "Bend to the left, width 20",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 9.8 s"
+    ]
+   }
+  ],
+  "error": null
+ },
+ "driveInTheDark/B-never-dark": {
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "Through the dark (goal inside)",
+    "test": "Gets through the dark",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 6.2 s"
+    ]
+   },
+   {
+    "world": "Follows the line after the tunnel",
+    "test": "Follows the line again after the tunnel",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t4\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 6.2 s"
+    ]
+   },
+   {
+    "world": "Starts in the dark",
+    "test": "Drives on in the dark",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 0.4 s"
+    ]
+   },
+   {
+    "world": "Bend to the right, width 15",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 6.1 s"
+    ]
+   },
+   {
+    "world": "Bend to the left, width 15",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   },
+   {
+    "world": "Bend to the right, width 20",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   },
+   {
+    "world": "Bend to the left, width 20",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   }
+  ],
+  "error": null
+ },
+ "driveInTheDark/B-floor-sensor": {
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "Through the dark (goal inside)",
+    "test": "Gets through the dark",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 4 s"
+    ]
+   },
+   {
+    "world": "Follows the line after the tunnel",
+    "test": "Follows the line again after the tunnel",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t4\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 4 s"
+    ]
+   },
+   {
+    "world": "Starts in the dark",
+    "test": "Drives on in the dark",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 0.4 s"
+    ]
+   },
+   {
+    "world": "Bend to the right, width 15",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 3.9 s"
+    ]
+   },
+   {
+    "world": "Bend to the left, width 15",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 4.1 s"
+    ]
+   },
+   {
+    "world": "Bend to the right, width 20",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   },
+   {
+    "world": "Bend to the left, width 20",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   }
+  ],
+  "error": null
+ },
+ "driveInTheDark/B-negated": {
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "Through the dark (goal inside)",
+    "test": "Gets through the dark",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 4.4 s"
+    ]
+   },
+   {
+    "world": "Follows the line after the tunnel",
+    "test": "Follows the line again after the tunnel",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t4\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 4.4 s"
+    ]
+   },
+   {
+    "world": "Starts in the dark",
+    "test": "Drives on in the dark",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 0.4 s"
+    ]
+   },
+   {
+    "world": "Bend to the right, width 15",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 4.3 s"
+    ]
+   },
+   {
+    "world": "Bend to the left, width 15",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   },
+   {
+    "world": "Bend to the right, width 20",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   },
+   {
+    "world": "Bend to the left, width 20",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   }
+  ],
+  "error": null
+ },
+ "driveInTheDark/B-curves": {
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "Through the dark (goal inside)",
+    "test": "Gets through the dark",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 5.4 s"
+    ]
+   },
+   {
+    "world": "Follows the line after the tunnel",
+    "test": "Follows the line again after the tunnel",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t4\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 5.4 s"
+    ]
+   },
+   {
+    "world": "Starts in the dark",
+    "test": "Drives on in the dark",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 0.5 s"
+    ]
+   },
+   {
+    "world": "Bend to the right, width 15",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 5.3 s"
+    ]
+   },
+   {
+    "world": "Bend to the left, width 15",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 5.5 s"
+    ]
+   },
+   {
+    "world": "Bend to the right, width 20",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 5.6 s"
+    ]
+   },
+   {
+    "world": "Bend to the left, width 20",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 5.8 s"
+    ]
+   }
+  ],
+  "error": null
+ },
+ "driveInTheDark/A-no-handover": {
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "Through the dark (goal inside)",
+    "test": "Gets through the dark",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   },
+   {
+    "world": "Follows the line after the tunnel",
+    "test": "Follows the line again after the tunnel",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t4\" within 60 s"
+    ]
+   },
+   {
+    "world": "Starts in the dark",
+    "test": "Drives on in the dark",
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Bend to the right, width 15",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   },
+   {
+    "world": "Bend to the left, width 15",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   },
+   {
+    "world": "Bend to the right, width 20",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   },
+   {
+    "world": "Bend to the left, width 20",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   }
+  ],
+  "error": null
+ },
+ "driveInTheDark/C": {
+  "kind": "correct",
+  "tests": [
+   {
+    "world": "Through the dark (goal inside)",
+    "test": "Gets through the dark",
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Follows the line after the tunnel",
+    "test": "Follows the line again after the tunnel",
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Starts in the dark",
+    "test": "Drives on in the dark",
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Bend to the right, width 15",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 10.7 s"
+    ]
+   },
+   {
+    "world": "Bend to the left, width 15",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 7.5 s"
+    ]
+   },
+   {
+    "world": "Bend to the right, width 20",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 11.2 s"
+    ]
+   },
+   {
+    "world": "Bend to the left, width 20",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 11.8 s"
+    ]
+   }
+  ],
+  "error": null
+ },
+ "driveInTheDark/C-never-dark": {
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "Through the dark (goal inside)",
+    "test": "Gets through the dark",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 6.2 s"
+    ]
+   },
+   {
+    "world": "Follows the line after the tunnel",
+    "test": "Follows the line again after the tunnel",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t4\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 6.2 s"
+    ]
+   },
+   {
+    "world": "Starts in the dark",
+    "test": "Drives on in the dark",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 0.4 s"
+    ]
+   },
+   {
+    "world": "Bend to the right, width 15",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 6.1 s"
+    ]
+   },
+   {
+    "world": "Bend to the left, width 15",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   },
+   {
+    "world": "Bend to the right, width 20",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   },
+   {
+    "world": "Bend to the left, width 20",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   }
+  ],
+  "error": null
+ },
+ "driveInTheDark/C-floor-sensor": {
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "Through the dark (goal inside)",
+    "test": "Gets through the dark",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 5.2 s"
+    ]
+   },
+   {
+    "world": "Follows the line after the tunnel",
+    "test": "Follows the line again after the tunnel",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t4\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 5.2 s"
+    ]
+   },
+   {
+    "world": "Starts in the dark",
+    "test": "Drives on in the dark",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 0.4 s"
+    ]
+   },
+   {
+    "world": "Bend to the right, width 15",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 5.1 s"
+    ]
+   },
+   {
+    "world": "Bend to the left, width 15",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 5.3 s"
+    ]
+   },
+   {
+    "world": "Bend to the right, width 20",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   },
+   {
+    "world": "Bend to the left, width 20",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   }
+  ],
+  "error": null
+ },
+ "driveInTheDark/C-negated": {
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "Through the dark (goal inside)",
+    "test": "Gets through the dark",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 5.4 s"
+    ]
+   },
+   {
+    "world": "Follows the line after the tunnel",
+    "test": "Follows the line again after the tunnel",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t4\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 5.4 s"
+    ]
+   },
+   {
+    "world": "Starts in the dark",
+    "test": "Drives on in the dark",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 0.4 s"
+    ]
+   },
+   {
+    "world": "Bend to the right, width 15",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 5.3 s"
+    ]
+   },
+   {
+    "world": "Bend to the left, width 15",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 5.5 s"
+    ]
+   },
+   {
+    "world": "Bend to the right, width 20",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   },
+   {
+    "world": "Bend to the left, width 20",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   }
+  ],
+  "error": null
+ },
+ "driveInTheDark/C-curves": {
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "Through the dark (goal inside)",
+    "test": "Gets through the dark",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 5.3 s"
+    ]
+   },
+   {
+    "world": "Follows the line after the tunnel",
+    "test": "Follows the line again after the tunnel",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t4\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 5.3 s"
+    ]
+   },
+   {
+    "world": "Starts in the dark",
+    "test": "Drives on in the dark",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 0.5 s"
+    ]
+   },
+   {
+    "world": "Bend to the right, width 15",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 5.2 s"
+    ]
+   },
+   {
+    "world": "Bend to the left, width 15",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 5.3 s"
+    ]
+   },
+   {
+    "world": "Bend to the right, width 20",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 5.5 s"
+    ]
+   },
+   {
+    "world": "Bend to the left, width 20",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 5.6 s"
+    ]
+   }
+  ],
+  "error": null
+ },
+ "driveInTheDark/B-no-handover": {
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "Through the dark (goal inside)",
+    "test": "Gets through the dark",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   },
+   {
+    "world": "Follows the line after the tunnel",
+    "test": "Follows the line again after the tunnel",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t4\" within 60 s"
+    ]
+   },
+   {
+    "world": "Starts in the dark",
+    "test": "Drives on in the dark",
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Bend to the right, width 15",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   },
+   {
+    "world": "Bend to the left, width 15",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   },
+   {
+    "world": "Bend to the right, width 20",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   },
+   {
+    "world": "Bend to the left, width 20",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   }
+  ],
+  "error": null
+ },
+ "avoidWalls/A": {
+  "kind": "correct",
+  "tests": [
+   {
+    "world": "Through the dark (goal inside)",
+    "test": "Gets through the dark",
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Follows the line after the tunnel",
+    "test": "Follows the line again after the tunnel",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t4\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 15 s"
+    ]
+   },
+   {
+    "world": "Starts in the dark",
+    "test": "Drives on in the dark",
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Bend to the right, width 15",
+    "test": "Gets through the bend",
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Bend to the left, width 15",
+    "test": "Gets through the bend",
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Bend to the right, width 20",
+    "test": "Gets through the bend",
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Bend to the left, width 20",
+    "test": "Gets through the bend",
+    "outcome": "passed",
+    "failed": []
+   }
+  ],
+  "error": null
+ },
+ "avoidWalls/A-swapped": {
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "Through the dark (goal inside)",
+    "test": "Gets through the dark",
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Follows the line after the tunnel",
+    "test": "Follows the line again after the tunnel",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t4\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 15 s"
+    ]
+   },
+   {
+    "world": "Starts in the dark",
+    "test": "Drives on in the dark",
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Bend to the right, width 15",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 10.9 s"
+    ]
+   },
+   {
+    "world": "Bend to the left, width 15",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 10.7 s"
+    ]
+   },
+   {
+    "world": "Bend to the right, width 20",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 11.6 s"
+    ]
+   },
+   {
+    "world": "Bend to the left, width 20",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 11.3 s"
+    ]
+   }
+  ],
+  "error": null
+ },
+ "avoidWalls/A-front-sensor": {
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "Through the dark (goal inside)",
+    "test": "Gets through the dark",
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Follows the line after the tunnel",
+    "test": "Follows the line again after the tunnel",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t4\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 15 s"
+    ]
+   },
+   {
+    "world": "Starts in the dark",
+    "test": "Drives on in the dark",
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Bend to the right, width 15",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot bumped into \"Tunnel\" after 10.7 s"
+    ]
+   },
+   {
+    "world": "Bend to the left, width 15",
+    "test": "Gets through the bend",
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Bend to the right, width 20",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot bumped into \"Tunnel\" after 11.2 s"
+    ]
+   },
+   {
+    "world": "Bend to the left, width 20",
+    "test": "Gets through the bend",
+    "outcome": "passed",
+    "failed": []
+   }
+  ],
+  "error": null
+ },
+ "avoidWalls/A-never-dark": {
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "Through the dark (goal inside)",
+    "test": "Gets through the dark",
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Follows the line after the tunnel",
+    "test": "Follows the line again after the tunnel",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t4\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 15 s"
+    ]
+   },
+   {
+    "world": "Starts in the dark",
+    "test": "Drives on in the dark",
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Bend to the right, width 15",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 10.7 s"
+    ]
+   },
+   {
+    "world": "Bend to the left, width 15",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 10.7 s"
+    ]
+   },
+   {
+    "world": "Bend to the right, width 20",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 11.2 s"
+    ]
+   },
+   {
+    "world": "Bend to the left, width 20",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 11.2 s"
+    ]
+   }
+  ],
+  "error": null
+ },
+ "driveInTheDark/C-no-handover": {
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "Through the dark (goal inside)",
+    "test": "Gets through the dark",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   },
+   {
+    "world": "Follows the line after the tunnel",
+    "test": "Follows the line again after the tunnel",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t4\" within 60 s"
+    ]
+   },
+   {
+    "world": "Starts in the dark",
+    "test": "Drives on in the dark",
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Bend to the right, width 15",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   },
+   {
+    "world": "Bend to the left, width 15",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   },
+   {
+    "world": "Bend to the right, width 20",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   },
+   {
+    "world": "Bend to the left, width 20",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   }
+  ],
+  "error": null
+ },
+ "avoidWalls/B": {
+  "kind": "correct",
+  "tests": [
+   {
+    "world": "Through the dark (goal inside)",
+    "test": "Gets through the dark",
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Follows the line after the tunnel",
+    "test": "Follows the line again after the tunnel",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t4\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 15 s"
+    ]
+   },
+   {
+    "world": "Starts in the dark",
+    "test": "Drives on in the dark",
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Bend to the right, width 15",
+    "test": "Gets through the bend",
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Bend to the left, width 15",
+    "test": "Gets through the bend",
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Bend to the right, width 20",
+    "test": "Gets through the bend",
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Bend to the left, width 20",
+    "test": "Gets through the bend",
+    "outcome": "passed",
+    "failed": []
+   }
+  ],
+  "error": null
+ },
+ "avoidWalls/B-swapped": {
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "Through the dark (goal inside)",
+    "test": "Gets through the dark",
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Follows the line after the tunnel",
+    "test": "Follows the line again after the tunnel",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t4\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 15 s"
+    ]
+   },
+   {
+    "world": "Starts in the dark",
+    "test": "Drives on in the dark",
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Bend to the right, width 15",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 10.7 s"
+    ]
+   },
+   {
+    "world": "Bend to the left, width 15",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 10.8 s"
+    ]
+   },
+   {
+    "world": "Bend to the right, width 20",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 11.3 s"
+    ]
+   },
+   {
+    "world": "Bend to the left, width 20",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 11.4 s"
+    ]
+   }
+  ],
+  "error": null
+ },
+ "avoidWalls/B-front-sensor": {
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "Through the dark (goal inside)",
+    "test": "Gets through the dark",
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Follows the line after the tunnel",
+    "test": "Follows the line again after the tunnel",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t4\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 15 s"
+    ]
+   },
+   {
+    "world": "Starts in the dark",
+    "test": "Drives on in the dark",
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Bend to the right, width 15",
+    "test": "Gets through the bend",
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Bend to the left, width 15",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot bumped into \"Tunnel\" after 10.7 s"
+    ]
+   },
+   {
+    "world": "Bend to the right, width 20",
+    "test": "Gets through the bend",
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Bend to the left, width 20",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot bumped into \"Tunnel\" after 11.2 s"
+    ]
+   }
+  ],
+  "error": null
+ },
+ "avoidWalls/B-never-dark": {
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "Through the dark (goal inside)",
+    "test": "Gets through the dark",
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Follows the line after the tunnel",
+    "test": "Follows the line again after the tunnel",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t4\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 15 s"
+    ]
+   },
+   {
+    "world": "Starts in the dark",
+    "test": "Drives on in the dark",
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Bend to the right, width 15",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 10.7 s"
+    ]
+   },
+   {
+    "world": "Bend to the left, width 15",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 10.7 s"
+    ]
+   },
+   {
+    "world": "Bend to the right, width 20",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 11.2 s"
+    ]
+   },
+   {
+    "world": "Bend to the left, width 20",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 11.2 s"
+    ]
+   }
+  ],
+  "error": null
+ },
+ "avoidWalls/A-no-handover": {
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "Through the dark (goal inside)",
+    "test": "Gets through the dark",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   },
+   {
+    "world": "Follows the line after the tunnel",
+    "test": "Follows the line again after the tunnel",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t4\" within 60 s"
+    ]
+   },
+   {
+    "world": "Starts in the dark",
+    "test": "Drives on in the dark",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 60 s"
+    ]
+   },
+   {
+    "world": "Bend to the right, width 15",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   },
+   {
+    "world": "Bend to the left, width 15",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   },
+   {
+    "world": "Bend to the right, width 20",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   },
+   {
+    "world": "Bend to the left, width 20",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   }
+  ],
+  "error": null
+ },
+ "avoidWalls/C": {
+  "kind": "correct",
+  "tests": [
+   {
+    "world": "Through the dark (goal inside)",
+    "test": "Gets through the dark",
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Follows the line after the tunnel",
+    "test": "Follows the line again after the tunnel",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t4\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 15 s"
+    ]
+   },
+   {
+    "world": "Starts in the dark",
+    "test": "Drives on in the dark",
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Bend to the right, width 15",
+    "test": "Gets through the bend",
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Bend to the left, width 15",
+    "test": "Gets through the bend",
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Bend to the right, width 20",
+    "test": "Gets through the bend",
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Bend to the left, width 20",
+    "test": "Gets through the bend",
+    "outcome": "passed",
+    "failed": []
+   }
+  ],
+  "error": null
+ },
+ "avoidWalls/C-swapped": {
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "Through the dark (goal inside)",
+    "test": "Gets through the dark",
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Follows the line after the tunnel",
+    "test": "Follows the line again after the tunnel",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t4\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 15 s"
+    ]
+   },
+   {
+    "world": "Starts in the dark",
+    "test": "Drives on in the dark",
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Bend to the right, width 15",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 10.9 s"
+    ]
+   },
+   {
+    "world": "Bend to the left, width 15",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 10.8 s"
+    ]
+   },
+   {
+    "world": "Bend to the right, width 20",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 11.4 s"
+    ]
+   },
+   {
+    "world": "Bend to the left, width 20",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 11.3 s"
+    ]
+   }
+  ],
+  "error": null
+ },
+ "avoidWalls/C-front-sensor": {
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "Through the dark (goal inside)",
+    "test": "Gets through the dark",
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Follows the line after the tunnel",
+    "test": "Follows the line again after the tunnel",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t4\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 15 s"
+    ]
+   },
+   {
+    "world": "Starts in the dark",
+    "test": "Drives on in the dark",
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Bend to the right, width 15",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 10.7 s"
+    ]
+   },
+   {
+    "world": "Bend to the left, width 15",
+    "test": "Gets through the bend",
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Bend to the right, width 20",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 11.2 s"
+    ]
+   },
+   {
+    "world": "Bend to the left, width 20",
+    "test": "Gets through the bend",
+    "outcome": "passed",
+    "failed": []
+   }
+  ],
+  "error": null
+ },
+ "avoidWalls/C-never-dark": {
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "Through the dark (goal inside)",
+    "test": "Gets through the dark",
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Follows the line after the tunnel",
+    "test": "Follows the line again after the tunnel",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t4\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 15 s"
+    ]
+   },
+   {
+    "world": "Starts in the dark",
+    "test": "Drives on in the dark",
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Bend to the right, width 15",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 10.7 s"
+    ]
+   },
+   {
+    "world": "Bend to the left, width 15",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 10.7 s"
+    ]
+   },
+   {
+    "world": "Bend to the right, width 20",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 11.2 s"
+    ]
+   },
+   {
+    "world": "Bend to the left, width 20",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 11.2 s"
+    ]
+   }
+  ],
+  "error": null
+ },
+ "avoidWalls/B-no-handover": {
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "Through the dark (goal inside)",
+    "test": "Gets through the dark",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   },
+   {
+    "world": "Follows the line after the tunnel",
+    "test": "Follows the line again after the tunnel",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t4\" within 60 s"
+    ]
+   },
+   {
+    "world": "Starts in the dark",
+    "test": "Drives on in the dark",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 60 s"
+    ]
+   },
+   {
+    "world": "Bend to the right, width 15",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   },
+   {
+    "world": "Bend to the left, width 15",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   },
+   {
+    "world": "Bend to the right, width 20",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   },
+   {
+    "world": "Bend to the left, width 20",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   }
+  ],
+  "error": null
+ },
+ "followInTheDark/A": {
+  "kind": "correct",
+  "tests": [
+   {
+    "world": "Through the dark (goal inside)",
+    "test": "Gets through the dark",
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Follows the line after the tunnel",
+    "test": "Follows the line again after the tunnel",
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Starts in the dark",
+    "test": "Drives on in the dark",
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Bend to the right, width 15",
+    "test": "Gets through the bend",
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Bend to the left, width 15",
+    "test": "Gets through the bend",
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Bend to the right, width 20",
+    "test": "Gets through the bend",
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Bend to the left, width 20",
+    "test": "Gets through the bend",
+    "outcome": "passed",
+    "failed": []
+   }
+  ],
+  "error": null
+ },
+ "followInTheDark/A-peach-is-black": {
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "Through the dark (goal inside)",
+    "test": "Gets through the dark",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 6.4 s"
+    ]
+   },
+   {
+    "world": "Follows the line after the tunnel",
+    "test": "Follows the line again after the tunnel",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t4\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 6.4 s"
+    ]
+   },
+   {
+    "world": "Starts in the dark",
+    "test": "Drives on in the dark",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 0.6 s"
+    ]
+   },
+   {
+    "world": "Bend to the right, width 15",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 6.6 s"
+    ]
+   },
+   {
+    "world": "Bend to the left, width 15",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 6.2 s"
+    ]
+   },
+   {
+    "world": "Bend to the right, width 20",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 6.9 s"
+    ]
+   },
+   {
+    "world": "Bend to the left, width 20",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 6.6 s"
+    ]
+   }
+  ],
+  "error": null
+ },
+ "followInTheDark/A-light-above": {
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "Through the dark (goal inside)",
+    "test": "Gets through the dark",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 6 s"
+    ]
+   },
+   {
+    "world": "Follows the line after the tunnel",
+    "test": "Follows the line again after the tunnel",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t4\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 6 s"
+    ]
+   },
+   {
+    "world": "Starts in the dark",
+    "test": "Drives on in the dark",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 0.6 s"
+    ]
+   },
+   {
+    "world": "Bend to the right, width 15",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 6 s"
+    ]
+   },
+   {
+    "world": "Bend to the left, width 15",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 5.8 s"
+    ]
+   },
+   {
+    "world": "Bend to the right, width 20",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 6.4 s"
+    ]
+   },
+   {
+    "world": "Bend to the left, width 20",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 6.2 s"
+    ]
+   }
+  ],
+  "error": null
+ },
+ "avoidWalls/C-no-handover": {
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "Through the dark (goal inside)",
+    "test": "Gets through the dark",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   },
+   {
+    "world": "Follows the line after the tunnel",
+    "test": "Follows the line again after the tunnel",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t4\" within 60 s"
+    ]
+   },
+   {
+    "world": "Starts in the dark",
+    "test": "Drives on in the dark",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 60 s"
+    ]
+   },
+   {
+    "world": "Bend to the right, width 15",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   },
+   {
+    "world": "Bend to the left, width 15",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   },
+   {
+    "world": "Bend to the right, width 20",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   },
+   {
+    "world": "Bend to the left, width 20",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   }
+  ],
+  "error": null
+ },
+ "followInTheDark/B": {
+  "kind": "correct",
+  "tests": [
+   {
+    "world": "Through the dark (goal inside)",
+    "test": "Gets through the dark",
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Follows the line after the tunnel",
+    "test": "Follows the line again after the tunnel",
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Starts in the dark",
+    "test": "Drives on in the dark",
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Bend to the right, width 15",
+    "test": "Gets through the bend",
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Bend to the left, width 15",
+    "test": "Gets through the bend",
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Bend to the right, width 20",
+    "test": "Gets through the bend",
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Bend to the left, width 20",
+    "test": "Gets through the bend",
+    "outcome": "passed",
+    "failed": []
+   }
+  ],
+  "error": null
+ },
+ "followInTheDark/B-peach-is-black": {
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "Through the dark (goal inside)",
+    "test": "Gets through the dark",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 6 s"
+    ]
+   },
+   {
+    "world": "Follows the line after the tunnel",
+    "test": "Follows the line again after the tunnel",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t4\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 6 s"
+    ]
+   },
+   {
+    "world": "Starts in the dark",
+    "test": "Drives on in the dark",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 0.5 s"
+    ]
+   },
+   {
+    "world": "Bend to the right, width 15",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 6.1 s"
+    ]
+   },
+   {
+    "world": "Bend to the left, width 15",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 5.8 s"
+    ]
+   },
+   {
+    "world": "Bend to the right, width 20",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 6.4 s"
+    ]
+   },
+   {
+    "world": "Bend to the left, width 20",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 6.1 s"
+    ]
+   }
+  ],
+  "error": null
+ },
+ "followInTheDark/B-light-above": {
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "Through the dark (goal inside)",
+    "test": "Gets through the dark",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 5.9 s"
+    ]
+   },
+   {
+    "world": "Follows the line after the tunnel",
+    "test": "Follows the line again after the tunnel",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t4\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 5.9 s"
+    ]
+   },
+   {
+    "world": "Starts in the dark",
+    "test": "Drives on in the dark",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 0.5 s"
+    ]
+   },
+   {
+    "world": "Bend to the right, width 15",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 6 s"
+    ]
+   },
+   {
+    "world": "Bend to the left, width 15",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 5.8 s"
+    ]
+   },
+   {
+    "world": "Bend to the right, width 20",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 6.3 s"
+    ]
+   },
+   {
+    "world": "Bend to the left, width 20",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 6.1 s"
+    ]
+   }
+  ],
+  "error": null
+ },
+ "followInTheDark/A-no-handover": {
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "Through the dark (goal inside)",
+    "test": "Gets through the dark",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   },
+   {
+    "world": "Follows the line after the tunnel",
+    "test": "Follows the line again after the tunnel",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t4\" within 60 s"
+    ]
+   },
+   {
+    "world": "Starts in the dark",
+    "test": "Drives on in the dark",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 60 s"
+    ]
+   },
+   {
+    "world": "Bend to the right, width 15",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   },
+   {
+    "world": "Bend to the left, width 15",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   },
+   {
+    "world": "Bend to the right, width 20",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   },
+   {
+    "world": "Bend to the left, width 20",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   }
+  ],
+  "error": null
+ },
+ "followInTheDark/C": {
+  "kind": "correct",
+  "tests": [
+   {
+    "world": "Through the dark (goal inside)",
+    "test": "Gets through the dark",
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Follows the line after the tunnel",
+    "test": "Follows the line again after the tunnel",
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Starts in the dark",
+    "test": "Drives on in the dark",
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Bend to the right, width 15",
+    "test": "Gets through the bend",
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Bend to the left, width 15",
+    "test": "Gets through the bend",
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Bend to the right, width 20",
+    "test": "Gets through the bend",
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Bend to the left, width 20",
+    "test": "Gets through the bend",
+    "outcome": "passed",
+    "failed": []
+   }
+  ],
+  "error": null
+ },
+ "followInTheDark/C-peach-is-black": {
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "Through the dark (goal inside)",
+    "test": "Gets through the dark",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 7 s"
+    ]
+   },
+   {
+    "world": "Follows the line after the tunnel",
+    "test": "Follows the line again after the tunnel",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t4\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 7 s"
+    ]
+   },
+   {
+    "world": "Starts in the dark",
+    "test": "Drives on in the dark",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 0.8 s"
+    ]
+   },
+   {
+    "world": "Bend to the right, width 15",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 7.1 s"
+    ]
+   },
+   {
+    "world": "Bend to the left, width 15",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 6.9 s"
+    ]
+   },
+   {
+    "world": "Bend to the right, width 20",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 7.3 s"
+    ]
+   },
+   {
+    "world": "Bend to the left, width 20",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 7.1 s"
+    ]
+   }
+  ],
+  "error": null
+ },
+ "followInTheDark/C-light-above": {
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "Through the dark (goal inside)",
+    "test": "Gets through the dark",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 6 s"
+    ]
+   },
+   {
+    "world": "Follows the line after the tunnel",
+    "test": "Follows the line again after the tunnel",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t4\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 6 s"
+    ]
+   },
+   {
+    "world": "Starts in the dark",
+    "test": "Drives on in the dark",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 0.8 s"
+    ]
+   },
+   {
+    "world": "Bend to the right, width 15",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 6 s"
+    ]
+   },
+   {
+    "world": "Bend to the left, width 15",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 5.9 s"
+    ]
+   },
+   {
+    "world": "Bend to the right, width 20",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 6.7 s"
+    ]
+   },
+   {
+    "world": "Bend to the left, width 20",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel\" after 6.6 s"
+    ]
+   }
+  ],
+  "error": null
+ },
+ "followInTheDark/B-no-handover": {
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "Through the dark (goal inside)",
+    "test": "Gets through the dark",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   },
+   {
+    "world": "Follows the line after the tunnel",
+    "test": "Follows the line again after the tunnel",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t4\" within 60 s"
+    ]
+   },
+   {
+    "world": "Starts in the dark",
+    "test": "Drives on in the dark",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 60 s"
+    ]
+   },
+   {
+    "world": "Bend to the right, width 15",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   },
+   {
+    "world": "Bend to the left, width 15",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   },
+   {
+    "world": "Bend to the right, width 20",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   },
+   {
+    "world": "Bend to the left, width 20",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   }
+  ],
+  "error": null
+ },
+ "followInTheDark/C-no-handover": {
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "Through the dark (goal inside)",
+    "test": "Gets through the dark",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   },
+   {
+    "world": "Follows the line after the tunnel",
+    "test": "Follows the line again after the tunnel",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t4\" within 60 s"
+    ]
+   },
+   {
+    "world": "Starts in the dark",
+    "test": "Drives on in the dark",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 60 s"
+    ]
+   },
+   {
+    "world": "Bend to the right, width 15",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   },
+   {
+    "world": "Bend to the left, width 15",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   },
+   {
+    "world": "Bend to the right, width 20",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   },
+   {
+    "world": "Bend to the left, width 20",
+    "test": "Gets through the bend",
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   }
+  ],
+  "error": null
+ }
+}

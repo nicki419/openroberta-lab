@@ -1,0 +1,372 @@
+{
+ "job": {
+  "id": "avoidWalls__A-no-handover__precise__r2__plain",
+  "function": "avoidWalls",
+  "version": "avoidWalls/A-no-handover",
+  "sentenceKind": "precise",
+  "sentence": "Inside a dark tunnel, steer away from its walls: when a wall is close on the left, turn right, and when one is close on the right, turn left, so the robot gets through a bending tunnel without touching it.",
+  "repeat": 2,
+  "pipeline": "plain",
+  "name": "p5_avoidWalls_A_no_handover"
+ },
+ "ms": {
+  "total": 320147,
+  "generate": 320147
+ },
+ "calls": [
+  {
+   "tokens": {
+    "in": 12939,
+    "cached": 2304,
+    "out": 32000,
+    "reasoning": 32000
+   },
+   "latencyMs": 215405
+  },
+  {
+   "tokens": {
+    "in": 12966,
+    "cached": 12800,
+    "out": 17809,
+    "reasoning": 16938
+   },
+   "latencyMs": 104608
+  }
+ ],
+ "generate": {
+  "ok": true,
+  "repairs": 1,
+  "dropped": [],
+  "worlds": [
+   {
+    "name": "Right bend: wall on left",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 100,
+        "y": 50,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "t1",
+        "kind": "tunnel",
+        "role": "obstacle",
+        "points": [
+         [
+          40,
+          50
+         ],
+         [
+          100,
+          50
+         ],
+         [
+          140,
+          80
+         ],
+         [
+          155,
+          120
+         ],
+         [
+          155,
+          165
+         ]
+        ],
+        "smooth": true,
+        "width": 20
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Turns right at a left wall",
+      "scenario": "Given a dark tunnel bending right with a wall on the left, when the program runs, then the robot turns right away from the wall and doesn't bump into the tunnel.",
+      "start": "A",
+      "until": null,
+      "max_time_ms": 5000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "whenever",
+        "when": "obstacle_left",
+        "does": "turns_right",
+        "after_ms": 0
+       },
+       {
+        "check": "never_bumps",
+        "item": "t1"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "Left bend: wall on right",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "B",
+        "name": "B",
+        "x": 100,
+        "y": 150,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "t1",
+        "kind": "tunnel",
+        "role": "obstacle",
+        "points": [
+         [
+          40,
+          150
+         ],
+         [
+          100,
+          150
+         ],
+         [
+          140,
+          120
+         ],
+         [
+          155,
+          80
+         ],
+         [
+          155,
+          35
+         ]
+        ],
+        "smooth": true,
+        "width": 20
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Turns left at a right wall",
+      "scenario": "Given a dark tunnel bending left with a wall on the right, when the program runs, then the robot turns left away from the wall and doesn't bump into the tunnel.",
+      "start": "B",
+      "until": null,
+      "max_time_ms": 5000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "whenever",
+        "when": "obstacle_right",
+        "does": "turns_left",
+        "after_ms": 0
+       },
+       {
+        "check": "never_bumps",
+        "item": "t1"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "Right bend: gets through",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "C",
+        "name": "C",
+        "x": 100,
+        "y": 50,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "t1",
+        "kind": "tunnel",
+        "role": "obstacle",
+        "points": [
+         [
+          40,
+          50
+         ],
+         [
+          100,
+          50
+         ],
+         [
+          140,
+          80
+         ],
+         [
+          155,
+          120
+         ],
+         [
+          155,
+          165
+         ]
+        ],
+        "smooth": true,
+        "width": 20
+       },
+       {
+        "id": "g1",
+        "kind": "rect",
+        "name": "Goal 1",
+        "role": "goal",
+        "x": 150,
+        "y": 135,
+        "w": 10,
+        "h": 10
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Gets through the right bend",
+      "scenario": "Given a dark tunnel bending right, when the program runs, then the robot gets through the bend without touching the tunnel.",
+      "start": "C",
+      "until": "g1",
+      "max_time_ms": 20000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "g1"
+       },
+       {
+        "check": "never_bumps",
+        "item": "t1"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "Left bend: gets through",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "D",
+        "name": "D",
+        "x": 100,
+        "y": 150,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "t1",
+        "kind": "tunnel",
+        "role": "obstacle",
+        "points": [
+         [
+          40,
+          150
+         ],
+         [
+          100,
+          150
+         ],
+         [
+          140,
+          120
+         ],
+         [
+          155,
+          80
+         ],
+         [
+          155,
+          35
+         ]
+        ],
+        "smooth": true,
+        "width": 20
+       },
+       {
+        "id": "g1",
+        "kind": "rect",
+        "name": "Goal 1",
+        "role": "goal",
+        "x": 150,
+        "y": 55,
+        "w": 10,
+        "h": 10
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Gets through the left bend",
+      "scenario": "Given a dark tunnel bending left, when the program runs, then the robot gets through the bend without touching the tunnel.",
+      "start": "D",
+      "until": "g1",
+      "max_time_ms": 20000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "g1"
+       },
+       {
+        "check": "never_bumps",
+        "item": "t1"
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "duplicates": 0
+ }
+}

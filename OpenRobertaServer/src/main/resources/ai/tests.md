@@ -118,7 +118,9 @@ The answer around the worlds:
   `left_light_above`, `right_light_below`, `right_light_above` (with `percent`, 0 to 100), `sound`, `play_key`,
   `rec_key`.
 - `event`: `clap`, `key` (from `world`), `line_start`, `line_end` (the line tracker begins or stops seeing black),
-  `obstacle` (an obstacle sensor begins to see something).
+  `obstacle` (an obstacle sensor begins to see something). A line follower that steers along the line's edge leaves
+  the black core and finds it again many times a second, so for it `line_start` and `line_end` happen all the time:
+  where a line ends, test what it does by a goal area there (`reaches`, `ends_in`), not by `after` `line_end`.
 - **`does` is for what lasts**: every frame from `after_ms` to the end of the run. Use it for what the robot keeps
   doing (drives forward along a line, stands still from some time on). **Not for a short move**: a turn by an angle or
   a short drive ends, the robot then does something else, and `does` fails although the robot did what it should.
@@ -152,7 +154,8 @@ The answer around the worlds:
   45° over 20 cm. A goal area over the end of the line, wide enough to cover it (for example 30 × 30 cm), lets a test
   end there (`until`).
 - **A start on the line**: on one of the line's points that has at least 15 cm of line ahead, facing along the line
-  (the line tracker is 5 cm ahead of the start). A start "beside the line": 5 to 10 cm off it, facing along it.
+  (the line tracker is 5 cm ahead of the start). A start "beside the line" (only for a test of finding the line: see
+  "A line beside the start"): 5 to 10 cm off it, facing along it.
 - **An obstacle on the line**: a box of 10 × 10 cm centred on one of the line's points, at least 40 cm along the line
   from the start.
 - **Starts** must be on the floor, with the whole robot (8 × 7.5 cm, from 1.8 cm behind to 6.2 cm in front of the
@@ -168,8 +171,11 @@ The answer around the worlds:
   - **A line through the start** (for a program that follows a line): a straight `line`, `width` 1.48, `points`
     [[x − 10, y], [x + 80, y]]; the start is then on its black core, facing along it. Other things of the scenario go
     on this line (a wall across it at x + 8, or at x + 30 or further).
-  - **A line beside the start** (for a test that starts "beside the line"): the same line 8 cm to the side, **on the
-    side the program turns to on the plain floor** ("The program on a plain floor"), so that it finds it. Turns left
+  - **A line beside the start** (for a test that starts "beside the line"): **only if the learner says the robot
+    should find the line** (or get back to it). A learner's robot starts on the line, so a start beside it tests
+    something they didn't ask for, and a right program may well turn away from the line there: otherwise defer the
+    class "beside the line" with the reason "you didn't say it should find the line". The same line 8 cm to the
+    side, **on the side the program turns to on the plain floor** ("The program on a plain floor"), so that it finds it. Turns left
     there: the line on its left, `points` [[x − 10, y − 8], [x + 80, y − 8]]. Turns right: on its right, y + 8. On the
     other side it turns away and circles without finding the line, and the test fails on a right program. **If it
     drives straight on**, it drives past a line beside it: a start beside the line isn't a situation of its own for
@@ -184,19 +190,35 @@ The answer around the worlds:
     it unless it turns away in time. Never a small box in its way (it bumps into it), and not a wall along its side
     (no sensor sees it). In the dark, the tunnel's own walls do it: "Dim light: walls on its left or right".
   - **Dim light** (the light sensors are 5.5 cm ahead of the start): a straight `tunnel`, `width` 15, `points`
-    [[x − 10, y], [x + 40, y]], with the start in its middle: the sensors are 15.5 cm inside and read 40 %, the
+    [[x − 10, y], [x + 100, y]], with the start near its opening: the sensors are 15.5 cm inside and read 40 %, the
     darkest a tunnel gets. Its walls run along the robot: the obstacle sensors don't see them. **Nothing goes inside
-    the tunnel** (no box, no wall beside the robot: it bumps into them), and a line only if the test is about
-    following the line in the dark. To drive through it: the start 15 cm before the opening, `points` [[x + 15, y],
-    [x + 135, y]], a goal area just after the exit (`x` + 140, `y` − 15, `w` 20, `h` 30).
+    the tunnel** (no box, no wall: it bumps into them), and a line only if the test is about following the line in
+    the dark. A goal area in the dark ends the run there: `x` + 50, `y` − 5, `w` 10, `h` 10.
+  - **Driving through a tunnel** (from the light into the dark): **the light changes over the first and last 15 cm
+    under the roof**, and the program does what it does in the light until 7.5 cm inside (see "Light under a tunnel's
+    roof" in "The simulator"). If it follows a line in bright light, the robot comes to the tunnel on that line, and
+    the line runs on into the tunnel: a straight `line` through the start, `points` [[x − 10, y], [x + 55, y]], and
+    the `tunnel`, `width` 15, `points` [[x + 40, y], [x + 160, y]]. The line then reaches 15 cm into the tunnel, and
+    the robot follows it for 40 cm first, so it faces along the tunnel when the light falls. (A program that drives
+    straight on a plain floor needs no line: the same tunnel, the start 15 cm before its opening.) **The goal of
+    getting through the dark is inside the tunnel**, where it is dark, from 15 cm after the opening to 15 cm before
+    the exit: `x` + 110, `y` − 5, `w` 10, `h` 10. **No goal after the exit**, even if the learner says the robot
+    follows the line again after the tunnel: without a line there, a line follower circles; with one, it finds it
+    only if it comes out of the dark on the side it turns to (see "Light under a tunnel's roof"), so the test fails on
+    right programs too. Test getting through the dark (the goal inside the tunnel), and following the line in the
+    light in a world of its own; defer "follows the line again after the tunnel" with that reason (a right program may
+    miss the line after the dark).
   - **Dim light: walls on its left or right** (a program that turns away from walls in the dark): **a tunnel that
-    bends**, `width` 15 to 20, the start 15 cm before its opening. A bend to the right, `points` [[x + 15, y],
-    [x + 75, y], [x + 115, y + 30], [x + 130, y + 70]], `smooth` true: its left wall comes in front of the robot's left
-    half (LEFT). A bend to the left: y − 30 and y − 70 (RIGHT). A goal area after the exit: `x` + 115, `y` + 75, `w`
-    30, `h` 20 (bend to the left: `y` − 95). With the start at y 100, both fit on the floor. Checks: `never_bumps` the
-    tunnel, and `reaches` the goal: a robot that turns away from the walls gets through, one that doesn't bumps into
-    them. A straight tunnel is the class "nothing on either side"; a wall across the whole tunnel (`rect` of `h` =
-    its width) the class "a wall ahead in the dark".
+    bends**, `width` 15 to 20, reached as in "Driving through a tunnel" (the line through the start runs 15 cm into
+    the tunnel; without a line, the start 15 cm before its opening). A bend to the right, `points` [[x + 40, y],
+    [x + 100, y], [x + 140, y + 30], [x + 155, y + 70], [x + 155, y + 115]], `smooth` true: its left wall comes in
+    front of the robot's left half (LEFT). A bend to the left: y − 30, y − 70 and y − 115 (RIGHT). **The goal inside
+    the tunnel, after the bend** and 15 cm or more before the exit: `x` + 150, `y` + 85, `w` 10, `h` 10 (bend to the
+    left: `y` − 95). With the start at y 50 (bend to the right) or y 150 (bend to the left), it fits on the floor.
+    Checks: `never_bumps` the tunnel, and `reaches` the goal: a robot that turns away from the walls gets through the
+    bend, one that doesn't bumps into them. A straight tunnel is the class "nothing on either side". **No wall across
+    a tunnel** unless the learner says what the robot should do at a wall in the dark: a program that checks the
+    light first may never get to its wall-stop in the dark, and the test then fails on a right program.
   - **Count from the start, never back from a thing.** Each test that needs something at a set distance gets its own:
     first its start, then its thing by the numbers above. Start B at (130, 100) with a wall seen at once: the wall's
     `x` is 138; start C at (130, 160) with a wall it drives up to: its `x` is 160. Don't draw one wall for several
@@ -225,7 +247,8 @@ without decisions has one straight path: test its scenarios.
   threshold, no test of the line's edge or of the edge of the sensors' range.
 - `realized_by` says which start, things, events or variables of the test make the class happen.
 - **Defer only what can't be set up or decided**: a set-up the world, the start, `world` and `globals` can't express,
-  or a check the simulator can't decide. **Never defer because the program would fail the test**: two claps can be set
+  or a check the simulator can't decide; and a start beside the line when the learner didn't say the robot should
+  find the line (see "A line beside the start"). **Never defer because the program would fail the test**: two claps can be set
   up even if the program then counts them as three, and a test that the program fails is the help.
 
 **3. A complete test = path + inputs + expected results + postconditions.**
@@ -239,13 +262,12 @@ without decisions has one straight path: test its scenarios.
 - **Check the intent, not the implementation**: "reaches Goal 1", "never bumps into the box", "stands still from
   12 s on", "whenever an obstacle is ahead, it stands still". Not that the blocks do what they say ("curves at 10 %
   and 40 %"): a test that repeats the program confirms it, bugs included. Vary the situation instead. **A line
-  follower is tested by where it gets to** (it `reaches` a goal area over the line's end, from on the line or from
-  beside it), never by how it steers ("whenever it sees black, it turns right"): that is the program itself, and it
+  follower is tested by where it gets to** (it `reaches` a goal area over the line's end, from a start on the
+  line), never by how it steers ("whenever it sees black, it turns right"): that is the program itself, and it
   holds for a robot that steers off the line too. The Lab refuses a test of a line follower whose only checks are
   about steering on the line.
 - **Few tests, each worth reading**: a learner reads every test. One test per scenario is usual, two when they
-  differ in a way the learner would notice (from on the line, from beside it; a wall seen at once, a wall it drives
-  up to). No two tests that check the same thing with other numbers.
+  differ in a way the learner would notice (a wall seen at once, a wall it drives up to). No two tests that check the same thing with other numbers.
 - **Every test needs a positive check** (see "Checks"): pair `never_bumps` with what the robot should do.
 - **Every test must pass for a program that does what the learner said.** Leave margins in the time a test gives the
   program: `max_time_ms` well above the time the robot needs at the program's speeds, `after_ms` of a `does` well
@@ -265,7 +287,8 @@ merged in `consolidation_notes`. **At most as many tests as the task allows**
 
 - **A world for each scenario.** Draw a world with only what its scenario needs: a wall-stop scenario gets a wall in
   front of the start, not a tunnel; a line scenario gets the line, not the walls of another scenario; a dim-light
-  scenario gets the tunnel, with nothing inside it, and a line only if it is about following the line in the dark. Share a world
+  scenario gets the tunnel, with nothing inside it, and a line in the dark only if it is about following the line
+  there (the line the robot comes in on is part of getting there: see "Driving through a tunnel"). Share a world
   only between tests of the same scenario (or of scenarios that are the same situation). Unrelated things in one world
   change what the program does: a tunnel darkens the light sensors, a wall at the side triggers the side sensors.
 - **Each test its own start, placed for its situation.** Two tests of one world never start at the same pose unless

@@ -1,0 +1,239 @@
+{
+ "job": {
+  "id": "avoidWalls__B-front-sensor__vague__r1__plain",
+  "function": "avoidWalls",
+  "version": "avoidWalls/B-front-sensor",
+  "sentenceKind": "vague",
+  "sentence": "Don't hit the tunnel walls.",
+  "repeat": 1,
+  "pipeline": "plain",
+  "name": "p5_avoidWalls_B_front_sensor"
+ },
+ "ms": {
+  "total": 68484,
+  "generate": 68484
+ },
+ "calls": [
+  {
+   "tokens": {
+    "in": 13041,
+    "cached": 12800,
+    "out": 10042,
+    "reasoning": 9339
+   },
+   "latencyMs": 68345
+  }
+ ],
+ "generate": {
+  "ok": true,
+  "repairs": 0,
+  "dropped": [],
+  "worlds": [
+   {
+    "name": "A tunnel bending right",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 40,
+        "y": 50,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "l1",
+        "kind": "line",
+        "points": [
+         [
+          30,
+          50
+         ],
+         [
+          95,
+          50
+         ]
+        ],
+        "width": 1.48
+       },
+       {
+        "id": "t1",
+        "kind": "tunnel",
+        "name": "Tunnel",
+        "role": "obstacle",
+        "points": [
+         [
+          80,
+          50
+         ],
+         [
+          140,
+          50
+         ],
+         [
+          180,
+          80
+         ],
+         [
+          195,
+          120
+         ],
+         [
+          195,
+          165
+         ]
+        ],
+        "smooth": true,
+        "width": 15
+       },
+       {
+        "id": "g1",
+        "kind": "rect",
+        "name": "Goal 1",
+        "role": "goal",
+        "x": 190,
+        "y": 135,
+        "w": 10,
+        "h": 10
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Does not hit the walls in a right bend",
+      "scenario": "Given a tunnel that bends to the right, when your program drives into the tunnel, then it follows the dark bend without hitting the tunnel walls and reaches the goal inside the tunnel.",
+      "start": "A",
+      "until": "g1",
+      "max_time_ms": 60000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "g1"
+       },
+       {
+        "check": "never_bumps",
+        "item": "t1"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "A tunnel bending left",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 40,
+        "y": 150,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "l1",
+        "kind": "line",
+        "points": [
+         [
+          30,
+          150
+         ],
+         [
+          95,
+          150
+         ]
+        ],
+        "width": 1.48
+       },
+       {
+        "id": "t1",
+        "kind": "tunnel",
+        "name": "Tunnel",
+        "role": "obstacle",
+        "points": [
+         [
+          80,
+          150
+         ],
+         [
+          140,
+          150
+         ],
+         [
+          180,
+          120
+         ],
+         [
+          195,
+          80
+         ],
+         [
+          195,
+          35
+         ]
+        ],
+        "smooth": true,
+        "width": 15
+       },
+       {
+        "id": "g1",
+        "kind": "rect",
+        "name": "Goal 1",
+        "role": "goal",
+        "x": 190,
+        "y": 55,
+        "w": 10,
+        "h": 10
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Does not hit the walls in a left bend",
+      "scenario": "Given a tunnel that bends to the left, when your program drives into the tunnel, then it follows the dark bend without hitting the tunnel walls and reaches the goal inside the tunnel.",
+      "start": "A",
+      "until": "g1",
+      "max_time_ms": 60000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "g1"
+       },
+       {
+        "check": "never_bumps",
+        "item": "t1"
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "duplicates": 0
+ }
+}

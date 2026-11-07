@@ -1,0 +1,302 @@
+{
+ "job": {
+  "id": "driveInTheDark__C-negated__vague__r1__plain",
+  "function": "driveInTheDark",
+  "version": "driveInTheDark/C-negated",
+  "sentenceKind": "vague",
+  "sentence": "Get through the tunnel.",
+  "repeat": 1,
+  "pipeline": "plain",
+  "name": "p5_driveInTheDark_C_negated"
+ },
+ "ms": {
+  "total": 101100,
+  "generate": 101100
+ },
+ "calls": [
+  {
+   "tokens": {
+    "in": 12015,
+    "cached": 11776,
+    "out": 15064,
+    "reasoning": 14021
+   },
+   "latencyMs": 100967
+  }
+ ],
+ "generate": {
+  "ok": true,
+  "repairs": 0,
+  "dropped": [],
+  "worlds": [
+   {
+    "name": "A tunnel with a line through it",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 50,
+        "y": 100,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "l1",
+        "kind": "line",
+        "points": [
+         [
+          40,
+          100
+         ],
+         [
+          200,
+          100
+         ]
+        ],
+        "width": 1.48
+       },
+       {
+        "id": "t1",
+        "kind": "tunnel",
+        "name": "Tunnel",
+        "role": "obstacle",
+        "points": [
+         [
+          90,
+          100
+         ],
+         [
+          210,
+          100
+         ]
+        ],
+        "width": 20
+       },
+       {
+        "id": "g1",
+        "kind": "rect",
+        "name": "Goal 1",
+        "role": "goal",
+        "x": 160,
+        "y": 95,
+        "w": 10,
+        "h": 10
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Drives through the tunnel",
+      "scenario": "Given a tunnel with a line running through it, when your program drives from the light into the dark tunnel, then it follows the line in the dark and reaches the goal inside the tunnel without bumping into its walls.",
+      "start": "A",
+      "until": "g1",
+      "max_time_ms": 40000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "g1"
+       },
+       {
+        "check": "never_bumps",
+        "item": "t1"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "Your robot already inside a dark tunnel",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 50,
+        "y": 100,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "l1",
+        "kind": "line",
+        "points": [
+         [
+          40,
+          100
+         ],
+         [
+          170,
+          100
+         ]
+        ],
+        "width": 1.48
+       },
+       {
+        "id": "t1",
+        "kind": "tunnel",
+        "name": "Tunnel",
+        "role": "obstacle",
+        "points": [
+         [
+          40,
+          100
+         ],
+         [
+          170,
+          100
+         ]
+        ],
+        "width": 20
+       },
+       {
+        "id": "g1",
+        "kind": "rect",
+        "name": "Goal 1",
+        "role": "goal",
+        "x": 110,
+        "y": 95,
+        "w": 10,
+        "h": 10
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Follows the line in the dark",
+      "scenario": "Given your robot standing in the dark tunnel on the line, when your program runs, then it follows the line and reaches the goal inside the tunnel without bumping into the walls.",
+      "start": "A",
+      "until": "g1",
+      "max_time_ms": 30000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "g1"
+       },
+       {
+        "check": "never_bumps",
+        "item": "t1"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "A tunnel close ahead",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 50,
+        "y": 100,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "l1",
+        "kind": "line",
+        "points": [
+         [
+          40,
+          100
+         ],
+         [
+          170,
+          100
+         ]
+        ],
+        "width": 1.48
+       },
+       {
+        "id": "t1",
+        "kind": "tunnel",
+        "name": "Tunnel",
+        "role": "obstacle",
+        "points": [
+         [
+          65,
+          100
+         ],
+         [
+          180,
+          100
+         ]
+        ],
+        "width": 20
+       },
+       {
+        "id": "g1",
+        "kind": "rect",
+        "name": "Goal 1",
+        "role": "goal",
+        "x": 95,
+        "y": 95,
+        "w": 10,
+        "h": 10
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Enters the tunnel and drives on to the goal",
+      "scenario": "Given a tunnel entrance 15 cm in front of your robot with a line running through it, when your program runs, then it drives in, follows the line in the dark and reaches the goal without bumping into the walls.",
+      "start": "A",
+      "until": "g1",
+      "max_time_ms": 20000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "g1"
+       },
+       {
+        "check": "never_bumps",
+        "item": "t1"
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "duplicates": 0
+ }
+}

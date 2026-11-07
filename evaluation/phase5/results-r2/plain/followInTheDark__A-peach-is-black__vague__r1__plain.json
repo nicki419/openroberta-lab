@@ -1,0 +1,213 @@
+{
+ "job": {
+  "id": "followInTheDark__A-peach-is-black__vague__r1__plain",
+  "function": "followInTheDark",
+  "version": "followInTheDark/A-peach-is-black",
+  "sentenceKind": "vague",
+  "sentence": "Follow the line in the dark too.",
+  "repeat": 1,
+  "pipeline": "plain",
+  "name": "p5_followInTheDark_A_peach_is_black"
+ },
+ "ms": {
+  "total": 111178,
+  "generate": 111178
+ },
+ "calls": [
+  {
+   "tokens": {
+    "in": 14049,
+    "cached": 13824,
+    "out": 15338,
+    "reasoning": 14630
+   },
+   "latencyMs": 111044
+  }
+ ],
+ "generate": {
+  "ok": true,
+  "repairs": 0,
+  "dropped": [],
+  "worlds": [
+   {
+    "name": "A line into a dark tunnel",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 40,
+        "y": 100,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "l1",
+        "kind": "line",
+        "points": [
+         [
+          30,
+          100
+         ],
+         [
+          130,
+          100
+         ]
+        ],
+        "width": 1.48
+       },
+       {
+        "id": "t1",
+        "kind": "tunnel",
+        "name": "Tunnel",
+        "role": "obstacle",
+        "points": [
+         [
+          80,
+          100
+         ],
+         [
+          210,
+          100
+         ]
+        ],
+        "width": 15
+       },
+       {
+        "id": "g1",
+        "kind": "rect",
+        "name": "Goal 1",
+        "role": "goal",
+        "x": 105,
+        "y": 95,
+        "w": 10,
+        "h": 10
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Follows the line into the dark",
+      "scenario": "Given a line that leads from the bright floor into a dark tunnel, when your program runs, then your robot follows the line into the dark and reaches the goal inside the tunnel without bumping into its walls.",
+      "start": "A",
+      "until": "g1",
+      "max_time_ms": 40000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "g1"
+       },
+       {
+        "check": "never_bumps",
+        "item": "t1"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "A line in the dark tunnel",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 100,
+        "y": 100,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "l1",
+        "kind": "line",
+        "points": [
+         [
+          85,
+          100
+         ],
+         [
+          180,
+          100
+         ]
+        ],
+        "width": 1.48
+       },
+       {
+        "id": "t1",
+        "kind": "tunnel",
+        "name": "Tunnel",
+        "role": "obstacle",
+        "points": [
+         [
+          70,
+          100
+         ],
+         [
+          220,
+          100
+         ]
+        ],
+        "width": 15
+       },
+       {
+        "id": "g1",
+        "kind": "rect",
+        "name": "Goal 1",
+        "role": "goal",
+        "x": 140,
+        "y": 95,
+        "w": 10,
+        "h": 10
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Follows the line in the dark from the start",
+      "scenario": "Given your robot starts in the dark, inside a tunnel, on a black line, when your program runs, then it follows the line through the dark and reaches the goal inside the tunnel without bumping into its walls.",
+      "start": "A",
+      "until": "g1",
+      "max_time_ms": 30000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "g1"
+       },
+       {
+        "check": "never_bumps",
+        "item": "t1"
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "duplicates": 0
+ }
+}

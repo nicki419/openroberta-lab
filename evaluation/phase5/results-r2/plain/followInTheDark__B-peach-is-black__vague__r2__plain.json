@@ -1,0 +1,290 @@
+{
+ "job": {
+  "id": "followInTheDark__B-peach-is-black__vague__r2__plain",
+  "function": "followInTheDark",
+  "version": "followInTheDark/B-peach-is-black",
+  "sentenceKind": "vague",
+  "sentence": "Follow the line in the dark too.",
+  "repeat": 2,
+  "pipeline": "plain",
+  "name": "p5_followInTheDark_B_peach_is_black"
+ },
+ "ms": {
+  "total": 197101,
+  "generate": 197101
+ },
+ "calls": [
+  {
+   "tokens": {
+    "in": 14049,
+    "cached": 13824,
+    "out": 23905,
+    "reasoning": 23017
+   },
+   "latencyMs": 158787
+  },
+  {
+   "tokens": {
+    "in": 15088,
+    "cached": 13952,
+    "out": 6264,
+    "reasoning": 5355
+   },
+   "latencyMs": 38039
+  }
+ ],
+ "generate": {
+  "ok": true,
+  "repairs": 1,
+  "dropped": [],
+  "worlds": [
+   {
+    "name": "A line into a dark tunnel",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 40,
+        "y": 80,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "l1",
+        "kind": "line",
+        "points": [
+         [
+          30,
+          80
+         ],
+         [
+          170,
+          80
+         ]
+        ],
+        "width": 1.48
+       },
+       {
+        "id": "t1",
+        "kind": "tunnel",
+        "name": "Tunnel",
+        "role": "obstacle",
+        "points": [
+         [
+          90,
+          80
+         ],
+         [
+          240,
+          80
+         ]
+        ],
+        "width": 20
+       },
+       {
+        "id": "g1",
+        "kind": "rect",
+        "name": "Goal 1",
+        "role": "goal",
+        "x": 160,
+        "y": 75,
+        "w": 10,
+        "h": 10
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Keeps following the line into the dark",
+      "scenario": "Given a line that runs from bright light into a dark tunnel, when your program runs, then your program follows the line on into the dark and reaches the goal inside the tunnel without bumping into the tunnel's walls.",
+      "start": "A",
+      "until": null,
+      "max_time_ms": 60000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "g1"
+       },
+       {
+        "check": "never_bumps",
+        "item": "t1"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "A line in a dark tunnel",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 40,
+        "y": 100,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "l1",
+        "kind": "line",
+        "points": [
+         [
+          30,
+          100
+         ],
+         [
+          140,
+          100
+         ]
+        ],
+        "width": 1.48
+       },
+       {
+        "id": "t1",
+        "kind": "tunnel",
+        "name": "Tunnel",
+        "role": "obstacle",
+        "points": [
+         [
+          25,
+          100
+         ],
+         [
+          200,
+          100
+         ]
+        ],
+        "width": 20
+       },
+       {
+        "id": "g1",
+        "kind": "rect",
+        "name": "Goal 1",
+        "role": "goal",
+        "x": 110,
+        "y": 95,
+        "w": 10,
+        "h": 10
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Follows the line in the dark",
+      "scenario": "Given a line in a dark tunnel, when your program runs, then your program follows the line in the dark and reaches the goal further inside the tunnel without bumping into the tunnel's walls.",
+      "start": "A",
+      "until": null,
+      "max_time_ms": 40000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "g1"
+       },
+       {
+        "check": "never_bumps",
+        "item": "t1"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "A line in the light",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 40,
+        "y": 100,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "l1",
+        "kind": "line",
+        "points": [
+         [
+          30,
+          100
+         ],
+         [
+          140,
+          100
+         ]
+        ],
+        "width": 1.48
+       },
+       {
+        "id": "g1",
+        "kind": "rect",
+        "name": "Goal 1",
+        "role": "goal",
+        "x": 115,
+        "y": 85,
+        "w": 30,
+        "h": 30
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Follows the line in the light",
+      "scenario": "Given a line on the floor in the light, when your program runs, then your program follows the line and reaches the goal at its end.",
+      "start": "A",
+      "until": null,
+      "max_time_ms": 40000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "g1"
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "duplicates": 0
+ }
+}

@@ -18,7 +18,8 @@ from nepo import export
 from sentences import SENTENCES
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-OUT = os.path.join(HERE, 'results', 'generated')
+RESULTS = os.environ.get('PHASE5_RESULTS', 'results')  # the folder of a round's results (2026-11-07: results-r2 after the tuning)
+OUT = os.path.join(HERE, RESULTS, 'generated')
 PER_FUNCTION = 4
 REPEATS = 2
 ANALYSES_PER_SESSION = 25  # the Lab allows 30 an hour per session: a new session before that

@@ -1,0 +1,253 @@
+{
+ "job": {
+  "id": "driveInTheDark__C-negated__precise__r2__plain",
+  "function": "driveInTheDark",
+  "version": "driveInTheDark/C-negated",
+  "sentenceKind": "precise",
+  "sentence": "Follow the black line; inside a dark tunnel, where there is no line, drive straight through without touching its walls, and follow the line again after the tunnel.",
+  "repeat": 2,
+  "pipeline": "plain",
+  "name": "p5_driveInTheDark_C_negated"
+ },
+ "ms": {
+  "total": 97698,
+  "generate": 97698
+ },
+ "calls": [
+  {
+   "tokens": {
+    "in": 12043,
+    "cached": 11904,
+    "out": 14107,
+    "reasoning": 13289
+   },
+   "latencyMs": 97562
+  }
+ ],
+ "generate": {
+  "ok": true,
+  "repairs": 0,
+  "dropped": [],
+  "worlds": [
+   {
+    "name": "A straight line to the goal",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 30,
+        "y": 100,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "l1",
+        "kind": "line",
+        "points": [
+         [
+          20,
+          100
+         ],
+         [
+          200,
+          100
+         ]
+        ],
+        "width": 1.48
+       },
+       {
+        "id": "g1",
+        "kind": "rect",
+        "name": "Goal 1",
+        "role": "goal",
+        "x": 190,
+        "y": 85,
+        "w": 30,
+        "h": 30
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Your program follows the line to the goal",
+      "scenario": "Given a straight black line with a goal at its end, when your program runs, then it follows the line and reaches the goal.",
+      "start": "A",
+      "until": "g1",
+      "max_time_ms": 30000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "g1"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "A line that bends to the top",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 30,
+        "y": 100,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "l1",
+        "kind": "line",
+        "points": [
+         [
+          20,
+          100
+         ],
+         [
+          90,
+          100
+         ],
+         [
+          120,
+          80
+         ],
+         [
+          145,
+          55
+         ]
+        ],
+        "smooth": true,
+        "width": 1.48
+       },
+       {
+        "id": "g1",
+        "kind": "circle",
+        "name": "Goal 1",
+        "role": "goal",
+        "x": 145,
+        "y": 55,
+        "r": 12
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Your program follows the line around the bend",
+      "scenario": "Given a black line that bends up towards the top of the floor, when your program runs, then it follows the line around the bend and reaches the goal at its end.",
+      "start": "A",
+      "until": "g1",
+      "max_time_ms": 30000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "g1"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "A dark tunnel without a line",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 30,
+        "y": 100,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "t1",
+        "kind": "tunnel",
+        "name": "Tunnel",
+        "role": "obstacle",
+        "points": [
+         [
+          45,
+          100
+         ],
+         [
+          165,
+          100
+         ]
+        ],
+        "width": 15
+       },
+       {
+        "id": "g1",
+        "kind": "rect",
+        "name": "Goal 1",
+        "role": "goal",
+        "x": 100,
+        "y": 95,
+        "w": 10,
+        "h": 10
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Your program drives straight through the dark tunnel",
+      "scenario": "Given a straight tunnel with no line and dim light inside, when your program runs, then it drives straight on through the dark and reaches the goal inside the tunnel without touching the tunnel walls.",
+      "start": "A",
+      "until": "g1",
+      "max_time_ms": 30000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "g1"
+       },
+       {
+        "check": "never_bumps",
+        "item": "t1"
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "duplicates": 0
+ }
+}

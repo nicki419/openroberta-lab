@@ -1,0 +1,318 @@
+{
+ "job": {
+  "id": "avoidWalls__C-never-dark__vague__r2__plain",
+  "function": "avoidWalls",
+  "version": "avoidWalls/C-never-dark",
+  "sentenceKind": "vague",
+  "sentence": "Don't hit the tunnel walls.",
+  "repeat": 2,
+  "pipeline": "plain",
+  "name": "p5_avoidWalls_C_never_dark"
+ },
+ "ms": {
+  "total": 86361,
+  "generate": 86361
+ },
+ "calls": [
+  {
+   "tokens": {
+    "in": 12904,
+    "cached": 12672,
+    "out": 11774,
+    "reasoning": 11014
+   },
+   "latencyMs": 86220
+  }
+ ],
+ "generate": {
+  "ok": true,
+  "repairs": 0,
+  "dropped": [],
+  "worlds": [
+   {
+    "name": "A dark straight tunnel",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 50,
+        "y": 100,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "t1",
+        "kind": "tunnel",
+        "name": "Straight tunnel",
+        "role": "obstacle",
+        "points": [
+         [
+          40,
+          100
+         ],
+         [
+          180,
+          100
+         ]
+        ],
+        "width": 15
+       },
+       {
+        "id": "g1",
+        "kind": "rect",
+        "name": "Goal 1",
+        "role": "goal",
+        "x": 110,
+        "y": 95,
+        "w": 10,
+        "h": 10
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Drives straight through the dark tunnel",
+      "scenario": "Given your program starts in the dark inside a straight tunnel, when it runs, then it drives forward and reaches the goal without touching the tunnel walls.",
+      "start": "A",
+      "until": "g1",
+      "max_time_ms": 12000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "g1"
+       },
+       {
+        "check": "never_bumps",
+        "item": "t1"
+       },
+       {
+        "check": "does",
+        "does": "drives_forward",
+        "after_ms": 500
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "A tunnel bending right",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 50,
+        "y": 50,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "l1",
+        "kind": "line",
+        "points": [
+         [
+          40,
+          50
+         ],
+         [
+          105,
+          50
+         ]
+        ],
+        "width": 1.48
+       },
+       {
+        "id": "t1",
+        "kind": "tunnel",
+        "name": "Right bend",
+        "role": "obstacle",
+        "points": [
+         [
+          90,
+          50
+         ],
+         [
+          150,
+          50
+         ],
+         [
+          190,
+          80
+         ],
+         [
+          205,
+          120
+         ],
+         [
+          205,
+          165
+         ]
+        ],
+        "smooth": true,
+        "width": 20
+       },
+       {
+        "id": "g1",
+        "kind": "rect",
+        "name": "Goal 1",
+        "role": "goal",
+        "x": 200,
+        "y": 135,
+        "w": 10,
+        "h": 10
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Follows the right bend",
+      "scenario": "Given your program follows a line into a tunnel that bends right, when it runs, then it follows the bend and reaches the goal without touching the tunnel walls.",
+      "start": "A",
+      "until": "g1",
+      "max_time_ms": 30000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "g1"
+       },
+       {
+        "check": "never_bumps",
+        "item": "t1"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "A tunnel bending left",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 50,
+        "y": 150,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "l1",
+        "kind": "line",
+        "points": [
+         [
+          40,
+          150
+         ],
+         [
+          105,
+          150
+         ]
+        ],
+        "width": 1.48
+       },
+       {
+        "id": "t1",
+        "kind": "tunnel",
+        "name": "Left bend",
+        "role": "obstacle",
+        "points": [
+         [
+          90,
+          150
+         ],
+         [
+          150,
+          150
+         ],
+         [
+          190,
+          120
+         ],
+         [
+          205,
+          80
+         ],
+         [
+          205,
+          35
+         ]
+        ],
+        "smooth": true,
+        "width": 20
+       },
+       {
+        "id": "g1",
+        "kind": "rect",
+        "name": "Goal 1",
+        "role": "goal",
+        "x": 200,
+        "y": 55,
+        "w": 10,
+        "h": 10
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Follows the left bend",
+      "scenario": "Given your program follows a line into a tunnel that bends left, when it runs, then it follows the bend and reaches the goal without touching the tunnel walls.",
+      "start": "A",
+      "until": "g1",
+      "max_time_ms": 30000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "g1"
+       },
+       {
+        "check": "never_bumps",
+        "item": "t1"
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "duplicates": 0
+ }
+}

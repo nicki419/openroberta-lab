@@ -1,0 +1,313 @@
+{
+ "job": {
+  "id": "avoidWalls__C-never-dark__vague__r1__plain",
+  "function": "avoidWalls",
+  "version": "avoidWalls/C-never-dark",
+  "sentenceKind": "vague",
+  "sentence": "Don't hit the tunnel walls.",
+  "repeat": 1,
+  "pipeline": "plain",
+  "name": "p5_avoidWalls_C_never_dark"
+ },
+ "ms": {
+  "total": 136337,
+  "generate": 136337
+ },
+ "calls": [
+  {
+   "tokens": {
+    "in": 12904,
+    "cached": 12672,
+    "out": 20525,
+    "reasoning": 19760
+   },
+   "latencyMs": 136206
+  }
+ ],
+ "generate": {
+  "ok": true,
+  "repairs": 0,
+  "dropped": [],
+  "worlds": [
+   {
+    "name": "A straight tunnel",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 30,
+        "y": 100,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "t1",
+        "kind": "tunnel",
+        "name": "Tunnel",
+        "role": "obstacle",
+        "points": [
+         [
+          20,
+          100
+         ],
+         [
+          130,
+          100
+         ]
+        ],
+        "width": 15
+       },
+       {
+        "id": "g1",
+        "kind": "rect",
+        "name": "Goal 1",
+        "role": "goal",
+        "x": 80,
+        "y": 95,
+        "w": 10,
+        "h": 10
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Drives through a straight tunnel",
+      "scenario": "Given a straight tunnel in dim light, when the program runs, then the robot drives through the dark and reaches the goal without bumping into the tunnel walls.",
+      "start": "A",
+      "until": "g1",
+      "max_time_ms": 15000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "never_bumps",
+        "item": "t1"
+       },
+       {
+        "check": "reaches",
+        "item": "g1"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "A tunnel bending right",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 30,
+        "y": 50,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "l1",
+        "kind": "line",
+        "points": [
+         [
+          20,
+          50
+         ],
+         [
+          85,
+          50
+         ]
+        ],
+        "width": 1.48
+       },
+       {
+        "id": "t1",
+        "kind": "tunnel",
+        "name": "Tunnel",
+        "role": "obstacle",
+        "points": [
+         [
+          70,
+          50
+         ],
+         [
+          130,
+          50
+         ],
+         [
+          170,
+          80
+         ],
+         [
+          185,
+          120
+         ],
+         [
+          185,
+          165
+         ]
+        ],
+        "smooth": true,
+        "width": 20
+       },
+       {
+        "id": "g1",
+        "kind": "rect",
+        "name": "Goal 1",
+        "role": "goal",
+        "x": 180,
+        "y": 135,
+        "w": 10,
+        "h": 10
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Gets through a right bend",
+      "scenario": "Given a tunnel that bends to the right in dim light, when the program follows the line into it and runs, then the robot gets through the bend and reaches the goal without bumping into the tunnel walls.",
+      "start": "A",
+      "until": "g1",
+      "max_time_ms": 25000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "never_bumps",
+        "item": "t1"
+       },
+       {
+        "check": "reaches",
+        "item": "g1"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "A tunnel bending left",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 30,
+        "y": 150,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "l1",
+        "kind": "line",
+        "points": [
+         [
+          20,
+          150
+         ],
+         [
+          85,
+          150
+         ]
+        ],
+        "width": 1.48
+       },
+       {
+        "id": "t1",
+        "kind": "tunnel",
+        "name": "Tunnel",
+        "role": "obstacle",
+        "points": [
+         [
+          70,
+          150
+         ],
+         [
+          130,
+          150
+         ],
+         [
+          170,
+          120
+         ],
+         [
+          185,
+          80
+         ],
+         [
+          185,
+          35
+         ]
+        ],
+        "smooth": true,
+        "width": 20
+       },
+       {
+        "id": "g1",
+        "kind": "rect",
+        "name": "Goal 1",
+        "role": "goal",
+        "x": 180,
+        "y": 55,
+        "w": 10,
+        "h": 10
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Gets through a left bend",
+      "scenario": "Given a tunnel that bends to the left in dim light, when the program follows the line into it and runs, then the robot gets through the bend and reaches the goal without bumping into the tunnel walls.",
+      "start": "A",
+      "until": "g1",
+      "max_time_ms": 25000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "never_bumps",
+        "item": "t1"
+       },
+       {
+        "check": "reaches",
+        "item": "g1"
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "duplicates": 0
+ }
+}

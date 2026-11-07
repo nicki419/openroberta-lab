@@ -1,0 +1,172 @@
+{
+ "job": {
+  "id": "stopAtWall__C-turns__vague__r2__plain",
+  "function": "stopAtWall",
+  "version": "stopAtWall/C-turns",
+  "sentenceKind": "vague",
+  "sentence": "Stop at the wall.",
+  "repeat": 2,
+  "pipeline": "plain",
+  "name": "p5_stopAtWall_C_turns"
+ },
+ "ms": {
+  "total": 38189,
+  "generate": 38189
+ },
+ "calls": [
+  {
+   "tokens": {
+    "in": 11744,
+    "cached": 11520,
+    "out": 5884,
+    "reasoning": 5432
+   },
+   "latencyMs": 38049
+  }
+ ],
+ "generate": {
+  "ok": true,
+  "repairs": 0,
+  "dropped": [],
+  "worlds": [
+   {
+    "name": "Walls on the line",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 50,
+        "y": 50,
+        "heading": 0
+       },
+       {
+        "id": "B",
+        "name": "B",
+        "x": 50,
+        "y": 110,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "l1",
+        "kind": "line",
+        "points": [
+         [
+          40,
+          50
+         ],
+         [
+          90,
+          50
+         ]
+        ],
+        "width": 1.48
+       },
+       {
+        "id": "t1",
+        "kind": "rect",
+        "name": "Wall A",
+        "role": "obstacle",
+        "x": 58,
+        "y": 44,
+        "w": 2,
+        "h": 12
+       },
+       {
+        "id": "l2",
+        "kind": "line",
+        "points": [
+         [
+          40,
+          110
+         ],
+         [
+          90,
+          110
+         ]
+        ],
+        "width": 1.48
+       },
+       {
+        "id": "t2",
+        "kind": "rect",
+        "name": "Wall B",
+        "role": "obstacle",
+        "x": 80,
+        "y": 104,
+        "w": 2,
+        "h": 12
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Stops at a wall right ahead",
+      "scenario": "Given a wall across the line close in front, when the program runs, then the robot stops before the wall without bumping into it.",
+      "start": "A",
+      "until": null,
+      "max_time_ms": 10000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "never_bumps",
+        "item": "t1"
+       },
+       {
+        "check": "whenever",
+        "when": "obstacle_ahead",
+        "does": "stands_still",
+        "after_ms": 0
+       },
+       {
+        "check": "does",
+        "does": "stands_still",
+        "after_ms": 3000
+       }
+      ]
+     },
+     {
+      "name": "Stops at a wall after driving",
+      "scenario": "Given a wall across the line 30 cm ahead, when the program runs, then the robot drives up to the wall and stops before it without bumping into it.",
+      "start": "B",
+      "until": null,
+      "max_time_ms": 30000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "never_bumps",
+        "item": "t2"
+       },
+       {
+        "check": "after",
+        "event": "obstacle",
+        "within_ms": 1000,
+        "does": "stands_still"
+       },
+       {
+        "check": "does",
+        "does": "stands_still",
+        "after_ms": 20000
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "duplicates": 0
+ }
+}

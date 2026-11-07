@@ -1,0 +1,500 @@
+{
+ "id": "followInTheDark__B-light-above__precise__r2__plain",
+ "job": {
+  "id": "followInTheDark__B-light-above__precise__r2__plain",
+  "function": "followInTheDark",
+  "version": "followInTheDark/B-light-above",
+  "sentenceKind": "precise",
+  "sentence": "In the dark, follow a black line when there is one under the robot, and drive straight where there is none; in the light, follow the line as before.",
+  "repeat": 2,
+  "pipeline": "plain",
+  "name": "p5_followInTheDark_B_light_above"
+ },
+ "versions": [
+  {
+   "id": "followInTheDark/A",
+   "kind": "correct",
+   "fault": null,
+   "of": null
+  },
+  {
+   "id": "followInTheDark/A-peach-is-black",
+   "kind": "broken",
+   "fault": "peach-is-black",
+   "of": "followInTheDark/A"
+  },
+  {
+   "id": "followInTheDark/A-light-above",
+   "kind": "broken",
+   "fault": "light-above",
+   "of": "followInTheDark/A"
+  },
+  {
+   "id": "followInTheDark/A-no-handover",
+   "kind": "broken",
+   "fault": "no-handover",
+   "of": "followInTheDark/A"
+  },
+  {
+   "id": "followInTheDark/B",
+   "kind": "correct",
+   "fault": null,
+   "of": null
+  },
+  {
+   "id": "followInTheDark/B-peach-is-black",
+   "kind": "broken",
+   "fault": "peach-is-black",
+   "of": "followInTheDark/B"
+  },
+  {
+   "id": "followInTheDark/B-light-above",
+   "kind": "broken",
+   "fault": "light-above",
+   "of": "followInTheDark/B"
+  },
+  {
+   "id": "followInTheDark/B-no-handover",
+   "kind": "broken",
+   "fault": "no-handover",
+   "of": "followInTheDark/B"
+  },
+  {
+   "id": "followInTheDark/C",
+   "kind": "correct",
+   "fault": null,
+   "of": null
+  },
+  {
+   "id": "followInTheDark/C-peach-is-black",
+   "kind": "broken",
+   "fault": "peach-is-black",
+   "of": "followInTheDark/C"
+  },
+  {
+   "id": "followInTheDark/C-light-above",
+   "kind": "broken",
+   "fault": "light-above",
+   "of": "followInTheDark/C"
+  },
+  {
+   "id": "followInTheDark/C-no-handover",
+   "kind": "broken",
+   "fault": "no-handover",
+   "of": "followInTheDark/C"
+  }
+ ],
+ "runs": {
+  "followInTheDark/A": {
+   "key": "followInTheDark/A",
+   "tests": [
+    {
+     "world": "A line in the light",
+     "test": "Follows the line in the light",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A line in a dark tunnel",
+     "test": "Follows the line in the dark",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A dark tunnel without a line",
+     "test": "Drives straight in the dark",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A line that bends in the light",
+     "test": "Follows a bending line in the light",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "followInTheDark/A-peach-is-black": {
+   "key": "followInTheDark/A-peach-is-black",
+   "tests": [
+    {
+     "world": "A line in the light",
+     "test": "Follows the line in the light",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A line in a dark tunnel",
+     "test": "Follows the line in the dark",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A dark tunnel without a line",
+     "test": "Drives straight in the dark",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 15 s",
+      "the robot bumped into \"Tunnel\" after 0.6 s",
+      "the robot did not drive forward: it drove backward, turning left (1.08 cm/s, 39\u00b0/s), from 0.85 to 15.02 s"
+     ]
+    },
+    {
+     "world": "A line that bends in the light",
+     "test": "Follows a bending line in the light",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "followInTheDark/A-light-above": {
+   "key": "followInTheDark/A-light-above",
+   "tests": [
+    {
+     "world": "A line in the light",
+     "test": "Follows the line in the light",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A line in a dark tunnel",
+     "test": "Follows the line in the dark",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 20 s",
+      "the robot bumped into \"Tunnel\" after 0.6 s",
+      "the robot did not drive forward: it drove backward, straight (3.06 cm/s), 10 times, 18.75 s in total; the first from 0.85 to 2.18 s"
+     ]
+    },
+    {
+     "world": "A dark tunnel without a line",
+     "test": "Drives straight in the dark",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 15 s",
+      "the robot bumped into \"Tunnel\" after 0.6 s",
+      "the robot did not drive forward: it drove backward, straight (3.06 cm/s), 10 times, 13.77 s in total; the first from 0.85 to 2.18 s"
+     ]
+    },
+    {
+     "world": "A line that bends in the light",
+     "test": "Follows a bending line in the light",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "followInTheDark/A-no-handover": {
+   "key": "followInTheDark/A-no-handover",
+   "tests": [
+    {
+     "world": "A line in the light",
+     "test": "Follows the line in the light",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 25 s",
+      "the robot did not drive forward: it stood still, from 0.5 to 25 s"
+     ]
+    },
+    {
+     "world": "A line in a dark tunnel",
+     "test": "Follows the line in the dark",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A dark tunnel without a line",
+     "test": "Drives straight in the dark",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 15 s",
+      "the robot did not drive forward: it stood still, from 0.5 to 15.02 s"
+     ]
+    },
+    {
+     "world": "A line that bends in the light",
+     "test": "Follows a bending line in the light",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 30 s",
+      "the robot did not drive forward: it stood still, from 0.5 to 30 s"
+     ]
+    }
+   ]
+  },
+  "followInTheDark/B": {
+   "key": "followInTheDark/B",
+   "tests": [
+    {
+     "world": "A line in the light",
+     "test": "Follows the line in the light",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A line in a dark tunnel",
+     "test": "Follows the line in the dark",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A dark tunnel without a line",
+     "test": "Drives straight in the dark",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A line that bends in the light",
+     "test": "Follows a bending line in the light",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "followInTheDark/B-peach-is-black": {
+   "key": "followInTheDark/B-peach-is-black",
+   "tests": [
+    {
+     "world": "A line in the light",
+     "test": "Follows the line in the light",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A line in a dark tunnel",
+     "test": "Follows the line in the dark",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A dark tunnel without a line",
+     "test": "Drives straight in the dark",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 15 s",
+      "the robot bumped into \"Tunnel\" after 0.5 s",
+      "the robot did not drive forward: it drove backward, turning left (2.01 cm/s, 38\u00b0/s), from 0.77 to 15.02 s"
+     ]
+    },
+    {
+     "world": "A line that bends in the light",
+     "test": "Follows a bending line in the light",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "followInTheDark/B-light-above": {
+   "key": "followInTheDark/B-light-above",
+   "tests": [
+    {
+     "world": "A line in the light",
+     "test": "Follows the line in the light",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A line in a dark tunnel",
+     "test": "Follows the line in the dark",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 20 s",
+      "the robot bumped into \"Tunnel\" after 0.5 s",
+      "the robot did not drive forward: it drove backward, straight (2.8 cm/s), 7 times, 18.77 s in total; the first from 0.77 to 1.58 s"
+     ]
+    },
+    {
+     "world": "A dark tunnel without a line",
+     "test": "Drives straight in the dark",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 15 s",
+      "the robot bumped into \"Tunnel\" after 0.5 s",
+      "the robot did not drive forward: it drove backward, straight (2.8 cm/s), 5 times, 13.93 s in total; the first from 0.77 to 1.58 s"
+     ]
+    },
+    {
+     "world": "A line that bends in the light",
+     "test": "Follows a bending line in the light",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "followInTheDark/B-no-handover": {
+   "key": "followInTheDark/B-no-handover",
+   "tests": [
+    {
+     "world": "A line in the light",
+     "test": "Follows the line in the light",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 25 s",
+      "the robot did not drive forward: it stood still, from 0.5 to 25 s"
+     ]
+    },
+    {
+     "world": "A line in a dark tunnel",
+     "test": "Follows the line in the dark",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A dark tunnel without a line",
+     "test": "Drives straight in the dark",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 15 s",
+      "the robot did not drive forward: it stood still, from 0.5 to 15.02 s"
+     ]
+    },
+    {
+     "world": "A line that bends in the light",
+     "test": "Follows a bending line in the light",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 30 s",
+      "the robot did not drive forward: it stood still, from 0.5 to 30 s"
+     ]
+    }
+   ]
+  },
+  "followInTheDark/C": {
+   "key": "followInTheDark/C",
+   "tests": [
+    {
+     "world": "A line in the light",
+     "test": "Follows the line in the light",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A line in a dark tunnel",
+     "test": "Follows the line in the dark",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A dark tunnel without a line",
+     "test": "Drives straight in the dark",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A line that bends in the light",
+     "test": "Follows a bending line in the light",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "followInTheDark/C-peach-is-black": {
+   "key": "followInTheDark/C-peach-is-black",
+   "tests": [
+    {
+     "world": "A line in the light",
+     "test": "Follows the line in the light",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A line in a dark tunnel",
+     "test": "Follows the line in the dark",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A dark tunnel without a line",
+     "test": "Drives straight in the dark",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 15 s",
+      "the robot bumped into \"Tunnel\" after 0.8 s",
+      "the robot did not drive forward: it stood still, from 0.92 to 15.02 s"
+     ]
+    },
+    {
+     "world": "A line that bends in the light",
+     "test": "Follows a bending line in the light",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "followInTheDark/C-light-above": {
+   "key": "followInTheDark/C-light-above",
+   "tests": [
+    {
+     "world": "A line in the light",
+     "test": "Follows the line in the light",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A line in a dark tunnel",
+     "test": "Follows the line in the dark",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 20 s",
+      "the robot bumped into \"Tunnel\" after 0.8 s",
+      "the robot did not drive forward: it stood still, from 0.92 to 20 s"
+     ]
+    },
+    {
+     "world": "A dark tunnel without a line",
+     "test": "Drives straight in the dark",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 15 s",
+      "the robot bumped into \"Tunnel\" after 0.8 s",
+      "the robot did not drive forward: it stood still, from 0.92 to 15.02 s"
+     ]
+    },
+    {
+     "world": "A line that bends in the light",
+     "test": "Follows a bending line in the light",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "followInTheDark/C-no-handover": {
+   "key": "followInTheDark/C-no-handover",
+   "tests": [
+    {
+     "world": "A line in the light",
+     "test": "Follows the line in the light",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 25 s",
+      "the robot did not drive forward: it stood still, from 0.5 to 25 s"
+     ]
+    },
+    {
+     "world": "A line in a dark tunnel",
+     "test": "Follows the line in the dark",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A dark tunnel without a line",
+     "test": "Drives straight in the dark",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 15 s",
+      "the robot did not drive forward: it stood still, from 0.5 to 15.02 s"
+     ]
+    },
+    {
+     "world": "A line that bends in the light",
+     "test": "Follows a bending line in the light",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 30 s",
+      "the robot did not drive forward: it stood still, from 0.5 to 30 s"
+     ]
+    }
+   ]
+  }
+ }
+}

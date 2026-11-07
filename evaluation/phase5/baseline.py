@@ -20,9 +20,10 @@ import browser
 import judge
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+RESULTS = os.environ.get('PHASE5_RESULTS', 'results')  # the folder of a round's results (2026-11-07: results-r2 after the tuning)
 ROOT = judge.ROOT
 PACK = os.path.join(ROOT, 'OpenRobertaServer', 'src', 'main', 'resources', 'ai')
-OUT = os.path.join(HERE, 'results', 'plain')
+OUT = os.path.join(HERE, RESULTS, 'plain')
 REPAIRS = 2
 MAX_TESTS = 6
 
@@ -175,7 +176,7 @@ def main():
     os.makedirs(OUT, exist_ok=True)
     versions = {v['id']: v for v in json.load(open(os.path.join(HERE, 'corpus', 'versions.json'), encoding='utf-8'))}
     work = queue.Queue()
-    for f in sorted(glob.glob(os.path.join(HERE, 'results', 'generated', '*.json'))):
+    for f in sorted(glob.glob(os.path.join(HERE, RESULTS, 'generated', '*.json'))):
         full = json.load(open(f, encoding='utf-8'))
         if not full.get('nepo') or not full.get('job'):
             continue

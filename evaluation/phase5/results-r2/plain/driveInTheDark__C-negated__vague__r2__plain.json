@@ -1,0 +1,201 @@
+{
+ "job": {
+  "id": "driveInTheDark__C-negated__vague__r2__plain",
+  "function": "driveInTheDark",
+  "version": "driveInTheDark/C-negated",
+  "sentenceKind": "vague",
+  "sentence": "Get through the tunnel.",
+  "repeat": 2,
+  "pipeline": "plain",
+  "name": "p5_driveInTheDark_C_negated"
+ },
+ "ms": {
+  "total": 120130,
+  "generate": 120130
+ },
+ "calls": [
+  {
+   "tokens": {
+    "in": 12015,
+    "cached": 11776,
+    "out": 13795,
+    "reasoning": 13325
+   },
+   "latencyMs": 99935
+  },
+  {
+   "tokens": {
+    "in": 12812,
+    "cached": 11904,
+    "out": 2620,
+    "reasoning": 2130
+   },
+   "latencyMs": 19924
+  }
+ ],
+ "generate": {
+  "ok": true,
+  "repairs": 1,
+  "dropped": [],
+  "worlds": [
+   {
+    "name": "A straight tunnel",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 30,
+        "y": 50,
+        "heading": 0
+       },
+       {
+        "id": "B",
+        "name": "B",
+        "x": 30,
+        "y": 150,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "t1",
+        "kind": "tunnel",
+        "name": "Tunnel 1",
+        "role": "obstacle",
+        "points": [
+         [
+          70,
+          50
+         ],
+         [
+          190,
+          50
+         ]
+        ],
+        "width": 25
+       },
+       {
+        "id": "l1",
+        "kind": "line",
+        "points": [
+         [
+          20,
+          50
+         ],
+         [
+          210,
+          50
+         ]
+        ],
+        "width": 1.48
+       },
+       {
+        "id": "g1",
+        "kind": "rect",
+        "name": "Goal 1",
+        "role": "goal",
+        "x": 140,
+        "y": 45,
+        "w": 10,
+        "h": 10
+       },
+       {
+        "id": "t2",
+        "kind": "tunnel",
+        "name": "Tunnel 2",
+        "role": "obstacle",
+        "points": [
+         [
+          70,
+          150
+         ],
+         [
+          140,
+          150
+         ]
+        ],
+        "width": 25
+       },
+       {
+        "id": "l2",
+        "kind": "line",
+        "points": [
+         [
+          20,
+          150
+         ],
+         [
+          160,
+          150
+         ]
+        ],
+        "width": 1.48
+       },
+       {
+        "id": "g2",
+        "kind": "rect",
+        "name": "Goal 2",
+        "role": "goal",
+        "x": 100,
+        "y": 145,
+        "w": 10,
+        "h": 10
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Gets through the long tunnel",
+      "scenario": "Given a long straight tunnel with a line through it, when the program runs, then the robot drives through the dark part of the tunnel and reaches the goal inside it, without bumping into the tunnel walls.",
+      "start": "A",
+      "until": "g1",
+      "max_time_ms": 30000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "g1"
+       },
+       {
+        "check": "never_bumps",
+        "item": "t1"
+       }
+      ]
+     },
+     {
+      "name": "Gets through the short tunnel",
+      "scenario": "Given a short straight tunnel with a line through it, when the program runs, then the robot drives through the dark part of the tunnel and reaches the goal inside it, without bumping into the tunnel walls.",
+      "start": "B",
+      "until": "g2",
+      "max_time_ms": 25000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "g2"
+       },
+       {
+        "check": "never_bumps",
+        "item": "t2"
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "duplicates": 0
+ }
+}

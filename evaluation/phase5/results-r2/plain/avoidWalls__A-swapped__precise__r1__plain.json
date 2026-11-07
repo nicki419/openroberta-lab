@@ -1,0 +1,209 @@
+{
+ "job": {
+  "id": "avoidWalls__A-swapped__precise__r1__plain",
+  "function": "avoidWalls",
+  "version": "avoidWalls/A-swapped",
+  "sentenceKind": "precise",
+  "sentence": "Inside a dark tunnel, steer away from its walls: when a wall is close on the left, turn right, and when one is close on the right, turn left, so the robot gets through a bending tunnel without touching it.",
+  "repeat": 1,
+  "pipeline": "plain",
+  "name": "p5_avoidWalls_A_swapped"
+ },
+ "ms": {
+  "total": 96657,
+  "generate": 96657
+ },
+ "calls": [
+  {
+   "tokens": {
+    "in": 13080,
+    "cached": 2304,
+    "out": 13670,
+    "reasoning": 13005
+   },
+   "latencyMs": 96499
+  }
+ ],
+ "generate": {
+  "ok": true,
+  "repairs": 0,
+  "dropped": [],
+  "worlds": [
+   {
+    "name": "A tunnel bending right",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 75,
+        "y": 50,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "t1",
+        "kind": "tunnel",
+        "name": "Tunnel",
+        "role": "obstacle",
+        "points": [
+         [
+          60,
+          50
+         ],
+         [
+          120,
+          50
+         ],
+         [
+          160,
+          80
+         ],
+         [
+          175,
+          120
+         ],
+         [
+          175,
+          165
+         ]
+        ],
+        "smooth": true,
+        "width": 15
+       },
+       {
+        "id": "g1",
+        "kind": "rect",
+        "name": "Goal 1",
+        "role": "goal",
+        "x": 170,
+        "y": 135,
+        "w": 10,
+        "h": 10
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Gets through the right bend",
+      "scenario": "Given the robot is in a dark tunnel that bends to the right, when your program runs, then the robot steers away from the tunnel's walls and gets through the bend without touching them.",
+      "start": "A",
+      "until": "g1",
+      "max_time_ms": 30000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "g1"
+       },
+       {
+        "check": "never_bumps",
+        "item": "t1"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "A tunnel bending left",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "B",
+        "name": "B",
+        "x": 75,
+        "y": 150,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "t1",
+        "kind": "tunnel",
+        "name": "Tunnel",
+        "role": "obstacle",
+        "points": [
+         [
+          60,
+          150
+         ],
+         [
+          120,
+          150
+         ],
+         [
+          160,
+          120
+         ],
+         [
+          175,
+          80
+         ],
+         [
+          175,
+          35
+         ]
+        ],
+        "smooth": true,
+        "width": 15
+       },
+       {
+        "id": "g1",
+        "kind": "rect",
+        "name": "Goal 1",
+        "role": "goal",
+        "x": 170,
+        "y": 55,
+        "w": 10,
+        "h": 10
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Gets through the left bend",
+      "scenario": "Given the robot is in a dark tunnel that bends to the left, when your program runs, then the robot steers away from the tunnel's walls and gets through the bend without touching them.",
+      "start": "B",
+      "until": "g1",
+      "max_time_ms": 30000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "g1"
+       },
+       {
+        "check": "never_bumps",
+        "item": "t1"
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "duplicates": 0
+ }
+}

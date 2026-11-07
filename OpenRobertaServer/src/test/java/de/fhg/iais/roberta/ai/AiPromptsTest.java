@@ -181,6 +181,8 @@ public class AiPromptsTest {
         Assert.assertFalse("no guess since 2026-11-06", text.contains("Task: infer") || text.contains("The intent you guessed"));
         Assert.assertTrue(text.contains("The learner's sentence: \"This program should follow a black line and stop if it senses an obstacle\""));
         Assert.assertTrue(text.contains("How they ran:\n\n- test \"On the line, it follows it to the goal\" (world \"A line to a goal\"): failed\n  The run ended after 8 s"));
-        Assert.assertTrue(text.contains("These tests of your answer passed, and the learner keeps them:\n\n- \"Started beside the line, it finds it\""));
+        // 2026-11-07 (phase 5): a start beside the line only if the learner says the robot should find the line; example 1 defers it
+        Assert.assertFalse(text.contains("Started beside the line, it finds it"));
+        Assert.assertTrue(text.contains("\"value\":\"beside the line\",\"reason\":\"You didn't say the robot should find the line"));
     }
 }

@@ -64,7 +64,9 @@ sentence: the analysis is read by the Lab and by you, not by the learner.
    a plain floor": it turns or circles there): "on a line, in bright light, a wall across the line ahead", not "a wall
    ahead": without the line, it circles on the start. One that drives straight on there needs no line for it: "a wall
    ahead" (see "The line tracker" in "The simulator"). Walls at its sides in the dark are a tunnel's own walls: "in a
-   tunnel that bends to the right" (its left wall comes in front of the robot), never a box inside a tunnel. A path starts at the beginning of the run: its `branch_ids` list the
+   tunnel that bends to the right" (its left wall comes in front of the robot), never a box inside a tunnel. A
+   program that follows a line in bright light gets into the dark on that line: "on a line that runs into a tunnel"
+   (it follows the line until the light falls, 7.5 cm inside: see "Light under a tunnel's roof"). A path starts at the beginning of the run: its `branch_ids` list the
    outcomes taken on the way too (no obstacle, bright, the line tracker's outcomes), then the scenario's.
    `tested_by`: the names of the learner's tests that already test the scenario: they make its situation happen and
    check what it expects (the same kind of world and start, numbers aside). [] if none does, or the learner has no
@@ -85,7 +87,9 @@ count" in "Tests"). Answer with the test JSON
 and input dimensions, in worlds you draw for them: **a world for its scenario**, with only the things the scenario is
 about (no tunnel in a world about stopping at a wall), **and what the program needs to get there**: draw the
 scenario's `initial_condition` in full. If the program follows a line in bright light, every test there starts on a
-line facing along it, and the scenario's thing stands on that line. Where the sentence says nothing, write only
+line facing along it, and the scenario's thing stands on that line. A tunnel stands on that line too: the line
+runs on 15 cm into it, and the goal of getting through the dark is inside the tunnel ("Driving through a tunnel" in
+"Tests"). Where the sentence says nothing, write only
 tests that the program's plausible goal clearly asks for (`inferred_from_program`). What the program would do in a test is never a reason
 to leave the test out or to defer its class: a surprise of the simulator (`uncertainties`) is a reason to test it. The
 Lab checks that every id and class of your tests is the analysis', and that every outcome and class is tested or

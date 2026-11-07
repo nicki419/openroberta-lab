@@ -1,0 +1,226 @@
+{
+ "job": {
+  "id": "stopAtWall__C-turns__vague__r1__plain",
+  "function": "stopAtWall",
+  "version": "stopAtWall/C-turns",
+  "sentenceKind": "vague",
+  "sentence": "Stop at the wall.",
+  "repeat": 1,
+  "pipeline": "plain",
+  "name": "p5_stopAtWall_C_turns"
+ },
+ "ms": {
+  "total": 74273,
+  "generate": 74273
+ },
+ "calls": [
+  {
+   "tokens": {
+    "in": 11744,
+    "cached": 11520,
+    "out": 11106,
+    "reasoning": 10496
+   },
+   "latencyMs": 74061
+  }
+ ],
+ "generate": {
+  "ok": true,
+  "repairs": 0,
+  "dropped": [],
+  "worlds": [
+   {
+    "name": "A wall right in front",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 40,
+        "y": 100,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "t1",
+        "kind": "rect",
+        "name": "Wall",
+        "role": "obstacle",
+        "x": 48,
+        "y": 94,
+        "w": 2,
+        "h": 12
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Stops when a wall is right in front",
+      "scenario": "Given a wall only 8 cm in front of the robot, when your program runs, then it stops before the wall and does not bump into it.",
+      "start": "A",
+      "until": null,
+      "max_time_ms": 5000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "never_bumps",
+        "item": "t1"
+       },
+       {
+        "check": "does",
+        "does": "stands_still",
+        "after_ms": 100
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "A wall across a line",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 30,
+        "y": 100,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "l1",
+        "kind": "line",
+        "points": [
+         [
+          20,
+          100
+         ],
+         [
+          110,
+          100
+         ]
+        ],
+        "width": 1.48
+       },
+       {
+        "id": "t1",
+        "kind": "rect",
+        "name": "Wall",
+        "role": "obstacle",
+        "x": 60,
+        "y": 94,
+        "w": 2,
+        "h": 12
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Stops after following the line to the wall",
+      "scenario": "Given a line with a wall across it 30 cm ahead, when your program follows the line, then it stops at the wall without bumping into it.",
+      "start": "A",
+      "until": null,
+      "max_time_ms": 10000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "never_bumps",
+        "item": "t1"
+       },
+       {
+        "check": "whenever",
+        "when": "obstacle_ahead",
+        "does": "stands_still",
+        "after_ms": 0
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "A wall in front of the right side",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 40,
+        "y": 140,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "t1",
+        "kind": "rect",
+        "name": "Wall on the right",
+        "role": "obstacle",
+        "x": 48,
+        "y": 142,
+        "w": 10,
+        "h": 6
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Stops when a wall is in front of its right side",
+      "scenario": "Given a wall in front of the robot's right side, when your program runs, then it stops before the wall and does not bump into it.",
+      "start": "A",
+      "until": null,
+      "max_time_ms": 5000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "never_bumps",
+        "item": "t1"
+       },
+       {
+        "check": "whenever",
+        "when": "obstacle_right",
+        "does": "stands_still",
+        "after_ms": 0
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "duplicates": 0
+ }
+}

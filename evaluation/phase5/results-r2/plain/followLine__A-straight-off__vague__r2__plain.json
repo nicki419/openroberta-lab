@@ -1,0 +1,254 @@
+{
+ "job": {
+  "id": "followLine__A-straight-off__vague__r2__plain",
+  "function": "followLine",
+  "version": "followLine/A-straight-off",
+  "sentenceKind": "vague",
+  "sentence": "Follow the line.",
+  "repeat": 2,
+  "pipeline": "plain",
+  "name": "p5_followLine_A_straight_off"
+ },
+ "ms": {
+  "total": 122268,
+  "generate": 122268
+ },
+ "calls": [
+  {
+   "tokens": {
+    "in": 11200,
+    "cached": 11008,
+    "out": 19121,
+    "reasoning": 18251
+   },
+   "latencyMs": 122135
+  }
+ ],
+ "generate": {
+  "ok": true,
+  "repairs": 0,
+  "dropped": [],
+  "worlds": [
+   {
+    "name": "A short line to follow",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 30,
+        "y": 100,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "l1",
+        "kind": "line",
+        "points": [
+         [
+          20,
+          100
+         ],
+         [
+          70,
+          100
+         ]
+        ],
+        "width": 1.48
+       },
+       {
+        "id": "g1",
+        "kind": "rect",
+        "name": "Goal 1",
+        "role": "goal",
+        "x": 55,
+        "y": 80,
+        "w": 30,
+        "h": 40
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Follows a short line",
+      "scenario": "Given a short straight line under your robot, when your program runs, then your robot drives along the line and reaches the goal at its end.",
+      "start": "A",
+      "until": "g1",
+      "max_time_ms": 10000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "g1"
+       },
+       {
+        "check": "does",
+        "does": "drives_forward",
+        "after_ms": 500
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "A straight line to the goal",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 30,
+        "y": 100,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "l1",
+        "kind": "line",
+        "points": [
+         [
+          20,
+          100
+         ],
+         [
+          110,
+          100
+         ]
+        ],
+        "width": 1.48
+       },
+       {
+        "id": "g1",
+        "kind": "rect",
+        "name": "Goal 1",
+        "role": "goal",
+        "x": 85,
+        "y": 80,
+        "w": 30,
+        "h": 40
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Follows the line to the goal",
+      "scenario": "Given a straight line under your robot, when your program runs, then your robot drives forward along the line and reaches the goal at its end.",
+      "start": "A",
+      "until": "g1",
+      "max_time_ms": 20000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "g1"
+       },
+       {
+        "check": "does",
+        "does": "drives_forward",
+        "after_ms": 500
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "A line that runs a long way",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 30,
+        "y": 100,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "l1",
+        "kind": "line",
+        "points": [
+         [
+          20,
+          100
+         ],
+         [
+          150,
+          100
+         ]
+        ],
+        "width": 1.48
+       },
+       {
+        "id": "g1",
+        "kind": "rect",
+        "name": "Goal 1",
+        "role": "goal",
+        "x": 115,
+        "y": 75,
+        "w": 40,
+        "h": 50
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Keeps following the line over a longer way",
+      "scenario": "Given a long straight line under your robot, when your program runs, then your robot keeps driving along the line and reaches the goal far at its end.",
+      "start": "A",
+      "until": "g1",
+      "max_time_ms": 30000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "g1"
+       },
+       {
+        "check": "does",
+        "does": "drives_forward",
+        "after_ms": 500
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "duplicates": 0
+ }
+}

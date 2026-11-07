@@ -1,0 +1,142 @@
+{
+ "job": {
+  "id": "stopAtWall__B-no-handover__vague__r1__plain",
+  "function": "stopAtWall",
+  "version": "stopAtWall/B-no-handover",
+  "sentenceKind": "vague",
+  "sentence": "Stop at the wall.",
+  "repeat": 1,
+  "pipeline": "plain",
+  "name": "p5_stopAtWall_B_no_handover"
+ },
+ "ms": {
+  "total": 35810,
+  "generate": 35810
+ },
+ "calls": [
+  {
+   "tokens": {
+    "in": 11579,
+    "cached": 11392,
+    "out": 5540,
+    "reasoning": 5141
+   },
+   "latencyMs": 35677
+  }
+ ],
+ "generate": {
+  "ok": true,
+  "repairs": 0,
+  "dropped": [],
+  "worlds": [
+   {
+    "name": "Walls right in front",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 30,
+        "y": 100,
+        "heading": 0
+       },
+       {
+        "id": "B",
+        "name": "B",
+        "x": 30,
+        "y": 160,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "t1",
+        "kind": "rect",
+        "name": "Wall 1",
+        "role": "obstacle",
+        "x": 38,
+        "y": 94,
+        "w": 2,
+        "h": 12
+       },
+       {
+        "id": "t2",
+        "kind": "rect",
+        "name": "Wall 2",
+        "role": "obstacle",
+        "x": 38,
+        "y": 154,
+        "w": 2,
+        "h": 12
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Stops at the wall right ahead",
+      "scenario": "Given a wall right in front of the robot, when your program runs, then the robot stands still at the wall and does not bump into it.",
+      "start": "A",
+      "until": null,
+      "max_time_ms": 5000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "never_bumps",
+        "item": "t1"
+       },
+       {
+        "check": "whenever",
+        "when": "obstacle_ahead",
+        "does": "stands_still",
+        "after_ms": 0
+       },
+       {
+        "check": "does",
+        "does": "stands_still",
+        "after_ms": 200
+       }
+      ]
+     },
+     {
+      "name": "Stops at a second wall right ahead",
+      "scenario": "Given another wall right in front of the robot, when your program runs, then the robot stands still at the wall and does not bump into it.",
+      "start": "B",
+      "until": null,
+      "max_time_ms": 5000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "never_bumps",
+        "item": "t2"
+       },
+       {
+        "check": "whenever",
+        "when": "obstacle_ahead",
+        "does": "stands_still",
+        "after_ms": 0
+       },
+       {
+        "check": "does",
+        "does": "stands_still",
+        "after_ms": 200
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "duplicates": 0
+ }
+}

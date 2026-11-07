@@ -1,0 +1,187 @@
+{
+ "job": {
+  "id": "stopAtWall__A-slows__vague__r1__plain",
+  "function": "stopAtWall",
+  "version": "stopAtWall/A-slows",
+  "sentenceKind": "vague",
+  "sentence": "Stop at the wall.",
+  "repeat": 1,
+  "pipeline": "plain",
+  "name": "p5_stopAtWall_A_slows"
+ },
+ "ms": {
+  "total": 114804,
+  "generate": 114804
+ },
+ "calls": [
+  {
+   "tokens": {
+    "in": 11659,
+    "cached": 11392,
+    "out": 18517,
+    "reasoning": 17890
+   },
+   "latencyMs": 114656
+  }
+ ],
+ "generate": {
+  "ok": true,
+  "repairs": 0,
+  "dropped": [],
+  "worlds": [
+   {
+    "name": "A wall right in front",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 40,
+        "y": 50,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "l1",
+        "kind": "line",
+        "points": [
+         [
+          30,
+          50
+         ],
+         [
+          80,
+          50
+         ]
+        ],
+        "width": 1.48
+       },
+       {
+        "id": "t1",
+        "kind": "rect",
+        "name": "Wall",
+        "role": "obstacle",
+        "x": 48,
+        "y": 44,
+        "w": 2,
+        "h": 12
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Stops at the wall right in front",
+      "scenario": "Given a wall right in front of your robot, when your program runs for 5 s, then your robot stops at the wall and stays there.",
+      "start": "A",
+      "until": null,
+      "max_time_ms": 5000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "does",
+        "does": "stands_still",
+        "after_ms": 1500
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "A wall further along the line",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "B",
+        "name": "B",
+        "x": 40,
+        "y": 110,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "l1",
+        "kind": "line",
+        "points": [
+         [
+          30,
+          110
+         ],
+         [
+          80,
+          110
+         ]
+        ],
+        "width": 1.48
+       },
+       {
+        "id": "t1",
+        "kind": "rect",
+        "name": "Wall",
+        "role": "obstacle",
+        "x": 70,
+        "y": 104,
+        "w": 2,
+        "h": 12
+       },
+       {
+        "id": "g1",
+        "kind": "rect",
+        "name": "At the wall",
+        "role": "goal",
+        "x": 56,
+        "y": 94,
+        "w": 28,
+        "h": 32
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Drives up to the wall and stops",
+      "scenario": "Given a wall 30 cm ahead of your robot on its line, when your program runs for 20 s, then your robot drives up to the wall, stops at it and stays there.",
+      "start": "B",
+      "until": null,
+      "max_time_ms": 20000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "does",
+        "does": "stands_still",
+        "after_ms": 10000
+       },
+       {
+        "check": "ends_in",
+        "item": "g1"
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "duplicates": 0
+ }
+}

@@ -1,0 +1,370 @@
+{
+ "job": {
+  "id": "followLine__C-too-slow__precise__r1__plain",
+  "function": "followLine",
+  "version": "followLine/C-too-slow",
+  "sentenceKind": "precise",
+  "sentence": "Follow the black line from the start all the way to the green goal at its end, also through the curves, without leaving it.",
+  "repeat": 1,
+  "pipeline": "plain",
+  "name": "p5_followLine_C_too_slow"
+ },
+ "ms": {
+  "total": 89729,
+  "generate": 89729
+ },
+ "calls": [
+  {
+   "tokens": {
+    "in": 11607,
+    "cached": 9856,
+    "out": 14121,
+    "reasoning": 12868
+   },
+   "latencyMs": 89582
+  }
+ ],
+ "generate": {
+  "ok": true,
+  "repairs": 0,
+  "dropped": [],
+  "worlds": [
+   {
+    "name": "A straight line to the goal",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 30,
+        "y": 100,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "t1",
+        "kind": "line",
+        "points": [
+         [
+          20,
+          100
+         ],
+         [
+          170,
+          100
+         ]
+        ],
+        "width": 1.48
+       },
+       {
+        "id": "t2",
+        "kind": "rect",
+        "name": "Goal",
+        "role": "goal",
+        "x": 155,
+        "y": 85,
+        "w": 30,
+        "h": 30
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Follows the straight line to the goal",
+      "scenario": "Given a straight black line from the start to a goal, when your program runs, then it follows the line and reaches the goal at its end.",
+      "start": "A",
+      "until": "t2",
+      "max_time_ms": 60000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "t2"
+       },
+       {
+        "check": "does",
+        "does": "drives_forward",
+        "after_ms": 2000
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "A line with a bend to the left",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 30,
+        "y": 160,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "t1",
+        "kind": "line",
+        "points": [
+         [
+          30,
+          160
+         ],
+         [
+          80,
+          160
+         ],
+         [
+          115,
+          145
+         ],
+         [
+          130,
+          115
+         ],
+         [
+          130,
+          90
+         ]
+        ],
+        "smooth": true,
+        "width": 1.48
+       },
+       {
+        "id": "t2",
+        "kind": "rect",
+        "name": "Goal",
+        "role": "goal",
+        "x": 115,
+        "y": 75,
+        "w": 30,
+        "h": 30
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Follows the line round the left bend",
+      "scenario": "Given a black line that bends to the left with a goal at its end, when your program runs, then it follows the line round the bend and reaches the goal.",
+      "start": "A",
+      "until": "t2",
+      "max_time_ms": 90000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "t2"
+       },
+       {
+        "check": "does",
+        "does": "drives_forward",
+        "after_ms": 2000
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "A line with a bend to the right",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 30,
+        "y": 40,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "t1",
+        "kind": "line",
+        "points": [
+         [
+          30,
+          40
+         ],
+         [
+          80,
+          40
+         ],
+         [
+          115,
+          55
+         ],
+         [
+          130,
+          85
+         ],
+         [
+          130,
+          110
+         ]
+        ],
+        "smooth": true,
+        "width": 1.48
+       },
+       {
+        "id": "t2",
+        "kind": "rect",
+        "name": "Goal",
+        "role": "goal",
+        "x": 115,
+        "y": 100,
+        "w": 30,
+        "h": 30
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Follows the line round the right bend",
+      "scenario": "Given a black line that bends to the right with a goal at its end, when your program runs, then it follows the line round the bend and reaches the goal.",
+      "start": "A",
+      "until": "t2",
+      "max_time_ms": 90000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "t2"
+       },
+       {
+        "check": "does",
+        "does": "drives_forward",
+        "after_ms": 2000
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "An S-shaped line",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 30,
+        "y": 100,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "t1",
+        "kind": "line",
+        "points": [
+         [
+          30,
+          100
+         ],
+         [
+          80,
+          100
+         ],
+         [
+          110,
+          85
+         ],
+         [
+          120,
+          60
+         ],
+         [
+          145,
+          45
+         ],
+         [
+          180,
+          45
+         ]
+        ],
+        "smooth": true,
+        "width": 1.48
+       },
+       {
+        "id": "t2",
+        "kind": "rect",
+        "name": "Goal",
+        "role": "goal",
+        "x": 165,
+        "y": 30,
+        "w": 30,
+        "h": 30
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Follows the S-shaped line to the goal",
+      "scenario": "Given a black line that bends left and then right with a goal at its end, when your program runs, then it follows the line through both bends and reaches the goal.",
+      "start": "A",
+      "until": "t2",
+      "max_time_ms": 90000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "t2"
+       },
+       {
+        "check": "does",
+        "does": "drives_forward",
+        "after_ms": 2000
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "duplicates": 0
+ }
+}

@@ -1,0 +1,242 @@
+{
+ "job": {
+  "id": "stopAtWall__A-slows__vague__r2__plain",
+  "function": "stopAtWall",
+  "version": "stopAtWall/A-slows",
+  "sentenceKind": "vague",
+  "sentence": "Stop at the wall.",
+  "repeat": 2,
+  "pipeline": "plain",
+  "name": "p5_stopAtWall_A_slows"
+ },
+ "ms": {
+  "total": 98702,
+  "generate": 98702
+ },
+ "calls": [
+  {
+   "tokens": {
+    "in": 11659,
+    "cached": 11520,
+    "out": 16521,
+    "reasoning": 15556
+   },
+   "latencyMs": 98570
+  }
+ ],
+ "generate": {
+  "ok": true,
+  "repairs": 0,
+  "dropped": [],
+  "worlds": [
+   {
+    "name": "A wall across the line",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 40,
+        "y": 40,
+        "heading": 0
+       },
+       {
+        "id": "B",
+        "name": "B",
+        "x": 40,
+        "y": 100,
+        "heading": 0
+       },
+       {
+        "id": "C",
+        "name": "C",
+        "x": 40,
+        "y": 160,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "l1",
+        "kind": "line",
+        "points": [
+         [
+          30,
+          40
+         ],
+         [
+          140,
+          40
+         ]
+        ],
+        "width": 1.48
+       },
+       {
+        "id": "t1",
+        "kind": "rect",
+        "name": "Wall 1",
+        "role": "obstacle",
+        "x": 70,
+        "y": 34,
+        "w": 2,
+        "h": 12
+       },
+       {
+        "id": "g1",
+        "kind": "rect",
+        "name": "Goal 1",
+        "role": "goal",
+        "x": 66,
+        "y": 34,
+        "w": 4,
+        "h": 12
+       },
+       {
+        "id": "l2",
+        "kind": "line",
+        "points": [
+         [
+          30,
+          100
+         ],
+         [
+          140,
+          100
+         ]
+        ],
+        "width": 1.48
+       },
+       {
+        "id": "t2",
+        "kind": "rect",
+        "name": "Wall 2",
+        "role": "obstacle",
+        "x": 52,
+        "y": 94,
+        "w": 2,
+        "h": 12
+       },
+       {
+        "id": "g2",
+        "kind": "rect",
+        "name": "Goal 2",
+        "role": "goal",
+        "x": 49,
+        "y": 94,
+        "w": 3,
+        "h": 12
+       },
+       {
+        "id": "l3",
+        "kind": "line",
+        "points": [
+         [
+          30,
+          160
+         ],
+         [
+          150,
+          160
+         ]
+        ],
+        "width": 1.48
+       },
+       {
+        "id": "t3",
+        "kind": "rect",
+        "name": "Wall 3",
+        "role": "obstacle",
+        "x": 90,
+        "y": 154,
+        "w": 2,
+        "h": 12
+       },
+       {
+        "id": "g3",
+        "kind": "rect",
+        "name": "Goal 3",
+        "role": "goal",
+        "x": 86,
+        "y": 154,
+        "w": 4,
+        "h": 12
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Stops at the wall 30 cm ahead",
+      "scenario": "Given a wall across the line 30 cm in front of your robot, when your program runs, then your robot drives along the line up to the wall and stands still against it.",
+      "start": "A",
+      "until": null,
+      "max_time_ms": 30000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "g1"
+       },
+       {
+        "check": "does",
+        "does": "stands_still",
+        "after_ms": 15000
+       }
+      ]
+     },
+     {
+      "name": "Stops at the wall just ahead",
+      "scenario": "Given a wall across the line a short way in front of your robot, when your program runs, then your robot drives up to the wall and stands still against it.",
+      "start": "B",
+      "until": null,
+      "max_time_ms": 20000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "g2"
+       },
+       {
+        "check": "does",
+        "does": "stands_still",
+        "after_ms": 6000
+       }
+      ]
+     },
+     {
+      "name": "Stops at the wall 50 cm ahead",
+      "scenario": "Given a wall across the line 50 cm in front of your robot, when your program runs, then your robot follows the line to the wall and stands still there.",
+      "start": "C",
+      "until": null,
+      "max_time_ms": 40000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "g3"
+       },
+       {
+        "check": "does",
+        "does": "stands_still",
+        "after_ms": 20000
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "duplicates": 0
+ }
+}

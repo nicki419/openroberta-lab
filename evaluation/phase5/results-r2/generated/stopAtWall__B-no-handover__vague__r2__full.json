@@ -1,0 +1,546 @@
+{
+ "edpyError": null,
+ "floor": {
+  "seconds": 3,
+  "moved_cm": 0,
+  "turned_deg": 0
+ },
+ "decisions": [
+  {
+   "id": "D1",
+   "block": "p5_387",
+   "short": "b5",
+   "kind": "if",
+   "outcomes": [
+    "D1.1",
+    "D1.else"
+   ]
+  },
+  {
+   "id": "D2",
+   "block": "p5_392",
+   "short": "b10",
+   "kind": "if",
+   "outcomes": [
+    "D2.1",
+    "D2.else"
+   ]
+  }
+ ],
+ "nepo": "<block_set xmlns=\"http://de.fhg.iais.roberta.blockly\" robottype=\"edison\" xmlversion=\"3.1\" description=\"\" tags=\"\"><instance x=\"40\" y=\"40\"><block type=\"robControls_start\" id=\"b1\" intask=\"true\" deletable=\"false\"><mutation declare=\"false\"/><field name=\"DEBUG\">FALSE</field><data>{\"learningRate\":0.03,\"regularizationRate\":0,\"noise\":0,\"batchSize\":10,\"discretize\":false,\"percTrainData\":50,\"activationKey\":\"linear\",\"activation\":{},\"regularization\":null,\"initUntil\":null,\"collectStats\":false,\"numHiddenLayers\":0,\"networkShape\":[],\"weights\":[[[\"1\"]],[[]]],\"biases\":[[\"0\"],[\"0\"]],\"precision\":\"2\",\"weightArcMaxSize\":8,\"weightSuppressMultOp\":true,\"inputs\":[\"n1\"],\"outputs\":[\"n2\"],\"hiddenNeurons\":[]}</data></block><block type=\"robControls_loopForever\" id=\"b2\" intask=\"true\"><statement name=\"DO\"><block type=\"robProcedures_callnoreturn\" id=\"b3\" intask=\"true\"><mutation name=\"stopAtWall\"/></block></statement></block></instance><instance x=\"420\" y=\"40\"><block type=\"robProcedures_defnoreturn\" id=\"b4\" intask=\"true\"><mutation declare=\"false\"/><field name=\"NAME\">stopAtWall</field><statement name=\"STACK\"><block type=\"robControls_if\" id=\"b5\" intask=\"true\"><value name=\"IF0\"><block type=\"robSensors_infrared_getSample\" id=\"b6\" intask=\"true\"><mutation mode=\"OBSTACLE\"/><field name=\"MODE\">OBSTACLE</field><field name=\"SENSORPORT\">FRONT</field><field name=\"SLOT\"/></block></value><statement name=\"DO0\"><block type=\"robActions_motorDiff_on\" id=\"b7\" intask=\"true\"><field name=\"DIRECTION\">FOREWARD</field><value name=\"POWER\"><block type=\"math_integer\" id=\"b8\" intask=\"true\"><field name=\"NUM\">0</field></block></value></block></statement></block></statement></block></instance><instance x=\"800\" y=\"40\"><block type=\"robProcedures_defnoreturn\" id=\"b9\" intask=\"true\"><mutation declare=\"false\"/><field name=\"NAME\">followLine</field><statement name=\"STACK\"><block type=\"robControls_ifElse\" id=\"b10\" intask=\"true\"><mutation else=\"1\"/><repetitions><value name=\"IF0\"><block type=\"robSensors_light_getSample\" id=\"b11\" intask=\"true\"><mutation mode=\"LINE\"/><field name=\"MODE\">LINE</field><field name=\"SENSORPORT\">LINETRACKER</field><field name=\"SLOT\"/></block></value><statement name=\"DO0\"><block type=\"robActions_motorDiff_curve\" id=\"b12\" intask=\"true\"><field name=\"DIRECTION\">FOREWARD</field><value name=\"POWER_LEFT\"><block type=\"math_integer\" id=\"b13\" intask=\"true\"><field name=\"NUM\">10</field></block></value><value name=\"POWER_RIGHT\"><block type=\"math_integer\" id=\"b14\" intask=\"true\"><field name=\"NUM\">40</field></block></value></block></statement><statement name=\"ELSE\"><block type=\"robActions_motorDiff_curve\" id=\"b15\" intask=\"true\"><field name=\"DIRECTION\">FOREWARD</field><value name=\"POWER_LEFT\"><block type=\"math_integer\" id=\"b16\" intask=\"true\"><field name=\"NUM\">40</field></block></value><value name=\"POWER_RIGHT\"><block type=\"math_integer\" id=\"b17\" intask=\"true\"><field name=\"NUM\">10</field></block></value></block></statement></repetitions></block></statement></block></instance></block_set>",
+ "edpy": "import Ed\n\ndef _diffCurve(direction, leftSpeed, rightSpeed, distance):\n    if (leftSpeed < 0): \n        _leftSpeed = _shorten(-leftSpeed)\n        _reverseLeft = True\n    else: \n        _leftSpeed = _shorten(leftSpeed)\n        _reverseLeft = False\n    if (rightSpeed < 0): \n        _rightSpeed = _shorten(-rightSpeed)\n        _reverseRight = True\n    else: \n        _rightSpeed = _shorten(rightSpeed)\n        _reverseRight = False\n    if (_leftSpeed > _rightSpeed):\n        if (_rightSpeed == 0):\n            Ed.DriveRightMotor(Ed.STOP, 0, 0)\n        else:\n            Ed.DriveLeftMotor(_getDirection(direction, _reverseLeft), _leftSpeed, Ed.DISTANCE_UNLIMITED)\n            Ed.DriveRightMotor(_getDirection(direction, _reverseRight), _rightSpeed, Ed.DISTANCE_UNLIMITED)\n        Ed.DriveLeftMotor(_getDirection(direction, _reverseLeft), _leftSpeed, distance)\n        if (distance != Ed.DISTANCE_UNLIMITED): \n            Ed.Drive(Ed.STOP, 1, 1)\n    elif (_leftSpeed < _rightSpeed):\n        if (_leftSpeed == 0):\n            Ed.DriveLeftMotor(Ed.STOP, 0, 0)\n        else:\n            Ed.DriveRightMotor(_getDirection(direction, _reverseRight), _rightSpeed, Ed.DISTANCE_UNLIMITED)\n            Ed.DriveLeftMotor(_getDirection(direction, _reverseLeft), _leftSpeed, Ed.DISTANCE_UNLIMITED)\n        Ed.DriveRightMotor(_getDirection(direction, _reverseRight), _rightSpeed, distance)\n        if (distance != Ed.DISTANCE_UNLIMITED): \n            Ed.Drive(Ed.STOP, 1, 1)\n    else:\n        if (_leftSpeed == 0):\n            Ed.Drive(Ed.STOP, 1, 1)\n        else:\n            Ed.Drive(_getDirection(direction, _reverseLeft), _leftSpeed, distance)\n\ndef _diffDrive(direction, speed, distance):\n    _reverse = False\n    if speed < 0:\n        _reverse = True\n        _speed = _shorten(-speed)\n    else: \n        _speed = _shorten(speed)\n    if (_speed == 0): \n        Ed.Drive(Ed.STOP, 1, 1)\n    else: \n        Ed.Drive(_getDirection(direction, _reverse), _speed, distance)\n\ndef _getDirection(dir, reverse):\n    if reverse:\n        if (dir == Ed.FORWARD): \n            return Ed.BACKWARD\n        else: \n            return Ed.FORWARD\n    else: \n        return dir\n\ndef _obstacleDetection(mode):\n    global obstacleDetectionOn\n    if (obstacleDetectionOn == False):\n        Ed.ObstacleDetectionBeam(Ed.ON)\n        obstacleDetectionOn = True\n    return Ed.ReadObstacleDetection() == mode\n\ndef _shorten(num): \n    return ((num+5)/10)\n\nEd.EdisonVersion = Ed.V2\nEd.DistanceUnits = Ed.CM\nEd.Tempo = Ed.TEMPO_SLOW\nobstacleDetectionOn = False\nEd.LineTrackerLed(Ed.ON)\nEd.ReadClapSensor()\nEd.ReadLineState()\nEd.TimeWait(250, Ed.TIME_MILLISECONDS)\n\ndef ____stopAtWall():\n    if _obstacleDetection(Ed.OBSTACLE_AHEAD):\n        _diffDrive(Ed.FORWARD, 0, Ed.DISTANCE_UNLIMITED)\n\ndef ____followLine():\n    if (Ed.ReadLineState() == Ed.LINE_ON_BLACK):\n        _diffCurve(Ed.FORWARD, 10, 40, Ed.DISTANCE_UNLIMITED)\n    else:\n        _diffCurve(Ed.FORWARD, 40, 10, Ed.DISTANCE_UNLIMITED)\n\n\nwhile True:\n    ____stopAtWall()\n\n",
+ "ms": {
+  "prepare": 950,
+  "analyze": 37313,
+  "generate": 68091,
+  "total": 106354
+ },
+ "analyze": {
+  "ok": true,
+  "insufficient": false,
+  "error": null,
+  "message": null,
+  "repairs": 0,
+  "problems": [],
+  "analysis": {
+   "unsupported_features": [],
+   "program_facts": {
+    "variables": [],
+    "sensors": [
+     {
+      "source_block_ids": [
+       "b6"
+      ],
+      "name": "obstacle sensor FRONT"
+     },
+     {
+      "source_block_ids": [
+       "b11"
+      ],
+      "name": "line tracker, inside followLine which is never called"
+     }
+    ],
+    "functions": [
+     "stopAtWall",
+     "followLine"
+    ],
+    "actions": [
+     {
+      "source_block_ids": [
+       "b7"
+      ],
+      "name": "drive forward at 0 % (stop)"
+     },
+     {
+      "source_block_ids": [
+       "b12"
+      ],
+      "name": "curve left at left 10 %, right 40 %, inside followLine which is never called"
+     },
+     {
+      "source_block_ids": [
+       "b15"
+      ],
+      "name": "curve right at left 40 %, right 10 %, inside followLine which is never called"
+     }
+    ],
+    "control_flow": [
+     "Forever: call stopAtWall.",
+     "stopAtWall: if the front obstacle sensor sees something, drive forward at 0 %.",
+     "followLine is defined but never called."
+    ]
+   },
+   "likely_intent": {
+    "confidence": "high",
+    "description": "Stop at the wall.",
+    "basis": "learner_description"
+   },
+   "decision_points": [
+    {
+     "source_block_ids": [
+      "b5",
+      "b6"
+     ],
+     "condition": "the front obstacle sensor sees an obstacle",
+     "id": "D1",
+     "branches": [
+      {
+       "feasibility": "supported",
+       "reason": null,
+       "id": "D1.1",
+       "outcome": "an obstacle is in front: it sets both wheels to 0"
+      },
+      {
+       "feasibility": "supported",
+       "reason": null,
+       "id": "D1.else",
+       "outcome": "no obstacle is in front: nothing happens"
+      }
+     ]
+    },
+    {
+     "source_block_ids": [
+      "b10",
+      "b11"
+     ],
+     "condition": "the line tracker sees black, inside followLine",
+     "id": "D2",
+     "branches": [
+      {
+       "feasibility": "unsupported",
+       "reason": "followLine is never called, so this decision never runs.",
+       "id": "D2.1",
+       "outcome": "black: it curves left"
+      },
+      {
+       "feasibility": "unsupported",
+       "reason": "followLine is never called, so this decision never runs.",
+       "id": "D2.else",
+       "outcome": "no black: it curves right"
+      }
+     ]
+    }
+   ],
+   "analysis_status": "ok",
+   "scenario_paths": [
+    {
+     "branch_ids": [
+      "D1.else"
+     ],
+     "input_dimensions": [
+      {
+       "equivalence_classes": [
+        "further ahead, out of the sensor's range"
+       ],
+       "dimension": "how far ahead the wall is"
+      }
+     ],
+     "testability": "supported",
+     "id": "P1",
+     "scenario_id": "S1"
+    },
+    {
+     "branch_ids": [
+      "D1.1"
+     ],
+     "input_dimensions": [
+      {
+       "equivalence_classes": [
+        "in front, within the sensor's range"
+       ],
+       "dimension": "how far ahead the wall is"
+      }
+     ],
+     "testability": "supported",
+     "id": "P2",
+     "scenario_id": "S1"
+    }
+   ],
+   "scenarios": [
+    {
+     "path_ids": [
+      "P1",
+      "P2"
+     ],
+     "confidence": "medium",
+     "coded_response": "If the front obstacle sensor sees a wall it sets both wheels to 0; otherwise it does nothing. It never drives toward the wall.",
+     "initial_condition": "A wall is ahead of the robot.",
+     "testability": "supported",
+     "trigger": "The program runs and the front obstacle sensor checks for the wall.",
+     "title": "Stops at the wall",
+     "assumptions": [
+      "You didn't say how far away the wall is."
+     ],
+     "tested_by": [],
+     "oracle_basis": "learner_description",
+     "source_block_ids": [
+      "b3",
+      "b5",
+      "b6",
+      "b7"
+     ],
+     "id": "S1",
+     "category": "nominal",
+     "expected_response_hypothesis": "It drives up to the wall and stops before touching it."
+    }
+   ],
+   "uncertainties": [
+    "The followLine function is never called, so its line-following decision never runs.",
+    "The robot never drives: the only movement block it reaches sets the wheels to 0, so it cannot get to a wall unless the wall is already in front.",
+    "You didn't say how far away the wall is."
+   ]
+  }
+ },
+ "generate": {
+  "ok": true,
+  "error": null,
+  "message": null,
+  "repairs": 0,
+  "dropped": [],
+  "unresolved": [],
+  "duplicates": 0,
+  "scenarios": [
+   {
+    "scenario": "S1",
+    "ok": true,
+    "error": null,
+    "tests": 2,
+    "dropped": 0,
+    "repairs": 0,
+    "calls": 1,
+    "maxTests": 6
+   }
+  ],
+  "plan": {
+   "outcomes": [
+    {
+     "id": "D1.1",
+     "decision": "D1",
+     "block": "p5_387",
+     "words": "the condition holds",
+     "planned": [
+      "The wall right in front: it stays put"
+     ],
+     "deferred": null,
+     "seen": null
+    },
+    {
+     "id": "D1.else",
+     "decision": "D1",
+     "block": "p5_387",
+     "words": "the condition doesn't hold: nothing of it runs",
+     "planned": [
+      "Drives up to the wall and stops"
+     ],
+     "deferred": null,
+     "seen": null
+    },
+    {
+     "id": "D2.1",
+     "decision": "D2",
+     "block": "p5_392",
+     "words": "the condition holds",
+     "planned": [],
+     "deferred": "The line-following function is never called, so this outcome never happens.",
+     "seen": null
+    },
+    {
+     "id": "D2.else",
+     "decision": "D2",
+     "block": "p5_392",
+     "words": "the condition doesn't hold: the else part runs",
+     "planned": [],
+     "deferred": "The line-following function is never called, so this outcome never happens.",
+     "seen": null
+    }
+   ],
+   "target": [
+    "D1.else",
+    "D1.1"
+   ],
+   "planned": [
+    "D1.else",
+    "D1.1"
+   ],
+   "deferred": [
+    {
+     "reason": "The line-following function is never called, so this outcome never happens.",
+     "branch_id": "D2.1"
+    },
+    {
+     "reason": "The line-following function is never called, so this outcome never happens.",
+     "branch_id": "D2.else"
+    }
+   ],
+   "lost": [],
+   "deferredInputs": [],
+   "deferredScenarios": [],
+   "corrected": true
+  },
+  "status": "ready_for_review",
+  "worlds": [
+   {
+    "name": "A wall ahead",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 30,
+        "y": 100,
+        "heading": 0
+       },
+       {
+        "id": "B",
+        "name": "B",
+        "x": 30,
+        "y": 160,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "t1",
+        "kind": "rect",
+        "name": "Wall",
+        "role": "obstacle",
+        "x": 60,
+        "y": 94,
+        "w": 2,
+        "h": 12
+       },
+       {
+        "id": "t2",
+        "kind": "rect",
+        "name": "Goal 1",
+        "role": "goal",
+        "x": 48,
+        "y": 90,
+        "w": 10,
+        "h": 20
+       },
+       {
+        "id": "t3",
+        "kind": "rect",
+        "name": "Wall right in front",
+        "role": "obstacle",
+        "x": 38,
+        "y": 154,
+        "w": 2,
+        "h": 12
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Drives up to the wall and stops",
+      "scenario": "Given a wall 30 cm ahead, when the program runs for 20 s, then the robot drives up to the wall, reaches the area in front of it and stops there without touching the wall.",
+      "start": "A",
+      "until": null,
+      "max_time_ms": 20000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "t2"
+       },
+       {
+        "check": "never_bumps",
+        "item": "t1"
+       }
+      ],
+      "scenario_id": "S1",
+      "path_ids": [
+       "P1"
+      ],
+      "planned_branch_ids": [
+       "D1.else"
+      ],
+      "input_selection": {
+       "equivalence_partitions": [
+        {
+         "realized_by": {
+          "items": [
+           "t1"
+          ]
+         },
+         "selected_realization": "the Wall t1, its left edge 30 cm ahead of A",
+         "dimension": "how far ahead the wall is",
+         "class": "further ahead, out of the sensor's range"
+        }
+       ]
+      },
+      "expected_results": [
+       "It drives up to the wall and stops in front of it, without touching it."
+      ],
+      "postconditions": [
+       {
+        "check_indices": [
+         0
+        ],
+        "description": "At some time during the run, the robot reaches the goal area in front of the wall."
+       },
+       {
+        "check_indices": [
+         1
+        ],
+        "description": "During the whole run, the robot never touches the wall."
+       }
+      ],
+      "oracle": {
+       "confidence": "high",
+       "review_required": false,
+       "basis": "learner_description",
+       "assumptions": []
+      },
+      "source_block_ids": [
+       "b3",
+       "b5",
+       "b6",
+       "b7"
+      ],
+      "reason": "You said the robot should stop at the wall, so here it has to drive up to a wall that is still far away."
+     },
+     {
+      "name": "The wall right in front: it stays put",
+      "scenario": "Given a wall right in front of the robot, when the program runs for 5 s, then the robot stands still and never touches the wall.",
+      "start": "B",
+      "until": null,
+      "max_time_ms": 5000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "never_bumps",
+        "item": "t3"
+       },
+       {
+        "check": "does",
+        "does": "stands_still",
+        "after_ms": 200
+       }
+      ],
+      "scenario_id": "S1",
+      "path_ids": [
+       "P2"
+      ],
+      "planned_branch_ids": [
+       "D1.1"
+      ],
+      "input_selection": {
+       "equivalence_partitions": [
+        {
+         "realized_by": {
+          "items": [
+           "t3"
+          ]
+         },
+         "selected_realization": "the Wall right in front t3, its left edge 8 cm ahead of B",
+         "dimension": "how far ahead the wall is",
+         "class": "in front, within the sensor's range"
+        }
+       ]
+      },
+      "expected_results": [
+       "With the wall right in front of it, the robot stays where it is and does not touch the wall."
+      ],
+      "postconditions": [
+       {
+        "check_indices": [
+         0
+        ],
+        "description": "During the whole run, the robot never touches the wall in front of it."
+       },
+       {
+        "check_indices": [
+         1
+        ],
+        "description": "From 0.2 s on, the robot stands still."
+       }
+      ],
+      "oracle": {
+       "confidence": "high",
+       "review_required": false,
+       "basis": "learner_description",
+       "assumptions": []
+      },
+      "source_block_ids": [
+       "b3",
+       "b5",
+       "b6",
+       "b7"
+      ],
+      "reason": "You said the robot should stop at the wall, so with the wall already in front of it, it has to stay where it is."
+     }
+    ]
+   }
+  ]
+ },
+ "calls": [
+  {
+   "model": "deepseek-flash",
+   "tokens": {
+    "in": 33915,
+    "cached": 33664,
+    "reasoning": 4242,
+    "out": 5321
+   },
+   "latencyMs": 37302,
+   "attempts": 1
+  },
+  {
+   "model": "deepseek-flash",
+   "tokens": {
+    "in": 34775,
+    "cached": 33792,
+    "reasoning": 8906,
+    "out": 10266
+   },
+   "latencyMs": 68077,
+   "attempts": 1
+  }
+ ],
+ "errs": [],
+ "job": {
+  "id": "stopAtWall__B-no-handover__vague__r2__full",
+  "function": "stopAtWall",
+  "version": "stopAtWall/B-no-handover",
+  "sentenceKind": "vague",
+  "sentence": "Stop at the wall.",
+  "repeat": 2,
+  "pipeline": "full",
+  "name": "p5_stopAtWall_B_no_handover"
+ },
+ "wallSeconds": 109.0
+}

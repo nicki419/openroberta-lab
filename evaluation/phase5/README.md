@@ -19,6 +19,8 @@ broken version of that level's function. A good set of tests passes on every cor
 | `baseline.py`, `browser/check_plain.js` | the plain pipeline: one call, the same model, effort, facts, knowledge and format checks, no testing strategy (`results/plain/`) |
 | `evaluate.py`, `browser/eval.js` | every request's tests on every version of its function (`results/evaluated/`) |
 | `report.py` | the measures (`results/report.json`, tables) |
+| `compare.py` | two rounds compared, per pipeline, for the versions the tuning looked at and the kept-out ones, with sign tests (`results-r2/compare.md`) |
+| `check_recipes.py` | the tunnel recipes of the context pack (`tests.md`), drawn by their numbers, on every version of the tunnel functions (`results-recipes.json`): every correct version must pass them |
 | `try_follow.py`, `try_levels.py`, `pseudo.py` | first tries of the functions; NEPO as pseudocode |
 
 ## Running it
@@ -30,6 +32,8 @@ broken version of that level's function. A good set of tests passes on every cor
 3. `python verify.py`, then `python generate.py`, `python baseline.py`, `python evaluate.py`, `python report.py`. Each step keeps what it has
    already made, so a step can be run again after an interruption. **One process per Chrome**: two scripts on the same port share its page
    (on 2026-11-07 that gave 4 requests the runs of others; `evaluate.py` now refuses runs that aren't its request's).
+4. **Another round** (after a change of the context pack): `PHASE5_RESULTS=results-r2` for every step writes and reads that folder instead of
+   `results/`. Round 1 (`results/`) is the context pack before the tuning of 2026-11-07, round 2 (`results-r2/`) after it.
 
 Python 3 with the standard library, Node (the CDP driver), Chrome. On Windows, the scripts call Git Bash explicitly
 (`subprocess` would find WSL's `bash.exe` first). The API key is read from `.env` by `baseline.py` and never printed. The full pipeline's calls go

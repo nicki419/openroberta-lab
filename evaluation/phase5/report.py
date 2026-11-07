@@ -13,7 +13,8 @@ import os
 import statistics as st
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-R = os.path.join(HERE, 'results')
+RESULTS = os.environ.get('PHASE5_RESULTS', 'results')  # the folder of a round's results (2026-11-07: results-r2 after the tuning)
+R = os.path.join(HERE, RESULTS)
 FUNCTIONS = ['followLine', 'stopAtWall', 'driveInTheDark', 'avoidWalls', 'followInTheDark']
 
 

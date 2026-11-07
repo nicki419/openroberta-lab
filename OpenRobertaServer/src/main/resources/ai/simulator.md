@@ -27,10 +27,13 @@ Their `role`:
   of that shape, `width` cm thick (default 1.5), not drawn on the floor. A `tunnel` is two walls 1.5 cm thick along
   its line, `width` cm apart, with a roof: the robot drives through it (and bumps into its walls). **Under the roof it
   is darker**: the light sensors see 100 % at an opening, less the further in, and 40 % from 15 cm inside on (measured
-  along the tunnel from the nearer opening; linear in between). Make it at least 12 cm wide for the robot to drive
-  through; a line on the floor can run through it. **Nothing else goes inside a tunnel**: the robot is 7.5 cm wide,
-  so a box inside a 15 cm tunnel leaves it no way around, and it bumps into the box (only a wall across the whole
-  tunnel, for a stop in the dark, belongs inside). **Its own walls are the walls the robot meets in the dark: in a
+  along the tunnel from the nearer opening; linear in between). **So a program that compares the light with a
+  threshold switches inside the tunnel, not at its opening** (at 70 %: 7.5 cm inside, and 7.5 cm before the exit):
+  what it does in the light, it still does under the first and last centimetres of the roof (see "Light under a
+  tunnel's roof" in "Where readings change"). Make it at least 12 cm wide for the robot to drive through; a line on
+  the floor can run through it. **Nothing else goes inside a tunnel**: the robot is 7.5 cm wide,
+  so a box inside a 15 cm tunnel leaves it no way around, and it bumps into the box (a wall across the whole
+  tunnel only if the learner says what the robot should do at a wall in the dark). **Its own walls are the walls the robot meets in the dark: in a
   bend, the outer wall comes in front of the robot.** In a bend to the right (with heading 0: towards larger y), the
   left wall comes in front of its left half, and LEFT sees it; in a bend to the left, the right wall and RIGHT.
 - **Dim light exists only inside a tunnel, and a tunnel always has its two walls.** There is no dim floor without
@@ -113,7 +116,14 @@ Place a test's things clear of these places, so that each test is a typical case
 - **Light under a tunnel's roof**: the light sensors read 100 % at an opening and 40 % from 15 cm inside on, linear in
   between (measured from the nearer opening, at the sensors, 5.5 cm ahead of the axle): a reading of p % is at
   (100 − p) / 4 cm inside. A program that compares the light with 70 % changes at 7.5 cm inside; from 15 cm inside
-  on, the light is 40 %, below any such threshold.
+  on, the light is 40 %, below any such threshold. **What a program does in the light, it still does there.** A line
+  follower that drives into a tunnel follows the line until 7.5 cm inside, and from 7.5 cm before the exit it follows
+  the line again: without a line there, it loses it under the roof (it turns into a wall, or circles) and never gets
+  out. So a line the robot follows into a tunnel runs on 15 cm or more inside it. A robot that drives straight in the
+  dark keeps the heading it had when the light fell: it comes to the tunnel along a straight line, facing along the
+  tunnel. Even so, it comes out of the dark a little to one side of the line's course, and a line follower that turns
+  only one way when it sees no line finds a line after the tunnel only if it comes out on that side: whether it does
+  depends on how it wiggled when the light fell, not on whether the program is right.
 - **Claps and keys over time**: a clap is heard from its `at` for about 0.3 s, a key is held from its `at` for
   0.2 s. A "wait until" that begins later than that misses it: let a clap or key come at least 0.5 s after the moment
   the program reaches the wait. That moment follows from the blocks before it: a drive of d cm at p % takes about

@@ -1,0 +1,362 @@
+{
+ "job": {
+  "id": "followLine__A-straight-off__precise__r1__plain",
+  "function": "followLine",
+  "version": "followLine/A-straight-off",
+  "sentenceKind": "precise",
+  "sentence": "Follow the black line from the start all the way to the green goal at its end, also through the curves, without leaving it.",
+  "repeat": 1,
+  "pipeline": "plain",
+  "name": "p5_followLine_A_straight_off"
+ },
+ "ms": {
+  "total": 47386,
+  "generate": 47386
+ },
+ "calls": [
+  {
+   "tokens": {
+    "in": 11223,
+    "cached": 9856,
+    "out": 7891,
+    "reasoning": 6705
+   },
+   "latencyMs": 47252
+  }
+ ],
+ "generate": {
+  "ok": true,
+  "repairs": 0,
+  "dropped": [],
+  "worlds": [
+   {
+    "name": "A straight line to the goal",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 30,
+        "y": 100,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "l1",
+        "kind": "line",
+        "points": [
+         [
+          20,
+          100
+         ],
+         [
+          260,
+          100
+         ]
+        ],
+        "width": 1.48
+       },
+       {
+        "id": "g1",
+        "kind": "rect",
+        "name": "Goal",
+        "role": "goal",
+        "x": 230,
+        "y": 85,
+        "w": 30,
+        "h": 30
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Reaches the goal on a straight line",
+      "scenario": "Given a straight black line with a green goal at its end, when the program runs, then the robot follows the line and reaches the goal at its end.",
+      "start": "A",
+      "until": "g1",
+      "max_time_ms": 30000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "g1"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "A bend to the right",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 30,
+        "y": 100,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "l1",
+        "kind": "line",
+        "points": [
+         [
+          20,
+          100
+         ],
+         [
+          100,
+          100
+         ],
+         [
+          130,
+          108
+         ],
+         [
+          155,
+          128
+         ],
+         [
+          168,
+          155
+         ],
+         [
+          172,
+          175
+         ]
+        ],
+        "smooth": true,
+        "width": 1.48
+       },
+       {
+        "id": "g1",
+        "kind": "rect",
+        "name": "Goal",
+        "role": "goal",
+        "x": 145,
+        "y": 150,
+        "w": 40,
+        "h": 40
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Goes round the right bend to the goal",
+      "scenario": "Given a black line that bends to the right, with a green goal at its end, when the program runs, then the robot follows the line through the bend and reaches the goal.",
+      "start": "A",
+      "until": "g1",
+      "max_time_ms": 30000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "g1"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "A bend to the left",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 30,
+        "y": 120,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "l1",
+        "kind": "line",
+        "points": [
+         [
+          20,
+          120
+         ],
+         [
+          100,
+          120
+         ],
+         [
+          130,
+          112
+         ],
+         [
+          155,
+          92
+         ],
+         [
+          168,
+          65
+         ],
+         [
+          172,
+          45
+         ]
+        ],
+        "smooth": true,
+        "width": 1.48
+       },
+       {
+        "id": "g1",
+        "kind": "rect",
+        "name": "Goal",
+        "role": "goal",
+        "x": 145,
+        "y": 25,
+        "w": 40,
+        "h": 40
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Goes round the left bend to the goal",
+      "scenario": "Given a black line that bends to the left, with a green goal at its end, when the program runs, then the robot follows the line through the bend and reaches the goal.",
+      "start": "A",
+      "until": "g1",
+      "max_time_ms": 30000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "g1"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "Two bends in the line",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 30,
+        "y": 60,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "l1",
+        "kind": "line",
+        "points": [
+         [
+          20,
+          60
+         ],
+         [
+          90,
+          60
+         ],
+         [
+          120,
+          75
+         ],
+         [
+          140,
+          105
+         ],
+         [
+          160,
+          135
+         ],
+         [
+          190,
+          150
+         ],
+         [
+          230,
+          155
+         ]
+        ],
+        "smooth": true,
+        "width": 1.48
+       },
+       {
+        "id": "g1",
+        "kind": "rect",
+        "name": "Goal",
+        "role": "goal",
+        "x": 205,
+        "y": 135,
+        "w": 35,
+        "h": 35
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Follows both bends to the goal",
+      "scenario": "Given a black line that bends first to the right and then again, with a green goal at its end, when the program runs, then the robot follows the whole line and reaches the goal.",
+      "start": "A",
+      "until": "g1",
+      "max_time_ms": 30000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "g1"
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "duplicates": 0
+ }
+}

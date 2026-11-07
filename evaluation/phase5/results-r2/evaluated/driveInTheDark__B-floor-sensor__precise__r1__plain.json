@@ -1,0 +1,494 @@
+{
+ "id": "driveInTheDark__B-floor-sensor__precise__r1__plain",
+ "job": {
+  "id": "driveInTheDark__B-floor-sensor__precise__r1__plain",
+  "function": "driveInTheDark",
+  "version": "driveInTheDark/B-floor-sensor",
+  "sentenceKind": "precise",
+  "sentence": "Follow the black line; inside a dark tunnel, where there is no line, drive straight through without touching its walls, and follow the line again after the tunnel.",
+  "repeat": 1,
+  "pipeline": "plain",
+  "name": "p5_driveInTheDark_B_floor_sensor"
+ },
+ "versions": [
+  {
+   "id": "driveInTheDark/A",
+   "kind": "correct",
+   "fault": null,
+   "of": null
+  },
+  {
+   "id": "driveInTheDark/A-never-dark",
+   "kind": "broken",
+   "fault": "never-dark",
+   "of": "driveInTheDark/A"
+  },
+  {
+   "id": "driveInTheDark/A-floor-sensor",
+   "kind": "broken",
+   "fault": "floor-sensor",
+   "of": "driveInTheDark/A"
+  },
+  {
+   "id": "driveInTheDark/A-negated",
+   "kind": "broken",
+   "fault": "negated",
+   "of": "driveInTheDark/A"
+  },
+  {
+   "id": "driveInTheDark/A-curves",
+   "kind": "broken",
+   "fault": "curves",
+   "of": "driveInTheDark/A"
+  },
+  {
+   "id": "driveInTheDark/A-no-handover",
+   "kind": "broken",
+   "fault": "no-handover",
+   "of": "driveInTheDark/A"
+  },
+  {
+   "id": "driveInTheDark/B",
+   "kind": "correct",
+   "fault": null,
+   "of": null
+  },
+  {
+   "id": "driveInTheDark/B-never-dark",
+   "kind": "broken",
+   "fault": "never-dark",
+   "of": "driveInTheDark/B"
+  },
+  {
+   "id": "driveInTheDark/B-floor-sensor",
+   "kind": "broken",
+   "fault": "floor-sensor",
+   "of": "driveInTheDark/B"
+  },
+  {
+   "id": "driveInTheDark/B-negated",
+   "kind": "broken",
+   "fault": "negated",
+   "of": "driveInTheDark/B"
+  },
+  {
+   "id": "driveInTheDark/B-curves",
+   "kind": "broken",
+   "fault": "curves",
+   "of": "driveInTheDark/B"
+  },
+  {
+   "id": "driveInTheDark/B-no-handover",
+   "kind": "broken",
+   "fault": "no-handover",
+   "of": "driveInTheDark/B"
+  },
+  {
+   "id": "driveInTheDark/C",
+   "kind": "correct",
+   "fault": null,
+   "of": null
+  },
+  {
+   "id": "driveInTheDark/C-never-dark",
+   "kind": "broken",
+   "fault": "never-dark",
+   "of": "driveInTheDark/C"
+  },
+  {
+   "id": "driveInTheDark/C-floor-sensor",
+   "kind": "broken",
+   "fault": "floor-sensor",
+   "of": "driveInTheDark/C"
+  },
+  {
+   "id": "driveInTheDark/C-negated",
+   "kind": "broken",
+   "fault": "negated",
+   "of": "driveInTheDark/C"
+  },
+  {
+   "id": "driveInTheDark/C-curves",
+   "kind": "broken",
+   "fault": "curves",
+   "of": "driveInTheDark/C"
+  },
+  {
+   "id": "driveInTheDark/C-no-handover",
+   "kind": "broken",
+   "fault": "no-handover",
+   "of": "driveInTheDark/C"
+  }
+ ],
+ "runs": {
+  "driveInTheDark/A": {
+   "key": "driveInTheDark/A",
+   "tests": [
+    {
+     "world": "A straight black line",
+     "test": "Follows the black line",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A dark tunnel",
+     "test": "Drives through the dark tunnel",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "driveInTheDark/A-never-dark": {
+   "key": "driveInTheDark/A-never-dark",
+   "tests": [
+    {
+     "world": "A straight black line",
+     "test": "Follows the black line",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A dark tunnel",
+     "test": "Drives through the dark tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 30 s",
+      "the robot bumped into \"Tunnel\" after 6.2 s",
+      "the left light sensor read below 70 %, but the robot did not drive forward: it stood still, from 6.43 to 30 s"
+     ]
+    }
+   ]
+  },
+  "driveInTheDark/A-floor-sensor": {
+   "key": "driveInTheDark/A-floor-sensor",
+   "tests": [
+    {
+     "world": "A straight black line",
+     "test": "Follows the black line",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A dark tunnel",
+     "test": "Drives through the dark tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 30 s",
+      "the robot bumped into \"Tunnel\" after 5.2 s",
+      "the left light sensor read below 70 %, but the robot did not drive forward: it stood still, from 5.42 to 30 s"
+     ]
+    }
+   ]
+  },
+  "driveInTheDark/A-negated": {
+   "key": "driveInTheDark/A-negated",
+   "tests": [
+    {
+     "world": "A straight black line",
+     "test": "Follows the black line",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A dark tunnel",
+     "test": "Drives through the dark tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 30 s",
+      "the robot bumped into \"Tunnel\" after 5.4 s",
+      "the left light sensor read below 70 %, but the robot did not drive forward: it stood still, from 5.65 to 30 s"
+     ]
+    }
+   ]
+  },
+  "driveInTheDark/A-curves": {
+   "key": "driveInTheDark/A-curves",
+   "tests": [
+    {
+     "world": "A straight black line",
+     "test": "Follows the black line",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A dark tunnel",
+     "test": "Drives through the dark tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 30 s",
+      "the robot bumped into \"Tunnel\" after 5.4 s",
+      "the left light sensor read below 70 %, but the robot did not drive forward: it drove backward, turning right (1.8 cm/s, 35\u00b0/s), from 5.62 to 30 s"
+     ]
+    }
+   ]
+  },
+  "driveInTheDark/A-no-handover": {
+   "key": "driveInTheDark/A-no-handover",
+   "tests": [
+    {
+     "world": "A straight black line",
+     "test": "Follows the black line",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 20 s",
+      "the robot did not drive forward: it stood still, from 0.1 to 20 s"
+     ]
+    },
+    {
+     "world": "A dark tunnel",
+     "test": "Drives through the dark tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 30 s"
+     ]
+    }
+   ]
+  },
+  "driveInTheDark/B": {
+   "key": "driveInTheDark/B",
+   "tests": [
+    {
+     "world": "A straight black line",
+     "test": "Follows the black line",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A dark tunnel",
+     "test": "Drives through the dark tunnel",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "driveInTheDark/B-never-dark": {
+   "key": "driveInTheDark/B-never-dark",
+   "tests": [
+    {
+     "world": "A straight black line",
+     "test": "Follows the black line",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A dark tunnel",
+     "test": "Drives through the dark tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 30 s",
+      "the robot bumped into \"Tunnel\" after 6.2 s",
+      "the left light sensor read below 70 %, but the robot did not drive forward: it stood still, from 6.43 to 30 s"
+     ]
+    }
+   ]
+  },
+  "driveInTheDark/B-floor-sensor": {
+   "key": "driveInTheDark/B-floor-sensor",
+   "tests": [
+    {
+     "world": "A straight black line",
+     "test": "Follows the black line",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A dark tunnel",
+     "test": "Drives through the dark tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 30 s",
+      "the robot bumped into \"Tunnel\" after 4 s",
+      "the left light sensor read below 70 %, but the robot did not drive forward: it stood still, from 4.22 to 30 s"
+     ]
+    }
+   ]
+  },
+  "driveInTheDark/B-negated": {
+   "key": "driveInTheDark/B-negated",
+   "tests": [
+    {
+     "world": "A straight black line",
+     "test": "Follows the black line",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A dark tunnel",
+     "test": "Drives through the dark tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 30 s",
+      "the robot bumped into \"Tunnel\" after 4.4 s",
+      "the left light sensor read below 70 %, but the robot did not drive forward: it stood still, from 4.6 to 30 s"
+     ]
+    }
+   ]
+  },
+  "driveInTheDark/B-curves": {
+   "key": "driveInTheDark/B-curves",
+   "tests": [
+    {
+     "world": "A straight black line",
+     "test": "Follows the black line",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A dark tunnel",
+     "test": "Drives through the dark tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 30 s",
+      "the robot bumped into \"Tunnel\" after 5.4 s",
+      "the left light sensor read below 70 %, but the robot did not drive forward: it turned right on the spot, from 5.67 to 30 s"
+     ]
+    }
+   ]
+  },
+  "driveInTheDark/B-no-handover": {
+   "key": "driveInTheDark/B-no-handover",
+   "tests": [
+    {
+     "world": "A straight black line",
+     "test": "Follows the black line",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 20 s",
+      "the robot did not drive forward: it stood still, from 0.1 to 20 s"
+     ]
+    },
+    {
+     "world": "A dark tunnel",
+     "test": "Drives through the dark tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 30 s"
+     ]
+    }
+   ]
+  },
+  "driveInTheDark/C": {
+   "key": "driveInTheDark/C",
+   "tests": [
+    {
+     "world": "A straight black line",
+     "test": "Follows the black line",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A dark tunnel",
+     "test": "Drives through the dark tunnel",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "driveInTheDark/C-never-dark": {
+   "key": "driveInTheDark/C-never-dark",
+   "tests": [
+    {
+     "world": "A straight black line",
+     "test": "Follows the black line",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A dark tunnel",
+     "test": "Drives through the dark tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 30 s",
+      "the robot bumped into \"Tunnel\" after 6.2 s",
+      "the left light sensor read below 70 %, but the robot did not drive forward: it stood still, from 6.43 to 30 s"
+     ]
+    }
+   ]
+  },
+  "driveInTheDark/C-floor-sensor": {
+   "key": "driveInTheDark/C-floor-sensor",
+   "tests": [
+    {
+     "world": "A straight black line",
+     "test": "Follows the black line",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A dark tunnel",
+     "test": "Drives through the dark tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 30 s",
+      "the robot bumped into \"Tunnel\" after 5.2 s",
+      "the left light sensor read below 70 %, but the robot did not drive forward: it stood still, from 5.42 to 30 s"
+     ]
+    }
+   ]
+  },
+  "driveInTheDark/C-negated": {
+   "key": "driveInTheDark/C-negated",
+   "tests": [
+    {
+     "world": "A straight black line",
+     "test": "Follows the black line",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A dark tunnel",
+     "test": "Drives through the dark tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 30 s",
+      "the robot bumped into \"Tunnel\" after 5.4 s",
+      "the left light sensor read below 70 %, but the robot did not drive forward: it stood still, from 5.65 to 30 s"
+     ]
+    }
+   ]
+  },
+  "driveInTheDark/C-curves": {
+   "key": "driveInTheDark/C-curves",
+   "tests": [
+    {
+     "world": "A straight black line",
+     "test": "Follows the black line",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A dark tunnel",
+     "test": "Drives through the dark tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 30 s",
+      "the robot bumped into \"Tunnel\" after 5.3 s",
+      "the left light sensor read below 70 %, but the robot did not drive forward: it turned right on the spot, from 5.53 to 30 s"
+     ]
+    }
+   ]
+  },
+  "driveInTheDark/C-no-handover": {
+   "key": "driveInTheDark/C-no-handover",
+   "tests": [
+    {
+     "world": "A straight black line",
+     "test": "Follows the black line",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 20 s",
+      "the robot did not drive forward: it stood still, from 0.1 to 20 s"
+     ]
+    },
+    {
+     "world": "A dark tunnel",
+     "test": "Drives through the dark tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 30 s"
+     ]
+    }
+   ]
+  }
+ }
+}

@@ -1,0 +1,337 @@
+{
+ "job": {
+  "id": "stopAtWall__A-negated__precise__r2__plain",
+  "function": "stopAtWall",
+  "version": "stopAtWall/A-negated",
+  "sentenceKind": "precise",
+  "sentence": "Follow the black line, and when a wall is right in front of the robot, stop before it without touching it and stay there.",
+  "repeat": 2,
+  "pipeline": "plain",
+  "name": "p5_stopAtWall_A_negated"
+ },
+ "ms": {
+  "total": 34862,
+  "generate": 34862
+ },
+ "calls": [
+  {
+   "tokens": {
+    "in": 11550,
+    "cached": 11392,
+    "out": 6079,
+    "reasoning": 4888
+   },
+   "latencyMs": 34720
+  }
+ ],
+ "generate": {
+  "ok": true,
+  "repairs": 0,
+  "dropped": [],
+  "worlds": [
+   {
+    "name": "A line to follow",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 40,
+        "y": 60,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "l1",
+        "kind": "line",
+        "points": [
+         [
+          30,
+          60
+         ],
+         [
+          200,
+          60
+         ]
+        ],
+        "width": 1.48
+       },
+       {
+        "id": "g1",
+        "kind": "rect",
+        "name": "Goal 1",
+        "role": "goal",
+        "x": 190,
+        "y": 45,
+        "w": 30,
+        "h": 30
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Follows the straight line",
+      "scenario": "Given your robot starts on a straight black line, when your program runs, then the robot drives along the line and reaches the goal at its end.",
+      "start": "A",
+      "until": "g1",
+      "max_time_ms": 30000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "g1"
+       },
+       {
+        "check": "does",
+        "does": "drives_forward",
+        "after_ms": 500
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "A line that bends",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "B",
+        "name": "B",
+        "x": 40,
+        "y": 100,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "l1",
+        "kind": "line",
+        "points": [
+         [
+          30,
+          100
+         ],
+         [
+          80,
+          100
+         ],
+         [
+          110,
+          115
+         ],
+         [
+          130,
+          140
+         ]
+        ],
+        "smooth": true,
+        "width": 1.48
+       },
+       {
+        "id": "g1",
+        "kind": "rect",
+        "name": "Goal 1",
+        "role": "goal",
+        "x": 120,
+        "y": 130,
+        "w": 30,
+        "h": 30
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Follows the line around the bend",
+      "scenario": "Given your robot starts on a black line that bends to the right, when your program runs, then the robot follows the line and reaches the goal at its end.",
+      "start": "B",
+      "until": "g1",
+      "max_time_ms": 40000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "g1"
+       },
+       {
+        "check": "does",
+        "does": "drives_forward",
+        "after_ms": 500
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "A wall across the line",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "C",
+        "name": "C",
+        "x": 40,
+        "y": 100,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "l1",
+        "kind": "line",
+        "points": [
+         [
+          30,
+          100
+         ],
+         [
+          180,
+          100
+         ]
+        ],
+        "width": 1.48
+       },
+       {
+        "id": "t1",
+        "kind": "rect",
+        "name": "Wall 1",
+        "role": "obstacle",
+        "x": 120,
+        "y": 94,
+        "w": 2,
+        "h": 12
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Stops before the wall on the line",
+      "scenario": "Given a black line with a wall standing across it, when your program runs, then the robot follows the line, stops in front of the wall without touching it and stays stopped.",
+      "start": "C",
+      "until": null,
+      "max_time_ms": 30000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "never_bumps",
+        "item": "t1"
+       },
+       {
+        "check": "whenever",
+        "when": "obstacle_ahead",
+        "does": "stands_still",
+        "after_ms": 0
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "A wall right in front",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "D",
+        "name": "D",
+        "x": 40,
+        "y": 60,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "l1",
+        "kind": "line",
+        "points": [
+         [
+          30,
+          60
+         ],
+         [
+          80,
+          60
+         ]
+        ],
+        "width": 1.48
+       },
+       {
+        "id": "t1",
+        "kind": "rect",
+        "name": "Wall 1",
+        "role": "obstacle",
+        "x": 48,
+        "y": 54,
+        "w": 2,
+        "h": 12
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Stays still at the wall in front",
+      "scenario": "Given your robot starts on the line with a wall right in front of it, when your program runs, then the robot does not drive into the wall and stays where it is.",
+      "start": "D",
+      "until": null,
+      "max_time_ms": 10000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "never_bumps",
+        "item": "t1"
+       },
+       {
+        "check": "does",
+        "does": "stands_still",
+        "after_ms": 100
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "duplicates": 0
+ }
+}

@@ -1,0 +1,176 @@
+{
+ "job": {
+  "id": "driveInTheDark__A-curves__vague__r1__plain",
+  "function": "driveInTheDark",
+  "version": "driveInTheDark/A-curves",
+  "sentenceKind": "vague",
+  "sentence": "Get through the tunnel.",
+  "repeat": 1,
+  "pipeline": "plain",
+  "name": "p5_driveInTheDark_A_curves"
+ },
+ "ms": {
+  "total": 342620,
+  "generate": 342620
+ },
+ "calls": [
+  {
+   "tokens": {
+    "in": 11971,
+    "cached": 11776,
+    "out": 32000,
+    "reasoning": 32000
+   },
+   "latencyMs": 243011
+  },
+  {
+   "tokens": {
+    "in": 11998,
+    "cached": 11776,
+    "out": 13613,
+    "reasoning": 13188
+   },
+   "latencyMs": 99462
+  }
+ ],
+ "generate": {
+  "ok": true,
+  "repairs": 1,
+  "dropped": [],
+  "worlds": [
+   {
+    "name": "A dark tunnel bending right",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 30,
+        "y": 100,
+        "heading": 0
+       },
+       {
+        "id": "B",
+        "name": "B",
+        "x": 65,
+        "y": 100,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "l1",
+        "kind": "line",
+        "points": [
+         [
+          20,
+          100
+         ],
+         [
+          67.5,
+          100
+         ]
+        ],
+        "width": 1.48
+       },
+       {
+        "id": "t1",
+        "kind": "tunnel",
+        "name": "Tunnel",
+        "role": "obstacle",
+        "points": [
+         [
+          60,
+          100
+         ],
+         [
+          62,
+          100
+         ],
+         [
+          67.19,
+          101.39
+         ],
+         [
+          70.98,
+          105.19
+         ],
+         [
+          72.37,
+          110.37
+         ],
+         [
+          72.37,
+          140
+         ]
+        ],
+        "smooth": true,
+        "width": 20
+       },
+       {
+        "id": "g1",
+        "kind": "rect",
+        "name": "Goal 1",
+        "role": "goal",
+        "x": 67.37,
+        "y": 115,
+        "w": 10,
+        "h": 10
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Follows the line into the dark bend",
+      "scenario": "Given a line leads into a dark tunnel that bends right, when the program runs, then it follows the line into the tunnel and gets through the bend to the goal inside, without bumping the walls.",
+      "start": "A",
+      "until": "g1",
+      "max_time_ms": 15000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "g1"
+       },
+       {
+        "check": "never_bumps",
+        "item": "t1"
+       }
+      ]
+     },
+     {
+      "name": "Follows the dark bend from inside",
+      "scenario": "Given the robot starts in the dark inside a tunnel that bends right, when the program runs, then it follows the bend and reaches the goal inside the tunnel without bumping the walls.",
+      "start": "B",
+      "until": "g1",
+      "max_time_ms": 10000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "g1"
+       },
+       {
+        "check": "never_bumps",
+        "item": "t1"
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "duplicates": 0
+ }
+}

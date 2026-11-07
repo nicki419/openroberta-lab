@@ -1,0 +1,236 @@
+{
+ "job": {
+  "id": "avoidWalls__A-no-handover__vague__r1__plain",
+  "function": "avoidWalls",
+  "version": "avoidWalls/A-no-handover",
+  "sentenceKind": "vague",
+  "sentence": "Don't hit the tunnel walls.",
+  "repeat": 1,
+  "pipeline": "plain",
+  "name": "p5_avoidWalls_A_no_handover"
+ },
+ "ms": {
+  "total": 382501,
+  "generate": 382501
+ },
+ "calls": [
+  {
+   "tokens": {
+    "in": 12899,
+    "cached": 2304,
+    "out": 32000,
+    "reasoning": 32000
+   },
+   "latencyMs": 215049
+  },
+  {
+   "tokens": {
+    "in": 12926,
+    "cached": 12672,
+    "out": 19698,
+    "reasoning": 18649
+   },
+   "latencyMs": 131531
+  },
+  {
+   "tokens": {
+    "in": 14304,
+    "cached": 12800,
+    "out": 5351,
+    "reasoning": 4272
+   },
+   "latencyMs": 35644
+  }
+ ],
+ "generate": {
+  "ok": true,
+  "repairs": 2,
+  "dropped": [
+   "test \"Turns right away from the left wall in a narrower tunnel\" (world \"In a tunnel, turned towards the left wall\"): the robot starts on an obstacle: move the start or the obstacle",
+   "test \"Turns left away from the right wall in a narrower tunnel\" (world \"In a tunnel, turned towards the right wall\"): the robot starts on an obstacle: move the start or the obstacle"
+  ],
+  "worlds": [
+   {
+    "name": "In a tunnel, turned towards the left wall",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 100,
+        "y": 60,
+        "heading": 35
+       },
+       {
+        "id": "B",
+        "name": "B",
+        "x": 100,
+        "y": 140,
+        "heading": 35
+       }
+      ],
+      "items": [
+       {
+        "id": "t1",
+        "kind": "tunnel",
+        "name": "Tunnel 1",
+        "role": "obstacle",
+        "points": [
+         [
+          40,
+          60
+         ],
+         [
+          230,
+          60
+         ]
+        ],
+        "width": 14
+       },
+       {
+        "id": "t2",
+        "kind": "tunnel",
+        "name": "Tunnel 2",
+        "role": "obstacle",
+        "points": [
+         [
+          40,
+          140
+         ],
+         [
+          230,
+          140
+         ]
+        ],
+        "width": 13
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Turns right away from the left tunnel wall",
+      "scenario": "Given your robot stands in a dark tunnel, turned towards the left wall, when the program runs, then it turns right, away from the wall, and does not hit the tunnel walls.",
+      "start": "A",
+      "until": null,
+      "max_time_ms": 3000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "never_bumps",
+        "item": "t1"
+       },
+       {
+        "check": "whenever",
+        "when": "obstacle_left",
+        "does": "turns_right",
+        "after_ms": 0
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "In a tunnel, turned towards the right wall",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 100,
+        "y": 60,
+        "heading": -35
+       },
+       {
+        "id": "B",
+        "name": "B",
+        "x": 100,
+        "y": 140,
+        "heading": -35
+       }
+      ],
+      "items": [
+       {
+        "id": "t1",
+        "kind": "tunnel",
+        "name": "Tunnel 1",
+        "role": "obstacle",
+        "points": [
+         [
+          40,
+          60
+         ],
+         [
+          230,
+          60
+         ]
+        ],
+        "width": 14
+       },
+       {
+        "id": "t2",
+        "kind": "tunnel",
+        "name": "Tunnel 2",
+        "role": "obstacle",
+        "points": [
+         [
+          40,
+          140
+         ],
+         [
+          230,
+          140
+         ]
+        ],
+        "width": 13
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Turns left away from the right tunnel wall",
+      "scenario": "Given your robot stands in a dark tunnel, turned towards the right wall, when the program runs, then it turns left, away from the wall, and does not hit the tunnel walls.",
+      "start": "A",
+      "until": null,
+      "max_time_ms": 3000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "never_bumps",
+        "item": "t1"
+       },
+       {
+        "check": "whenever",
+        "when": "obstacle_right",
+        "does": "turns_left",
+        "after_ms": 0
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "duplicates": 0
+ }
+}
