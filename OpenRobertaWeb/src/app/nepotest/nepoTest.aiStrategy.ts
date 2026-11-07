@@ -246,12 +246,14 @@ export function lineProblems(world: SIM.SimWorld, start: SIM.SimStart, beside: s
         return [];
     }
     const nearest = lineDistance(world, start);
-    if (nearest > LINE_NEAR_CM && floorMoves(floor) !== 'straight') {
-        // a program that drives straight on a plain floor gets to the scenario's thing without a line (the Lab's run on a plain floor)
+    // 2026-11-07 (phase 5, round 3): a line under every start in the light, whatever the program does on a plain floor (that may be its mistake:
+    // until then, one that drove straight on there got no line, and a broken one that drives straight on, where every right one circles, got
+    // worlds no right one gets through); a start in the dark (inside a tunnel) needs none
+    if (nearest > LINE_NEAR_CM && !inTheDark(world, start)) {
         return [
             'start "' +
                 start.id +
-                '": there is no line near it (the line tracker is 5 cm ahead of the start). The program follows a line: on a plain floor it circles on the start. Draw a line through the start ("A line through the start" in "Tests"), with the scenario\'s things on it',
+                '": there is no line near it (the line tracker is 5 cm ahead of the start). The program follows a line: draw a line through the start ("A line through the start" in "Tests"), with the scenario\'s things on it, whatever the program does on a plain floor (that may be its mistake)',
         ];
     }
     if (beside && nearest < ON_LINE_CM) {
@@ -266,6 +268,12 @@ export function lineProblems(world: SIM.SimWorld, start: SIM.SimStart, beside: s
         ];
     }
     return [];
+}
+
+/** is it dark where the robot's light sensors are at a start (5.5 cm ahead of it: inside a tunnel, below 70 %)? */
+function inTheDark(world: SIM.SimWorld, start: SIM.SimStart): boolean {
+    const h = ((start.heading || 0) * Math.PI) / 180;
+    return SIM.lightAt(world, start.x + 5.5 * Math.cos(h), start.y - 5.5 * Math.sin(h)) < 70;
 }
 
 /** does a block run: is it in an instance that begins with the start block or a function's definition? */
@@ -477,6 +485,14 @@ export function checkAnalysis(answer: any, index: Index, sentence: string, learn
         CATEGORIES.indexOf(s.category) < 0 && add('scenario ' + id + ': category must be one of ' + CATEGORIES.join(', '));
         SCENARIO_BASES.indexOf(s.oracle_basis) < 0 && add('scenario ' + id + ': oracle_basis must be one of ' + SCENARIO_BASES.join(', '));
         s.oracle_basis === 'learner_description' && !sentence && add('scenario ' + id + ': oracle_basis can\'t be learner_description: the learner wrote no sentence');
+        // 2026-11-07 (phase 5, round 3): with a sentence, the program never says what is right (in the study it is broken)
+        s.oracle_basis === 'inferred' &&
+            sentence &&
+            add(
+                'scenario ' +
+                    id +
+                    ": oracle_basis can't be inferred: the learner wrote a sentence, so what the robot should do comes from it (learner_description) or from safety (applicable_safety); where it says nothing, expected_response_hypothesis is null (unknown). What the program does may be its mistake"
+            );
         const none = s.expected_response_hypothesis === null || s.expected_response_hypothesis === undefined || s.expected_response_hypothesis === '';
         none && s.oracle_basis !== 'unknown' && add('scenario ' + id + ': without an expected_response_hypothesis its oracle_basis is unknown');
         !none && s.oracle_basis === 'unknown' && add('scenario ' + id + ': with an expected_response_hypothesis its oracle_basis isn\'t unknown');
@@ -686,6 +702,11 @@ export function checkTests(
                 add('oracle.basis must be one of ' + ORACLE_BASES.join(', '));
             } else {
                 o.basis === 'learner_description' && !sentence && add("oracle.basis can't be learner_description: the learner wrote no sentence");
+                o.basis === 'inferred_from_program' &&
+                    sentence &&
+                    add(
+                        "oracle.basis can't be inferred_from_program: the learner wrote a sentence, so the test expects what it says (learner_description) or what safety asks (applicable_safety). What their sentence doesn't say gets no test: defer it"
+                    );
                 CONFIDENCE.indexOf(o.confidence) < 0 && add('oracle.confidence must be low, medium or high');
                 Array.isArray(o.assumptions) || add('oracle.assumptions: a list (may be empty)');
                 typeof o.review_required !== 'boolean' && add('oracle.review_required must be true or false');
@@ -695,11 +716,37 @@ export function checkTests(
             contradictions(t.checks).forEach((m) => add(m));
             // a turn away ends what the robot sees within a fraction of a second: a `whenever` that waits longer has nothing to decide (2026-11-05: two
             // tests of turning away from a wall passed, but were shown as not checked, with after_ms 200)
+            const seesObstacle = (c: any) => /^obstacle_/.test(String(c.when || ''));
+            const turns = (c: any) => c.does === 'turns_left' || c.does === 'turns_right';
             t.checks
-                .filter((c: any) => c && c.check === 'whenever' && (c.does === 'turns_left' || c.does === 'turns_right') && c.after_ms > 50)
+                .filter((c: any) => c && c.check === 'whenever' && turns(c) && !seesObstacle(c) && c.after_ms > 50)
                 .forEach((c: any) =>
                     add(
                         'a "whenever" with "' + c.does + '" and after_ms ' + c.after_ms + ': turning ends what the robot sees sooner, so the check would have nothing to decide. Leave after_ms out (0): the program reacts in the next frame'
+                    )
+                );
+            // 2026-11-07 (phase 5, round 3): checks a right program fails. Turning away from a wall: one that turns in steps drives on between
+            // them while the wall is in view; standing still at once: one that reads another sensor sees the wall a few frames later
+            t.checks
+                .filter((c: any) => c && c.check === 'whenever' && turns(c) && seesObstacle(c))
+                .forEach((c: any) =>
+                    add(
+                        'a "whenever ' +
+                            c.when +
+                            ', ' +
+                            c.does +
+                            '": a right program that turns in steps drives on between them while it still sees the thing, and fails it. Test turning away by where the robot gets to (it gets past the wall without bumping: reaches, never_bumps)'
+                    )
+                );
+            t.checks
+                .filter((c: any) => c && c.check === 'whenever' && c.does === 'stands_still' && !(c.after_ms >= 200))
+                .forEach((c: any) =>
+                    add(
+                        'a "whenever ' +
+                            c.when +
+                            ', stands_still" with after_ms ' +
+                            (c.after_ms || 0) +
+                            ': give the robot 200 ms or more (a right program may see it a few frames later with another sensor, and needs a frame to stop)'
                     )
                 );
             if (index.lineTracker && w.data && w.data.world) {

@@ -108,7 +108,11 @@ program as it is in the Program tab, each in its own world (`nepoTest.ai` `runTe
   outcomes may be any of the program's, a test planned some it never needed and was shown as not checked though it
   had passed (2026-11-05). For the same reason, a `whenever` about turning away (`turns_left`, `turns_right`) with
   an `after_ms` above 50 goes back for a repair: the turn ends what the robot sees sooner, and the check would have
-  nothing to decide. Two tests of turning away from a wall had `after_ms` 200, passed, and were shown as not checked. Its scenario didn't happen, so it counts as not
+  nothing to decide. Two tests of turning away from a wall had `after_ms` 200, passed, and were shown as not checked.
+  **Since 2026-11-07 (phase 5, round 3)** a `whenever` that turns at something it sees (`obstacle_*` → `turns_*`) goes
+  back altogether (a right program that turns in steps drives on between them while it still sees the wall: test it by
+  where the robot gets to), and so does a `whenever` … `stands_still` with `after_ms` below 200 (a right program that
+  reads another sensor sees the wall a few frames later: measured, `stopAtWall` C fails at 0 ms and passes from 100 ms). Its scenario didn't happen, so it counts as not
   passed. It is shown with "?", "not checked: it passed, but that doesn't show much", and what didn't happen, with the
   decision's block as a chip. It is decided as a failed test.
 - **Some fail or aren't checked:** the results list each test (passed; failed, with its failed checks and why, as in
@@ -259,11 +263,13 @@ by the model and checked by code:
 - **The program on a plain floor** (2026-11-06, `nepo-ai-model-evaluation.md` E15): before the analysis, the Lab runs
   the program for 3 s on the simulator, on a plain peach floor with nothing around and nothing happening
   (`nepoTest.ai` `floorRun`), and the model is told what it did (`## The program on a plain floor`: it drove straight
-  on, turned left or right, or stood still; `AiPrompts` `appendFloor`). A program that reads the line tracker needs a
-  line in every test only if it doesn't drive straight on there: the Lab sends back a test without a line under its
-  start only then (`lineProblems` with `index.floor`), and generate's task says so (`followsLine`). Before, every
-  program that read the line tracker was told "on a plain floor it circles", and the Lab sent back every test without a
-  line: a program that steers only over black or white (it drives straight on) got lines in its tunnel tests. The
+  on, turned left or right, or stood still; `AiPrompts` `appendFloor`). **Since 2026-11-07 (phase 5, round 3) a program
+  that reads the line tracker gets a line under every start in the light, whatever it does on a plain floor**: the Lab
+  sends back a test without one (`lineProblems`; a start in the dark, inside a tunnel, needs none), and generate's task
+  says so (`followsLine`). What the program does on a plain floor may be its mistake: in phase 5, a broken program that
+  drives straight on there, where every right one circles, got worlds without a line, which no right program gets
+  through. From 2026-11-06 to 2026-11-07, one that drove straight on there got no line; before that, every program that
+  read the line tracker was told "on a plain floor it circles". The
   recipe "A line beside the start" takes the side from this run too; for a program that drives straight on, "beside the
   line" is the plain floor, and the class is deferred. **Since 2026-11-07 (phase 5) a start beside the line is tested only
   if the learner says the robot should find the line**; otherwise the class is deferred ("you didn't say it should find
@@ -277,6 +283,16 @@ by the model and checked by code:
   `whenever` `obstacle_left` → `turns_right`, which fails on a program that turns in steps. Before, `tests.md` itself
   said "Boxes for LEFT or RIGHT fit inside it", and its box for LEFT stood inside the robot's width: every such test
   bumped into it, on a right program.
+- **Expectations only from the learner's words** (2026-11-07, phase 5, round 3, `nepo-ai-technique-compliance.md`):
+  the program the model gets may be wrong (in the study it always is), so it never says what is right. Where the
+  learner wrote a sentence, a scenario's expected behaviour comes from it (`learner_description`, read as it is meant)
+  or from safety (`applicable_safety`); where it says nothing, the scenario has none (`unknown`) and gets no test. The
+  Lab sends back an analysis with a scenario `inferred` and a test with `oracle.basis` `inferred_from_program` when
+  there is a sentence (`checkAnalysis`, `checkTests`); without a sentence they are still allowed. Before, the model
+  filled what a vague sentence didn't say from the broken program ("with nothing ahead it stands still", "in dim light it
+  curves left"). Also since then: **a wall ahead spans the robot's whole front** whichever sensor the program reads,
+  unless the learner says left or right (`tests.md`; a wall only in front of the right sensor, which the broken program
+  read, was missed by every right program that reads FRONT).
 - **Tunnels drawn as a light-dependent program needs them** (2026-11-07, phase 5,
   `nepo-ai-technique-compliance.md`): under the roof the light falls over the first 15 cm, so a program that compares it
   with 70 % switches 7.5 cm inside and still follows the line there. `simulator.md` says so, and the recipes of `tests.md`

@@ -35,16 +35,22 @@ The Lab checks every answer against the program, the analysis and these rules, a
 ## Where the expected behaviour comes from
 
 A test is only useful if it can fail when the program is wrong. A test derived from what the code happens to do
-confirms the code, bugs included. So take what the robot **should** do from, in this order:
+confirms the code, bugs included, and the program you are given may well be wrong. So the robot **should** do only:
 
-1. the learner's own words about their program: their sentence, and what they said before. They say what the learner
-   meant (`learner_description`);
-2. the program, only second: its structure shows which situations matter (a line to follow, an obstacle to stop at,
-   a key to wait for) and the names the tests can use (variables), not what is right. An expectation guessed from it
-   is labelled as such (`inferred_from_program`), with what it assumes;
-3. safety, where it fits the scenario: don't bump into the box, don't touch the fail area (`applicable_safety`).
+1. what the learner's own words say: their sentence, and what they said before (`learner_description`). Read them as
+   they are meant ("when I press play, it parks in the box" means it waits until then), but add nothing they don't
+   say;
+2. what safety asks, where it fits the scenario: don't bump into the box, don't touch the fail area
+   (`applicable_safety`).
 
-If nothing defensible says what the robot should do in a situation, don't test it: defer it. You don't know the task
+**The program never says what is right.** Its structure shows which situations matter (a line to follow, an obstacle
+to stop at, a key to wait for), how the tests make them happen, and the names they can use (variables). What it does
+in a situation may be its mistake: never expect it because the program does it. Only if the learner wrote no sentence
+at all, an expectation comes from the program's plausible goal, labelled as such (`inferred_from_program`), with what
+it assumes.
+
+If the learner's words don't say what the robot should do in a situation, don't test it: defer it ("you didn't say
+what it should do when …"). You don't know the task
 the learner is working on, and you don't need to: test the learner's idea of their program. If the program does
 something the learner's words don't ask for, don't test it. If the program clearly can't do what the learner said,
 still write the tests for what they said: the tests failing is the help. A failing test is never a reason to make it

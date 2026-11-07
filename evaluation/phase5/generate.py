@@ -19,6 +19,8 @@ from sentences import SENTENCES
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 RESULTS = os.environ.get('PHASE5_RESULTS', 'results')  # the folder of a round's results (2026-11-07: results-r2 after the tuning)
+# the corpus file (2026-11-07: versions.json is decided on the loosened levels; round 3 uses versions-rounds-1-2.json, as rounds 1 and 2)
+VERSIONS = os.environ.get('PHASE5_VERSIONS', 'versions.json')
 OUT = os.path.join(HERE, RESULTS, 'generated')
 PER_FUNCTION = 4
 REPEATS = 2
@@ -110,7 +112,7 @@ def run(todo):
 
 if __name__ == '__main__':
     args = [a for a in sys.argv[1:] if not a.startswith('--')]
-    versions = json.load(open(os.path.join(HERE, 'corpus', 'versions.json'), encoding='utf-8'))
+    versions = json.load(open(os.path.join(HERE, 'corpus', VERSIONS), encoding='utf-8'))
     todo = jobs(versions, args or corpus.CHAIN)
     if '--pilot' in sys.argv:
         todo = todo[:1]

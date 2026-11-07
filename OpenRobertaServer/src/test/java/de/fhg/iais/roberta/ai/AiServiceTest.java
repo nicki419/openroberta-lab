@@ -536,7 +536,7 @@ public class AiServiceTest {
         Assert.assertTrue(service.call(AiService.GENERATE, 7, new JSONObject(data.toString()).put("followsLine", true)).ok);
         String line = new JSONObject(this.requests.get(1).getString("body")).getJSONArray("messages").getJSONObject(1).getString("content");
         Assert.assertTrue(line, line.endsWith("On a plain floor it doesn't get anywhere: it circles on the start.\n"));
-        Assert.assertTrue(line.contains("The program follows a line (it reads the line tracker): every test starts on a line"));
+        Assert.assertTrue(line.contains("The program follows a line (it reads the line tracker): every test that starts in the light starts on a line"));
         Assert.assertFalse(prompt.contains("follows a line"));
     }
 
@@ -556,9 +556,10 @@ public class AiServiceTest {
     }
 
     @Test
-    public void theModelIsToldWhatTheProgramDoesOnAPlainFloorAndALineIsAskedForOnlyIfItNeedsOne() throws Exception {
+    public void theModelIsToldWhatTheProgramDoesOnAPlainFloorAndALineIsAskedForWheneverItReadsTheLineTracker() throws Exception {
         // 2026-11-06: a line follower that steers only over black or white drives straight on a plain floor; told "it circles", the model drew a
-        // line into its tunnel tests
+        // line into its tunnel tests. 2026-11-07 (phase 5, round 3): a line all the same, whatever it does on a plain floor (that may be its
+        // mistake: a broken program that drives straight on got worlds without a line, which no right one gets through)
         AiService service = service(KEY);
         JSONObject straight = new JSONObject().put("seconds", 3).put("moved_cm", 105).put("turned_deg", 0);
         JSONObject turning = new JSONObject().put("seconds", 3).put("moved_cm", 26).put("turned_deg", -258);
@@ -578,10 +579,10 @@ public class AiServiceTest {
         }
         String said = "## The program on a plain floor\n\nThe Lab ran it for 3 s on a plain peach floor, bright, with nothing around and nothing happening: ";
         Assert.assertTrue(prompts[0], prompts[0].contains(said + "it drove straight on, 105 cm.\n\n## The learner's tests"));
-        Assert.assertTrue(prompts[1], prompts[1].contains("but on a plain floor it drives straight on"));
-        Assert.assertFalse(prompts[1].contains("every test starts on a line"));
+        Assert.assertTrue(prompts[1], prompts[1].contains("every test that starts in the light starts on a line"));
+        Assert.assertTrue(prompts[1], prompts[1].contains("that may be its mistake. On a plain floor it drives straight on.\n"));
         Assert.assertTrue(prompts[2], prompts[2].contains(said + "it turned right, 258\u00b0 in all, in a curve (its path 26 cm)."));
-        Assert.assertTrue(prompts[2].contains("every test starts on a line"));
+        Assert.assertTrue(prompts[2].contains("every test that starts in the light starts on a line"));
         Assert.assertFalse(prompts[3].contains("## The program on a plain floor")); // not known: nothing said
         Assert.assertTrue(prompts[3].endsWith("it circles on the start.\n"));
     }

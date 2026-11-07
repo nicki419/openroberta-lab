@@ -224,18 +224,18 @@ public final class AiPrompts {
             .append(maxTests > 0 ? ", at most " + maxTests + " tests" : "")
             .append(": the analysis' other scenarios get their own calls, or the learner's tests already test them.\n");
         if ( data.optBoolean("followsLine", false) ) { // the browser found a block that runs and reads the line tracker
+            // 2026-11-07 (phase 5, round 3): whatever it does on a plain floor, which may be its mistake (until then, one that drove straight on
+            // there got no line: a broken one that drives straight on, where every right one circles, got worlds no right one gets through)
             String floor = floorMoves(data.optJSONObject("floor"));
-            if ( "straight".equals(floor) ) {
-                m
-                    .append("The program reads the line tracker, but on a plain floor it drives straight on (\"The program on a plain floor\"): ")
-                    .append("draw a line only where following it is what the test is about. A test of something else (a wall, a tunnel) gets no line.\n");
-            } else {
-                m
-                    .append("The program follows a line (it reads the line tracker): every test starts on a line or close beside it, facing along it ")
-                    .append("(\"A line through the start\" in \"Tests\"), with the scenario's things on that line. On a plain floor ")
-                    .append(floor == null ? "it doesn't get anywhere: it circles on the start" : "it doesn't drive along (\"The program on a plain floor\")")
-                    .append(".\n");
-            }
+            m
+                .append("The program follows a line (it reads the line tracker): every test that starts in the light starts on a line, facing along it ")
+                .append("(\"A line through the start\" in \"Tests\"), with the scenario's things on that line, whatever the program does on a plain floor: ")
+                .append("that may be its mistake. On a plain floor ")
+                .append(
+                    floor == null
+                        ? "it doesn't get anywhere: it circles on the start"
+                        : "straight".equals(floor) ? "it drives straight on" : "it doesn't drive along (\"The program on a plain floor\")")
+                .append(".\n");
         }
     }
 

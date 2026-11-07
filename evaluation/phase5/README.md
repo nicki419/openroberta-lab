@@ -35,7 +35,11 @@ broken version of that level's function. A good set of tests passes on every cor
    already made, so a step can be run again after an interruption. **One process per Chrome**: two scripts on the same port share its page
    (on 2026-11-07 that gave 4 requests the runs of others; `evaluate.py` now refuses runs that aren't its request's).
 4. **Another round** (after a change of the context pack): `PHASE5_RESULTS=results-r2` for every step writes and reads that folder instead of
-   `results/`. Round 1 (`results/`) is the context pack before the tuning of 2026-11-07, round 2 (`results-r2/`) after it.
+   `results/`. Round 1 (`results/`) is the context pack before the tuning of 2026-11-07, round 2 (`results-r2/`) after it, round 3
+   (`results-r3/`, full pipeline only) after the change of the oracle rules (expectations only from the learner's words, a line wherever
+   the robot follows one, a wall ahead across the robot's whole front, margins on stop checks). `PHASE5_VERSIONS=versions-rounds-1-2.json`
+   makes `generate.py`, `baseline.py` and `evaluate.py` use the corpus as it was decided for rounds 1 and 2 (round 3 did, so its requests
+   pair with theirs); without it they use `versions.json`, decided on the levels loosened on 2026-11-07.
 
 Python 3 with the standard library, Node (the CDP driver), Chrome. On Windows, the scripts call Git Bash explicitly
 (`subprocess` would find WSL's `bash.exe` first). The API key is read from `.env` by `baseline.py` and never printed. The full pipeline's calls go

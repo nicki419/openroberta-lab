@@ -82,10 +82,10 @@ Their `role`:
   it there). A line follower that turns one way above a threshold ("turn right while it reads more than 55 %") turns
   that way without end: it circles, and doesn't get anywhere without a line. One that steers only over black or white
   (below 45 %, above 90 %) drives straight on.
-- So if it turns or circles on a plain floor, a world needs the line wherever the robot should drive the way it
-  usually does (to a wall, to a goal, into a tunnel), with the start on the line, facing along it. **If it drives
-  straight on, a world needs a line only where following the line is what the test is about**: a test of a wall or of
-  a tunnel gets no line, and the robot drives up to it straight.
+- So **a world for a program that reads the line tracker has the line** wherever the robot should drive the way it
+  usually does (to a wall, to a goal, into a tunnel), with the start on the line, facing along it, **whether it turns
+  or drives straight on a plain floor**: what the program does there may be its mistake, and a right program may well
+  circle there. A program that doesn't read the line tracker gets no line, except in a test about a line.
 - A line drawn straight through a start puts the line tracker on the black core (heading along the line). A start
   1.5 to 2 cm beside the line's middle puts it on the white band (about 100 %); 5 cm or more beside, on the peach
   floor (83 %).

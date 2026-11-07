@@ -21,6 +21,8 @@ import judge
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 RESULTS = os.environ.get('PHASE5_RESULTS', 'results')  # the folder of a round's results (2026-11-07: results-r2 after the tuning)
+# the corpus file (2026-11-07: versions.json is decided on the loosened levels; round 3 uses versions-rounds-1-2.json, as rounds 1 and 2)
+VERSIONS = os.environ.get('PHASE5_VERSIONS', 'versions.json')
 ROOT = judge.ROOT
 PACK = os.path.join(ROOT, 'OpenRobertaServer', 'src', 'main', 'resources', 'ai')
 OUT = os.path.join(HERE, RESULTS, 'plain')
@@ -174,7 +176,7 @@ def one(full, versions_xml, port_lock):
 
 def main():
     os.makedirs(OUT, exist_ok=True)
-    versions = {v['id']: v for v in json.load(open(os.path.join(HERE, 'corpus', 'versions.json'), encoding='utf-8'))}
+    versions = {v['id']: v for v in json.load(open(os.path.join(HERE, 'corpus', VERSIONS), encoding='utf-8'))}
     work = queue.Queue()
     for f in sorted(glob.glob(os.path.join(HERE, RESULTS, 'generated', '*.json'))):
         full = json.load(open(f, encoding='utf-8'))

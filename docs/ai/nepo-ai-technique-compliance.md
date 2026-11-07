@@ -10,8 +10,8 @@ The two questions (2026-11-06):
    (harnesses?).*
 2. *How can we know for certain that DeepSeek is using the testing techniques that we tell it to use?*
 
-Status: **phase 5: tuned once and measured again** (round 2, see "Phase 5" at the end); the false alarms left come mostly from
-the broken program (see "Next (open)").
+Status: **phase 5: tuned, then the oracle rules changed, measured each time** (rounds 1 to 3, see "Phase 5" at the end): since round 3
+the expected behaviour comes only from the learner's words; false alarms are rare, and vague sentences get fewer tests.
 Last updated: 2026-11-07.
 
 ## The short answer
@@ -51,6 +51,11 @@ the context pack (rounds 1 and 2):
    world, not the strategy**: the tuning of the facts and recipes (where a tunnel's light changes, where the goal goes, no start
    beside the line) cut the sets with a false alarm from 40 % to 14 % and raised the good sets from 14 % to 48 %, in both pipelines.
    The quality of the tests is decided by the expected behaviour and the world drawn for it, which no technique checks.
+
+**After round 3 (2026-11-07)**, the oracle rules changed (the expected behaviour only from the learner's words, see "The oracle rules"):
+the model followed them from the prompt alone (in 229 calls no expectation taken from the program; the new checks of the Lab never had to
+send anything back), and the same 80 requests got false alarms in 4 % of the sets instead of 14 % (significant), at a price: 76 % of the
+broken versions caught instead of 82 % (significant), mostly with vague sentences, which now get fewer tests.
 
 ## What the Lab enforces, measures, or only asks for
 
@@ -351,13 +356,59 @@ The same 80 requests per pipeline with the tuned pack, the kept-out versions inc
   branch coverage 3), 29 of 186 first generate answers (16 %: drawing the world 27, equivalence classes 12); every call at effort low.
 - **Time**: unchanged (median 134 s per "Write tests"; 90 % within 261 s; the longest 321 s).
 
+### The oracle rules (round 3, 2026-11-07)
+
+Most false alarms of round 2 came from the broken program: the model took from it what the sentence didn't say, and drew the world for
+it. The user approved four changes (context pack, `nepoTest.aiStrategy`, `AiPrompts`):
+
+1. **The expected behaviour only from the learner's words** (`system.md`, `tasks.md`, `tests.md`): read as they are meant ("when I press
+   play" means it waits until then), plus safety; the program shows the situations and names, never what is right. What the sentence
+   doesn't say gets no test (the scenario's behaviour is `unknown`, deferred). With a sentence, the Lab sends back an analysis with a
+   scenario `inferred` and a test with `inferred_from_program` (`checkAnalysis`, `checkTests`); without one they are still allowed.
+   Example 3's "waits without PLAY" is now read from "when I press play".
+2. **A line wherever the robot follows one**: a program that reads the line tracker gets a line under every start in the light, whatever
+   it does on a plain floor (the task message, `simulator.md`, `tests.md`, and `lineProblems`; a start in the dark needs none).
+3. **A wall ahead spans the robot's whole front**, whichever sensor the program reads, unless the learner says left or right (`tests.md`).
+4. **Margins on the checks of a reaction**: `whenever` … `stands_still` needs `after_ms` of 200 or more (measured: `stopAtWall` C, which
+   reads RIGHT, fails at 0 ms and passes from 100 ms; the broken "slows" fails at every margin), and turning away from something the robot
+   sees is tested by where it gets to, never by `whenever` `obstacle_*` → `turns_*` (the Lab sends both back).
+
+Measured on the same 80 requests as rounds 1 and 2 (the corpus as decided for them, `versions-rounds-1-2.json`, so they pair), the full
+pipeline only (`evaluation/phase5/results-r3/`: `report.md`, `compare.md`, `audit/`):
+
+| full pipeline | round 2 | round 3 |
+|---|---|---|
+| requests without a test | 1 | 2 |
+| tests per request (mean) | 2.6 | 1.9 |
+| **sets with a false alarm** | 14 % | **4 %** |
+| false alarms among the tests | 6 % | 3 % |
+| **broken versions caught** | 82 % | **76 %** |
+| the broken version the assistant got, caught | 72 % | 71 % |
+| **good sets** (the user's rule) | 48 % | 41 % |
+| precise sentence: false alarms / caught / good sets | 10 % / 88 % / 65 % | 5 % / 86 % / 58 % |
+| vague sentence: false alarms / caught / good sets | 18 % / 76 % / 30 % | 2 % / 65 % / 25 % |
+| time per request: median (max) | 134 s (321 s) | 113 s (395 s) |
+
+- **Fewer false alarms, and fewer catches, both significant.** Paired by version, sentence and repeat: fewer false alarms in 10 pairs, more
+  in 2 (sign test p = 0.04); more broken versions caught in 10, fewer in 24 (p = 0.02). The good sets fell from 48 % to 41 %.
+- **The model followed the new rules from the prompt alone**: in 229 calls, no scenario or test took its expectation from the program, and
+  none of the new checks had to send an answer back. 3 of 82 first analyses (4 %) and 15 of 126 first generate answers (12 %: the world
+  11, equivalence classes 7, ids 1) were sent back, fewer than in round 2.
+- **Where the catches went: vague sentences** ("Stop at the wall."), which now get fewer tests (1.6 instead of 2.4). Round 2 also tested
+  "follows the line" for that sentence, taken from the program, and so caught the faults that keep the robot from moving; round 3 rightly
+  leaves it out, but its test of stopping checks only "whenever a wall is ahead, it stands still", which has nothing to decide for a robot
+  that never gets to the wall. `stopAtWall`: 80 % → 68 % caught, good sets 38 % → 12 %.
+- **The false alarms left** (5 tests in 3 sets) all come from how the world was drawn, none from the broken program: 2 tests of one
+  `avoidWalls` request put the recipes' bend to the right and bend to the left into one world, where the two tunnels cross; 2 of another
+  drew bends of their own (90° within 20 cm, the start inside the tunnel just before the bend) instead of the recipe, which every right
+  program bumps into; and 1 test has a goal after a tunnel's exit (vague sentence), as in round 2.
+
 ### Next (open)
 
-- **The false alarms from the broken program** (9 of 13): in the study, the program the model reads is broken, and the context pack still
-  lets it take from the program what the sentence doesn't say (`inferred_from_program`), and the world from what the program does on a
-  plain floor. Possible: expectations only from the sentence (what it doesn't say gets no test); a line wherever the learner's robot
-  follows one, whatever the program does on a plain floor; "a wall ahead" across the robot's whole front unless the learner says left
-  or right; `whenever` … `stands_still` with a margin. A change of the oracle rules: the user's decision.
+- **Round 4, if wanted** (about 1.5 h): a test of stopping at something shows that the robot got there (it ends in an area before the
+  wall, and stands still), so it fails for a robot that never moves, without taking anything from the program; the recipes of the bent
+  tunnels each in a world of its own (their numbers make them cross in one world), and the Lab sending back a tunnel that bends more
+  tightly than the recipe or a start that touches a tunnel's wall.
 - The user's review of the corpus as the study's starter code (`evaluation/phase5/corpus/CORPUS.md`).
 - **The source of truth for later comparisons** (2026-11-07, at the user's request): `evaluation/truth/` fixes the corpus per level: the
   function, its correct and broken versions as NEPO XML (alone, to inject, and as the level's whole program), and **reference tests written
@@ -384,3 +435,5 @@ The same 80 requests per pipeline with the tuned pack, the kept-out versions inc
 - 2026-11-07: phase 5: the study's source of truth (`evaluation/truth/`): versions per level and reference tests that meet the rule.
 - 2026-11-07: the levels loosened (every combination of correct fixes beats them), L8 in the source of truth, the starter code and its
   injection.
+- 2026-11-07: phase 5, round 3: the oracle rules (expected behaviour only from the learner's words, lines, walls, margins) and their
+  measurement.

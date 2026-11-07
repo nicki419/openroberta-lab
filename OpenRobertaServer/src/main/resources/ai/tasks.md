@@ -28,7 +28,9 @@ sentence: the analysis is read by the Lab and by you, not by the learner.
    compare it with the code, and say in `uncertainties` what the code does that supports it, what is missing and what
    contradicts it. **Don't change the stated goal to fit the code**, and don't read more into the sentence than it
    says (no distance, time or route it doesn't give). Where the sentence says nothing about a part of the program,
-   the most plausible goal of that part comes from the program (a scenario's `oracle_basis` `inferred`).
+   that part has no expected behaviour: its scenarios' `expected_response_hypothesis` is null (`oracle_basis`
+   `unknown`), and generate defers them. What the program does there may be its mistake. Only if the learner wrote no
+   sentence, a part's most plausible goal comes from the program (`inferred`).
 4. **Decisions and paths (branch coverage)**: `decision_points` lists **every** decision of "The program's
    decisions" with its id and **exactly** its outcome ids as `branches`: what the condition means (`condition`), each
    outcome in words, and whether the simulator can make it happen (`feasibility`: `supported`, `uncertain` or
@@ -50,9 +52,10 @@ sentence: the analysis is read by the Lab and by you, not by the learner.
    "on white it turns left" are not scenarios. Input classes are the input dimensions of a path, not scenarios of
    their own. **At most 4 scenarios** (most programs have 1 to 3); two scenarios whose paths take the same outcomes are one.
    Each is `initial_condition` → `trigger` → its paths (`path_ids`; each path's `scenario_id` names
-   it) → `coded_response` → `expected_response_hypothesis` (what the robot should do: from the sentence, else the most
-   plausible goal from the program; null if nothing defensible) with its `oracle_basis` (`learner_description` where
-   the sentence says it; `inferred`; `applicable_safety`; `unknown` if null), `assumptions`, the blocks (`source_block_ids`), `testability`
+   it) → `coded_response` → `expected_response_hypothesis` (what the robot should do: from the sentence, read as it is
+   meant; null where it says nothing) with its `oracle_basis` (`learner_description` where the sentence says it;
+   `applicable_safety`; `unknown` if null; `inferred` only if the learner wrote no sentence: the Lab refuses it
+   otherwise), `assumptions`, the blocks (`source_block_ids`), `testability`
    and `confidence`. `category`: `nominal`, `alternative`, `adverse`, `recovery`, `timing`, `safety`,
    where it fits. If the learner wants something the program has no decision for (the sentence says "stop at
    obstacles", no block reads the obstacle sensor), write the scenario on the paths the robot takes in that situation,
@@ -60,10 +63,10 @@ sentence: the analysis is read by the Lab and by you, not by the learner.
    **Describe a situation by what the robot's sensors see** and what the simulator can make: "in dim light, nothing
    in front of it", not "in dim light, no walls" (dim light is only inside a tunnel, which has walls).
    **`initial_condition` is everything the world needs** for the program to get to the scenario's moment the way it
-   usually runs, not only the scenario's own thing. For a program that needs a line to get anywhere ("The program on
-   a plain floor": it turns or circles there): "on a line, in bright light, a wall across the line ahead", not "a wall
-   ahead": without the line, it circles on the start. One that drives straight on there needs no line for it: "a wall
-   ahead" (see "The line tracker" in "The simulator"). Walls at its sides in the dark are a tunnel's own walls: "in a
+   usually runs, not only the scenario's own thing. For a program that reads the line tracker, its situations in the
+   light happen on a line: "on a line, in bright light, a wall across the line ahead", not "a wall ahead", whatever it
+   does on a plain floor ("The program on a plain floor" may show its mistake). One that doesn't read the line tracker
+   needs no line: "a wall ahead" (see "The line tracker" in "The simulator"). Walls at its sides in the dark are a tunnel's own walls: "in a
    tunnel that bends to the right" (its left wall comes in front of the robot), never a box inside a tunnel. A
    program that follows a line in bright light gets into the dark on that line: "on a line that runs into a tunnel"
    (it follows the line until the light falls, 7.5 cm inside: see "Light under a tunnel's roof"). A path starts at the beginning of the run: its `branch_ids` list the
@@ -89,8 +92,9 @@ about (no tunnel in a world about stopping at a wall), **and what the program ne
 scenario's `initial_condition` in full. If the program follows a line in bright light, every test there starts on a
 line facing along it, and the scenario's thing stands on that line. A tunnel stands on that line too: the line
 runs on 15 cm into it, and the goal of getting through the dark is inside the tunnel ("Driving through a tunnel" in
-"Tests"). Where the sentence says nothing, write only
-tests that the program's plausible goal clearly asks for (`inferred_from_program`). What the program would do in a test is never a reason
+"Tests"). Where the sentence says nothing, write no
+test: defer it with the reason "you didn't say …" (only if the learner wrote no sentence: tests that the program's
+plausible goal clearly asks for, `inferred_from_program`). What the program would do in a test is never a reason
 to leave the test out or to defer its class: a surprise of the simulator (`uncertainties`) is a reason to test it. The
 Lab checks that every id and class of your tests is the analysis', and that every outcome and class is tested or
 deferred.

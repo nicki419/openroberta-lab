@@ -124,14 +124,13 @@ The answer around the worlds:
 - **`does` is for what lasts**: every frame from `after_ms` to the end of the run. Use it for what the robot keeps
   doing (drives forward along a line, stands still from some time on). **Not for a short move**: a turn by an angle or
   a short drive ends, the robot then does something else, and `does` fails although the robot did what it should.
-- **A reaction to something it sees**: `whenever`, with the sensor condition. "When there is something on its left,
-  it turns right": `{"check": "whenever", "when": "obstacle_left", "does": "turns_right"}`. It holds while the
-  condition holds, so a turn that ends once the thing is out of view passes. **But a program that turns in steps**
-  (turn by 20°, then drive on, then look again) drives forward between its steps while the wall is still in view, and
-  `whenever` fails on a right program: test turning away from walls by where the robot gets to (it gets through a bent
-  tunnel without bumping, as with a line follower). **Leave its `after_ms` out (0)**: the
-  program reacts in the next frame, and a turn away ends what the robot sees within a fraction of a second, so a
-  `whenever` that waits 200 ms has nothing to decide (the Lab refuses a turn with more than 50 ms). Something the robot drives up to can use
+- **A reaction to something it sees**: `whenever`, with the sensor condition: "whenever an obstacle is ahead, it
+  stands still". **Give it time: `after_ms` 200 or more** for `stands_still` (the Lab refuses less): a right program
+  may see the thing a few frames later than another one (it reads another sensor), and needs a frame to stop. **Turning
+  away from something it sees is tested by where the robot gets to** (it gets through a bent tunnel without bumping,
+  as with a line follower), never by `whenever` with `turns_left` or `turns_right` (the Lab refuses it): a program
+  that turns in steps (turn by 20°, then drive on, then look again) drives forward between its steps while the wall is
+  still in view, and one that turns in a curve may turn the other way first. Something the robot drives up to can use
   `after` with `event` `obstacle` too; something in view from the start never "appears", so `after` has nothing to
   decide: use `whenever`.
 - **"It doesn't …"**: check what it does instead: `does` `stands_still` (it doesn't move), or `drives_forward`. Never
@@ -142,7 +141,7 @@ The answer around the worlds:
 - **Positive and negative checks**: `never_bumps` and `never_touches` are negative: they hold for a robot that never
   moves. Every test needs at least one positive check (`reaches`, `ends_in`, `does`, `whenever`, `after`,
   `variable`) that shows its scenario happened, **taken from the scenario's expected behaviour, never invented**. If
-  the only expectation is negative ("it doesn't bump into walls") and neither the learner nor the program's goal says what the
+  the only expectation is negative ("it doesn't bump into walls") and the learner doesn't say what the
   robot should do there, the scenario gets no test: defer it ("nothing to expect that shows it happened"). Don't add
   "drives forward" or "stands still" that nobody asked for, to have a positive check.
 
@@ -162,10 +161,11 @@ The answer around the worlds:
   start) clear of obstacles and walls, and not touching a goal or fail area.
 - **Go through the program from the start first.** For each test, follow what the program does from the start until
   the scenario's moment: which decisions it takes on the way, and what it then does with the motors. The world must
-  make those go as planned, and list them in `planned_branch_ids`. **"The program on a plain floor" says whether it
-  gets anywhere without a line.** If it turns or circles there, it needs a line under the robot until the scenario's
-  thing comes, and a wall ahead stands across a line that runs from the start. If it drives straight on, draw a line
-  only for a test about following the line.
+  make those go as planned, and list them in `planned_branch_ids`. **A program that reads the line tracker gets a
+  line under the robot** until the scenario's thing comes, and a wall ahead stands across a line that runs from the
+  start, **whatever it does on a plain floor**: that may be its mistake ("The program on a plain floor" shows what it
+  does there, not what is right). A program that doesn't read the line tracker gets a line only for a test about a
+  line.
 - **Place things from the start, with heading 0** (facing right, towards larger x) unless the scenario needs another
   heading. For a start at (x, y):
   - **A line through the start** (for a program that follows a line): a straight `line`, `width` 1.48, `points`
@@ -181,11 +181,14 @@ The answer around the worlds:
     drives straight on**, it drives past a line beside it: a start beside the line isn't a situation of its own for
     this program; defer the class with that reason. The start is then not on the line.
   - **A wall ahead** (all three obstacle sensors see it): a `rect` with its left edge at x + 8 (seen at once) or at
-    x + 30 or further (the robot drives up to it), `y` = y − 6, `w` 2, `h` 12. **If the program needs a line to get
-    anywhere** (it turns or circles on a plain floor), each such test gets its own line and its own wall: the `line` `points` [[x − 10, y], [x + 40, y]], and the wall
+    x + 30 or further (the robot drives up to it), `y` = y − 6, `w` 2, `h` 12. **A wall ahead always spans the robot's
+    whole front**, whichever obstacle sensor the program reads: a right program may read another one. Only if the
+    learner says the thing is on the left or the right, it is "Something on its left or right". **If the program reads
+    the line tracker**, each such test gets its own line and its own wall: the `line` `points` [[x − 10, y], [x + 40, y]], and the wall
     across it at x + 8 (seen at once) or x + 30 (it drives up to it). The next test starts 30 cm lower (y + 30), with
     its own line and wall by the same numbers.
-  - **Something on its left or right** ("a wall on the left" for a program that reads LEFT): the sensors look
+  - **Something on its left or right** (the learner says "a wall on the left", or the robot should turn away from
+    walls): the sensors look
     forward, so it is something in front of the robot's left half, **inside the robot's width**: the robot drives into
     it unless it turns away in time. Never a small box in its way (it bumps into it), and not a wall along its side
     (no sensor sees it). In the dark, the tunnel's own walls do it: "Dim light: walls on its left or right".
@@ -199,8 +202,8 @@ The answer around the worlds:
     roof" in "The simulator"). If it follows a line in bright light, the robot comes to the tunnel on that line, and
     the line runs on into the tunnel: a straight `line` through the start, `points` [[x − 10, y], [x + 55, y]], and
     the `tunnel`, `width` 15, `points` [[x + 40, y], [x + 160, y]]. The line then reaches 15 cm into the tunnel, and
-    the robot follows it for 40 cm first, so it faces along the tunnel when the light falls. (A program that drives
-    straight on a plain floor needs no line: the same tunnel, the start 15 cm before its opening.) **The goal of
+    the robot follows it for 40 cm first, so it faces along the tunnel when the light falls. (A program that doesn't
+    read the line tracker needs no line: the same tunnel, the start 15 cm before its opening.) **The goal of
     getting through the dark is inside the tunnel**, where it is dark, from 15 cm after the opening to 15 cm before
     the exit: `x` + 110, `y` − 5, `w` 10, `h` 10. **No goal after the exit**, even if the learner says the robot
     follows the line again after the tunnel: without a line there, a line follower circles; with one, it finds it
@@ -253,10 +256,10 @@ without decisions has one straight path: test its scenarios.
 
 **3. A complete test = path + inputs + expected results + postconditions.**
 - `expected_results` and `postconditions` say what the checks decide; every postcondition names its checks.
-- **Where the expectation comes from** (`oracle.basis`): `learner_description` only if the expectation follows from the
-  learner's sentence (or what they said before); `inferred_from_program` for one their words don't give, taken from
-  the program's plausible goal
-  (say what you assumed); `applicable_safety` for "doesn't bump into it" or "doesn't touch the fail area" where it
+- **Where the expectation comes from** (`oracle.basis`): `learner_description` if the expectation follows from the
+  learner's sentence (or what they said before), read as it is meant; what their words don't give gets no test
+  (`inferred_from_program`, the program's plausible goal, only if the learner wrote no sentence at all: the Lab refuses
+  it otherwise); `applicable_safety` for "doesn't bump into it" or "doesn't touch the fail area" where it
   fits the scenario, not everywhere. `review_required` is false only for a learner_description expectation with no
   assumption.
 - **Check the intent, not the implementation**: "reaches Goal 1", "never bumps into the box", "stands still from

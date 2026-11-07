@@ -15,6 +15,8 @@ import browser
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 RESULTS = os.environ.get('PHASE5_RESULTS', 'results')  # the folder of a round's results (2026-11-07: results-r2 after the tuning)
+# the corpus file (2026-11-07: versions.json is decided on the loosened levels; round 3 uses versions-rounds-1-2.json, as rounds 1 and 2)
+VERSIONS = os.environ.get('PHASE5_VERSIONS', 'versions.json')
 OUT = os.path.join(HERE, RESULTS, 'evaluated')
 SOURCES = {'full': os.path.join(HERE, RESULTS, 'generated'), 'plain': os.path.join(HERE, RESULTS, 'plain')}
 
@@ -35,7 +37,7 @@ def requests(pipelines):
 
 
 def main(pipelines):
-    versions = json.load(open(os.path.join(HERE, 'corpus', 'versions.json'), encoding='utf-8'))
+    versions = json.load(open(os.path.join(HERE, 'corpus', VERSIONS), encoding='utf-8'))
     os.makedirs(OUT, exist_ok=True)
     work = queue.Queue()
     for req in requests(pipelines):

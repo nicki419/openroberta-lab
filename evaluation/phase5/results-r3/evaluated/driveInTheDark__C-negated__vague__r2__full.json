@@ -1,0 +1,338 @@
+{
+ "id": "driveInTheDark__C-negated__vague__r2__full",
+ "job": {
+  "id": "driveInTheDark__C-negated__vague__r2__full",
+  "function": "driveInTheDark",
+  "version": "driveInTheDark/C-negated",
+  "sentenceKind": "vague",
+  "sentence": "Get through the tunnel.",
+  "repeat": 2,
+  "pipeline": "full",
+  "name": "p5_driveInTheDark_C_negated"
+ },
+ "versions": [
+  {
+   "id": "driveInTheDark/A",
+   "kind": "correct",
+   "fault": null,
+   "of": null
+  },
+  {
+   "id": "driveInTheDark/A-never-dark",
+   "kind": "broken",
+   "fault": "never-dark",
+   "of": "driveInTheDark/A"
+  },
+  {
+   "id": "driveInTheDark/A-floor-sensor",
+   "kind": "broken",
+   "fault": "floor-sensor",
+   "of": "driveInTheDark/A"
+  },
+  {
+   "id": "driveInTheDark/A-negated",
+   "kind": "broken",
+   "fault": "negated",
+   "of": "driveInTheDark/A"
+  },
+  {
+   "id": "driveInTheDark/A-curves",
+   "kind": "broken",
+   "fault": "curves",
+   "of": "driveInTheDark/A"
+  },
+  {
+   "id": "driveInTheDark/A-no-handover",
+   "kind": "broken",
+   "fault": "no-handover",
+   "of": "driveInTheDark/A"
+  },
+  {
+   "id": "driveInTheDark/B",
+   "kind": "correct",
+   "fault": null,
+   "of": null
+  },
+  {
+   "id": "driveInTheDark/B-never-dark",
+   "kind": "broken",
+   "fault": "never-dark",
+   "of": "driveInTheDark/B"
+  },
+  {
+   "id": "driveInTheDark/B-floor-sensor",
+   "kind": "broken",
+   "fault": "floor-sensor",
+   "of": "driveInTheDark/B"
+  },
+  {
+   "id": "driveInTheDark/B-negated",
+   "kind": "broken",
+   "fault": "negated",
+   "of": "driveInTheDark/B"
+  },
+  {
+   "id": "driveInTheDark/B-curves",
+   "kind": "broken",
+   "fault": "curves",
+   "of": "driveInTheDark/B"
+  },
+  {
+   "id": "driveInTheDark/B-no-handover",
+   "kind": "broken",
+   "fault": "no-handover",
+   "of": "driveInTheDark/B"
+  },
+  {
+   "id": "driveInTheDark/C",
+   "kind": "correct",
+   "fault": null,
+   "of": null
+  },
+  {
+   "id": "driveInTheDark/C-never-dark",
+   "kind": "broken",
+   "fault": "never-dark",
+   "of": "driveInTheDark/C"
+  },
+  {
+   "id": "driveInTheDark/C-floor-sensor",
+   "kind": "broken",
+   "fault": "floor-sensor",
+   "of": "driveInTheDark/C"
+  },
+  {
+   "id": "driveInTheDark/C-negated",
+   "kind": "broken",
+   "fault": "negated",
+   "of": "driveInTheDark/C"
+  },
+  {
+   "id": "driveInTheDark/C-curves",
+   "kind": "broken",
+   "fault": "curves",
+   "of": "driveInTheDark/C"
+  },
+  {
+   "id": "driveInTheDark/C-no-handover",
+   "kind": "broken",
+   "fault": "no-handover",
+   "of": "driveInTheDark/C"
+  }
+ ],
+ "runs": {
+  "driveInTheDark/A": {
+   "key": "driveInTheDark/A",
+   "tests": [
+    {
+     "world": "A tunnel on the line",
+     "test": "Follows the line into the dark tunnel",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "driveInTheDark/A-never-dark": {
+   "key": "driveInTheDark/A-never-dark",
+   "tests": [
+    {
+     "world": "A tunnel on the line",
+     "test": "Follows the line into the dark tunnel",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "driveInTheDark/A-floor-sensor": {
+   "key": "driveInTheDark/A-floor-sensor",
+   "tests": [
+    {
+     "world": "A tunnel on the line",
+     "test": "Follows the line into the dark tunnel",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "driveInTheDark/A-negated": {
+   "key": "driveInTheDark/A-negated",
+   "tests": [
+    {
+     "world": "A tunnel on the line",
+     "test": "Follows the line into the dark tunnel",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "driveInTheDark/A-curves": {
+   "key": "driveInTheDark/A-curves",
+   "tests": [
+    {
+     "world": "A tunnel on the line",
+     "test": "Follows the line into the dark tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 5.4 s"
+     ]
+    }
+   ]
+  },
+  "driveInTheDark/A-no-handover": {
+   "key": "driveInTheDark/A-no-handover",
+   "tests": [
+    {
+     "world": "A tunnel on the line",
+     "test": "Follows the line into the dark tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 60 s"
+     ]
+    }
+   ]
+  },
+  "driveInTheDark/B": {
+   "key": "driveInTheDark/B",
+   "tests": [
+    {
+     "world": "A tunnel on the line",
+     "test": "Follows the line into the dark tunnel",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "driveInTheDark/B-never-dark": {
+   "key": "driveInTheDark/B-never-dark",
+   "tests": [
+    {
+     "world": "A tunnel on the line",
+     "test": "Follows the line into the dark tunnel",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "driveInTheDark/B-floor-sensor": {
+   "key": "driveInTheDark/B-floor-sensor",
+   "tests": [
+    {
+     "world": "A tunnel on the line",
+     "test": "Follows the line into the dark tunnel",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "driveInTheDark/B-negated": {
+   "key": "driveInTheDark/B-negated",
+   "tests": [
+    {
+     "world": "A tunnel on the line",
+     "test": "Follows the line into the dark tunnel",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "driveInTheDark/B-curves": {
+   "key": "driveInTheDark/B-curves",
+   "tests": [
+    {
+     "world": "A tunnel on the line",
+     "test": "Follows the line into the dark tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 5.4 s"
+     ]
+    }
+   ]
+  },
+  "driveInTheDark/B-no-handover": {
+   "key": "driveInTheDark/B-no-handover",
+   "tests": [
+    {
+     "world": "A tunnel on the line",
+     "test": "Follows the line into the dark tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 60 s"
+     ]
+    }
+   ]
+  },
+  "driveInTheDark/C": {
+   "key": "driveInTheDark/C",
+   "tests": [
+    {
+     "world": "A tunnel on the line",
+     "test": "Follows the line into the dark tunnel",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "driveInTheDark/C-never-dark": {
+   "key": "driveInTheDark/C-never-dark",
+   "tests": [
+    {
+     "world": "A tunnel on the line",
+     "test": "Follows the line into the dark tunnel",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "driveInTheDark/C-floor-sensor": {
+   "key": "driveInTheDark/C-floor-sensor",
+   "tests": [
+    {
+     "world": "A tunnel on the line",
+     "test": "Follows the line into the dark tunnel",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "driveInTheDark/C-negated": {
+   "key": "driveInTheDark/C-negated",
+   "tests": [
+    {
+     "world": "A tunnel on the line",
+     "test": "Follows the line into the dark tunnel",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "driveInTheDark/C-curves": {
+   "key": "driveInTheDark/C-curves",
+   "tests": [
+    {
+     "world": "A tunnel on the line",
+     "test": "Follows the line into the dark tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 5.3 s"
+     ]
+    }
+   ]
+  },
+  "driveInTheDark/C-no-handover": {
+   "key": "driveInTheDark/C-no-handover",
+   "tests": [
+    {
+     "world": "A tunnel on the line",
+     "test": "Follows the line into the dark tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 60 s"
+     ]
+    }
+   ]
+  }
+ }
+}

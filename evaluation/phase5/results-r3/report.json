@@ -1,0 +1,2956 @@
+{
+ "rows": [
+  {
+   "id": "avoidWalls__A-no-handover__precise__r1__full",
+   "job": {
+    "id": "avoidWalls__A-no-handover__precise__r1__full",
+    "function": "avoidWalls",
+    "version": "avoidWalls/A-no-handover",
+    "sentenceKind": "precise",
+    "sentence": "Inside a dark tunnel, steer away from its walls: when a wall is close on the left, turn right, and when one is close on the right, turn left, so the robot gets through a bending tunnel without touching it.",
+    "repeat": 1,
+    "pipeline": "full",
+    "name": "p5_avoidWalls_A_no_handover"
+   },
+   "measures": {
+    "tests": 2,
+    "valid": 0,
+    "alarms": 2,
+    "broken": 12,
+    "caught": 0,
+    "caught_any": 12,
+    "caught_ids": [],
+    "seen_caught": false,
+    "good": false
+   },
+   "seconds": 138.543,
+   "out": 29204,
+   "repairs": 0
+  },
+  {
+   "id": "avoidWalls__A-no-handover__precise__r2__full",
+   "job": {
+    "id": "avoidWalls__A-no-handover__precise__r2__full",
+    "function": "avoidWalls",
+    "version": "avoidWalls/A-no-handover",
+    "sentenceKind": "precise",
+    "sentence": "Inside a dark tunnel, steer away from its walls: when a wall is close on the left, turn right, and when one is close on the right, turn left, so the robot gets through a bending tunnel without touching it.",
+    "repeat": 2,
+    "pipeline": "full",
+    "name": "p5_avoidWalls_A_no_handover"
+   },
+   "measures": {
+    "tests": 2,
+    "valid": 2,
+    "alarms": 0,
+    "broken": 12,
+    "caught": 12,
+    "caught_any": 12,
+    "caught_ids": [
+     "avoidWalls/A-swapped",
+     "avoidWalls/A-front-sensor",
+     "avoidWalls/A-never-dark",
+     "avoidWalls/A-no-handover",
+     "avoidWalls/B-swapped",
+     "avoidWalls/B-front-sensor",
+     "avoidWalls/B-never-dark",
+     "avoidWalls/B-no-handover",
+     "avoidWalls/C-swapped",
+     "avoidWalls/C-front-sensor",
+     "avoidWalls/C-never-dark",
+     "avoidWalls/C-no-handover"
+    ],
+    "seen_caught": true,
+    "good": true
+   },
+   "seconds": 111.032,
+   "out": 18828,
+   "repairs": 0
+  },
+  {
+   "id": "avoidWalls__A-no-handover__vague__r1__full",
+   "job": {
+    "id": "avoidWalls__A-no-handover__vague__r1__full",
+    "function": "avoidWalls",
+    "version": "avoidWalls/A-no-handover",
+    "sentenceKind": "vague",
+    "sentence": "Don't hit the tunnel walls.",
+    "repeat": 1,
+    "pipeline": "full",
+    "name": "p5_avoidWalls_A_no_handover"
+   },
+   "measures": {
+    "tests": 0,
+    "valid": 0,
+    "alarms": 0,
+    "broken": 12,
+    "caught": 0,
+    "caught_any": 0,
+    "caught_ids": [],
+    "seen_caught": false,
+    "good": false
+   },
+   "seconds": 240.437,
+   "out": 39203,
+   "repairs": 0
+  },
+  {
+   "id": "avoidWalls__A-no-handover__vague__r2__full",
+   "job": {
+    "id": "avoidWalls__A-no-handover__vague__r2__full",
+    "function": "avoidWalls",
+    "version": "avoidWalls/A-no-handover",
+    "sentenceKind": "vague",
+    "sentence": "Don't hit the tunnel walls.",
+    "repeat": 2,
+    "pipeline": "full",
+    "name": "p5_avoidWalls_A_no_handover"
+   },
+   "measures": {
+    "tests": 0,
+    "valid": 0,
+    "alarms": 0,
+    "broken": 12,
+    "caught": 0,
+    "caught_any": 0,
+    "caught_ids": [],
+    "seen_caught": false,
+    "good": false
+   },
+   "seconds": 203.423,
+   "out": 32073,
+   "repairs": 1
+  },
+  {
+   "id": "avoidWalls__A-swapped__precise__r1__full",
+   "job": {
+    "id": "avoidWalls__A-swapped__precise__r1__full",
+    "function": "avoidWalls",
+    "version": "avoidWalls/A-swapped",
+    "sentenceKind": "precise",
+    "sentence": "Inside a dark tunnel, steer away from its walls: when a wall is close on the left, turn right, and when one is close on the right, turn left, so the robot gets through a bending tunnel without touching it.",
+    "repeat": 1,
+    "pipeline": "full",
+    "name": "p5_avoidWalls_A_swapped"
+   },
+   "measures": {
+    "tests": 2,
+    "valid": 2,
+    "alarms": 0,
+    "broken": 12,
+    "caught": 12,
+    "caught_any": 12,
+    "caught_ids": [
+     "avoidWalls/A-swapped",
+     "avoidWalls/A-front-sensor",
+     "avoidWalls/A-never-dark",
+     "avoidWalls/A-no-handover",
+     "avoidWalls/B-swapped",
+     "avoidWalls/B-front-sensor",
+     "avoidWalls/B-never-dark",
+     "avoidWalls/B-no-handover",
+     "avoidWalls/C-swapped",
+     "avoidWalls/C-front-sensor",
+     "avoidWalls/C-never-dark",
+     "avoidWalls/C-no-handover"
+    ],
+    "seen_caught": true,
+    "good": true
+   },
+   "seconds": 123.391,
+   "out": 21376,
+   "repairs": 0
+  },
+  {
+   "id": "avoidWalls__A-swapped__precise__r2__full",
+   "job": {
+    "id": "avoidWalls__A-swapped__precise__r2__full",
+    "function": "avoidWalls",
+    "version": "avoidWalls/A-swapped",
+    "sentenceKind": "precise",
+    "sentence": "Inside a dark tunnel, steer away from its walls: when a wall is close on the left, turn right, and when one is close on the right, turn left, so the robot gets through a bending tunnel without touching it.",
+    "repeat": 2,
+    "pipeline": "full",
+    "name": "p5_avoidWalls_A_swapped"
+   },
+   "measures": {
+    "tests": 3,
+    "valid": 3,
+    "alarms": 0,
+    "broken": 12,
+    "caught": 12,
+    "caught_any": 12,
+    "caught_ids": [
+     "avoidWalls/A-swapped",
+     "avoidWalls/A-front-sensor",
+     "avoidWalls/A-never-dark",
+     "avoidWalls/A-no-handover",
+     "avoidWalls/B-swapped",
+     "avoidWalls/B-front-sensor",
+     "avoidWalls/B-never-dark",
+     "avoidWalls/B-no-handover",
+     "avoidWalls/C-swapped",
+     "avoidWalls/C-front-sensor",
+     "avoidWalls/C-never-dark",
+     "avoidWalls/C-no-handover"
+    ],
+    "seen_caught": true,
+    "good": true
+   },
+   "seconds": 99.553,
+   "out": 29857,
+   "repairs": 1
+  },
+  {
+   "id": "avoidWalls__A-swapped__vague__r1__full",
+   "job": {
+    "id": "avoidWalls__A-swapped__vague__r1__full",
+    "function": "avoidWalls",
+    "version": "avoidWalls/A-swapped",
+    "sentenceKind": "vague",
+    "sentence": "Don't hit the tunnel walls.",
+    "repeat": 1,
+    "pipeline": "full",
+    "name": "p5_avoidWalls_A_swapped"
+   },
+   "measures": {
+    "tests": 3,
+    "valid": 3,
+    "alarms": 0,
+    "broken": 12,
+    "caught": 12,
+    "caught_any": 12,
+    "caught_ids": [
+     "avoidWalls/A-swapped",
+     "avoidWalls/A-front-sensor",
+     "avoidWalls/A-never-dark",
+     "avoidWalls/A-no-handover",
+     "avoidWalls/B-swapped",
+     "avoidWalls/B-front-sensor",
+     "avoidWalls/B-never-dark",
+     "avoidWalls/B-no-handover",
+     "avoidWalls/C-swapped",
+     "avoidWalls/C-front-sensor",
+     "avoidWalls/C-never-dark",
+     "avoidWalls/C-no-handover"
+    ],
+    "seen_caught": true,
+    "good": true
+   },
+   "seconds": 160.886,
+   "out": 28383,
+   "repairs": 0
+  },
+  {
+   "id": "avoidWalls__A-swapped__vague__r2__full",
+   "job": {
+    "id": "avoidWalls__A-swapped__vague__r2__full",
+    "function": "avoidWalls",
+    "version": "avoidWalls/A-swapped",
+    "sentenceKind": "vague",
+    "sentence": "Don't hit the tunnel walls.",
+    "repeat": 2,
+    "pipeline": "full",
+    "name": "p5_avoidWalls_A_swapped"
+   },
+   "measures": {
+    "tests": 3,
+    "valid": 3,
+    "alarms": 0,
+    "broken": 12,
+    "caught": 12,
+    "caught_any": 12,
+    "caught_ids": [
+     "avoidWalls/A-swapped",
+     "avoidWalls/A-front-sensor",
+     "avoidWalls/A-never-dark",
+     "avoidWalls/A-no-handover",
+     "avoidWalls/B-swapped",
+     "avoidWalls/B-front-sensor",
+     "avoidWalls/B-never-dark",
+     "avoidWalls/B-no-handover",
+     "avoidWalls/C-swapped",
+     "avoidWalls/C-front-sensor",
+     "avoidWalls/C-never-dark",
+     "avoidWalls/C-no-handover"
+    ],
+    "seen_caught": true,
+    "good": true
+   },
+   "seconds": 151.56,
+   "out": 26834,
+   "repairs": 0
+  },
+  {
+   "id": "avoidWalls__B-front-sensor__precise__r1__full",
+   "job": {
+    "id": "avoidWalls__B-front-sensor__precise__r1__full",
+    "function": "avoidWalls",
+    "version": "avoidWalls/B-front-sensor",
+    "sentenceKind": "precise",
+    "sentence": "Inside a dark tunnel, steer away from its walls: when a wall is close on the left, turn right, and when one is close on the right, turn left, so the robot gets through a bending tunnel without touching it.",
+    "repeat": 1,
+    "pipeline": "full",
+    "name": "p5_avoidWalls_B_front_sensor"
+   },
+   "measures": {
+    "tests": 2,
+    "valid": 2,
+    "alarms": 0,
+    "broken": 12,
+    "caught": 12,
+    "caught_any": 12,
+    "caught_ids": [
+     "avoidWalls/A-swapped",
+     "avoidWalls/A-front-sensor",
+     "avoidWalls/A-never-dark",
+     "avoidWalls/A-no-handover",
+     "avoidWalls/B-swapped",
+     "avoidWalls/B-front-sensor",
+     "avoidWalls/B-never-dark",
+     "avoidWalls/B-no-handover",
+     "avoidWalls/C-swapped",
+     "avoidWalls/C-front-sensor",
+     "avoidWalls/C-never-dark",
+     "avoidWalls/C-no-handover"
+    ],
+    "seen_caught": true,
+    "good": true
+   },
+   "seconds": 109.68,
+   "out": 25568,
+   "repairs": 0
+  },
+  {
+   "id": "avoidWalls__B-front-sensor__precise__r2__full",
+   "job": {
+    "id": "avoidWalls__B-front-sensor__precise__r2__full",
+    "function": "avoidWalls",
+    "version": "avoidWalls/B-front-sensor",
+    "sentenceKind": "precise",
+    "sentence": "Inside a dark tunnel, steer away from its walls: when a wall is close on the left, turn right, and when one is close on the right, turn left, so the robot gets through a bending tunnel without touching it.",
+    "repeat": 2,
+    "pipeline": "full",
+    "name": "p5_avoidWalls_B_front_sensor"
+   },
+   "measures": {
+    "tests": 2,
+    "valid": 2,
+    "alarms": 0,
+    "broken": 12,
+    "caught": 12,
+    "caught_any": 12,
+    "caught_ids": [
+     "avoidWalls/A-swapped",
+     "avoidWalls/A-front-sensor",
+     "avoidWalls/A-never-dark",
+     "avoidWalls/A-no-handover",
+     "avoidWalls/B-swapped",
+     "avoidWalls/B-front-sensor",
+     "avoidWalls/B-never-dark",
+     "avoidWalls/B-no-handover",
+     "avoidWalls/C-swapped",
+     "avoidWalls/C-front-sensor",
+     "avoidWalls/C-never-dark",
+     "avoidWalls/C-no-handover"
+    ],
+    "seen_caught": true,
+    "good": true
+   },
+   "seconds": 172.32,
+   "out": 35341,
+   "repairs": 0
+  },
+  {
+   "id": "avoidWalls__B-front-sensor__vague__r1__full",
+   "job": {
+    "id": "avoidWalls__B-front-sensor__vague__r1__full",
+    "function": "avoidWalls",
+    "version": "avoidWalls/B-front-sensor",
+    "sentenceKind": "vague",
+    "sentence": "Don't hit the tunnel walls.",
+    "repeat": 1,
+    "pipeline": "full",
+    "name": "p5_avoidWalls_B_front_sensor"
+   },
+   "measures": {
+    "tests": 2,
+    "valid": 2,
+    "alarms": 0,
+    "broken": 12,
+    "caught": 11,
+    "caught_any": 11,
+    "caught_ids": [
+     "avoidWalls/A-swapped",
+     "avoidWalls/A-front-sensor",
+     "avoidWalls/A-never-dark",
+     "avoidWalls/A-no-handover",
+     "avoidWalls/B-swapped",
+     "avoidWalls/B-never-dark",
+     "avoidWalls/B-no-handover",
+     "avoidWalls/C-swapped",
+     "avoidWalls/C-front-sensor",
+     "avoidWalls/C-never-dark",
+     "avoidWalls/C-no-handover"
+    ],
+    "seen_caught": false,
+    "good": false
+   },
+   "seconds": 123.954,
+   "out": 19842,
+   "repairs": 0
+  },
+  {
+   "id": "avoidWalls__B-front-sensor__vague__r2__full",
+   "job": {
+    "id": "avoidWalls__B-front-sensor__vague__r2__full",
+    "function": "avoidWalls",
+    "version": "avoidWalls/B-front-sensor",
+    "sentenceKind": "vague",
+    "sentence": "Don't hit the tunnel walls.",
+    "repeat": 2,
+    "pipeline": "full",
+    "name": "p5_avoidWalls_B_front_sensor"
+   },
+   "measures": {
+    "tests": 3,
+    "valid": 3,
+    "alarms": 0,
+    "broken": 12,
+    "caught": 12,
+    "caught_any": 12,
+    "caught_ids": [
+     "avoidWalls/A-swapped",
+     "avoidWalls/A-front-sensor",
+     "avoidWalls/A-never-dark",
+     "avoidWalls/A-no-handover",
+     "avoidWalls/B-swapped",
+     "avoidWalls/B-front-sensor",
+     "avoidWalls/B-never-dark",
+     "avoidWalls/B-no-handover",
+     "avoidWalls/C-swapped",
+     "avoidWalls/C-front-sensor",
+     "avoidWalls/C-never-dark",
+     "avoidWalls/C-no-handover"
+    ],
+    "seen_caught": true,
+    "good": true
+   },
+   "seconds": 170.607,
+   "out": 29807,
+   "repairs": 0
+  },
+  {
+   "id": "avoidWalls__C-never-dark__precise__r1__full",
+   "job": {
+    "id": "avoidWalls__C-never-dark__precise__r1__full",
+    "function": "avoidWalls",
+    "version": "avoidWalls/C-never-dark",
+    "sentenceKind": "precise",
+    "sentence": "Inside a dark tunnel, steer away from its walls: when a wall is close on the left, turn right, and when one is close on the right, turn left, so the robot gets through a bending tunnel without touching it.",
+    "repeat": 1,
+    "pipeline": "full",
+    "name": "p5_avoidWalls_C_never_dark"
+   },
+   "measures": {
+    "tests": 2,
+    "valid": 2,
+    "alarms": 0,
+    "broken": 12,
+    "caught": 12,
+    "caught_any": 12,
+    "caught_ids": [
+     "avoidWalls/A-swapped",
+     "avoidWalls/A-front-sensor",
+     "avoidWalls/A-never-dark",
+     "avoidWalls/A-no-handover",
+     "avoidWalls/B-swapped",
+     "avoidWalls/B-front-sensor",
+     "avoidWalls/B-never-dark",
+     "avoidWalls/B-no-handover",
+     "avoidWalls/C-swapped",
+     "avoidWalls/C-front-sensor",
+     "avoidWalls/C-never-dark",
+     "avoidWalls/C-no-handover"
+    ],
+    "seen_caught": true,
+    "good": true
+   },
+   "seconds": 113.599,
+   "out": 19419,
+   "repairs": 0
+  },
+  {
+   "id": "avoidWalls__C-never-dark__precise__r2__full",
+   "job": {
+    "id": "avoidWalls__C-never-dark__precise__r2__full",
+    "function": "avoidWalls",
+    "version": "avoidWalls/C-never-dark",
+    "sentenceKind": "precise",
+    "sentence": "Inside a dark tunnel, steer away from its walls: when a wall is close on the left, turn right, and when one is close on the right, turn left, so the robot gets through a bending tunnel without touching it.",
+    "repeat": 2,
+    "pipeline": "full",
+    "name": "p5_avoidWalls_C_never_dark"
+   },
+   "measures": {
+    "tests": 2,
+    "valid": 0,
+    "alarms": 2,
+    "broken": 12,
+    "caught": 0,
+    "caught_any": 12,
+    "caught_ids": [],
+    "seen_caught": false,
+    "good": false
+   },
+   "seconds": 123.597,
+   "out": 22182,
+   "repairs": 0
+  },
+  {
+   "id": "avoidWalls__C-never-dark__vague__r1__full",
+   "job": {
+    "id": "avoidWalls__C-never-dark__vague__r1__full",
+    "function": "avoidWalls",
+    "version": "avoidWalls/C-never-dark",
+    "sentenceKind": "vague",
+    "sentence": "Don't hit the tunnel walls.",
+    "repeat": 1,
+    "pipeline": "full",
+    "name": "p5_avoidWalls_C_never_dark"
+   },
+   "measures": {
+    "tests": 3,
+    "valid": 3,
+    "alarms": 0,
+    "broken": 12,
+    "caught": 12,
+    "caught_any": 12,
+    "caught_ids": [
+     "avoidWalls/A-swapped",
+     "avoidWalls/A-front-sensor",
+     "avoidWalls/A-never-dark",
+     "avoidWalls/A-no-handover",
+     "avoidWalls/B-swapped",
+     "avoidWalls/B-front-sensor",
+     "avoidWalls/B-never-dark",
+     "avoidWalls/B-no-handover",
+     "avoidWalls/C-swapped",
+     "avoidWalls/C-front-sensor",
+     "avoidWalls/C-never-dark",
+     "avoidWalls/C-no-handover"
+    ],
+    "seen_caught": true,
+    "good": true
+   },
+   "seconds": 144.151,
+   "out": 26305,
+   "repairs": 0
+  },
+  {
+   "id": "avoidWalls__C-never-dark__vague__r2__full",
+   "job": {
+    "id": "avoidWalls__C-never-dark__vague__r2__full",
+    "function": "avoidWalls",
+    "version": "avoidWalls/C-never-dark",
+    "sentenceKind": "vague",
+    "sentence": "Don't hit the tunnel walls.",
+    "repeat": 2,
+    "pipeline": "full",
+    "name": "p5_avoidWalls_C_never_dark"
+   },
+   "measures": {
+    "tests": 3,
+    "valid": 3,
+    "alarms": 0,
+    "broken": 12,
+    "caught": 12,
+    "caught_any": 12,
+    "caught_ids": [
+     "avoidWalls/A-swapped",
+     "avoidWalls/A-front-sensor",
+     "avoidWalls/A-never-dark",
+     "avoidWalls/A-no-handover",
+     "avoidWalls/B-swapped",
+     "avoidWalls/B-front-sensor",
+     "avoidWalls/B-never-dark",
+     "avoidWalls/B-no-handover",
+     "avoidWalls/C-swapped",
+     "avoidWalls/C-front-sensor",
+     "avoidWalls/C-never-dark",
+     "avoidWalls/C-no-handover"
+    ],
+    "seen_caught": true,
+    "good": true
+   },
+   "seconds": 116.704,
+   "out": 21184,
+   "repairs": 0
+  },
+  {
+   "id": "driveInTheDark__A-curves__precise__r1__full",
+   "job": {
+    "id": "driveInTheDark__A-curves__precise__r1__full",
+    "function": "driveInTheDark",
+    "version": "driveInTheDark/A-curves",
+    "sentenceKind": "precise",
+    "sentence": "Follow the black line; inside a dark tunnel, where there is no line, drive straight through without touching its walls, and follow the line again after the tunnel.",
+    "repeat": 1,
+    "pipeline": "full",
+    "name": "p5_driveInTheDark_A_curves"
+   },
+   "measures": {
+    "tests": 3,
+    "valid": 3,
+    "alarms": 0,
+    "broken": 15,
+    "caught": 15,
+    "caught_any": 15,
+    "caught_ids": [
+     "driveInTheDark/A-never-dark",
+     "driveInTheDark/A-floor-sensor",
+     "driveInTheDark/A-negated",
+     "driveInTheDark/A-curves",
+     "driveInTheDark/A-no-handover",
+     "driveInTheDark/B-never-dark",
+     "driveInTheDark/B-floor-sensor",
+     "driveInTheDark/B-negated",
+     "driveInTheDark/B-curves",
+     "driveInTheDark/B-no-handover",
+     "driveInTheDark/C-never-dark",
+     "driveInTheDark/C-floor-sensor",
+     "driveInTheDark/C-negated",
+     "driveInTheDark/C-curves",
+     "driveInTheDark/C-no-handover"
+    ],
+    "seen_caught": true,
+    "good": true
+   },
+   "seconds": 76.9,
+   "out": 20395,
+   "repairs": 1
+  },
+  {
+   "id": "driveInTheDark__A-curves__precise__r2__full",
+   "job": {
+    "id": "driveInTheDark__A-curves__precise__r2__full",
+    "function": "driveInTheDark",
+    "version": "driveInTheDark/A-curves",
+    "sentenceKind": "precise",
+    "sentence": "Follow the black line; inside a dark tunnel, where there is no line, drive straight through without touching its walls, and follow the line again after the tunnel.",
+    "repeat": 2,
+    "pipeline": "full",
+    "name": "p5_driveInTheDark_A_curves"
+   },
+   "measures": {
+    "tests": 2,
+    "valid": 2,
+    "alarms": 0,
+    "broken": 15,
+    "caught": 15,
+    "caught_any": 15,
+    "caught_ids": [
+     "driveInTheDark/A-never-dark",
+     "driveInTheDark/A-floor-sensor",
+     "driveInTheDark/A-negated",
+     "driveInTheDark/A-curves",
+     "driveInTheDark/A-no-handover",
+     "driveInTheDark/B-never-dark",
+     "driveInTheDark/B-floor-sensor",
+     "driveInTheDark/B-negated",
+     "driveInTheDark/B-curves",
+     "driveInTheDark/B-no-handover",
+     "driveInTheDark/C-never-dark",
+     "driveInTheDark/C-floor-sensor",
+     "driveInTheDark/C-negated",
+     "driveInTheDark/C-curves",
+     "driveInTheDark/C-no-handover"
+    ],
+    "seen_caught": true,
+    "good": true
+   },
+   "seconds": 104.814,
+   "out": 17999,
+   "repairs": 1
+  },
+  {
+   "id": "driveInTheDark__A-curves__vague__r1__full",
+   "job": {
+    "id": "driveInTheDark__A-curves__vague__r1__full",
+    "function": "driveInTheDark",
+    "version": "driveInTheDark/A-curves",
+    "sentenceKind": "vague",
+    "sentence": "Get through the tunnel.",
+    "repeat": 1,
+    "pipeline": "full",
+    "name": "p5_driveInTheDark_A_curves"
+   },
+   "measures": {
+    "tests": 1,
+    "valid": 1,
+    "alarms": 0,
+    "broken": 15,
+    "caught": 15,
+    "caught_any": 15,
+    "caught_ids": [
+     "driveInTheDark/A-never-dark",
+     "driveInTheDark/A-floor-sensor",
+     "driveInTheDark/A-negated",
+     "driveInTheDark/A-curves",
+     "driveInTheDark/A-no-handover",
+     "driveInTheDark/B-never-dark",
+     "driveInTheDark/B-floor-sensor",
+     "driveInTheDark/B-negated",
+     "driveInTheDark/B-curves",
+     "driveInTheDark/B-no-handover",
+     "driveInTheDark/C-never-dark",
+     "driveInTheDark/C-floor-sensor",
+     "driveInTheDark/C-negated",
+     "driveInTheDark/C-curves",
+     "driveInTheDark/C-no-handover"
+    ],
+    "seen_caught": true,
+    "good": true
+   },
+   "seconds": 124.832,
+   "out": 20591,
+   "repairs": 1
+  },
+  {
+   "id": "driveInTheDark__A-curves__vague__r2__full",
+   "job": {
+    "id": "driveInTheDark__A-curves__vague__r2__full",
+    "function": "driveInTheDark",
+    "version": "driveInTheDark/A-curves",
+    "sentenceKind": "vague",
+    "sentence": "Get through the tunnel.",
+    "repeat": 2,
+    "pipeline": "full",
+    "name": "p5_driveInTheDark_A_curves"
+   },
+   "measures": {
+    "tests": 2,
+    "valid": 2,
+    "alarms": 0,
+    "broken": 15,
+    "caught": 15,
+    "caught_any": 15,
+    "caught_ids": [
+     "driveInTheDark/A-never-dark",
+     "driveInTheDark/A-floor-sensor",
+     "driveInTheDark/A-negated",
+     "driveInTheDark/A-curves",
+     "driveInTheDark/A-no-handover",
+     "driveInTheDark/B-never-dark",
+     "driveInTheDark/B-floor-sensor",
+     "driveInTheDark/B-negated",
+     "driveInTheDark/B-curves",
+     "driveInTheDark/B-no-handover",
+     "driveInTheDark/C-never-dark",
+     "driveInTheDark/C-floor-sensor",
+     "driveInTheDark/C-negated",
+     "driveInTheDark/C-curves",
+     "driveInTheDark/C-no-handover"
+    ],
+    "seen_caught": true,
+    "good": true
+   },
+   "seconds": 129.898,
+   "out": 25556,
+   "repairs": 1
+  },
+  {
+   "id": "driveInTheDark__A-never-dark__precise__r1__full",
+   "job": {
+    "id": "driveInTheDark__A-never-dark__precise__r1__full",
+    "function": "driveInTheDark",
+    "version": "driveInTheDark/A-never-dark",
+    "sentenceKind": "precise",
+    "sentence": "Follow the black line; inside a dark tunnel, where there is no line, drive straight through without touching its walls, and follow the line again after the tunnel.",
+    "repeat": 1,
+    "pipeline": "full",
+    "name": "p5_driveInTheDark_A_never_dark"
+   },
+   "measures": {
+    "tests": 2,
+    "valid": 2,
+    "alarms": 0,
+    "broken": 15,
+    "caught": 15,
+    "caught_any": 15,
+    "caught_ids": [
+     "driveInTheDark/A-never-dark",
+     "driveInTheDark/A-floor-sensor",
+     "driveInTheDark/A-negated",
+     "driveInTheDark/A-curves",
+     "driveInTheDark/A-no-handover",
+     "driveInTheDark/B-never-dark",
+     "driveInTheDark/B-floor-sensor",
+     "driveInTheDark/B-negated",
+     "driveInTheDark/B-curves",
+     "driveInTheDark/B-no-handover",
+     "driveInTheDark/C-never-dark",
+     "driveInTheDark/C-floor-sensor",
+     "driveInTheDark/C-negated",
+     "driveInTheDark/C-curves",
+     "driveInTheDark/C-no-handover"
+    ],
+    "seen_caught": true,
+    "good": true
+   },
+   "seconds": 95.07,
+   "out": 19200,
+   "repairs": 0
+  },
+  {
+   "id": "driveInTheDark__A-never-dark__precise__r2__full",
+   "job": {
+    "id": "driveInTheDark__A-never-dark__precise__r2__full",
+    "function": "driveInTheDark",
+    "version": "driveInTheDark/A-never-dark",
+    "sentenceKind": "precise",
+    "sentence": "Follow the black line; inside a dark tunnel, where there is no line, drive straight through without touching its walls, and follow the line again after the tunnel.",
+    "repeat": 2,
+    "pipeline": "full",
+    "name": "p5_driveInTheDark_A_never_dark"
+   },
+   "measures": {
+    "tests": 2,
+    "valid": 2,
+    "alarms": 0,
+    "broken": 15,
+    "caught": 15,
+    "caught_any": 15,
+    "caught_ids": [
+     "driveInTheDark/A-never-dark",
+     "driveInTheDark/A-floor-sensor",
+     "driveInTheDark/A-negated",
+     "driveInTheDark/A-curves",
+     "driveInTheDark/A-no-handover",
+     "driveInTheDark/B-never-dark",
+     "driveInTheDark/B-floor-sensor",
+     "driveInTheDark/B-negated",
+     "driveInTheDark/B-curves",
+     "driveInTheDark/B-no-handover",
+     "driveInTheDark/C-never-dark",
+     "driveInTheDark/C-floor-sensor",
+     "driveInTheDark/C-negated",
+     "driveInTheDark/C-curves",
+     "driveInTheDark/C-no-handover"
+    ],
+    "seen_caught": true,
+    "good": true
+   },
+   "seconds": 119.173,
+   "out": 21896,
+   "repairs": 1
+  },
+  {
+   "id": "driveInTheDark__A-never-dark__vague__r1__full",
+   "job": {
+    "id": "driveInTheDark__A-never-dark__vague__r1__full",
+    "function": "driveInTheDark",
+    "version": "driveInTheDark/A-never-dark",
+    "sentenceKind": "vague",
+    "sentence": "Get through the tunnel.",
+    "repeat": 1,
+    "pipeline": "full",
+    "name": "p5_driveInTheDark_A_never_dark"
+   },
+   "measures": {
+    "tests": 2,
+    "valid": 2,
+    "alarms": 0,
+    "broken": 15,
+    "caught": 15,
+    "caught_any": 15,
+    "caught_ids": [
+     "driveInTheDark/A-never-dark",
+     "driveInTheDark/A-floor-sensor",
+     "driveInTheDark/A-negated",
+     "driveInTheDark/A-curves",
+     "driveInTheDark/A-no-handover",
+     "driveInTheDark/B-never-dark",
+     "driveInTheDark/B-floor-sensor",
+     "driveInTheDark/B-negated",
+     "driveInTheDark/B-curves",
+     "driveInTheDark/B-no-handover",
+     "driveInTheDark/C-never-dark",
+     "driveInTheDark/C-floor-sensor",
+     "driveInTheDark/C-negated",
+     "driveInTheDark/C-curves",
+     "driveInTheDark/C-no-handover"
+    ],
+    "seen_caught": true,
+    "good": true
+   },
+   "seconds": 158.11,
+   "out": 27519,
+   "repairs": 0
+  },
+  {
+   "id": "driveInTheDark__A-never-dark__vague__r2__full",
+   "job": {
+    "id": "driveInTheDark__A-never-dark__vague__r2__full",
+    "function": "driveInTheDark",
+    "version": "driveInTheDark/A-never-dark",
+    "sentenceKind": "vague",
+    "sentence": "Get through the tunnel.",
+    "repeat": 2,
+    "pipeline": "full",
+    "name": "p5_driveInTheDark_A_never_dark"
+   },
+   "measures": {
+    "tests": 1,
+    "valid": 1,
+    "alarms": 0,
+    "broken": 15,
+    "caught": 15,
+    "caught_any": 15,
+    "caught_ids": [
+     "driveInTheDark/A-never-dark",
+     "driveInTheDark/A-floor-sensor",
+     "driveInTheDark/A-negated",
+     "driveInTheDark/A-curves",
+     "driveInTheDark/A-no-handover",
+     "driveInTheDark/B-never-dark",
+     "driveInTheDark/B-floor-sensor",
+     "driveInTheDark/B-negated",
+     "driveInTheDark/B-curves",
+     "driveInTheDark/B-no-handover",
+     "driveInTheDark/C-never-dark",
+     "driveInTheDark/C-floor-sensor",
+     "driveInTheDark/C-negated",
+     "driveInTheDark/C-curves",
+     "driveInTheDark/C-no-handover"
+    ],
+    "seen_caught": true,
+    "good": true
+   },
+   "seconds": 70.766,
+   "out": 12268,
+   "repairs": 0
+  },
+  {
+   "id": "driveInTheDark__B-floor-sensor__precise__r1__full",
+   "job": {
+    "id": "driveInTheDark__B-floor-sensor__precise__r1__full",
+    "function": "driveInTheDark",
+    "version": "driveInTheDark/B-floor-sensor",
+    "sentenceKind": "precise",
+    "sentence": "Follow the black line; inside a dark tunnel, where there is no line, drive straight through without touching its walls, and follow the line again after the tunnel.",
+    "repeat": 1,
+    "pipeline": "full",
+    "name": "p5_driveInTheDark_B_floor_sensor"
+   },
+   "measures": {
+    "tests": 2,
+    "valid": 2,
+    "alarms": 0,
+    "broken": 15,
+    "caught": 15,
+    "caught_any": 15,
+    "caught_ids": [
+     "driveInTheDark/A-never-dark",
+     "driveInTheDark/A-floor-sensor",
+     "driveInTheDark/A-negated",
+     "driveInTheDark/A-curves",
+     "driveInTheDark/A-no-handover",
+     "driveInTheDark/B-never-dark",
+     "driveInTheDark/B-floor-sensor",
+     "driveInTheDark/B-negated",
+     "driveInTheDark/B-curves",
+     "driveInTheDark/B-no-handover",
+     "driveInTheDark/C-never-dark",
+     "driveInTheDark/C-floor-sensor",
+     "driveInTheDark/C-negated",
+     "driveInTheDark/C-curves",
+     "driveInTheDark/C-no-handover"
+    ],
+    "seen_caught": true,
+    "good": true
+   },
+   "seconds": 155.486,
+   "out": 28876,
+   "repairs": 0
+  },
+  {
+   "id": "driveInTheDark__B-floor-sensor__precise__r2__full",
+   "job": {
+    "id": "driveInTheDark__B-floor-sensor__precise__r2__full",
+    "function": "driveInTheDark",
+    "version": "driveInTheDark/B-floor-sensor",
+    "sentenceKind": "precise",
+    "sentence": "Follow the black line; inside a dark tunnel, where there is no line, drive straight through without touching its walls, and follow the line again after the tunnel.",
+    "repeat": 2,
+    "pipeline": "full",
+    "name": "p5_driveInTheDark_B_floor_sensor"
+   },
+   "measures": {
+    "tests": 2,
+    "valid": 2,
+    "alarms": 0,
+    "broken": 15,
+    "caught": 15,
+    "caught_any": 15,
+    "caught_ids": [
+     "driveInTheDark/A-never-dark",
+     "driveInTheDark/A-floor-sensor",
+     "driveInTheDark/A-negated",
+     "driveInTheDark/A-curves",
+     "driveInTheDark/A-no-handover",
+     "driveInTheDark/B-never-dark",
+     "driveInTheDark/B-floor-sensor",
+     "driveInTheDark/B-negated",
+     "driveInTheDark/B-curves",
+     "driveInTheDark/B-no-handover",
+     "driveInTheDark/C-never-dark",
+     "driveInTheDark/C-floor-sensor",
+     "driveInTheDark/C-negated",
+     "driveInTheDark/C-curves",
+     "driveInTheDark/C-no-handover"
+    ],
+    "seen_caught": true,
+    "good": true
+   },
+   "seconds": 185.414,
+   "out": 31013,
+   "repairs": 1
+  },
+  {
+   "id": "driveInTheDark__B-floor-sensor__vague__r1__full",
+   "job": {
+    "id": "driveInTheDark__B-floor-sensor__vague__r1__full",
+    "function": "driveInTheDark",
+    "version": "driveInTheDark/B-floor-sensor",
+    "sentenceKind": "vague",
+    "sentence": "Get through the tunnel.",
+    "repeat": 1,
+    "pipeline": "full",
+    "name": "p5_driveInTheDark_B_floor_sensor"
+   },
+   "measures": {
+    "tests": 1,
+    "valid": 1,
+    "alarms": 0,
+    "broken": 15,
+    "caught": 6,
+    "caught_any": 6,
+    "caught_ids": [
+     "driveInTheDark/A-curves",
+     "driveInTheDark/A-no-handover",
+     "driveInTheDark/B-curves",
+     "driveInTheDark/B-no-handover",
+     "driveInTheDark/C-curves",
+     "driveInTheDark/C-no-handover"
+    ],
+    "seen_caught": false,
+    "good": false
+   },
+   "seconds": 105.855,
+   "out": 17547,
+   "repairs": 0
+  },
+  {
+   "id": "driveInTheDark__B-floor-sensor__vague__r2__full",
+   "job": {
+    "id": "driveInTheDark__B-floor-sensor__vague__r2__full",
+    "function": "driveInTheDark",
+    "version": "driveInTheDark/B-floor-sensor",
+    "sentenceKind": "vague",
+    "sentence": "Get through the tunnel.",
+    "repeat": 2,
+    "pipeline": "full",
+    "name": "p5_driveInTheDark_B_floor_sensor"
+   },
+   "measures": {
+    "tests": 1,
+    "valid": 0,
+    "alarms": 1,
+    "broken": 15,
+    "caught": 0,
+    "caught_any": 6,
+    "caught_ids": [],
+    "seen_caught": false,
+    "good": false
+   },
+   "seconds": 148.652,
+   "out": 23769,
+   "repairs": 0
+  },
+  {
+   "id": "driveInTheDark__C-negated__precise__r1__full",
+   "job": {
+    "id": "driveInTheDark__C-negated__precise__r1__full",
+    "function": "driveInTheDark",
+    "version": "driveInTheDark/C-negated",
+    "sentenceKind": "precise",
+    "sentence": "Follow the black line; inside a dark tunnel, where there is no line, drive straight through without touching its walls, and follow the line again after the tunnel.",
+    "repeat": 1,
+    "pipeline": "full",
+    "name": "p5_driveInTheDark_C_negated"
+   },
+   "measures": {
+    "tests": 2,
+    "valid": 2,
+    "alarms": 0,
+    "broken": 15,
+    "caught": 15,
+    "caught_any": 15,
+    "caught_ids": [
+     "driveInTheDark/A-never-dark",
+     "driveInTheDark/A-floor-sensor",
+     "driveInTheDark/A-negated",
+     "driveInTheDark/A-curves",
+     "driveInTheDark/A-no-handover",
+     "driveInTheDark/B-never-dark",
+     "driveInTheDark/B-floor-sensor",
+     "driveInTheDark/B-negated",
+     "driveInTheDark/B-curves",
+     "driveInTheDark/B-no-handover",
+     "driveInTheDark/C-never-dark",
+     "driveInTheDark/C-floor-sensor",
+     "driveInTheDark/C-negated",
+     "driveInTheDark/C-curves",
+     "driveInTheDark/C-no-handover"
+    ],
+    "seen_caught": true,
+    "good": true
+   },
+   "seconds": 116.826,
+   "out": 28444,
+   "repairs": 1
+  },
+  {
+   "id": "driveInTheDark__C-negated__precise__r2__full",
+   "job": {
+    "id": "driveInTheDark__C-negated__precise__r2__full",
+    "function": "driveInTheDark",
+    "version": "driveInTheDark/C-negated",
+    "sentenceKind": "precise",
+    "sentence": "Follow the black line; inside a dark tunnel, where there is no line, drive straight through without touching its walls, and follow the line again after the tunnel.",
+    "repeat": 2,
+    "pipeline": "full",
+    "name": "p5_driveInTheDark_C_negated"
+   },
+   "measures": {
+    "tests": 2,
+    "valid": 2,
+    "alarms": 0,
+    "broken": 15,
+    "caught": 15,
+    "caught_any": 15,
+    "caught_ids": [
+     "driveInTheDark/A-never-dark",
+     "driveInTheDark/A-floor-sensor",
+     "driveInTheDark/A-negated",
+     "driveInTheDark/A-curves",
+     "driveInTheDark/A-no-handover",
+     "driveInTheDark/B-never-dark",
+     "driveInTheDark/B-floor-sensor",
+     "driveInTheDark/B-negated",
+     "driveInTheDark/B-curves",
+     "driveInTheDark/B-no-handover",
+     "driveInTheDark/C-never-dark",
+     "driveInTheDark/C-floor-sensor",
+     "driveInTheDark/C-negated",
+     "driveInTheDark/C-curves",
+     "driveInTheDark/C-no-handover"
+    ],
+    "seen_caught": true,
+    "good": true
+   },
+   "seconds": 130.299,
+   "out": 26389,
+   "repairs": 1
+  },
+  {
+   "id": "driveInTheDark__C-negated__vague__r1__full",
+   "job": {
+    "id": "driveInTheDark__C-negated__vague__r1__full",
+    "function": "driveInTheDark",
+    "version": "driveInTheDark/C-negated",
+    "sentenceKind": "vague",
+    "sentence": "Get through the tunnel.",
+    "repeat": 1,
+    "pipeline": "full",
+    "name": "p5_driveInTheDark_C_negated"
+   },
+   "measures": {
+    "tests": 1,
+    "valid": 1,
+    "alarms": 0,
+    "broken": 15,
+    "caught": 6,
+    "caught_any": 6,
+    "caught_ids": [
+     "driveInTheDark/A-curves",
+     "driveInTheDark/A-no-handover",
+     "driveInTheDark/B-curves",
+     "driveInTheDark/B-no-handover",
+     "driveInTheDark/C-curves",
+     "driveInTheDark/C-no-handover"
+    ],
+    "seen_caught": false,
+    "good": false
+   },
+   "seconds": 171.511,
+   "out": 25607,
+   "repairs": 0
+  },
+  {
+   "id": "driveInTheDark__C-negated__vague__r2__full",
+   "job": {
+    "id": "driveInTheDark__C-negated__vague__r2__full",
+    "function": "driveInTheDark",
+    "version": "driveInTheDark/C-negated",
+    "sentenceKind": "vague",
+    "sentence": "Get through the tunnel.",
+    "repeat": 2,
+    "pipeline": "full",
+    "name": "p5_driveInTheDark_C_negated"
+   },
+   "measures": {
+    "tests": 1,
+    "valid": 1,
+    "alarms": 0,
+    "broken": 15,
+    "caught": 6,
+    "caught_any": 6,
+    "caught_ids": [
+     "driveInTheDark/A-curves",
+     "driveInTheDark/A-no-handover",
+     "driveInTheDark/B-curves",
+     "driveInTheDark/B-no-handover",
+     "driveInTheDark/C-curves",
+     "driveInTheDark/C-no-handover"
+    ],
+    "seen_caught": false,
+    "good": false
+   },
+   "seconds": 107.292,
+   "out": 16030,
+   "repairs": 0
+  },
+  {
+   "id": "followInTheDark__A-peach-is-black__precise__r1__full",
+   "job": {
+    "id": "followInTheDark__A-peach-is-black__precise__r1__full",
+    "function": "followInTheDark",
+    "version": "followInTheDark/A-peach-is-black",
+    "sentenceKind": "precise",
+    "sentence": "In the dark, follow a black line when there is one under the robot, and drive straight where there is none; in the light, follow the line as before.",
+    "repeat": 1,
+    "pipeline": "full",
+    "name": "p5_followInTheDark_A_peach_is_black"
+   },
+   "measures": {
+    "tests": 3,
+    "valid": 3,
+    "alarms": 0,
+    "broken": 9,
+    "caught": 9,
+    "caught_any": 9,
+    "caught_ids": [
+     "followInTheDark/A-peach-is-black",
+     "followInTheDark/A-light-above",
+     "followInTheDark/A-no-handover",
+     "followInTheDark/B-peach-is-black",
+     "followInTheDark/B-light-above",
+     "followInTheDark/B-no-handover",
+     "followInTheDark/C-peach-is-black",
+     "followInTheDark/C-light-above",
+     "followInTheDark/C-no-handover"
+    ],
+    "seen_caught": true,
+    "good": true
+   },
+   "seconds": 182.095,
+   "out": 41830,
+   "repairs": 1
+  },
+  {
+   "id": "followInTheDark__A-peach-is-black__precise__r2__full",
+   "job": {
+    "id": "followInTheDark__A-peach-is-black__precise__r2__full",
+    "function": "followInTheDark",
+    "version": "followInTheDark/A-peach-is-black",
+    "sentenceKind": "precise",
+    "sentence": "In the dark, follow a black line when there is one under the robot, and drive straight where there is none; in the light, follow the line as before.",
+    "repeat": 2,
+    "pipeline": "full",
+    "name": "p5_followInTheDark_A_peach_is_black"
+   },
+   "measures": {
+    "tests": 3,
+    "valid": 3,
+    "alarms": 0,
+    "broken": 9,
+    "caught": 9,
+    "caught_any": 9,
+    "caught_ids": [
+     "followInTheDark/A-peach-is-black",
+     "followInTheDark/A-light-above",
+     "followInTheDark/A-no-handover",
+     "followInTheDark/B-peach-is-black",
+     "followInTheDark/B-light-above",
+     "followInTheDark/B-no-handover",
+     "followInTheDark/C-peach-is-black",
+     "followInTheDark/C-light-above",
+     "followInTheDark/C-no-handover"
+    ],
+    "seen_caught": true,
+    "good": true
+   },
+   "seconds": 149.316,
+   "out": 29456,
+   "repairs": 0
+  },
+  {
+   "id": "followInTheDark__A-peach-is-black__vague__r1__full",
+   "job": {
+    "id": "followInTheDark__A-peach-is-black__vague__r1__full",
+    "function": "followInTheDark",
+    "version": "followInTheDark/A-peach-is-black",
+    "sentenceKind": "vague",
+    "sentence": "Follow the line in the dark too.",
+    "repeat": 1,
+    "pipeline": "full",
+    "name": "p5_followInTheDark_A_peach_is_black"
+   },
+   "measures": {
+    "tests": 2,
+    "valid": 2,
+    "alarms": 0,
+    "broken": 9,
+    "caught": 6,
+    "caught_any": 6,
+    "caught_ids": [
+     "followInTheDark/A-light-above",
+     "followInTheDark/A-no-handover",
+     "followInTheDark/B-light-above",
+     "followInTheDark/B-no-handover",
+     "followInTheDark/C-light-above",
+     "followInTheDark/C-no-handover"
+    ],
+    "seen_caught": false,
+    "good": false
+   },
+   "seconds": 190.605,
+   "out": 32232,
+   "repairs": 2
+  },
+  {
+   "id": "followInTheDark__A-peach-is-black__vague__r2__full",
+   "job": {
+    "id": "followInTheDark__A-peach-is-black__vague__r2__full",
+    "function": "followInTheDark",
+    "version": "followInTheDark/A-peach-is-black",
+    "sentenceKind": "vague",
+    "sentence": "Follow the line in the dark too.",
+    "repeat": 2,
+    "pipeline": "full",
+    "name": "p5_followInTheDark_A_peach_is_black"
+   },
+   "measures": {
+    "tests": 2,
+    "valid": 2,
+    "alarms": 0,
+    "broken": 9,
+    "caught": 6,
+    "caught_any": 6,
+    "caught_ids": [
+     "followInTheDark/A-light-above",
+     "followInTheDark/A-no-handover",
+     "followInTheDark/B-light-above",
+     "followInTheDark/B-no-handover",
+     "followInTheDark/C-light-above",
+     "followInTheDark/C-no-handover"
+    ],
+    "seen_caught": false,
+    "good": false
+   },
+   "seconds": 148.989,
+   "out": 26402,
+   "repairs": 0
+  },
+  {
+   "id": "followInTheDark__B-light-above__precise__r1__full",
+   "job": {
+    "id": "followInTheDark__B-light-above__precise__r1__full",
+    "function": "followInTheDark",
+    "version": "followInTheDark/B-light-above",
+    "sentenceKind": "precise",
+    "sentence": "In the dark, follow a black line when there is one under the robot, and drive straight where there is none; in the light, follow the line as before.",
+    "repeat": 1,
+    "pipeline": "full",
+    "name": "p5_followInTheDark_B_light_above"
+   },
+   "measures": {
+    "tests": 3,
+    "valid": 3,
+    "alarms": 0,
+    "broken": 9,
+    "caught": 6,
+    "caught_any": 6,
+    "caught_ids": [
+     "followInTheDark/A-light-above",
+     "followInTheDark/A-no-handover",
+     "followInTheDark/B-light-above",
+     "followInTheDark/B-no-handover",
+     "followInTheDark/C-light-above",
+     "followInTheDark/C-no-handover"
+    ],
+    "seen_caught": true,
+    "good": false
+   },
+   "seconds": 362.678,
+   "out": 83000,
+   "repairs": 0
+  },
+  {
+   "id": "followInTheDark__B-light-above__precise__r2__full",
+   "job": {
+    "id": "followInTheDark__B-light-above__precise__r2__full",
+    "function": "followInTheDark",
+    "version": "followInTheDark/B-light-above",
+    "sentenceKind": "precise",
+    "sentence": "In the dark, follow a black line when there is one under the robot, and drive straight where there is none; in the light, follow the line as before.",
+    "repeat": 2,
+    "pipeline": "full",
+    "name": "p5_followInTheDark_B_light_above"
+   },
+   "measures": {
+    "tests": 4,
+    "valid": 4,
+    "alarms": 0,
+    "broken": 9,
+    "caught": 9,
+    "caught_any": 9,
+    "caught_ids": [
+     "followInTheDark/A-peach-is-black",
+     "followInTheDark/A-light-above",
+     "followInTheDark/A-no-handover",
+     "followInTheDark/B-peach-is-black",
+     "followInTheDark/B-light-above",
+     "followInTheDark/B-no-handover",
+     "followInTheDark/C-peach-is-black",
+     "followInTheDark/C-light-above",
+     "followInTheDark/C-no-handover"
+    ],
+    "seen_caught": true,
+    "good": true
+   },
+   "seconds": 262.754,
+   "out": 52670,
+   "repairs": 0
+  },
+  {
+   "id": "followInTheDark__B-light-above__vague__r1__full",
+   "job": {
+    "id": "followInTheDark__B-light-above__vague__r1__full",
+    "function": "followInTheDark",
+    "version": "followInTheDark/B-light-above",
+    "sentenceKind": "vague",
+    "sentence": "Follow the line in the dark too.",
+    "repeat": 1,
+    "pipeline": "full",
+    "name": "p5_followInTheDark_B_light_above"
+   },
+   "measures": {
+    "tests": 1,
+    "valid": 1,
+    "alarms": 0,
+    "broken": 9,
+    "caught": 3,
+    "caught_any": 3,
+    "caught_ids": [
+     "followInTheDark/A-no-handover",
+     "followInTheDark/B-no-handover",
+     "followInTheDark/C-no-handover"
+    ],
+    "seen_caught": false,
+    "good": false
+   },
+   "seconds": 395.203,
+   "out": 63096,
+   "repairs": 0
+  },
+  {
+   "id": "followInTheDark__B-light-above__vague__r2__full",
+   "job": {
+    "id": "followInTheDark__B-light-above__vague__r2__full",
+    "function": "followInTheDark",
+    "version": "followInTheDark/B-light-above",
+    "sentenceKind": "vague",
+    "sentence": "Follow the line in the dark too.",
+    "repeat": 2,
+    "pipeline": "full",
+    "name": "p5_followInTheDark_B_light_above"
+   },
+   "measures": {
+    "tests": 2,
+    "valid": 2,
+    "alarms": 0,
+    "broken": 9,
+    "caught": 9,
+    "caught_any": 9,
+    "caught_ids": [
+     "followInTheDark/A-peach-is-black",
+     "followInTheDark/A-light-above",
+     "followInTheDark/A-no-handover",
+     "followInTheDark/B-peach-is-black",
+     "followInTheDark/B-light-above",
+     "followInTheDark/B-no-handover",
+     "followInTheDark/C-peach-is-black",
+     "followInTheDark/C-light-above",
+     "followInTheDark/C-no-handover"
+    ],
+    "seen_caught": true,
+    "good": true
+   },
+   "seconds": 171.254,
+   "out": 31268,
+   "repairs": 2
+  },
+  {
+   "id": "followInTheDark__B-peach-is-black__precise__r1__full",
+   "job": {
+    "id": "followInTheDark__B-peach-is-black__precise__r1__full",
+    "function": "followInTheDark",
+    "version": "followInTheDark/B-peach-is-black",
+    "sentenceKind": "precise",
+    "sentence": "In the dark, follow a black line when there is one under the robot, and drive straight where there is none; in the light, follow the line as before.",
+    "repeat": 1,
+    "pipeline": "full",
+    "name": "p5_followInTheDark_B_peach_is_black"
+   },
+   "measures": {
+    "tests": 3,
+    "valid": 3,
+    "alarms": 0,
+    "broken": 9,
+    "caught": 9,
+    "caught_any": 9,
+    "caught_ids": [
+     "followInTheDark/A-peach-is-black",
+     "followInTheDark/A-light-above",
+     "followInTheDark/A-no-handover",
+     "followInTheDark/B-peach-is-black",
+     "followInTheDark/B-light-above",
+     "followInTheDark/B-no-handover",
+     "followInTheDark/C-peach-is-black",
+     "followInTheDark/C-light-above",
+     "followInTheDark/C-no-handover"
+    ],
+    "seen_caught": true,
+    "good": true
+   },
+   "seconds": 285.682,
+   "out": 65519,
+   "repairs": 1
+  },
+  {
+   "id": "followInTheDark__B-peach-is-black__precise__r2__full",
+   "job": {
+    "id": "followInTheDark__B-peach-is-black__precise__r2__full",
+    "function": "followInTheDark",
+    "version": "followInTheDark/B-peach-is-black",
+    "sentenceKind": "precise",
+    "sentence": "In the dark, follow a black line when there is one under the robot, and drive straight where there is none; in the light, follow the line as before.",
+    "repeat": 2,
+    "pipeline": "full",
+    "name": "p5_followInTheDark_B_peach_is_black"
+   },
+   "measures": {
+    "tests": 3,
+    "valid": 3,
+    "alarms": 0,
+    "broken": 9,
+    "caught": 9,
+    "caught_any": 9,
+    "caught_ids": [
+     "followInTheDark/A-peach-is-black",
+     "followInTheDark/A-light-above",
+     "followInTheDark/A-no-handover",
+     "followInTheDark/B-peach-is-black",
+     "followInTheDark/B-light-above",
+     "followInTheDark/B-no-handover",
+     "followInTheDark/C-peach-is-black",
+     "followInTheDark/C-light-above",
+     "followInTheDark/C-no-handover"
+    ],
+    "seen_caught": true,
+    "good": true
+   },
+   "seconds": 174.237,
+   "out": 43559,
+   "repairs": 0
+  },
+  {
+   "id": "followInTheDark__B-peach-is-black__vague__r1__full",
+   "job": {
+    "id": "followInTheDark__B-peach-is-black__vague__r1__full",
+    "function": "followInTheDark",
+    "version": "followInTheDark/B-peach-is-black",
+    "sentenceKind": "vague",
+    "sentence": "Follow the line in the dark too.",
+    "repeat": 1,
+    "pipeline": "full",
+    "name": "p5_followInTheDark_B_peach_is_black"
+   },
+   "measures": {
+    "tests": 2,
+    "valid": 2,
+    "alarms": 0,
+    "broken": 9,
+    "caught": 6,
+    "caught_any": 6,
+    "caught_ids": [
+     "followInTheDark/A-light-above",
+     "followInTheDark/A-no-handover",
+     "followInTheDark/B-light-above",
+     "followInTheDark/B-no-handover",
+     "followInTheDark/C-light-above",
+     "followInTheDark/C-no-handover"
+    ],
+    "seen_caught": false,
+    "good": false
+   },
+   "seconds": 127.788,
+   "out": 31714,
+   "repairs": 0
+  },
+  {
+   "id": "followInTheDark__B-peach-is-black__vague__r2__full",
+   "job": {
+    "id": "followInTheDark__B-peach-is-black__vague__r2__full",
+    "function": "followInTheDark",
+    "version": "followInTheDark/B-peach-is-black",
+    "sentenceKind": "vague",
+    "sentence": "Follow the line in the dark too.",
+    "repeat": 2,
+    "pipeline": "full",
+    "name": "p5_followInTheDark_B_peach_is_black"
+   },
+   "measures": {
+    "tests": 2,
+    "valid": 2,
+    "alarms": 0,
+    "broken": 9,
+    "caught": 6,
+    "caught_any": 6,
+    "caught_ids": [
+     "followInTheDark/A-light-above",
+     "followInTheDark/A-no-handover",
+     "followInTheDark/B-light-above",
+     "followInTheDark/B-no-handover",
+     "followInTheDark/C-light-above",
+     "followInTheDark/C-no-handover"
+    ],
+    "seen_caught": false,
+    "good": false
+   },
+   "seconds": 126.176,
+   "out": 26747,
+   "repairs": 0
+  },
+  {
+   "id": "followInTheDark__C-no-handover__precise__r1__full",
+   "job": {
+    "id": "followInTheDark__C-no-handover__precise__r1__full",
+    "function": "followInTheDark",
+    "version": "followInTheDark/C-no-handover",
+    "sentenceKind": "precise",
+    "sentence": "In the dark, follow a black line when there is one under the robot, and drive straight where there is none; in the light, follow the line as before.",
+    "repeat": 1,
+    "pipeline": "full",
+    "name": "p5_followInTheDark_C_no_handover"
+   },
+   "measures": {
+    "tests": 3,
+    "valid": 3,
+    "alarms": 0,
+    "broken": 9,
+    "caught": 9,
+    "caught_any": 9,
+    "caught_ids": [
+     "followInTheDark/A-peach-is-black",
+     "followInTheDark/A-light-above",
+     "followInTheDark/A-no-handover",
+     "followInTheDark/B-peach-is-black",
+     "followInTheDark/B-light-above",
+     "followInTheDark/B-no-handover",
+     "followInTheDark/C-peach-is-black",
+     "followInTheDark/C-light-above",
+     "followInTheDark/C-no-handover"
+    ],
+    "seen_caught": true,
+    "good": true
+   },
+   "seconds": 134.436,
+   "out": 26082,
+   "repairs": 1
+  },
+  {
+   "id": "followInTheDark__C-no-handover__precise__r2__full",
+   "job": {
+    "id": "followInTheDark__C-no-handover__precise__r2__full",
+    "function": "followInTheDark",
+    "version": "followInTheDark/C-no-handover",
+    "sentenceKind": "precise",
+    "sentence": "In the dark, follow a black line when there is one under the robot, and drive straight where there is none; in the light, follow the line as before.",
+    "repeat": 2,
+    "pipeline": "full",
+    "name": "p5_followInTheDark_C_no_handover"
+   },
+   "measures": {
+    "tests": 4,
+    "valid": 4,
+    "alarms": 0,
+    "broken": 9,
+    "caught": 9,
+    "caught_any": 9,
+    "caught_ids": [
+     "followInTheDark/A-peach-is-black",
+     "followInTheDark/A-light-above",
+     "followInTheDark/A-no-handover",
+     "followInTheDark/B-peach-is-black",
+     "followInTheDark/B-light-above",
+     "followInTheDark/B-no-handover",
+     "followInTheDark/C-peach-is-black",
+     "followInTheDark/C-light-above",
+     "followInTheDark/C-no-handover"
+    ],
+    "seen_caught": true,
+    "good": true
+   },
+   "seconds": 166.599,
+   "out": 37179,
+   "repairs": 0
+  },
+  {
+   "id": "followInTheDark__C-no-handover__vague__r1__full",
+   "job": {
+    "id": "followInTheDark__C-no-handover__vague__r1__full",
+    "function": "followInTheDark",
+    "version": "followInTheDark/C-no-handover",
+    "sentenceKind": "vague",
+    "sentence": "Follow the line in the dark too.",
+    "repeat": 1,
+    "pipeline": "full",
+    "name": "p5_followInTheDark_C_no_handover"
+   },
+   "measures": {
+    "tests": 2,
+    "valid": 2,
+    "alarms": 0,
+    "broken": 9,
+    "caught": 6,
+    "caught_any": 6,
+    "caught_ids": [
+     "followInTheDark/A-light-above",
+     "followInTheDark/A-no-handover",
+     "followInTheDark/B-light-above",
+     "followInTheDark/B-no-handover",
+     "followInTheDark/C-light-above",
+     "followInTheDark/C-no-handover"
+    ],
+    "seen_caught": true,
+    "good": false
+   },
+   "seconds": 193.793,
+   "out": 33669,
+   "repairs": 1
+  },
+  {
+   "id": "followInTheDark__C-no-handover__vague__r2__full",
+   "job": {
+    "id": "followInTheDark__C-no-handover__vague__r2__full",
+    "function": "followInTheDark",
+    "version": "followInTheDark/C-no-handover",
+    "sentenceKind": "vague",
+    "sentence": "Follow the line in the dark too.",
+    "repeat": 2,
+    "pipeline": "full",
+    "name": "p5_followInTheDark_C_no_handover"
+   },
+   "measures": {
+    "tests": 2,
+    "valid": 2,
+    "alarms": 0,
+    "broken": 9,
+    "caught": 3,
+    "caught_any": 3,
+    "caught_ids": [
+     "followInTheDark/A-light-above",
+     "followInTheDark/B-light-above",
+     "followInTheDark/C-light-above"
+    ],
+    "seen_caught": false,
+    "good": false
+   },
+   "seconds": 142.059,
+   "out": 22731,
+   "repairs": 0
+  },
+  {
+   "id": "followLine__A-light-above__precise__r1__full",
+   "job": {
+    "id": "followLine__A-light-above__precise__r1__full",
+    "function": "followLine",
+    "version": "followLine/A-light-above",
+    "sentenceKind": "precise",
+    "sentence": "Follow the black line from the start all the way to the green goal at its end, also through the curves, without leaving it.",
+    "repeat": 1,
+    "pipeline": "full",
+    "name": "p5_followLine_A_light_above"
+   },
+   "measures": {
+    "tests": 1,
+    "valid": 1,
+    "alarms": 0,
+    "broken": 11,
+    "caught": 9,
+    "caught_any": 9,
+    "caught_ids": [
+     "followLine/A-light-above",
+     "followLine/A-one-turn",
+     "followLine/A-straight-off",
+     "followLine/B-light-above",
+     "followLine/B-one-turn",
+     "followLine/B-straight-off",
+     "followLine/C-light-above",
+     "followLine/C-one-turn",
+     "followLine/C-straight-off"
+    ],
+    "seen_caught": true,
+    "good": false
+   },
+   "seconds": 96.058,
+   "out": 7942,
+   "repairs": 0
+  },
+  {
+   "id": "followLine__A-light-above__precise__r2__full",
+   "job": {
+    "id": "followLine__A-light-above__precise__r2__full",
+    "function": "followLine",
+    "version": "followLine/A-light-above",
+    "sentenceKind": "precise",
+    "sentence": "Follow the black line from the start all the way to the green goal at its end, also through the curves, without leaving it.",
+    "repeat": 2,
+    "pipeline": "full",
+    "name": "p5_followLine_A_light_above"
+   },
+   "measures": {
+    "tests": 1,
+    "valid": 1,
+    "alarms": 0,
+    "broken": 11,
+    "caught": 9,
+    "caught_any": 9,
+    "caught_ids": [
+     "followLine/A-light-above",
+     "followLine/A-one-turn",
+     "followLine/A-straight-off",
+     "followLine/B-light-above",
+     "followLine/B-one-turn",
+     "followLine/B-straight-off",
+     "followLine/C-light-above",
+     "followLine/C-one-turn",
+     "followLine/C-straight-off"
+    ],
+    "seen_caught": true,
+    "good": false
+   },
+   "seconds": 34.811,
+   "out": 5430,
+   "repairs": 0
+  },
+  {
+   "id": "followLine__A-light-above__vague__r1__full",
+   "job": {
+    "id": "followLine__A-light-above__vague__r1__full",
+    "function": "followLine",
+    "version": "followLine/A-light-above",
+    "sentenceKind": "vague",
+    "sentence": "Follow the line.",
+    "repeat": 1,
+    "pipeline": "full",
+    "name": "p5_followLine_A_light_above"
+   },
+   "measures": {
+    "tests": 1,
+    "valid": 1,
+    "alarms": 0,
+    "broken": 11,
+    "caught": 8,
+    "caught_any": 8,
+    "caught_ids": [
+     "followLine/A-light-above",
+     "followLine/A-one-turn",
+     "followLine/A-straight-off",
+     "followLine/B-light-above",
+     "followLine/B-one-turn",
+     "followLine/B-straight-off",
+     "followLine/C-one-turn",
+     "followLine/C-straight-off"
+    ],
+    "seen_caught": true,
+    "good": false
+   },
+   "seconds": 48.831,
+   "out": 7527,
+   "repairs": 0
+  },
+  {
+   "id": "followLine__A-light-above__vague__r2__full",
+   "job": {
+    "id": "followLine__A-light-above__vague__r2__full",
+    "function": "followLine",
+    "version": "followLine/A-light-above",
+    "sentenceKind": "vague",
+    "sentence": "Follow the line.",
+    "repeat": 2,
+    "pipeline": "full",
+    "name": "p5_followLine_A_light_above"
+   },
+   "measures": {
+    "tests": 1,
+    "valid": 1,
+    "alarms": 0,
+    "broken": 11,
+    "caught": 8,
+    "caught_any": 8,
+    "caught_ids": [
+     "followLine/A-light-above",
+     "followLine/A-one-turn",
+     "followLine/A-straight-off",
+     "followLine/B-light-above",
+     "followLine/B-one-turn",
+     "followLine/B-straight-off",
+     "followLine/C-one-turn",
+     "followLine/C-straight-off"
+    ],
+    "seen_caught": true,
+    "good": false
+   },
+   "seconds": 59.459,
+   "out": 10446,
+   "repairs": 0
+  },
+  {
+   "id": "followLine__A-straight-off__precise__r1__full",
+   "job": {
+    "id": "followLine__A-straight-off__precise__r1__full",
+    "function": "followLine",
+    "version": "followLine/A-straight-off",
+    "sentenceKind": "precise",
+    "sentence": "Follow the black line from the start all the way to the green goal at its end, also through the curves, without leaving it.",
+    "repeat": 1,
+    "pipeline": "full",
+    "name": "p5_followLine_A_straight_off"
+   },
+   "measures": {
+    "tests": 2,
+    "valid": 2,
+    "alarms": 0,
+    "broken": 11,
+    "caught": 9,
+    "caught_any": 9,
+    "caught_ids": [
+     "followLine/A-light-above",
+     "followLine/A-one-turn",
+     "followLine/A-straight-off",
+     "followLine/B-light-above",
+     "followLine/B-one-turn",
+     "followLine/B-straight-off",
+     "followLine/C-light-above",
+     "followLine/C-one-turn",
+     "followLine/C-straight-off"
+    ],
+    "seen_caught": true,
+    "good": false
+   },
+   "seconds": 36.638,
+   "out": 5810,
+   "repairs": 0
+  },
+  {
+   "id": "followLine__A-straight-off__precise__r2__full",
+   "job": {
+    "id": "followLine__A-straight-off__precise__r2__full",
+    "function": "followLine",
+    "version": "followLine/A-straight-off",
+    "sentenceKind": "precise",
+    "sentence": "Follow the black line from the start all the way to the green goal at its end, also through the curves, without leaving it.",
+    "repeat": 2,
+    "pipeline": "full",
+    "name": "p5_followLine_A_straight_off"
+   },
+   "measures": {
+    "tests": 2,
+    "valid": 2,
+    "alarms": 0,
+    "broken": 11,
+    "caught": 9,
+    "caught_any": 9,
+    "caught_ids": [
+     "followLine/A-light-above",
+     "followLine/A-one-turn",
+     "followLine/A-straight-off",
+     "followLine/B-light-above",
+     "followLine/B-one-turn",
+     "followLine/B-straight-off",
+     "followLine/C-light-above",
+     "followLine/C-one-turn",
+     "followLine/C-straight-off"
+    ],
+    "seen_caught": true,
+    "good": false
+   },
+   "seconds": 46.114,
+   "out": 6955,
+   "repairs": 0
+  },
+  {
+   "id": "followLine__A-straight-off__vague__r1__full",
+   "job": {
+    "id": "followLine__A-straight-off__vague__r1__full",
+    "function": "followLine",
+    "version": "followLine/A-straight-off",
+    "sentenceKind": "vague",
+    "sentence": "Follow the line.",
+    "repeat": 1,
+    "pipeline": "full",
+    "name": "p5_followLine_A_straight_off"
+   },
+   "measures": {
+    "tests": 1,
+    "valid": 1,
+    "alarms": 0,
+    "broken": 11,
+    "caught": 9,
+    "caught_any": 9,
+    "caught_ids": [
+     "followLine/A-light-above",
+     "followLine/A-one-turn",
+     "followLine/A-straight-off",
+     "followLine/B-light-above",
+     "followLine/B-one-turn",
+     "followLine/B-straight-off",
+     "followLine/C-light-above",
+     "followLine/C-one-turn",
+     "followLine/C-straight-off"
+    ],
+    "seen_caught": true,
+    "good": false
+   },
+   "seconds": 29.695,
+   "out": 4513,
+   "repairs": 0
+  },
+  {
+   "id": "followLine__A-straight-off__vague__r2__full",
+   "job": {
+    "id": "followLine__A-straight-off__vague__r2__full",
+    "function": "followLine",
+    "version": "followLine/A-straight-off",
+    "sentenceKind": "vague",
+    "sentence": "Follow the line.",
+    "repeat": 2,
+    "pipeline": "full",
+    "name": "p5_followLine_A_straight_off"
+   },
+   "measures": {
+    "tests": 1,
+    "valid": 1,
+    "alarms": 0,
+    "broken": 11,
+    "caught": 9,
+    "caught_any": 9,
+    "caught_ids": [
+     "followLine/A-light-above",
+     "followLine/A-one-turn",
+     "followLine/A-straight-off",
+     "followLine/B-light-above",
+     "followLine/B-one-turn",
+     "followLine/B-straight-off",
+     "followLine/C-light-above",
+     "followLine/C-one-turn",
+     "followLine/C-straight-off"
+    ],
+    "seen_caught": true,
+    "good": false
+   },
+   "seconds": 19.795,
+   "out": 2789,
+   "repairs": 0
+  },
+  {
+   "id": "followLine__B-one-turn__precise__r1__full",
+   "job": {
+    "id": "followLine__B-one-turn__precise__r1__full",
+    "function": "followLine",
+    "version": "followLine/B-one-turn",
+    "sentenceKind": "precise",
+    "sentence": "Follow the black line from the start all the way to the green goal at its end, also through the curves, without leaving it.",
+    "repeat": 1,
+    "pipeline": "full",
+    "name": "p5_followLine_B_one_turn"
+   },
+   "measures": {
+    "tests": 1,
+    "valid": 1,
+    "alarms": 0,
+    "broken": 11,
+    "caught": 6,
+    "caught_any": 6,
+    "caught_ids": [
+     "followLine/A-light-above",
+     "followLine/A-one-turn",
+     "followLine/B-light-above",
+     "followLine/B-one-turn",
+     "followLine/C-light-above",
+     "followLine/C-one-turn"
+    ],
+    "seen_caught": true,
+    "good": false
+   },
+   "seconds": 47.974,
+   "out": 7548,
+   "repairs": 0
+  },
+  {
+   "id": "followLine__B-one-turn__precise__r2__full",
+   "job": {
+    "id": "followLine__B-one-turn__precise__r2__full",
+    "function": "followLine",
+    "version": "followLine/B-one-turn",
+    "sentenceKind": "precise",
+    "sentence": "Follow the black line from the start all the way to the green goal at its end, also through the curves, without leaving it.",
+    "repeat": 2,
+    "pipeline": "full",
+    "name": "p5_followLine_B_one_turn"
+   },
+   "measures": {
+    "tests": 1,
+    "valid": 1,
+    "alarms": 0,
+    "broken": 11,
+    "caught": 6,
+    "caught_any": 6,
+    "caught_ids": [
+     "followLine/A-light-above",
+     "followLine/A-one-turn",
+     "followLine/B-light-above",
+     "followLine/B-one-turn",
+     "followLine/C-light-above",
+     "followLine/C-one-turn"
+    ],
+    "seen_caught": true,
+    "good": false
+   },
+   "seconds": 26.183,
+   "out": 4655,
+   "repairs": 0
+  },
+  {
+   "id": "followLine__B-one-turn__vague__r1__full",
+   "job": {
+    "id": "followLine__B-one-turn__vague__r1__full",
+    "function": "followLine",
+    "version": "followLine/B-one-turn",
+    "sentenceKind": "vague",
+    "sentence": "Follow the line.",
+    "repeat": 1,
+    "pipeline": "full",
+    "name": "p5_followLine_B_one_turn"
+   },
+   "measures": {
+    "tests": 1,
+    "valid": 1,
+    "alarms": 0,
+    "broken": 11,
+    "caught": 8,
+    "caught_any": 8,
+    "caught_ids": [
+     "followLine/A-light-above",
+     "followLine/A-one-turn",
+     "followLine/A-straight-off",
+     "followLine/B-light-above",
+     "followLine/B-one-turn",
+     "followLine/B-straight-off",
+     "followLine/C-one-turn",
+     "followLine/C-straight-off"
+    ],
+    "seen_caught": true,
+    "good": false
+   },
+   "seconds": 25.413,
+   "out": 4244,
+   "repairs": 0
+  },
+  {
+   "id": "followLine__B-one-turn__vague__r2__full",
+   "job": {
+    "id": "followLine__B-one-turn__vague__r2__full",
+    "function": "followLine",
+    "version": "followLine/B-one-turn",
+    "sentenceKind": "vague",
+    "sentence": "Follow the line.",
+    "repeat": 2,
+    "pipeline": "full",
+    "name": "p5_followLine_B_one_turn"
+   },
+   "measures": {
+    "tests": 1,
+    "valid": 1,
+    "alarms": 0,
+    "broken": 11,
+    "caught": 8,
+    "caught_any": 8,
+    "caught_ids": [
+     "followLine/A-light-above",
+     "followLine/A-one-turn",
+     "followLine/A-straight-off",
+     "followLine/B-light-above",
+     "followLine/B-one-turn",
+     "followLine/B-straight-off",
+     "followLine/C-one-turn",
+     "followLine/C-straight-off"
+    ],
+    "seen_caught": true,
+    "good": false
+   },
+   "seconds": 19.756,
+   "out": 3584,
+   "repairs": 0
+  },
+  {
+   "id": "followLine__C-too-slow__precise__r1__full",
+   "job": {
+    "id": "followLine__C-too-slow__precise__r1__full",
+    "function": "followLine",
+    "version": "followLine/C-too-slow",
+    "sentenceKind": "precise",
+    "sentence": "Follow the black line from the start all the way to the green goal at its end, also through the curves, without leaving it.",
+    "repeat": 1,
+    "pipeline": "full",
+    "name": "p5_followLine_C_too_slow"
+   },
+   "measures": {
+    "tests": 1,
+    "valid": 1,
+    "alarms": 0,
+    "broken": 11,
+    "caught": 9,
+    "caught_any": 9,
+    "caught_ids": [
+     "followLine/A-light-above",
+     "followLine/A-one-turn",
+     "followLine/A-straight-off",
+     "followLine/B-light-above",
+     "followLine/B-one-turn",
+     "followLine/B-straight-off",
+     "followLine/C-light-above",
+     "followLine/C-one-turn",
+     "followLine/C-straight-off"
+    ],
+    "seen_caught": false,
+    "good": false
+   },
+   "seconds": 72.52,
+   "out": 11418,
+   "repairs": 0
+  },
+  {
+   "id": "followLine__C-too-slow__precise__r2__full",
+   "job": {
+    "id": "followLine__C-too-slow__precise__r2__full",
+    "function": "followLine",
+    "version": "followLine/C-too-slow",
+    "sentenceKind": "precise",
+    "sentence": "Follow the black line from the start all the way to the green goal at its end, also through the curves, without leaving it.",
+    "repeat": 2,
+    "pipeline": "full",
+    "name": "p5_followLine_C_too_slow"
+   },
+   "measures": {
+    "tests": 1,
+    "valid": 1,
+    "alarms": 0,
+    "broken": 11,
+    "caught": 9,
+    "caught_any": 9,
+    "caught_ids": [
+     "followLine/A-light-above",
+     "followLine/A-one-turn",
+     "followLine/A-straight-off",
+     "followLine/B-light-above",
+     "followLine/B-one-turn",
+     "followLine/B-straight-off",
+     "followLine/C-light-above",
+     "followLine/C-one-turn",
+     "followLine/C-straight-off"
+    ],
+    "seen_caught": false,
+    "good": false
+   },
+   "seconds": 61.707,
+   "out": 9606,
+   "repairs": 0
+  },
+  {
+   "id": "followLine__C-too-slow__vague__r1__full",
+   "job": {
+    "id": "followLine__C-too-slow__vague__r1__full",
+    "function": "followLine",
+    "version": "followLine/C-too-slow",
+    "sentenceKind": "vague",
+    "sentence": "Follow the line.",
+    "repeat": 1,
+    "pipeline": "full",
+    "name": "p5_followLine_C_too_slow"
+   },
+   "measures": {
+    "tests": 2,
+    "valid": 2,
+    "alarms": 0,
+    "broken": 11,
+    "caught": 9,
+    "caught_any": 9,
+    "caught_ids": [
+     "followLine/A-light-above",
+     "followLine/A-one-turn",
+     "followLine/A-straight-off",
+     "followLine/B-light-above",
+     "followLine/B-one-turn",
+     "followLine/B-straight-off",
+     "followLine/C-light-above",
+     "followLine/C-one-turn",
+     "followLine/C-straight-off"
+    ],
+    "seen_caught": false,
+    "good": false
+   },
+   "seconds": 63.349,
+   "out": 11610,
+   "repairs": 0
+  },
+  {
+   "id": "followLine__C-too-slow__vague__r2__full",
+   "job": {
+    "id": "followLine__C-too-slow__vague__r2__full",
+    "function": "followLine",
+    "version": "followLine/C-too-slow",
+    "sentenceKind": "vague",
+    "sentence": "Follow the line.",
+    "repeat": 2,
+    "pipeline": "full",
+    "name": "p5_followLine_C_too_slow"
+   },
+   "measures": {
+    "tests": 2,
+    "valid": 2,
+    "alarms": 0,
+    "broken": 11,
+    "caught": 6,
+    "caught_any": 6,
+    "caught_ids": [
+     "followLine/A-light-above",
+     "followLine/A-one-turn",
+     "followLine/B-light-above",
+     "followLine/B-one-turn",
+     "followLine/C-light-above",
+     "followLine/C-one-turn"
+    ],
+    "seen_caught": false,
+    "good": false
+   },
+   "seconds": 53.003,
+   "out": 8904,
+   "repairs": 0
+  },
+  {
+   "id": "stopAtWall__A-negated__precise__r1__full",
+   "job": {
+    "id": "stopAtWall__A-negated__precise__r1__full",
+    "function": "stopAtWall",
+    "version": "stopAtWall/A-negated",
+    "sentenceKind": "precise",
+    "sentence": "Follow the black line, and when a wall is right in front of the robot, stop before it without touching it and stay there.",
+    "repeat": 1,
+    "pipeline": "full",
+    "name": "p5_stopAtWall_A_negated"
+   },
+   "measures": {
+    "tests": 2,
+    "valid": 2,
+    "alarms": 0,
+    "broken": 12,
+    "caught": 12,
+    "caught_any": 12,
+    "caught_ids": [
+     "stopAtWall/A-negated",
+     "stopAtWall/A-no-handover",
+     "stopAtWall/A-turns",
+     "stopAtWall/A-slows",
+     "stopAtWall/B-negated",
+     "stopAtWall/B-no-handover",
+     "stopAtWall/B-turns",
+     "stopAtWall/B-slows",
+     "stopAtWall/C-negated",
+     "stopAtWall/C-no-handover",
+     "stopAtWall/C-turns",
+     "stopAtWall/C-slows"
+    ],
+    "seen_caught": true,
+    "good": true
+   },
+   "seconds": 75.819,
+   "out": 15885,
+   "repairs": 0
+  },
+  {
+   "id": "stopAtWall__A-negated__precise__r2__full",
+   "job": {
+    "id": "stopAtWall__A-negated__precise__r2__full",
+    "function": "stopAtWall",
+    "version": "stopAtWall/A-negated",
+    "sentenceKind": "precise",
+    "sentence": "Follow the black line, and when a wall is right in front of the robot, stop before it without touching it and stay there.",
+    "repeat": 2,
+    "pipeline": "full",
+    "name": "p5_stopAtWall_A_negated"
+   },
+   "measures": {
+    "tests": 3,
+    "valid": 3,
+    "alarms": 0,
+    "broken": 12,
+    "caught": 10,
+    "caught_any": 10,
+    "caught_ids": [
+     "stopAtWall/A-negated",
+     "stopAtWall/A-no-handover",
+     "stopAtWall/A-slows",
+     "stopAtWall/B-negated",
+     "stopAtWall/B-no-handover",
+     "stopAtWall/B-slows",
+     "stopAtWall/C-negated",
+     "stopAtWall/C-no-handover",
+     "stopAtWall/C-turns",
+     "stopAtWall/C-slows"
+    ],
+    "seen_caught": true,
+    "good": false
+   },
+   "seconds": 112.088,
+   "out": 22564,
+   "repairs": 0
+  },
+  {
+   "id": "stopAtWall__A-negated__vague__r1__full",
+   "job": {
+    "id": "stopAtWall__A-negated__vague__r1__full",
+    "function": "stopAtWall",
+    "version": "stopAtWall/A-negated",
+    "sentenceKind": "vague",
+    "sentence": "Stop at the wall.",
+    "repeat": 1,
+    "pipeline": "full",
+    "name": "p5_stopAtWall_A_negated"
+   },
+   "measures": {
+    "tests": 1,
+    "valid": 1,
+    "alarms": 0,
+    "broken": 12,
+    "caught": 7,
+    "caught_any": 7,
+    "caught_ids": [
+     "stopAtWall/A-negated",
+     "stopAtWall/A-slows",
+     "stopAtWall/B-negated",
+     "stopAtWall/B-slows",
+     "stopAtWall/C-negated",
+     "stopAtWall/C-turns",
+     "stopAtWall/C-slows"
+    ],
+    "seen_caught": true,
+    "good": false
+   },
+   "seconds": 88.408,
+   "out": 14287,
+   "repairs": 0
+  },
+  {
+   "id": "stopAtWall__A-negated__vague__r2__full",
+   "job": {
+    "id": "stopAtWall__A-negated__vague__r2__full",
+    "function": "stopAtWall",
+    "version": "stopAtWall/A-negated",
+    "sentenceKind": "vague",
+    "sentence": "Stop at the wall.",
+    "repeat": 2,
+    "pipeline": "full",
+    "name": "p5_stopAtWall_A_negated"
+   },
+   "measures": {
+    "tests": 2,
+    "valid": 2,
+    "alarms": 0,
+    "broken": 12,
+    "caught": 10,
+    "caught_any": 10,
+    "caught_ids": [
+     "stopAtWall/A-negated",
+     "stopAtWall/A-no-handover",
+     "stopAtWall/A-slows",
+     "stopAtWall/B-negated",
+     "stopAtWall/B-no-handover",
+     "stopAtWall/B-slows",
+     "stopAtWall/C-negated",
+     "stopAtWall/C-no-handover",
+     "stopAtWall/C-turns",
+     "stopAtWall/C-slows"
+    ],
+    "seen_caught": true,
+    "good": false
+   },
+   "seconds": 139.26,
+   "out": 23281,
+   "repairs": 0
+  },
+  {
+   "id": "stopAtWall__A-slows__precise__r1__full",
+   "job": {
+    "id": "stopAtWall__A-slows__precise__r1__full",
+    "function": "stopAtWall",
+    "version": "stopAtWall/A-slows",
+    "sentenceKind": "precise",
+    "sentence": "Follow the black line, and when a wall is right in front of the robot, stop before it without touching it and stay there.",
+    "repeat": 1,
+    "pipeline": "full",
+    "name": "p5_stopAtWall_A_slows"
+   },
+   "measures": {
+    "tests": 3,
+    "valid": 3,
+    "alarms": 0,
+    "broken": 12,
+    "caught": 10,
+    "caught_any": 10,
+    "caught_ids": [
+     "stopAtWall/A-negated",
+     "stopAtWall/A-no-handover",
+     "stopAtWall/A-slows",
+     "stopAtWall/B-negated",
+     "stopAtWall/B-no-handover",
+     "stopAtWall/B-slows",
+     "stopAtWall/C-negated",
+     "stopAtWall/C-no-handover",
+     "stopAtWall/C-turns",
+     "stopAtWall/C-slows"
+    ],
+    "seen_caught": true,
+    "good": false
+   },
+   "seconds": 66.552,
+   "out": 12510,
+   "repairs": 0
+  },
+  {
+   "id": "stopAtWall__A-slows__precise__r2__full",
+   "job": {
+    "id": "stopAtWall__A-slows__precise__r2__full",
+    "function": "stopAtWall",
+    "version": "stopAtWall/A-slows",
+    "sentenceKind": "precise",
+    "sentence": "Follow the black line, and when a wall is right in front of the robot, stop before it without touching it and stay there.",
+    "repeat": 2,
+    "pipeline": "full",
+    "name": "p5_stopAtWall_A_slows"
+   },
+   "measures": {
+    "tests": 2,
+    "valid": 2,
+    "alarms": 0,
+    "broken": 12,
+    "caught": 9,
+    "caught_any": 9,
+    "caught_ids": [
+     "stopAtWall/A-negated",
+     "stopAtWall/A-no-handover",
+     "stopAtWall/A-slows",
+     "stopAtWall/B-negated",
+     "stopAtWall/B-no-handover",
+     "stopAtWall/B-slows",
+     "stopAtWall/C-negated",
+     "stopAtWall/C-no-handover",
+     "stopAtWall/C-slows"
+    ],
+    "seen_caught": true,
+    "good": false
+   },
+   "seconds": 81.022,
+   "out": 14594,
+   "repairs": 0
+  },
+  {
+   "id": "stopAtWall__A-slows__vague__r1__full",
+   "job": {
+    "id": "stopAtWall__A-slows__vague__r1__full",
+    "function": "stopAtWall",
+    "version": "stopAtWall/A-slows",
+    "sentenceKind": "vague",
+    "sentence": "Stop at the wall.",
+    "repeat": 1,
+    "pipeline": "full",
+    "name": "p5_stopAtWall_A_slows"
+   },
+   "measures": {
+    "tests": 1,
+    "valid": 1,
+    "alarms": 0,
+    "broken": 12,
+    "caught": 3,
+    "caught_any": 3,
+    "caught_ids": [
+     "stopAtWall/A-slows",
+     "stopAtWall/B-slows",
+     "stopAtWall/C-slows"
+    ],
+    "seen_caught": true,
+    "good": false
+   },
+   "seconds": 63.396,
+   "out": 10990,
+   "repairs": 0
+  },
+  {
+   "id": "stopAtWall__A-slows__vague__r2__full",
+   "job": {
+    "id": "stopAtWall__A-slows__vague__r2__full",
+    "function": "stopAtWall",
+    "version": "stopAtWall/A-slows",
+    "sentenceKind": "vague",
+    "sentence": "Stop at the wall.",
+    "repeat": 2,
+    "pipeline": "full",
+    "name": "p5_stopAtWall_A_slows"
+   },
+   "measures": {
+    "tests": 1,
+    "valid": 1,
+    "alarms": 0,
+    "broken": 12,
+    "caught": 3,
+    "caught_any": 3,
+    "caught_ids": [
+     "stopAtWall/A-slows",
+     "stopAtWall/B-slows",
+     "stopAtWall/C-slows"
+    ],
+    "seen_caught": true,
+    "good": false
+   },
+   "seconds": 44.742,
+   "out": 7536,
+   "repairs": 0
+  },
+  {
+   "id": "stopAtWall__B-no-handover__precise__r1__full",
+   "job": {
+    "id": "stopAtWall__B-no-handover__precise__r1__full",
+    "function": "stopAtWall",
+    "version": "stopAtWall/B-no-handover",
+    "sentenceKind": "precise",
+    "sentence": "Follow the black line, and when a wall is right in front of the robot, stop before it without touching it and stay there.",
+    "repeat": 1,
+    "pipeline": "full",
+    "name": "p5_stopAtWall_B_no_handover"
+   },
+   "measures": {
+    "tests": 2,
+    "valid": 2,
+    "alarms": 0,
+    "broken": 12,
+    "caught": 9,
+    "caught_any": 9,
+    "caught_ids": [
+     "stopAtWall/A-negated",
+     "stopAtWall/A-no-handover",
+     "stopAtWall/A-slows",
+     "stopAtWall/B-negated",
+     "stopAtWall/B-no-handover",
+     "stopAtWall/B-slows",
+     "stopAtWall/C-negated",
+     "stopAtWall/C-no-handover",
+     "stopAtWall/C-slows"
+    ],
+    "seen_caught": true,
+    "good": false
+   },
+   "seconds": 62.086,
+   "out": 12948,
+   "repairs": 0
+  },
+  {
+   "id": "stopAtWall__B-no-handover__precise__r2__full",
+   "job": {
+    "id": "stopAtWall__B-no-handover__precise__r2__full",
+    "function": "stopAtWall",
+    "version": "stopAtWall/B-no-handover",
+    "sentenceKind": "precise",
+    "sentence": "Follow the black line, and when a wall is right in front of the robot, stop before it without touching it and stay there.",
+    "repeat": 2,
+    "pipeline": "full",
+    "name": "p5_stopAtWall_B_no_handover"
+   },
+   "measures": {
+    "tests": 2,
+    "valid": 2,
+    "alarms": 0,
+    "broken": 12,
+    "caught": 9,
+    "caught_any": 9,
+    "caught_ids": [
+     "stopAtWall/A-negated",
+     "stopAtWall/A-no-handover",
+     "stopAtWall/A-slows",
+     "stopAtWall/B-negated",
+     "stopAtWall/B-no-handover",
+     "stopAtWall/B-slows",
+     "stopAtWall/C-negated",
+     "stopAtWall/C-no-handover",
+     "stopAtWall/C-slows"
+    ],
+    "seen_caught": true,
+    "good": false
+   },
+   "seconds": 59.607,
+   "out": 13478,
+   "repairs": 0
+  },
+  {
+   "id": "stopAtWall__B-no-handover__vague__r1__full",
+   "job": {
+    "id": "stopAtWall__B-no-handover__vague__r1__full",
+    "function": "stopAtWall",
+    "version": "stopAtWall/B-no-handover",
+    "sentenceKind": "vague",
+    "sentence": "Stop at the wall.",
+    "repeat": 1,
+    "pipeline": "full",
+    "name": "p5_stopAtWall_B_no_handover"
+   },
+   "measures": {
+    "tests": 1,
+    "valid": 1,
+    "alarms": 0,
+    "broken": 12,
+    "caught": 6,
+    "caught_any": 6,
+    "caught_ids": [
+     "stopAtWall/A-negated",
+     "stopAtWall/A-slows",
+     "stopAtWall/B-negated",
+     "stopAtWall/B-slows",
+     "stopAtWall/C-negated",
+     "stopAtWall/C-slows"
+    ],
+    "seen_caught": false,
+    "good": false
+   },
+   "seconds": 41.984,
+   "out": 6394,
+   "repairs": 0
+  },
+  {
+   "id": "stopAtWall__B-no-handover__vague__r2__full",
+   "job": {
+    "id": "stopAtWall__B-no-handover__vague__r2__full",
+    "function": "stopAtWall",
+    "version": "stopAtWall/B-no-handover",
+    "sentenceKind": "vague",
+    "sentence": "Stop at the wall.",
+    "repeat": 2,
+    "pipeline": "full",
+    "name": "p5_stopAtWall_B_no_handover"
+   },
+   "measures": {
+    "tests": 1,
+    "valid": 1,
+    "alarms": 0,
+    "broken": 12,
+    "caught": 9,
+    "caught_any": 9,
+    "caught_ids": [
+     "stopAtWall/A-negated",
+     "stopAtWall/A-turns",
+     "stopAtWall/A-slows",
+     "stopAtWall/B-negated",
+     "stopAtWall/B-turns",
+     "stopAtWall/B-slows",
+     "stopAtWall/C-negated",
+     "stopAtWall/C-turns",
+     "stopAtWall/C-slows"
+    ],
+    "seen_caught": false,
+    "good": false
+   },
+   "seconds": 41.345,
+   "out": 6526,
+   "repairs": 0
+  },
+  {
+   "id": "stopAtWall__C-turns__precise__r1__full",
+   "job": {
+    "id": "stopAtWall__C-turns__precise__r1__full",
+    "function": "stopAtWall",
+    "version": "stopAtWall/C-turns",
+    "sentenceKind": "precise",
+    "sentence": "Follow the black line, and when a wall is right in front of the robot, stop before it without touching it and stay there.",
+    "repeat": 1,
+    "pipeline": "full",
+    "name": "p5_stopAtWall_C_turns"
+   },
+   "measures": {
+    "tests": 2,
+    "valid": 2,
+    "alarms": 0,
+    "broken": 12,
+    "caught": 9,
+    "caught_any": 9,
+    "caught_ids": [
+     "stopAtWall/A-negated",
+     "stopAtWall/A-no-handover",
+     "stopAtWall/A-slows",
+     "stopAtWall/B-negated",
+     "stopAtWall/B-no-handover",
+     "stopAtWall/B-slows",
+     "stopAtWall/C-negated",
+     "stopAtWall/C-no-handover",
+     "stopAtWall/C-slows"
+    ],
+    "seen_caught": false,
+    "good": false
+   },
+   "seconds": 59.44,
+   "out": 11566,
+   "repairs": 0
+  },
+  {
+   "id": "stopAtWall__C-turns__precise__r2__full",
+   "job": {
+    "id": "stopAtWall__C-turns__precise__r2__full",
+    "function": "stopAtWall",
+    "version": "stopAtWall/C-turns",
+    "sentenceKind": "precise",
+    "sentence": "Follow the black line, and when a wall is right in front of the robot, stop before it without touching it and stay there.",
+    "repeat": 2,
+    "pipeline": "full",
+    "name": "p5_stopAtWall_C_turns"
+   },
+   "measures": {
+    "tests": 3,
+    "valid": 3,
+    "alarms": 0,
+    "broken": 12,
+    "caught": 12,
+    "caught_any": 12,
+    "caught_ids": [
+     "stopAtWall/A-negated",
+     "stopAtWall/A-no-handover",
+     "stopAtWall/A-turns",
+     "stopAtWall/A-slows",
+     "stopAtWall/B-negated",
+     "stopAtWall/B-no-handover",
+     "stopAtWall/B-turns",
+     "stopAtWall/B-slows",
+     "stopAtWall/C-negated",
+     "stopAtWall/C-no-handover",
+     "stopAtWall/C-turns",
+     "stopAtWall/C-slows"
+    ],
+    "seen_caught": true,
+    "good": true
+   },
+   "seconds": 79.81,
+   "out": 15251,
+   "repairs": 0
+  },
+  {
+   "id": "stopAtWall__C-turns__vague__r1__full",
+   "job": {
+    "id": "stopAtWall__C-turns__vague__r1__full",
+    "function": "stopAtWall",
+    "version": "stopAtWall/C-turns",
+    "sentenceKind": "vague",
+    "sentence": "Stop at the wall.",
+    "repeat": 1,
+    "pipeline": "full",
+    "name": "p5_stopAtWall_C_turns"
+   },
+   "measures": {
+    "tests": 1,
+    "valid": 1,
+    "alarms": 0,
+    "broken": 12,
+    "caught": 3,
+    "caught_any": 3,
+    "caught_ids": [
+     "stopAtWall/A-slows",
+     "stopAtWall/B-slows",
+     "stopAtWall/C-slows"
+    ],
+    "seen_caught": false,
+    "good": false
+   },
+   "seconds": 94.656,
+   "out": 14472,
+   "repairs": 0
+  },
+  {
+   "id": "stopAtWall__C-turns__vague__r2__full",
+   "job": {
+    "id": "stopAtWall__C-turns__vague__r2__full",
+    "function": "stopAtWall",
+    "version": "stopAtWall/C-turns",
+    "sentenceKind": "vague",
+    "sentence": "Stop at the wall.",
+    "repeat": 2,
+    "pipeline": "full",
+    "name": "p5_stopAtWall_C_turns"
+   },
+   "measures": {
+    "tests": 2,
+    "valid": 2,
+    "alarms": 0,
+    "broken": 12,
+    "caught": 9,
+    "caught_any": 9,
+    "caught_ids": [
+     "stopAtWall/A-negated",
+     "stopAtWall/A-turns",
+     "stopAtWall/A-slows",
+     "stopAtWall/B-negated",
+     "stopAtWall/B-turns",
+     "stopAtWall/B-slows",
+     "stopAtWall/C-negated",
+     "stopAtWall/C-turns",
+     "stopAtWall/C-slows"
+    ],
+    "seen_caught": true,
+    "good": false
+   },
+   "seconds": 108.665,
+   "out": 18177,
+   "repairs": 0
+  }
+ ],
+ "tables": "### By pipeline\n\n| | requests | no tests | tests (mean) | sets with a false alarm | false alarms / tests | faults caught (valid tests) | faults failing any test | the seen fault caught | good sets (the rule) | seconds (median) | seconds (max) | output tokens (median) |\n|---|---|---|---|---|---|---|---|---|---|---|---|---|\n| full | 80 | 2 | 1.9 | 4 % | 3 % | 76 % | 79 % | 71 % | 41 % | 113 | 395 | 20888 |\n\n### By function, full\n\n| | requests | no tests | tests (mean) | sets with a false alarm | false alarms / tests | faults caught (valid tests) | faults failing any test | the seen fault caught | good sets (the rule) | seconds (median) | seconds (max) | output tokens (median) |\n|---|---|---|---|---|---|---|---|---|---|---|---|---|\n| followLine | 16 | 0 | 1.2 | 0 % | 0 % | 74 % | 74 % | 75 % | 0 % | 47 | 96 | 7241 |\n| stopAtWall | 16 | 0 | 1.8 | 0 % | 0 % | 68 % | 68 % | 75 % | 12 % | 71 | 139 | 13882 |\n| driveInTheDark | 16 | 0 | 1.7 | 6 % | 4 % | 82 % | 85 % | 75 % | 75 % | 122 | 185 | 22832 |\n| avoidWalls | 16 | 2 | 2.1 | 12 % | 12 % | 74 % | 87 % | 69 % | 69 % | 131 | 240 | 26570 |\n| followInTheDark | 16 | 0 | 2.6 | 0 % | 0 % | 79 % | 79 % | 62 % | 50 % | 173 | 395 | 32950 |\n\n### By sentence, full\n\n| | requests | no tests | tests (mean) | sets with a false alarm | false alarms / tests | faults caught (valid tests) | faults failing any test | the seen fault caught | good sets (the rule) | seconds (median) | seconds (max) | output tokens (median) |\n|---|---|---|---|---|---|---|---|---|---|---|---|---|\n| precise | 40 | 0 | 2.2 | 5 % | 4 % | 86 % | 91 % | 88 % | 58 % | 110 | 363 | 20886 |\n| vague | 40 | 2 | 1.6 | 2 % | 2 % | 65 % | 67 % | 55 % | 25 % | 124 | 395 | 20888 |\n\n### Faults caught, by kind\n\n| fault | full |\n|---|---|\n| avoidWalls front-sensor | 73 % |\n| avoidWalls never-dark | 75 % |\n| avoidWalls no-handover | 75 % |\n| avoidWalls swapped | 75 % |\n| driveInTheDark curves | 94 % |\n| driveInTheDark floor-sensor | 75 % |\n| driveInTheDark negated | 75 % |\n| driveInTheDark never-dark | 75 % |\n| driveInTheDark no-handover | 94 % |\n| followInTheDark light-above | 94 % |\n| followInTheDark no-handover | 94 % |\n| followInTheDark peach-is-black | 50 % |\n| followLine light-above | 92 % |\n| followLine one-turn | 100 % |\n| followLine straight-off | 81 % |\n| followLine too-slow | 0 % |\n| stopAtWall negated | 81 % |\n| stopAtWall no-handover | 56 % |\n| stopAtWall slows | 100 % |\n| stopAtWall turns | 33 % |\n\n### The techniques, full pipeline (80 requests)\n\n- analyses sent back for a repair: 3 of 80; requests whose generate answers were sent back: 13 of 80\n- tests kept: 151; problems of the tests left out after the repairs: none\n- problems of whole answers still there after the repairs (they leave no test out): none\n"
+}
