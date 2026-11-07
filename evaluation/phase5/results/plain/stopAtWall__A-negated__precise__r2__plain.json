@@ -1,0 +1,317 @@
+{
+ "job": {
+  "id": "stopAtWall__A-negated__precise__r2__plain",
+  "function": "stopAtWall",
+  "version": "stopAtWall/A-negated",
+  "sentenceKind": "precise",
+  "sentence": "Follow the black line, and when a wall is right in front of the robot, stop before it without touching it and stay there.",
+  "repeat": 2,
+  "pipeline": "plain",
+  "name": "p5_stopAtWall_A_negated"
+ },
+ "ms": {
+  "total": 68739,
+  "generate": 68739
+ },
+ "calls": [
+  {
+   "tokens": {
+    "in": 10569,
+    "cached": 10368,
+    "out": 9689,
+    "reasoning": 8525
+   },
+   "latencyMs": 68558
+  }
+ ],
+ "generate": {
+  "ok": true,
+  "repairs": 0,
+  "dropped": [],
+  "worlds": [
+   {
+    "name": "A straight line to the goal",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 40,
+        "y": 100,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "l1",
+        "kind": "line",
+        "points": [
+         [
+          30,
+          100
+         ],
+         [
+          270,
+          100
+         ]
+        ],
+        "width": 1.48
+       },
+       {
+        "id": "g1",
+        "kind": "rect",
+        "name": "Goal 1",
+        "role": "goal",
+        "x": 250,
+        "y": 85,
+        "w": 30,
+        "h": 30
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Follows the line to the goal",
+      "scenario": "Given a straight black line under your robot, when your program runs, then the robot follows the line and reaches the goal at its end.",
+      "start": "A",
+      "until": "g1",
+      "max_time_ms": 60000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "g1"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "A wall across the line",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "B",
+        "name": "B",
+        "x": 40,
+        "y": 100,
+        "heading": 0
+       },
+       {
+        "id": "C",
+        "name": "C",
+        "x": 40,
+        "y": 160,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "l1",
+        "kind": "line",
+        "points": [
+         [
+          30,
+          100
+         ],
+         [
+          270,
+          100
+         ]
+        ],
+        "width": 1.48
+       },
+       {
+        "id": "t1",
+        "kind": "rect",
+        "name": "Wall 1",
+        "role": "obstacle",
+        "x": 120,
+        "y": 94,
+        "w": 2,
+        "h": 12
+       },
+       {
+        "id": "l2",
+        "kind": "line",
+        "points": [
+         [
+          30,
+          160
+         ],
+         [
+          270,
+          160
+         ]
+        ],
+        "width": 1.48
+       },
+       {
+        "id": "t2",
+        "kind": "rect",
+        "name": "Wall 2",
+        "role": "obstacle",
+        "x": 48,
+        "y": 154,
+        "w": 2,
+        "h": 12
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Stops in front of the wall",
+      "scenario": "Given a black line with a wall across it 80 cm ahead, when your program runs, then the robot follows the line, sees the wall, stops before it without touching it and stays there.",
+      "start": "B",
+      "until": null,
+      "max_time_ms": 40000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "never_bumps",
+        "item": "t1"
+       },
+       {
+        "check": "after",
+        "event": "obstacle",
+        "within_ms": 1000,
+        "does": "stands_still"
+       },
+       {
+        "check": "does",
+        "does": "stands_still",
+        "after_ms": 20000
+       }
+      ]
+     },
+     {
+      "name": "Sees the wall at once and stays put",
+      "scenario": "Given a wall right in front of your robot, when your program runs, then the robot stops at once without touching the wall and stays where it is.",
+      "start": "C",
+      "until": null,
+      "max_time_ms": 20000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "never_bumps",
+        "item": "t2"
+       },
+       {
+        "check": "whenever",
+        "when": "obstacle_ahead",
+        "does": "stands_still",
+        "after_ms": 0
+       },
+       {
+        "check": "does",
+        "does": "stands_still",
+        "after_ms": 500
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "A line that bends",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "D",
+        "name": "D",
+        "x": 40,
+        "y": 100,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "l1",
+        "kind": "line",
+        "points": [
+         [
+          30,
+          100
+         ],
+         [
+          90,
+          100
+         ],
+         [
+          110,
+          120
+         ],
+         [
+          120,
+          150
+         ]
+        ],
+        "smooth": true,
+        "width": 1.48
+       },
+       {
+        "id": "g1",
+        "kind": "rect",
+        "name": "Goal 1",
+        "role": "goal",
+        "x": 105,
+        "y": 140,
+        "w": 30,
+        "h": 30
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Follows the line around the bend",
+      "scenario": "Given a black line that bends to the side under your robot, when your program runs, then the robot follows the line around the bend and reaches the goal at its end.",
+      "start": "D",
+      "until": "g1",
+      "max_time_ms": 60000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "g1"
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "duplicates": 0
+ }
+}

@@ -1,0 +1,156 @@
+{
+ "job": {
+  "id": "avoidWalls__A-no-handover__precise__r1__plain",
+  "function": "avoidWalls",
+  "version": "avoidWalls/A-no-handover",
+  "sentenceKind": "precise",
+  "sentence": "Inside a dark tunnel, steer away from its walls: when a wall is close on the left, turn right, and when one is close on the right, turn left, so the robot gets through a bending tunnel without touching it.",
+  "repeat": 1,
+  "pipeline": "plain",
+  "name": "p5_avoidWalls_A_no_handover"
+ },
+ "ms": {
+  "total": 150907,
+  "generate": 150907
+ },
+ "calls": [
+  {
+   "tokens": {
+    "in": 11958,
+    "cached": 8832,
+    "out": 21698,
+    "reasoning": 21248
+   },
+   "latencyMs": 150680
+  }
+ ],
+ "generate": {
+  "ok": true,
+  "repairs": 0,
+  "dropped": [],
+  "worlds": [
+   {
+    "name": "A dark tunnel",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 50,
+        "y": 100,
+        "heading": 40
+       },
+       {
+        "id": "B",
+        "name": "B",
+        "x": 120,
+        "y": 100,
+        "heading": -40
+       },
+       {
+        "id": "C",
+        "name": "C",
+        "x": 90,
+        "y": 100,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "t1",
+        "kind": "tunnel",
+        "name": "Tunnel",
+        "role": "obstacle",
+        "points": [
+         [
+          20,
+          100
+         ],
+         [
+          170,
+          100
+         ]
+        ],
+        "width": 16
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Turns right from a wall on its left",
+      "scenario": "Given a dark tunnel where a wall is close in front of your robot's left side, when the program runs, then your program turns right and does not touch the tunnel.",
+      "start": "A",
+      "until": null,
+      "max_time_ms": 3000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "whenever",
+        "when": "obstacle_left",
+        "does": "turns_right",
+        "after_ms": 0
+       },
+       {
+        "check": "never_bumps",
+        "item": "t1"
+       }
+      ]
+     },
+     {
+      "name": "Turns left from a wall on its right",
+      "scenario": "Given a dark tunnel where a wall is close in front of your robot's right side, when the program runs, then your program turns left and does not touch the tunnel.",
+      "start": "B",
+      "until": null,
+      "max_time_ms": 3000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "whenever",
+        "when": "obstacle_right",
+        "does": "turns_left",
+        "after_ms": 0
+       },
+       {
+        "check": "never_bumps",
+        "item": "t1"
+       }
+      ]
+     },
+     {
+      "name": "Stands still when no wall is close",
+      "scenario": "Given a dark tunnel with nothing close in front of your robot, when the program runs, then your program does not steer and stands still.",
+      "start": "C",
+      "until": null,
+      "max_time_ms": 3000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "does",
+        "does": "stands_still",
+        "after_ms": 500
+       },
+       {
+        "check": "never_bumps",
+        "item": "t1"
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "duplicates": 0
+ }
+}

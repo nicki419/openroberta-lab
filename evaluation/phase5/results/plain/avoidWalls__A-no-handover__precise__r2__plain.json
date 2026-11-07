@@ -1,0 +1,175 @@
+{
+ "job": {
+  "id": "avoidWalls__A-no-handover__precise__r2__plain",
+  "function": "avoidWalls",
+  "version": "avoidWalls/A-no-handover",
+  "sentenceKind": "precise",
+  "sentence": "Inside a dark tunnel, steer away from its walls: when a wall is close on the left, turn right, and when one is close on the right, turn left, so the robot gets through a bending tunnel without touching it.",
+  "repeat": 2,
+  "pipeline": "plain",
+  "name": "p5_avoidWalls_A_no_handover"
+ },
+ "ms": {
+  "total": 155223,
+  "generate": 155223
+ },
+ "calls": [
+  {
+   "tokens": {
+    "in": 11958,
+    "cached": 8832,
+    "out": 24739,
+    "reasoning": 24188
+   },
+   "latencyMs": 155000
+  }
+ ],
+ "generate": {
+  "ok": true,
+  "repairs": 0,
+  "dropped": [],
+  "worlds": [
+   {
+    "name": "A tunnel that bends right",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 74,
+        "y": 100,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "t1",
+        "kind": "tunnel",
+        "name": "Tunnel",
+        "role": "obstacle",
+        "points": [
+         [
+          20,
+          100
+         ],
+         [
+          80,
+          100
+         ],
+         [
+          110,
+          130
+         ]
+        ],
+        "width": 20
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Turns right at the wall in the tunnel",
+      "scenario": "Given a tunnel that bends right and the robot standing inside it in dim light, when the tunnel's left wall comes close in front of its left side, then your program turns right and never touches the tunnel.",
+      "start": "A",
+      "until": null,
+      "max_time_ms": 3000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "whenever",
+        "when": "obstacle_left",
+        "does": "turns_right",
+        "after_ms": 0
+       },
+       {
+        "check": "never_bumps",
+        "item": "t1"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "A tunnel that bends left",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 82,
+        "y": 100,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "t1",
+        "kind": "tunnel",
+        "name": "Tunnel",
+        "role": "obstacle",
+        "points": [
+         [
+          20,
+          100
+         ],
+         [
+          80,
+          100
+         ],
+         [
+          110,
+          70
+         ]
+        ],
+        "width": 20
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Turns left at the wall in the tunnel",
+      "scenario": "Given a tunnel that bends left and the robot standing inside it in dim light, when the tunnel's right wall comes close in front of its right side, then your program turns left and never touches the tunnel.",
+      "start": "A",
+      "until": null,
+      "max_time_ms": 3000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "whenever",
+        "when": "obstacle_right",
+        "does": "turns_left",
+        "after_ms": 0
+       },
+       {
+        "check": "never_bumps",
+        "item": "t1"
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "duplicates": 0
+ }
+}

@@ -1,0 +1,309 @@
+{
+ "job": {
+  "id": "followInTheDark__C-no-handover__vague__r1__plain",
+  "function": "followInTheDark",
+  "version": "followInTheDark/C-no-handover",
+  "sentenceKind": "vague",
+  "sentence": "Follow the line in the dark too.",
+  "repeat": 1,
+  "pipeline": "plain",
+  "name": "p5_followInTheDark_C_no_handover"
+ },
+ "ms": {
+  "total": 182157,
+  "generate": 182157
+ },
+ "calls": [
+  {
+   "tokens": {
+    "in": 12931,
+    "cached": 12672,
+    "out": 26554,
+    "reasoning": 25551
+   },
+   "latencyMs": 181937
+  }
+ ],
+ "generate": {
+  "ok": true,
+  "repairs": 0,
+  "dropped": [],
+  "worlds": [
+   {
+    "name": "A straight line in a dark tunnel",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 80,
+        "y": 100,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "t1",
+        "kind": "tunnel",
+        "name": "Tunnel",
+        "role": "obstacle",
+        "points": [
+         [
+          45,
+          100
+         ],
+         [
+          250,
+          100
+         ]
+        ],
+        "width": 20
+       },
+       {
+        "id": "l1",
+        "kind": "line",
+        "points": [
+         [
+          55,
+          100
+         ],
+         [
+          245,
+          100
+         ]
+        ],
+        "width": 1.48
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Follows the line in the dark",
+      "scenario": "Given a straight line inside a dark tunnel, when your program runs for 3 s, then it drives forward along the line in the dark without bumping into the tunnel's walls.",
+      "start": "A",
+      "until": null,
+      "max_time_ms": 3000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "never_bumps",
+        "item": "t1"
+       },
+       {
+        "check": "does",
+        "does": "drives_forward",
+        "after_ms": 500
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "A line beside the robot in a dark tunnel",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "B",
+        "name": "B",
+        "x": 80,
+        "y": 98,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "t1",
+        "kind": "tunnel",
+        "name": "Tunnel",
+        "role": "obstacle",
+        "points": [
+         [
+          45,
+          100
+         ],
+         [
+          250,
+          100
+         ]
+        ],
+        "width": 20
+       },
+       {
+        "id": "l1",
+        "kind": "line",
+        "points": [
+         [
+          55,
+          100
+         ],
+         [
+          245,
+          100
+         ]
+        ],
+        "width": 1.48
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Finds the line in the dark",
+      "scenario": "Given the robot standing 2 cm beside a line in a dark tunnel, when your program runs for 4 s, then it turns onto the line and drives forward along it in the dark.",
+      "start": "B",
+      "until": null,
+      "max_time_ms": 4000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "never_bumps",
+        "item": "t1"
+       },
+       {
+        "check": "does",
+        "does": "drives_forward",
+        "after_ms": 1000
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "A line that bends in a dark tunnel",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "C",
+        "name": "C",
+        "x": 80,
+        "y": 100,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "t1",
+        "kind": "tunnel",
+        "name": "Tunnel",
+        "role": "obstacle",
+        "points": [
+         [
+          45,
+          100
+         ],
+         [
+          95,
+          100
+         ],
+         [
+          108.7,
+          102.4
+         ],
+         [
+          120.7,
+          109.4
+         ],
+         [
+          123.3,
+          111.7
+         ],
+         [
+          160,
+          148.4
+         ]
+        ],
+        "smooth": true,
+        "width": 20
+       },
+       {
+        "id": "l1",
+        "kind": "line",
+        "points": [
+         [
+          50,
+          100
+         ],
+         [
+          95,
+          100
+         ],
+         [
+          108.7,
+          102.4
+         ],
+         [
+          120.7,
+          109.4
+         ],
+         [
+          123.3,
+          111.7
+         ],
+         [
+          160,
+          148.4
+         ]
+        ],
+        "smooth": true,
+        "width": 1.48
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Follows the line round the bend",
+      "scenario": "Given a line that bends inside a dark tunnel, when your program runs for 12 s, then it follows the line round the bend in the dark without bumping into the tunnel's walls.",
+      "start": "C",
+      "until": null,
+      "max_time_ms": 12000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "never_bumps",
+        "item": "t1"
+       },
+       {
+        "check": "does",
+        "does": "drives_forward",
+        "after_ms": 500
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "duplicates": 0
+ }
+}

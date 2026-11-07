@@ -129,7 +129,8 @@ designers' guide.
 (`/rest/ai/analyze`, `/rest/ai/generate`, `/rest/ai/fix`; at DeepSeek's own API, with SDU's UCloud as
 the backup, each with its own reasoning effort per call; the API keys stay on the server and are never logged; every
 call's prompt, answer, reasoning and timing go into the telemetry; the evaluation of the two APIs and the efforts:
-`docs/ai/nepo-ai-model-evaluation.md`), writes scenario tests when the learner asks (they write what their program should do into its box; no guess on a run since 2026-11-06), following the testing strategy of
+`docs/ai/nepo-ai-model-evaluation.md`; whether it follows the testing techniques, and what enforces them:
+`docs/ai/nepo-ai-technique-compliance.md`), writes scenario tests when the learner asks (they write what their program should do into its box; no guess on a run since 2026-11-06), following the testing strategy of
 `docs/tests/*_v3.md`:
 - an analysis first: the program's decisions (found by code: `nepoTest.aiStrategy.ts`), the paths that target their
   outcomes, the input classes (no boundary value analysis since 2026-11-06);

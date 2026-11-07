@@ -1,0 +1,242 @@
+{
+ "job": {
+  "id": "avoidWalls__B-front-sensor__precise__r1__plain",
+  "function": "avoidWalls",
+  "version": "avoidWalls/B-front-sensor",
+  "sentenceKind": "precise",
+  "sentence": "Inside a dark tunnel, steer away from its walls: when a wall is close on the left, turn right, and when one is close on the right, turn left, so the robot gets through a bending tunnel without touching it.",
+  "repeat": 1,
+  "pipeline": "plain",
+  "name": "p5_avoidWalls_B_front_sensor"
+ },
+ "ms": {
+  "total": 256143,
+  "generate": 256143
+ },
+ "calls": [
+  {
+   "tokens": {
+    "in": 12100,
+    "cached": 8832,
+    "out": 32000,
+    "reasoning": 31862
+   },
+   "latencyMs": 201268
+  },
+  {
+   "tokens": {
+    "in": 12264,
+    "cached": 12032,
+    "out": 8487,
+    "reasoning": 7845
+   },
+   "latencyMs": 54720
+  }
+ ],
+ "generate": {
+  "ok": true,
+  "repairs": 1,
+  "dropped": [],
+  "worlds": [
+   {
+    "name": "Dark tunnels with bends",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 70,
+        "y": 70,
+        "heading": 0
+       },
+       {
+        "id": "B",
+        "name": "B",
+        "x": 70,
+        "y": 130,
+        "heading": 0
+       },
+       {
+        "id": "C",
+        "name": "C",
+        "x": 70,
+        "y": 30,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "t1",
+        "kind": "tunnel",
+        "name": "Right-bending tunnel",
+        "role": "obstacle",
+        "points": [
+         [
+          60,
+          70
+         ],
+         [
+          120,
+          70
+         ],
+         [
+          160,
+          80
+         ],
+         [
+          190,
+          120
+         ]
+        ],
+        "smooth": true,
+        "width": 20
+       },
+       {
+        "id": "g1",
+        "kind": "rect",
+        "name": "Goal 1",
+        "role": "goal",
+        "x": 195,
+        "y": 105,
+        "w": 30,
+        "h": 30
+       },
+       {
+        "id": "t2",
+        "kind": "tunnel",
+        "name": "Left-bending tunnel",
+        "role": "obstacle",
+        "points": [
+         [
+          60,
+          130
+         ],
+         [
+          120,
+          130
+         ],
+         [
+          160,
+          120
+         ],
+         [
+          190,
+          80
+         ]
+        ],
+        "smooth": true,
+        "width": 20
+       },
+       {
+        "id": "g2",
+        "kind": "rect",
+        "name": "Goal 2",
+        "role": "goal",
+        "x": 195,
+        "y": 65,
+        "w": 30,
+        "h": 30
+       },
+       {
+        "id": "t3",
+        "kind": "tunnel",
+        "name": "Straight tunnel",
+        "role": "obstacle",
+        "points": [
+         [
+          60,
+          30
+         ],
+         [
+          200,
+          30
+         ]
+        ],
+        "width": 20
+       },
+       {
+        "id": "g3",
+        "kind": "rect",
+        "name": "Goal 3",
+        "role": "goal",
+        "x": 205,
+        "y": 15,
+        "w": 30,
+        "h": 30
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Gets through the right-bending tunnel",
+      "scenario": "Given the robot inside a dark tunnel that bends right, when the program runs, then it steers away from the left wall and comes out without bumping into the tunnel.",
+      "start": "A",
+      "until": "g1",
+      "max_time_ms": 60000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "never_bumps",
+        "item": "t1"
+       },
+       {
+        "check": "reaches",
+        "item": "g1"
+       }
+      ]
+     },
+     {
+      "name": "Gets through the left-bending tunnel",
+      "scenario": "Given the robot inside a dark tunnel that bends left, when the program runs, then it steers away from the right wall and comes out without bumping into the tunnel.",
+      "start": "B",
+      "until": "g2",
+      "max_time_ms": 60000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "never_bumps",
+        "item": "t2"
+       },
+       {
+        "check": "reaches",
+        "item": "g2"
+       }
+      ]
+     },
+     {
+      "name": "Drives straight through a dark tunnel",
+      "scenario": "Given the robot inside a straight dark tunnel, when the program runs, then it drives straight through and comes out without bumping into the tunnel walls.",
+      "start": "C",
+      "until": "g3",
+      "max_time_ms": 60000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "never_bumps",
+        "item": "t3"
+       },
+       {
+        "check": "reaches",
+        "item": "g3"
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "duplicates": 0
+ }
+}

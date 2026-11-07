@@ -1,0 +1,256 @@
+{
+ "job": {
+  "id": "stopAtWall__C-turns__vague__r1__plain",
+  "function": "stopAtWall",
+  "version": "stopAtWall/C-turns",
+  "sentenceKind": "vague",
+  "sentence": "Stop at the wall.",
+  "repeat": 1,
+  "pipeline": "plain",
+  "name": "p5_stopAtWall_C_turns"
+ },
+ "ms": {
+  "total": 186403,
+  "generate": 186403
+ },
+ "calls": [
+  {
+   "tokens": {
+    "in": 10763,
+    "cached": 10496,
+    "out": 27442,
+    "reasoning": 26492
+   },
+   "latencyMs": 186241
+  }
+ ],
+ "generate": {
+  "ok": true,
+  "repairs": 0,
+  "dropped": [],
+  "worlds": [
+   {
+    "name": "A wall at the end of the line",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 30,
+        "y": 100,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "l1",
+        "kind": "line",
+        "points": [
+         [
+          20,
+          100
+         ],
+         [
+          110,
+          100
+         ]
+        ],
+        "width": 1.48
+       },
+       {
+        "id": "t1",
+        "kind": "rect",
+        "name": "Wall",
+        "role": "obstacle",
+        "x": 60,
+        "y": 94,
+        "w": 2,
+        "h": 12
+       },
+       {
+        "id": "g1",
+        "kind": "rect",
+        "name": "At the wall",
+        "role": "goal",
+        "x": 52,
+        "y": 93,
+        "w": 8,
+        "h": 14
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Stops at the wall on the line",
+      "scenario": "Given a wall across the line, when the program runs, then your program follows the line up to the wall, turns right there and never bumps into the wall.",
+      "start": "A",
+      "until": null,
+      "max_time_ms": 12000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "g1"
+       },
+       {
+        "check": "never_bumps",
+        "item": "t1"
+       },
+       {
+        "check": "after",
+        "event": "obstacle",
+        "within_ms": 1500,
+        "does": "turns_right"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "A wall right in front of the robot",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 150,
+        "y": 100,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "t1",
+        "kind": "rect",
+        "name": "Wall",
+        "role": "obstacle",
+        "x": 158,
+        "y": 94,
+        "w": 2,
+        "h": 12
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Turns away from the wall in front",
+      "scenario": "Given a wall right in front of the robot, when the program runs, then your program turns right away from the wall and never bumps into it.",
+      "start": "A",
+      "until": null,
+      "max_time_ms": 8000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "never_bumps",
+        "item": "t1"
+       },
+       {
+        "check": "whenever",
+        "when": "obstacle_right",
+        "does": "turns_right",
+        "after_ms": 0
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "A wall at the start of the line",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 30,
+        "y": 100,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "l1",
+        "kind": "line",
+        "points": [
+         [
+          20,
+          100
+         ],
+         [
+          110,
+          100
+         ]
+        ],
+        "width": 1.48
+       },
+       {
+        "id": "t1",
+        "kind": "rect",
+        "name": "Wall",
+        "role": "obstacle",
+        "x": 38,
+        "y": 94,
+        "w": 2,
+        "h": 12
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Turns away from a wall right at the line's start",
+      "scenario": "Given a wall right in front of the robot while it stands on the line, when the program runs, then your program turns right away from the wall and never bumps into it.",
+      "start": "A",
+      "until": null,
+      "max_time_ms": 8000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "never_bumps",
+        "item": "t1"
+       },
+       {
+        "check": "whenever",
+        "when": "obstacle_right",
+        "does": "turns_right",
+        "after_ms": 0
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "duplicates": 0
+ }
+}

@@ -1,0 +1,203 @@
+{
+ "job": {
+  "id": "stopAtWall__A-negated__vague__r2__plain",
+  "function": "stopAtWall",
+  "version": "stopAtWall/A-negated",
+  "sentenceKind": "vague",
+  "sentence": "Stop at the wall.",
+  "repeat": 2,
+  "pipeline": "plain",
+  "name": "p5_stopAtWall_A_negated"
+ },
+ "ms": {
+  "total": 48598,
+  "generate": 48598
+ },
+ "calls": [
+  {
+   "tokens": {
+    "in": 10547,
+    "cached": 10368,
+    "out": 6820,
+    "reasoning": 5952
+   },
+   "latencyMs": 48434
+  }
+ ],
+ "generate": {
+  "ok": true,
+  "repairs": 0,
+  "dropped": [],
+  "worlds": [
+   {
+    "name": "Walls in front of the robot",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 50,
+        "y": 100,
+        "heading": 0
+       },
+       {
+        "id": "B",
+        "name": "B",
+        "x": 50,
+        "y": 160,
+        "heading": 0
+       },
+       {
+        "id": "C",
+        "name": "C",
+        "x": 50,
+        "y": 40,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "t1",
+        "kind": "rect",
+        "name": "Wall 1",
+        "role": "obstacle",
+        "x": 80,
+        "y": 94,
+        "w": 2,
+        "h": 12
+       },
+       {
+        "id": "g1",
+        "kind": "rect",
+        "name": "Goal 1",
+        "role": "goal",
+        "x": 62,
+        "y": 85,
+        "w": 16,
+        "h": 30
+       },
+       {
+        "id": "t2",
+        "kind": "rect",
+        "name": "Wall 2",
+        "role": "obstacle",
+        "x": 58,
+        "y": 154,
+        "w": 2,
+        "h": 12
+       },
+       {
+        "id": "t3",
+        "kind": "rect",
+        "name": "Wall 3",
+        "role": "obstacle",
+        "x": 110,
+        "y": 34,
+        "w": 2,
+        "h": 12
+       },
+       {
+        "id": "g2",
+        "kind": "rect",
+        "name": "Goal 2",
+        "role": "goal",
+        "x": 92,
+        "y": 25,
+        "w": 16,
+        "h": 30
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Stops at the wall ahead",
+      "scenario": "Given a wall 30 cm ahead of the robot, when the program runs, then the robot drives up to the wall, stops in front of it without bumping into it, and stays still.",
+      "start": "A",
+      "until": null,
+      "max_time_ms": 20000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "g1"
+       },
+       {
+        "check": "ends_in",
+        "item": "g1"
+       },
+       {
+        "check": "never_bumps",
+        "item": "t1"
+       },
+       {
+        "check": "does",
+        "does": "stands_still",
+        "after_ms": 5000
+       }
+      ]
+     },
+     {
+      "name": "Stops at a wall right in front",
+      "scenario": "Given a wall only 8 cm ahead of the robot, when the program runs, then the robot does not drive into the wall and stands still.",
+      "start": "B",
+      "until": null,
+      "max_time_ms": 10000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "does",
+        "does": "stands_still",
+        "after_ms": 300
+       },
+       {
+        "check": "never_bumps",
+        "item": "t2"
+       }
+      ]
+     },
+     {
+      "name": "Stops before a distant wall",
+      "scenario": "Given a wall 60 cm ahead of the robot, when the program runs, then the robot drives up to it and stops in front of it without bumping into it, and stays still.",
+      "start": "C",
+      "until": null,
+      "max_time_ms": 20000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "g2"
+       },
+       {
+        "check": "ends_in",
+        "item": "g2"
+       },
+       {
+        "check": "never_bumps",
+        "item": "t3"
+       },
+       {
+        "check": "does",
+        "does": "stands_still",
+        "after_ms": 8000
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "duplicates": 0
+ }
+}

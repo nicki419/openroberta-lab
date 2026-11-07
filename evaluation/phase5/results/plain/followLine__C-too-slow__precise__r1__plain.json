@@ -1,0 +1,450 @@
+{
+ "job": {
+  "id": "followLine__C-too-slow__precise__r1__plain",
+  "function": "followLine",
+  "version": "followLine/C-too-slow",
+  "sentenceKind": "precise",
+  "sentence": "Follow the black line from the start all the way to the green goal at its end, also through the curves, without leaving it.",
+  "repeat": 1,
+  "pipeline": "plain",
+  "name": "p5_followLine_C_too_slow"
+ },
+ "ms": {
+  "total": 79949,
+  "generate": 79949
+ },
+ "calls": [
+  {
+   "tokens": {
+    "in": 10626,
+    "cached": 8832,
+    "out": 13167,
+    "reasoning": 12031
+   },
+   "latencyMs": 79786
+  }
+ ],
+ "generate": {
+  "ok": true,
+  "repairs": 0,
+  "dropped": [],
+  "worlds": [
+   {
+    "name": "A straight line to the goal",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 40,
+        "y": 100,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "l1",
+        "kind": "line",
+        "points": [
+         [
+          20,
+          100
+         ],
+         [
+          240,
+          100
+         ]
+        ],
+        "width": 1.48
+       },
+       {
+        "id": "g1",
+        "kind": "rect",
+        "name": "Goal 1",
+        "role": "goal",
+        "x": 230,
+        "y": 88,
+        "w": 30,
+        "h": 24
+       },
+       {
+        "id": "f1",
+        "kind": "rect",
+        "role": "fail",
+        "x": 10,
+        "y": 10,
+        "w": 280,
+        "h": 75
+       },
+       {
+        "id": "f2",
+        "kind": "rect",
+        "role": "fail",
+        "x": 10,
+        "y": 115,
+        "w": 280,
+        "h": 75
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Follows the straight line to the goal",
+      "scenario": "Given the robot on a straight black line, when the program runs, then it follows the line all the way to the goal without leaving it.",
+      "start": "A",
+      "until": "g1",
+      "max_time_ms": 60000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "g1"
+       },
+       {
+        "check": "never_touches"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "An S-curve line to the goal",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 40,
+        "y": 100,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "l1",
+        "kind": "line",
+        "points": [
+         [
+          30,
+          100
+         ],
+         [
+          70,
+          100
+         ],
+         [
+          90,
+          100
+         ],
+         [
+          110,
+          85
+         ],
+         [
+          140,
+          85
+         ],
+         [
+          170,
+          110
+         ],
+         [
+          200,
+          110
+         ],
+         [
+          230,
+          95
+         ]
+        ],
+        "smooth": true,
+        "width": 1.48
+       },
+       {
+        "id": "g1",
+        "kind": "rect",
+        "name": "Goal 1",
+        "role": "goal",
+        "x": 225,
+        "y": 80,
+        "w": 35,
+        "h": 30
+       },
+       {
+        "id": "f1",
+        "kind": "rect",
+        "role": "fail",
+        "x": 10,
+        "y": 10,
+        "w": 280,
+        "h": 60
+       },
+       {
+        "id": "f2",
+        "kind": "rect",
+        "role": "fail",
+        "x": 10,
+        "y": 125,
+        "w": 280,
+        "h": 65
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Follows the S-curve to the goal",
+      "scenario": "Given the robot on a black line with two gentle bends, when the program runs, then it follows the line through the bends to the goal without leaving it.",
+      "start": "A",
+      "until": "g1",
+      "max_time_ms": 60000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "g1"
+       },
+       {
+        "check": "never_touches"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "A left bend to the goal",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 40,
+        "y": 100,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "l1",
+        "kind": "line",
+        "points": [
+         [
+          30,
+          100
+         ],
+         [
+          70,
+          100
+         ],
+         [
+          90,
+          100
+         ],
+         [
+          110,
+          80
+         ],
+         [
+          140,
+          80
+         ],
+         [
+          170,
+          60
+         ]
+        ],
+        "smooth": true,
+        "width": 1.48
+       },
+       {
+        "id": "g1",
+        "kind": "rect",
+        "name": "Goal 1",
+        "role": "goal",
+        "x": 160,
+        "y": 48,
+        "w": 30,
+        "h": 32
+       },
+       {
+        "id": "f1",
+        "kind": "rect",
+        "role": "fail",
+        "x": 10,
+        "y": 10,
+        "w": 280,
+        "h": 36
+       },
+       {
+        "id": "f2",
+        "kind": "rect",
+        "role": "fail",
+        "x": 10,
+        "y": 115,
+        "w": 280,
+        "h": 75
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Follows the left bend to the goal",
+      "scenario": "Given the robot on a black line that bends to the left, when the program runs, then it follows the bend to the goal without leaving the line.",
+      "start": "A",
+      "until": "g1",
+      "max_time_ms": 50000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "g1"
+       },
+       {
+        "check": "never_touches"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "A right bend to the goal",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 40,
+        "y": 100,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "l1",
+        "kind": "line",
+        "points": [
+         [
+          30,
+          100
+         ],
+         [
+          70,
+          100
+         ],
+         [
+          90,
+          100
+         ],
+         [
+          110,
+          120
+         ],
+         [
+          140,
+          120
+         ],
+         [
+          170,
+          140
+         ]
+        ],
+        "smooth": true,
+        "width": 1.48
+       },
+       {
+        "id": "g1",
+        "kind": "rect",
+        "name": "Goal 1",
+        "role": "goal",
+        "x": 160,
+        "y": 125,
+        "w": 30,
+        "h": 28
+       },
+       {
+        "id": "f1",
+        "kind": "rect",
+        "role": "fail",
+        "x": 10,
+        "y": 10,
+        "w": 280,
+        "h": 75
+       },
+       {
+        "id": "f2",
+        "kind": "rect",
+        "role": "fail",
+        "x": 10,
+        "y": 155,
+        "w": 280,
+        "h": 35
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Follows the right bend to the goal",
+      "scenario": "Given the robot on a black line that bends to the right, when the program runs, then it follows the bend to the goal without leaving the line.",
+      "start": "A",
+      "until": "g1",
+      "max_time_ms": 50000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "g1"
+       },
+       {
+        "check": "never_touches"
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "duplicates": 0
+ }
+}

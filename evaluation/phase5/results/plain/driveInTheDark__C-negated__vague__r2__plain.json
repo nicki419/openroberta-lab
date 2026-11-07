@@ -1,0 +1,124 @@
+{
+ "job": {
+  "id": "driveInTheDark__C-negated__vague__r2__plain",
+  "function": "driveInTheDark",
+  "version": "driveInTheDark/C-negated",
+  "sentenceKind": "vague",
+  "sentence": "Get through the tunnel.",
+  "repeat": 2,
+  "pipeline": "plain",
+  "name": "p5_driveInTheDark_C_negated"
+ },
+ "ms": {
+  "total": 81750,
+  "generate": 81750
+ },
+ "calls": [
+  {
+   "tokens": {
+    "in": 11034,
+    "cached": 10880,
+    "out": 10979,
+    "reasoning": 10732
+   },
+   "latencyMs": 81604
+  }
+ ],
+ "generate": {
+  "ok": true,
+  "repairs": 0,
+  "dropped": [],
+  "worlds": [
+   {
+    "name": "A tunnel with a line through it",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 30,
+        "y": 100,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "l1",
+        "kind": "line",
+        "points": [
+         [
+          20,
+          100
+         ],
+         [
+          200,
+          100
+         ]
+        ],
+        "width": 1.48
+       },
+       {
+        "id": "t1",
+        "kind": "tunnel",
+        "name": "Tunnel",
+        "role": "obstacle",
+        "points": [
+         [
+          45,
+          100
+         ],
+         [
+          125,
+          100
+         ]
+        ],
+        "width": 30
+       },
+       {
+        "id": "g1",
+        "kind": "rect",
+        "name": "Goal",
+        "role": "goal",
+        "x": 140,
+        "y": 60,
+        "w": 40,
+        "h": 80
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Drives through the tunnel",
+      "scenario": "Given a tunnel with a line through it, when the program runs, then the robot drives through the tunnel and reaches the goal after it.",
+      "start": "A",
+      "until": "g1",
+      "max_time_ms": 30000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "g1"
+       },
+       {
+        "check": "never_bumps",
+        "item": "t1"
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "duplicates": 0
+ }
+}

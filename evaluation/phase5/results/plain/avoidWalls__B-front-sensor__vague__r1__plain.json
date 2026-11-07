@@ -1,0 +1,275 @@
+{
+ "job": {
+  "id": "avoidWalls__B-front-sensor__vague__r1__plain",
+  "function": "avoidWalls",
+  "version": "avoidWalls/B-front-sensor",
+  "sentenceKind": "vague",
+  "sentence": "Don't hit the tunnel walls.",
+  "repeat": 1,
+  "pipeline": "plain",
+  "name": "p5_avoidWalls_B_front_sensor"
+ },
+ "ms": {
+  "total": 54446,
+  "generate": 54446
+ },
+ "calls": [
+  {
+   "tokens": {
+    "in": 12060,
+    "cached": 11776,
+    "out": 8490,
+    "reasoning": 7824
+   },
+   "latencyMs": 54281
+  }
+ ],
+ "generate": {
+  "ok": true,
+  "repairs": 0,
+  "dropped": [],
+  "worlds": [
+   {
+    "name": "A straight tunnel",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 50,
+        "y": 100,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "t1",
+        "kind": "tunnel",
+        "name": "Tunnel",
+        "role": "obstacle",
+        "points": [
+         [
+          30,
+          100
+         ],
+         [
+          150,
+          100
+         ]
+        ],
+        "width": 15
+       },
+       {
+        "id": "g1",
+        "kind": "rect",
+        "name": "Goal 1",
+        "role": "goal",
+        "x": 155,
+        "y": 85,
+        "w": 20,
+        "h": 30
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Drives through the straight tunnel",
+      "scenario": "Given you start inside a straight tunnel, when your program runs, then it drives out of the tunnel without touching its walls.",
+      "start": "A",
+      "until": "g1",
+      "max_time_ms": 15000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "never_bumps",
+        "item": "t1"
+       },
+       {
+        "check": "reaches",
+        "item": "g1"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "A tunnel bending right",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "B",
+        "name": "B",
+        "x": 50,
+        "y": 80,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "t2",
+        "kind": "tunnel",
+        "name": "Tunnel",
+        "role": "obstacle",
+        "points": [
+         [
+          30,
+          80
+         ],
+         [
+          110,
+          80
+         ],
+         [
+          150,
+          110
+         ],
+         [
+          165,
+          150
+         ]
+        ],
+        "smooth": true,
+        "width": 20
+       },
+       {
+        "id": "g2",
+        "kind": "rect",
+        "name": "Goal 1",
+        "role": "goal",
+        "x": 155,
+        "y": 155,
+        "w": 30,
+        "h": 20
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Turns right through the bend",
+      "scenario": "Given you start inside a tunnel that bends right, when your program runs, then it drives through the bend without touching the tunnel walls.",
+      "start": "B",
+      "until": "g2",
+      "max_time_ms": 25000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "never_bumps",
+        "item": "t2"
+       },
+       {
+        "check": "reaches",
+        "item": "g2"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "A tunnel bending left",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "C",
+        "name": "C",
+        "x": 50,
+        "y": 120,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "t3",
+        "kind": "tunnel",
+        "name": "Tunnel",
+        "role": "obstacle",
+        "points": [
+         [
+          30,
+          120
+         ],
+         [
+          110,
+          120
+         ],
+         [
+          150,
+          90
+         ],
+         [
+          165,
+          50
+         ]
+        ],
+        "smooth": true,
+        "width": 20
+       },
+       {
+        "id": "g3",
+        "kind": "rect",
+        "name": "Goal 1",
+        "role": "goal",
+        "x": 155,
+        "y": 25,
+        "w": 30,
+        "h": 20
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Turns left through the bend",
+      "scenario": "Given you start inside a tunnel that bends left, when your program runs, then it drives through the bend without touching the tunnel walls.",
+      "start": "C",
+      "until": "g3",
+      "max_time_ms": 25000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "never_bumps",
+        "item": "t3"
+       },
+       {
+        "check": "reaches",
+        "item": "g3"
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "duplicates": 0
+ }
+}

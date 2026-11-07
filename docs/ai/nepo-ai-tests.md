@@ -326,6 +326,9 @@ by the model and checked by code:
   threshold (`>` for `>=`, 3 claps where 2 should do) is found only if a class's typical case happens to lie there.
 - **Not tested:** whether the tests find seeded faults (ORCH phase 5, mutation tests). That is phase 5 of the plan,
   parked until it is discussed.
+- **Whether the model follows the techniques:** what the code enforces on every answer, what the runs measure, what is
+  only asked for, and how often DeepSeek breaks each rule: `docs/ai/nepo-ai-technique-compliance.md` (updated during
+  phase 5).
 
 ## The study's telemetry
 

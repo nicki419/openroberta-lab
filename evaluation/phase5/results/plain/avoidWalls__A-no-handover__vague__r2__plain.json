@@ -1,0 +1,194 @@
+{
+ "job": {
+  "id": "avoidWalls__A-no-handover__vague__r2__plain",
+  "function": "avoidWalls",
+  "version": "avoidWalls/A-no-handover",
+  "sentenceKind": "vague",
+  "sentence": "Don't hit the tunnel walls.",
+  "repeat": 2,
+  "pipeline": "plain",
+  "name": "p5_avoidWalls_A_no_handover"
+ },
+ "ms": {
+  "total": 244554,
+  "generate": 244554
+ },
+ "calls": [
+  {
+   "tokens": {
+    "in": 11918,
+    "cached": 8832,
+    "out": 32000,
+    "reasoning": 32000
+   },
+   "latencyMs": 199223
+  },
+  {
+   "tokens": {
+    "in": 11945,
+    "cached": 11776,
+    "out": 6020,
+    "reasoning": 5601
+   },
+   "latencyMs": 45079
+  }
+ ],
+ "generate": {
+  "ok": true,
+  "repairs": 1,
+  "dropped": [],
+  "worlds": [
+   {
+    "name": "A tunnel bending right",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 115,
+        "y": 108,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "t1",
+        "kind": "tunnel",
+        "name": "Tunnel",
+        "role": "obstacle",
+        "points": [
+         [
+          45,
+          100
+         ],
+         [
+          105,
+          100
+         ],
+         [
+          145,
+          130
+         ],
+         [
+          160,
+          170
+         ]
+        ],
+        "smooth": true,
+        "width": 18
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Turns away from the left wall",
+      "scenario": "Given your program in a tunnel that bends to the right, when the left wall comes in front of it, then it turns right and never bumps into the tunnel walls.",
+      "start": "A",
+      "until": null,
+      "max_time_ms": 10000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "never_bumps",
+        "item": "t1"
+       },
+       {
+        "check": "whenever",
+        "when": "obstacle_left",
+        "does": "turns_right",
+        "after_ms": 0
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "A tunnel bending left",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 115,
+        "y": 92,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "t1",
+        "kind": "tunnel",
+        "name": "Tunnel",
+        "role": "obstacle",
+        "points": [
+         [
+          45,
+          100
+         ],
+         [
+          105,
+          100
+         ],
+         [
+          145,
+          70
+         ],
+         [
+          160,
+          30
+         ]
+        ],
+        "smooth": true,
+        "width": 18
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Turns away from the right wall",
+      "scenario": "Given your program in a tunnel that bends to the left, when the right wall comes in front of it, then it turns left and never bumps into the tunnel walls.",
+      "start": "A",
+      "until": null,
+      "max_time_ms": 10000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "never_bumps",
+        "item": "t1"
+       },
+       {
+        "check": "whenever",
+        "when": "obstacle_right",
+        "does": "turns_left",
+        "after_ms": 0
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "duplicates": 0
+ }
+}

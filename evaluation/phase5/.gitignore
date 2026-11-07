@@ -1,0 +1,4 @@
+# the headless Chromes' profiles and the page scripts of a run
+.chrome/
+browser/_run_*.js
+__pycache__/

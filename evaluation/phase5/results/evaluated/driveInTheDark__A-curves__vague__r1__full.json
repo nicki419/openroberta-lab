@@ -1,0 +1,698 @@
+{
+ "id": "driveInTheDark__A-curves__vague__r1__full",
+ "job": {
+  "id": "driveInTheDark__A-curves__vague__r1__full",
+  "function": "driveInTheDark",
+  "version": "driveInTheDark/A-curves",
+  "sentenceKind": "vague",
+  "sentence": "Get through the tunnel.",
+  "repeat": 1,
+  "pipeline": "full",
+  "name": "p5_driveInTheDark_A_curves"
+ },
+ "versions": [
+  {
+   "id": "driveInTheDark/A",
+   "kind": "correct",
+   "fault": null,
+   "of": null
+  },
+  {
+   "id": "driveInTheDark/A-never-dark",
+   "kind": "broken",
+   "fault": "never-dark",
+   "of": "driveInTheDark/A"
+  },
+  {
+   "id": "driveInTheDark/A-floor-sensor",
+   "kind": "broken",
+   "fault": "floor-sensor",
+   "of": "driveInTheDark/A"
+  },
+  {
+   "id": "driveInTheDark/A-negated",
+   "kind": "broken",
+   "fault": "negated",
+   "of": "driveInTheDark/A"
+  },
+  {
+   "id": "driveInTheDark/A-curves",
+   "kind": "broken",
+   "fault": "curves",
+   "of": "driveInTheDark/A"
+  },
+  {
+   "id": "driveInTheDark/A-no-handover",
+   "kind": "broken",
+   "fault": "no-handover",
+   "of": "driveInTheDark/A"
+  },
+  {
+   "id": "driveInTheDark/B",
+   "kind": "correct",
+   "fault": null,
+   "of": null
+  },
+  {
+   "id": "driveInTheDark/B-never-dark",
+   "kind": "broken",
+   "fault": "never-dark",
+   "of": "driveInTheDark/B"
+  },
+  {
+   "id": "driveInTheDark/B-floor-sensor",
+   "kind": "broken",
+   "fault": "floor-sensor",
+   "of": "driveInTheDark/B"
+  },
+  {
+   "id": "driveInTheDark/B-negated",
+   "kind": "broken",
+   "fault": "negated",
+   "of": "driveInTheDark/B"
+  },
+  {
+   "id": "driveInTheDark/B-curves",
+   "kind": "broken",
+   "fault": "curves",
+   "of": "driveInTheDark/B"
+  },
+  {
+   "id": "driveInTheDark/B-no-handover",
+   "kind": "broken",
+   "fault": "no-handover",
+   "of": "driveInTheDark/B"
+  },
+  {
+   "id": "driveInTheDark/C",
+   "kind": "correct",
+   "fault": null,
+   "of": null
+  },
+  {
+   "id": "driveInTheDark/C-never-dark",
+   "kind": "broken",
+   "fault": "never-dark",
+   "of": "driveInTheDark/C"
+  },
+  {
+   "id": "driveInTheDark/C-floor-sensor",
+   "kind": "broken",
+   "fault": "floor-sensor",
+   "of": "driveInTheDark/C"
+  },
+  {
+   "id": "driveInTheDark/C-negated",
+   "kind": "broken",
+   "fault": "negated",
+   "of": "driveInTheDark/C"
+  },
+  {
+   "id": "driveInTheDark/C-curves",
+   "kind": "broken",
+   "fault": "curves",
+   "of": "driveInTheDark/C"
+  },
+  {
+   "id": "driveInTheDark/C-no-handover",
+   "kind": "broken",
+   "fault": "no-handover",
+   "of": "driveInTheDark/C"
+  }
+ ],
+ "runs": {
+  "driveInTheDark/A": {
+   "key": "driveInTheDark/A",
+   "tests": [
+    {
+     "world": "A line in bright light to a goal",
+     "test": "On the line, it follows it to the goal",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A line in bright light to a goal",
+     "test": "Started beside the line, it finds it",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A tunnel on the line",
+     "test": "Drives through the tunnel to its far end",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A wall across the line",
+     "test": "Stops at the wall across the line",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "driveInTheDark/A-never-dark": {
+   "key": "driveInTheDark/A-never-dark",
+   "tests": [
+    {
+     "world": "A line in bright light to a goal",
+     "test": "On the line, it follows it to the goal",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A line in bright light to a goal",
+     "test": "Started beside the line, it finds it",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A tunnel on the line",
+     "test": "Drives through the tunnel to its far end",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A wall across the line",
+     "test": "Stops at the wall across the line",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "driveInTheDark/A-floor-sensor": {
+   "key": "driveInTheDark/A-floor-sensor",
+   "tests": [
+    {
+     "world": "A line in bright light to a goal",
+     "test": "On the line, it follows it to the goal",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A line in bright light to a goal",
+     "test": "Started beside the line, it finds it",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 60 s"
+     ]
+    },
+    {
+     "world": "A tunnel on the line",
+     "test": "Drives through the tunnel to its far end",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A wall across the line",
+     "test": "Stops at the wall across the line",
+     "outcome": "failed",
+     "failed": [
+      "an obstacle was ahead, but the robot did not stand still: it drove forward, straight (3.49 cm/s), 2 times, 0.05 s in total; the first from 5.08 to 5.12 s",
+      "the robot bumped into \"Wall\" after 5.1 s"
+     ]
+    }
+   ]
+  },
+  "driveInTheDark/A-negated": {
+   "key": "driveInTheDark/A-negated",
+   "tests": [
+    {
+     "world": "A line in bright light to a goal",
+     "test": "On the line, it follows it to the goal",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A line in bright light to a goal",
+     "test": "Started beside the line, it finds it",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A tunnel on the line",
+     "test": "Drives through the tunnel to its far end",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A wall across the line",
+     "test": "Stops at the wall across the line",
+     "outcome": "failed",
+     "failed": [
+      "an obstacle was ahead, but the robot did not stand still: it drove forward, straight (3.49 cm/s), 2 times, 0.05 s in total; the first from 5.08 to 5.12 s",
+      "the robot bumped into \"Wall\" after 5.1 s"
+     ]
+    }
+   ]
+  },
+  "driveInTheDark/A-curves": {
+   "key": "driveInTheDark/A-curves",
+   "tests": [
+    {
+     "world": "A line in bright light to a goal",
+     "test": "On the line, it follows it to the goal",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A line in bright light to a goal",
+     "test": "Started beside the line, it finds it",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A tunnel on the line",
+     "test": "Drives through the tunnel to its far end",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 2.6 s"
+     ]
+    },
+    {
+     "world": "A wall across the line",
+     "test": "Stops at the wall across the line",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "driveInTheDark/A-no-handover": {
+   "key": "driveInTheDark/A-no-handover",
+   "tests": [
+    {
+     "world": "A line in bright light to a goal",
+     "test": "On the line, it follows it to the goal",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 60 s"
+     ]
+    },
+    {
+     "world": "A line in bright light to a goal",
+     "test": "Started beside the line, it finds it",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 60 s"
+     ]
+    },
+    {
+     "world": "A tunnel on the line",
+     "test": "Drives through the tunnel to its far end",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 60 s"
+     ]
+    },
+    {
+     "world": "A wall across the line",
+     "test": "Stops at the wall across the line",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "driveInTheDark/B": {
+   "key": "driveInTheDark/B",
+   "tests": [
+    {
+     "world": "A line in bright light to a goal",
+     "test": "On the line, it follows it to the goal",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A line in bright light to a goal",
+     "test": "Started beside the line, it finds it",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A tunnel on the line",
+     "test": "Drives through the tunnel to its far end",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A wall across the line",
+     "test": "Stops at the wall across the line",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "driveInTheDark/B-never-dark": {
+   "key": "driveInTheDark/B-never-dark",
+   "tests": [
+    {
+     "world": "A line in bright light to a goal",
+     "test": "On the line, it follows it to the goal",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A line in bright light to a goal",
+     "test": "Started beside the line, it finds it",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A tunnel on the line",
+     "test": "Drives through the tunnel to its far end",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A wall across the line",
+     "test": "Stops at the wall across the line",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "driveInTheDark/B-floor-sensor": {
+   "key": "driveInTheDark/B-floor-sensor",
+   "tests": [
+    {
+     "world": "A line in bright light to a goal",
+     "test": "On the line, it follows it to the goal",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A line in bright light to a goal",
+     "test": "Started beside the line, it finds it",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 60 s"
+     ]
+    },
+    {
+     "world": "A tunnel on the line",
+     "test": "Drives through the tunnel to its far end",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A wall across the line",
+     "test": "Stops at the wall across the line",
+     "outcome": "failed",
+     "failed": [
+      "an obstacle was ahead, but the robot did not stand still: it drove forward, straight (13.92 cm/s), from 29.98 to 30 s",
+      "the robot bumped into \"Wall\" after 3.8 s"
+     ]
+    }
+   ]
+  },
+  "driveInTheDark/B-negated": {
+   "key": "driveInTheDark/B-negated",
+   "tests": [
+    {
+     "world": "A line in bright light to a goal",
+     "test": "On the line, it follows it to the goal",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A line in bright light to a goal",
+     "test": "Started beside the line, it finds it",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A tunnel on the line",
+     "test": "Drives through the tunnel to its far end",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A wall across the line",
+     "test": "Stops at the wall across the line",
+     "outcome": "failed",
+     "failed": [
+      "an obstacle was ahead, but the robot did not stand still: it drove forward, straight (13.92 cm/s), from 29.98 to 30 s",
+      "the robot bumped into \"Wall\" after 3.8 s"
+     ]
+    }
+   ]
+  },
+  "driveInTheDark/B-curves": {
+   "key": "driveInTheDark/B-curves",
+   "tests": [
+    {
+     "world": "A line in bright light to a goal",
+     "test": "On the line, it follows it to the goal",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A line in bright light to a goal",
+     "test": "Started beside the line, it finds it",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A tunnel on the line",
+     "test": "Drives through the tunnel to its far end",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 2.6 s"
+     ]
+    },
+    {
+     "world": "A wall across the line",
+     "test": "Stops at the wall across the line",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "driveInTheDark/B-no-handover": {
+   "key": "driveInTheDark/B-no-handover",
+   "tests": [
+    {
+     "world": "A line in bright light to a goal",
+     "test": "On the line, it follows it to the goal",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 60 s"
+     ]
+    },
+    {
+     "world": "A line in bright light to a goal",
+     "test": "Started beside the line, it finds it",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 60 s"
+     ]
+    },
+    {
+     "world": "A tunnel on the line",
+     "test": "Drives through the tunnel to its far end",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 60 s"
+     ]
+    },
+    {
+     "world": "A wall across the line",
+     "test": "Stops at the wall across the line",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "driveInTheDark/C": {
+   "key": "driveInTheDark/C",
+   "tests": [
+    {
+     "world": "A line in bright light to a goal",
+     "test": "On the line, it follows it to the goal",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A line in bright light to a goal",
+     "test": "Started beside the line, it finds it",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A tunnel on the line",
+     "test": "Drives through the tunnel to its far end",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A wall across the line",
+     "test": "Stops at the wall across the line",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "driveInTheDark/C-never-dark": {
+   "key": "driveInTheDark/C-never-dark",
+   "tests": [
+    {
+     "world": "A line in bright light to a goal",
+     "test": "On the line, it follows it to the goal",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A line in bright light to a goal",
+     "test": "Started beside the line, it finds it",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A tunnel on the line",
+     "test": "Drives through the tunnel to its far end",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A wall across the line",
+     "test": "Stops at the wall across the line",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "driveInTheDark/C-floor-sensor": {
+   "key": "driveInTheDark/C-floor-sensor",
+   "tests": [
+    {
+     "world": "A line in bright light to a goal",
+     "test": "On the line, it follows it to the goal",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A line in bright light to a goal",
+     "test": "Started beside the line, it finds it",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 60 s"
+     ]
+    },
+    {
+     "world": "A tunnel on the line",
+     "test": "Drives through the tunnel to its far end",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A wall across the line",
+     "test": "Stops at the wall across the line",
+     "outcome": "failed",
+     "failed": [
+      "an obstacle was ahead, but the robot did not stand still: it drove forward, straight (3.49 cm/s), 2 times, 0.05 s in total; the first from 5.08 to 5.12 s",
+      "the robot bumped into \"Wall\" after 5.1 s"
+     ]
+    }
+   ]
+  },
+  "driveInTheDark/C-negated": {
+   "key": "driveInTheDark/C-negated",
+   "tests": [
+    {
+     "world": "A line in bright light to a goal",
+     "test": "On the line, it follows it to the goal",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A line in bright light to a goal",
+     "test": "Started beside the line, it finds it",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A tunnel on the line",
+     "test": "Drives through the tunnel to its far end",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A wall across the line",
+     "test": "Stops at the wall across the line",
+     "outcome": "failed",
+     "failed": [
+      "an obstacle was ahead, but the robot did not stand still: it drove forward, straight (3.49 cm/s), 2 times, 0.05 s in total; the first from 5.08 to 5.12 s",
+      "the robot bumped into \"Wall\" after 5.1 s"
+     ]
+    }
+   ]
+  },
+  "driveInTheDark/C-curves": {
+   "key": "driveInTheDark/C-curves",
+   "tests": [
+    {
+     "world": "A line in bright light to a goal",
+     "test": "On the line, it follows it to the goal",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A line in bright light to a goal",
+     "test": "Started beside the line, it finds it",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A tunnel on the line",
+     "test": "Drives through the tunnel to its far end",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 2.4 s"
+     ]
+    },
+    {
+     "world": "A wall across the line",
+     "test": "Stops at the wall across the line",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "driveInTheDark/C-no-handover": {
+   "key": "driveInTheDark/C-no-handover",
+   "tests": [
+    {
+     "world": "A line in bright light to a goal",
+     "test": "On the line, it follows it to the goal",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 60 s"
+     ]
+    },
+    {
+     "world": "A line in bright light to a goal",
+     "test": "Started beside the line, it finds it",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 60 s"
+     ]
+    },
+    {
+     "world": "A tunnel on the line",
+     "test": "Drives through the tunnel to its far end",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 60 s"
+     ]
+    },
+    {
+     "world": "A wall across the line",
+     "test": "Stops at the wall across the line",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  }
+ }
+}

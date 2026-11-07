@@ -1,0 +1,172 @@
+{
+ "job": {
+  "id": "stopAtWall__A-slows__vague__r2__plain",
+  "function": "stopAtWall",
+  "version": "stopAtWall/A-slows",
+  "sentenceKind": "vague",
+  "sentence": "Stop at the wall.",
+  "repeat": 2,
+  "pipeline": "plain",
+  "name": "p5_stopAtWall_A_slows"
+ },
+ "ms": {
+  "total": 45879,
+  "generate": 45879
+ },
+ "calls": [
+  {
+   "tokens": {
+    "in": 10678,
+    "cached": 10496,
+    "out": 5842,
+    "reasoning": 5368
+   },
+   "latencyMs": 45712
+  }
+ ],
+ "generate": {
+  "ok": true,
+  "repairs": 0,
+  "dropped": [],
+  "worlds": [
+   {
+    "name": "A wall on the line",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 50,
+        "y": 100,
+        "heading": 0
+       },
+       {
+        "id": "B",
+        "name": "B",
+        "x": 50,
+        "y": 160,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "l1",
+        "kind": "line",
+        "points": [
+         [
+          40,
+          100
+         ],
+         [
+          130,
+          100
+         ]
+        ],
+        "width": 1.48
+       },
+       {
+        "id": "t1",
+        "kind": "rect",
+        "name": "Wall 1",
+        "role": "obstacle",
+        "x": 80,
+        "y": 94,
+        "w": 2,
+        "h": 12
+       },
+       {
+        "id": "l2",
+        "kind": "line",
+        "points": [
+         [
+          40,
+          160
+         ],
+         [
+          130,
+          160
+         ]
+        ],
+        "width": 1.48
+       },
+       {
+        "id": "t2",
+        "kind": "rect",
+        "name": "Wall 2",
+        "role": "obstacle",
+        "x": 58,
+        "y": 154,
+        "w": 2,
+        "h": 12
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Stops before a wall it drives up to",
+      "scenario": "Given a line with a wall across it 30 cm ahead, when the program runs for 20 s, then the robot follows the line and stops before the wall without bumping into it.",
+      "start": "A",
+      "until": null,
+      "max_time_ms": 20000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "never_bumps",
+        "item": "t1"
+       },
+       {
+        "check": "whenever",
+        "when": "obstacle_ahead",
+        "does": "stands_still",
+        "after_ms": 0
+       },
+       {
+        "check": "does",
+        "does": "stands_still",
+        "after_ms": 10000
+       }
+      ]
+     },
+     {
+      "name": "Stops before a wall it sees at once",
+      "scenario": "Given a line with a wall across it 8 cm ahead, when the program runs for 20 s, then the robot stops before the wall without bumping into it.",
+      "start": "B",
+      "until": null,
+      "max_time_ms": 20000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "never_bumps",
+        "item": "t2"
+       },
+       {
+        "check": "whenever",
+        "when": "obstacle_ahead",
+        "does": "stands_still",
+        "after_ms": 0
+       },
+       {
+        "check": "does",
+        "does": "stands_still",
+        "after_ms": 10000
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "duplicates": 0
+ }
+}

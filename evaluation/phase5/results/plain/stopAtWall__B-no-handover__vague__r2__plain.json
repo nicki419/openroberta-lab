@@ -1,0 +1,130 @@
+{
+ "job": {
+  "id": "stopAtWall__B-no-handover__vague__r2__plain",
+  "function": "stopAtWall",
+  "version": "stopAtWall/B-no-handover",
+  "sentenceKind": "vague",
+  "sentence": "Stop at the wall.",
+  "repeat": 2,
+  "pipeline": "plain",
+  "name": "p5_stopAtWall_B_no_handover"
+ },
+ "ms": {
+  "total": 31965,
+  "generate": 31965
+ },
+ "calls": [
+  {
+   "tokens": {
+    "in": 10598,
+    "cached": 10368,
+    "out": 4521,
+    "reasoning": 4065
+   },
+   "latencyMs": 31796
+  }
+ ],
+ "generate": {
+  "ok": true,
+  "repairs": 0,
+  "dropped": [],
+  "worlds": [
+   {
+    "name": "A wall in front of the robot",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 60,
+        "y": 100,
+        "heading": 0
+       },
+       {
+        "id": "B",
+        "name": "B",
+        "x": 60,
+        "y": 160,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "t1",
+        "kind": "rect",
+        "name": "Wall 1",
+        "role": "obstacle",
+        "x": 68,
+        "y": 94,
+        "w": 2,
+        "h": 12
+       },
+       {
+        "id": "t2",
+        "kind": "rect",
+        "name": "Wall 2",
+        "role": "obstacle",
+        "x": 90,
+        "y": 154,
+        "w": 2,
+        "h": 12
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Stands still at the wall right in front",
+      "scenario": "Given a wall right in front of your robot, when your program runs for 10 s, then your robot stands still and doesn't bump into the wall.",
+      "start": "A",
+      "until": null,
+      "max_time_ms": 10000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "never_bumps",
+        "item": "t1"
+       },
+       {
+        "check": "does",
+        "does": "stands_still",
+        "after_ms": 100
+       }
+      ]
+     },
+     {
+      "name": "Doesn't drive into the wall ahead",
+      "scenario": "Given a wall 30 cm in front of your robot, when your program runs for 10 s, then your robot stays where it is and doesn't bump into the wall.",
+      "start": "B",
+      "until": null,
+      "max_time_ms": 10000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "never_bumps",
+        "item": "t2"
+       },
+       {
+        "check": "does",
+        "does": "stands_still",
+        "after_ms": 100
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "duplicates": 0
+ }
+}

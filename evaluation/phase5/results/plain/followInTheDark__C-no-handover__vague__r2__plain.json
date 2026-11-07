@@ -1,0 +1,287 @@
+{
+ "job": {
+  "id": "followInTheDark__C-no-handover__vague__r2__plain",
+  "function": "followInTheDark",
+  "version": "followInTheDark/C-no-handover",
+  "sentenceKind": "vague",
+  "sentence": "Follow the line in the dark too.",
+  "repeat": 2,
+  "pipeline": "plain",
+  "name": "p5_followInTheDark_C_no_handover"
+ },
+ "ms": {
+  "total": 177524,
+  "generate": 177524
+ },
+ "calls": [
+  {
+   "tokens": {
+    "in": 12931,
+    "cached": 12672,
+    "out": 25672,
+    "reasoning": 24761
+   },
+   "latencyMs": 177323
+  }
+ ],
+ "generate": {
+  "ok": true,
+  "repairs": 0,
+  "dropped": [],
+  "worlds": [
+   {
+    "name": "A straight line in a dark tunnel",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 60,
+        "y": 100,
+        "heading": 0
+       },
+       {
+        "id": "B",
+        "name": "B",
+        "x": 60,
+        "y": 160,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "l1",
+        "kind": "line",
+        "points": [
+         [
+          40,
+          100
+         ],
+         [
+          160,
+          100
+         ]
+        ],
+        "width": 1.48
+       },
+       {
+        "id": "t1",
+        "kind": "tunnel",
+        "role": "obstacle",
+        "points": [
+         [
+          45,
+          100
+         ],
+         [
+          135,
+          100
+         ]
+        ],
+        "width": 20
+       },
+       {
+        "id": "g1",
+        "kind": "rect",
+        "name": "Goal 1",
+        "role": "goal",
+        "x": 100,
+        "y": 85,
+        "w": 30,
+        "h": 30
+       },
+       {
+        "id": "l2",
+        "kind": "line",
+        "points": [
+         [
+          40,
+          160
+         ],
+         [
+          160,
+          160
+         ]
+        ],
+        "width": 1.48
+       },
+       {
+        "id": "t2",
+        "kind": "tunnel",
+        "role": "obstacle",
+        "points": [
+         [
+          45,
+          160
+         ],
+         [
+          135,
+          160
+         ]
+        ],
+        "width": 20
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Follows a straight line in the dark",
+      "scenario": "Given your program starts on a line inside a dark tunnel, when it runs, then it follows the line along the tunnel and reaches the goal without bumping into the tunnel.",
+      "start": "A",
+      "until": "g1",
+      "max_time_ms": 30000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "g1"
+       },
+       {
+        "check": "never_bumps",
+        "item": "t1"
+       }
+      ]
+     },
+     {
+      "name": "Keeps following the line in the dark",
+      "scenario": "Given your program starts on a line inside a dark tunnel, when it runs for 8 s, then it keeps driving forward along the line in the dark.",
+      "start": "B",
+      "until": null,
+      "max_time_ms": 8000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "does",
+        "does": "drives_forward",
+        "after_ms": 1000
+       },
+       {
+        "check": "never_bumps",
+        "item": "t2"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "A bend in a dark tunnel",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 50,
+        "y": 100,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "l1",
+        "kind": "line",
+        "points": [
+         [
+          38,
+          100
+         ],
+         [
+          60,
+          100
+         ],
+         [
+          75,
+          115
+         ],
+         [
+          85,
+          135
+         ]
+        ],
+        "smooth": true,
+        "width": 1.48
+       },
+       {
+        "id": "t1",
+        "kind": "tunnel",
+        "role": "obstacle",
+        "points": [
+         [
+          38,
+          100
+         ],
+         [
+          60,
+          100
+         ],
+         [
+          75,
+          115
+         ],
+         [
+          85,
+          135
+         ]
+        ],
+        "smooth": true,
+        "width": 20
+       },
+       {
+        "id": "g1",
+        "kind": "rect",
+        "name": "Goal 1",
+        "role": "goal",
+        "x": 80,
+        "y": 115,
+        "w": 30,
+        "h": 30
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Follows a bending line in the dark",
+      "scenario": "Given your program starts on a line inside a dark tunnel that bends, when it runs, then it follows the line around the bend and reaches the goal without bumping into the tunnel walls.",
+      "start": "A",
+      "until": "g1",
+      "max_time_ms": 20000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "g1"
+       },
+       {
+        "check": "never_bumps",
+        "item": "t1"
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "duplicates": 0
+ }
+}

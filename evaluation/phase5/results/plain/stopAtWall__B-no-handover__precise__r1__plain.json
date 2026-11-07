@@ -1,0 +1,160 @@
+{
+ "job": {
+  "id": "stopAtWall__B-no-handover__precise__r1__plain",
+  "function": "stopAtWall",
+  "version": "stopAtWall/B-no-handover",
+  "sentenceKind": "precise",
+  "sentence": "Follow the black line, and when a wall is right in front of the robot, stop before it without touching it and stay there.",
+  "repeat": 1,
+  "pipeline": "plain",
+  "name": "p5_stopAtWall_B_no_handover"
+ },
+ "ms": {
+  "total": 57963,
+  "generate": 57963
+ },
+ "calls": [
+  {
+   "tokens": {
+    "in": 10620,
+    "cached": 8832,
+    "out": 7870,
+    "reasoning": 7328
+   },
+   "latencyMs": 57782
+  }
+ ],
+ "generate": {
+  "ok": true,
+  "repairs": 0,
+  "dropped": [],
+  "worlds": [
+   {
+    "name": "A wall right in front on the black line",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 50,
+        "y": 100,
+        "heading": 0
+       },
+       {
+        "id": "B",
+        "name": "B",
+        "x": 50,
+        "y": 160,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "l1",
+        "kind": "line",
+        "points": [
+         [
+          40,
+          100
+         ],
+         [
+          130,
+          100
+         ]
+        ],
+        "width": 1.48
+       },
+       {
+        "id": "l2",
+        "kind": "line",
+        "points": [
+         [
+          40,
+          160
+         ],
+         [
+          130,
+          160
+         ]
+        ],
+        "width": 1.48
+       },
+       {
+        "id": "t1",
+        "kind": "rect",
+        "name": "Wall 1",
+        "role": "obstacle",
+        "x": 58,
+        "y": 94,
+        "w": 2,
+        "h": 12
+       },
+       {
+        "id": "t2",
+        "kind": "rect",
+        "name": "Wall 2",
+        "role": "obstacle",
+        "x": 58,
+        "y": 154,
+        "w": 2,
+        "h": 12
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Stops in front of the wall",
+      "scenario": "Given your program starts on the black line with a wall right in front of the robot, when it runs for 5 seconds, then the robot stays still in front of the wall and never touches it.",
+      "start": "A",
+      "until": null,
+      "max_time_ms": 5000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "does",
+        "does": "stands_still",
+        "after_ms": 100
+       },
+       {
+        "check": "never_bumps",
+        "item": "t1"
+       }
+      ]
+     },
+     {
+      "name": "Stays in front of the wall",
+      "scenario": "Given your program starts on the black line with a wall right in front of the robot, when it runs for 10 seconds, then the robot stays still the whole time and never touches the wall.",
+      "start": "B",
+      "until": null,
+      "max_time_ms": 10000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "does",
+        "does": "stands_still",
+        "after_ms": 100
+       },
+       {
+        "check": "never_bumps",
+        "item": "t2"
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "duplicates": 0
+ }
+}

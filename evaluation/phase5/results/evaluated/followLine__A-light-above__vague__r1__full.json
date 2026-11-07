@@ -1,0 +1,100 @@
+{
+ "id": "followLine__A-light-above__vague__r1__full",
+ "job": {
+  "id": "followLine__A-light-above__vague__r1__full",
+  "function": "followLine",
+  "version": "followLine/A-light-above",
+  "sentenceKind": "vague",
+  "sentence": "Follow the line.",
+  "repeat": 1,
+  "pipeline": "full",
+  "name": "p5_followLine_A_light_above"
+ },
+ "versions": [
+  {
+   "id": "followLine/A",
+   "kind": "correct",
+   "fault": null,
+   "of": null
+  },
+  {
+   "id": "followLine/A-light-above",
+   "kind": "broken",
+   "fault": "light-above",
+   "of": "followLine/A"
+  },
+  {
+   "id": "followLine/A-one-turn",
+   "kind": "broken",
+   "fault": "one-turn",
+   "of": "followLine/A"
+  },
+  {
+   "id": "followLine/A-too-slow",
+   "kind": "broken",
+   "fault": "too-slow",
+   "of": "followLine/A"
+  },
+  {
+   "id": "followLine/A-straight-off",
+   "kind": "broken",
+   "fault": "straight-off",
+   "of": "followLine/A"
+  },
+  {
+   "id": "followLine/B",
+   "kind": "correct",
+   "fault": null,
+   "of": null
+  },
+  {
+   "id": "followLine/B-light-above",
+   "kind": "broken",
+   "fault": "light-above",
+   "of": "followLine/B"
+  },
+  {
+   "id": "followLine/B-one-turn",
+   "kind": "broken",
+   "fault": "one-turn",
+   "of": "followLine/B"
+  },
+  {
+   "id": "followLine/B-straight-off",
+   "kind": "broken",
+   "fault": "straight-off",
+   "of": "followLine/B"
+  },
+  {
+   "id": "followLine/C",
+   "kind": "correct",
+   "fault": null,
+   "of": null
+  },
+  {
+   "id": "followLine/C-light-above",
+   "kind": "broken",
+   "fault": "light-above",
+   "of": "followLine/C"
+  },
+  {
+   "id": "followLine/C-one-turn",
+   "kind": "broken",
+   "fault": "one-turn",
+   "of": "followLine/C"
+  },
+  {
+   "id": "followLine/C-too-slow",
+   "kind": "broken",
+   "fault": "too-slow",
+   "of": "followLine/C"
+  },
+  {
+   "id": "followLine/C-straight-off",
+   "kind": "broken",
+   "fault": "straight-off",
+   "of": "followLine/C"
+  }
+ ],
+ "runs": {}
+}

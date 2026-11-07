@@ -1,0 +1,403 @@
+{
+ "id": "avoidWalls__A-no-handover__vague__r1__plain",
+ "job": {
+  "id": "avoidWalls__A-no-handover__vague__r1__plain",
+  "function": "avoidWalls",
+  "version": "avoidWalls/A-no-handover",
+  "sentenceKind": "vague",
+  "sentence": "Don't hit the tunnel walls.",
+  "repeat": 1,
+  "pipeline": "plain",
+  "name": "p5_avoidWalls_A_no_handover"
+ },
+ "versions": [
+  {
+   "id": "avoidWalls/A",
+   "kind": "correct",
+   "fault": null,
+   "of": null
+  },
+  {
+   "id": "avoidWalls/A-swapped",
+   "kind": "broken",
+   "fault": "swapped",
+   "of": "avoidWalls/A"
+  },
+  {
+   "id": "avoidWalls/A-front-sensor",
+   "kind": "broken",
+   "fault": "front-sensor",
+   "of": "avoidWalls/A"
+  },
+  {
+   "id": "avoidWalls/A-never-dark",
+   "kind": "broken",
+   "fault": "never-dark",
+   "of": "avoidWalls/A"
+  },
+  {
+   "id": "avoidWalls/A-no-handover",
+   "kind": "broken",
+   "fault": "no-handover",
+   "of": "avoidWalls/A"
+  },
+  {
+   "id": "avoidWalls/B",
+   "kind": "correct",
+   "fault": null,
+   "of": null
+  },
+  {
+   "id": "avoidWalls/B-swapped",
+   "kind": "broken",
+   "fault": "swapped",
+   "of": "avoidWalls/B"
+  },
+  {
+   "id": "avoidWalls/B-front-sensor",
+   "kind": "broken",
+   "fault": "front-sensor",
+   "of": "avoidWalls/B"
+  },
+  {
+   "id": "avoidWalls/B-never-dark",
+   "kind": "broken",
+   "fault": "never-dark",
+   "of": "avoidWalls/B"
+  },
+  {
+   "id": "avoidWalls/B-no-handover",
+   "kind": "broken",
+   "fault": "no-handover",
+   "of": "avoidWalls/B"
+  },
+  {
+   "id": "avoidWalls/C",
+   "kind": "correct",
+   "fault": null,
+   "of": null
+  },
+  {
+   "id": "avoidWalls/C-swapped",
+   "kind": "broken",
+   "fault": "swapped",
+   "of": "avoidWalls/C"
+  },
+  {
+   "id": "avoidWalls/C-front-sensor",
+   "kind": "broken",
+   "fault": "front-sensor",
+   "of": "avoidWalls/C"
+  },
+  {
+   "id": "avoidWalls/C-never-dark",
+   "kind": "broken",
+   "fault": "never-dark",
+   "of": "avoidWalls/C"
+  },
+  {
+   "id": "avoidWalls/C-no-handover",
+   "kind": "broken",
+   "fault": "no-handover",
+   "of": "avoidWalls/C"
+  }
+ ],
+ "runs": {
+  "avoidWalls/A": {
+   "key": "avoidWalls/A",
+   "tests": [
+    {
+     "world": "A tunnel with the robot angled at a wall",
+     "test": "Turns right away from the left wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A tunnel with the robot angled at a wall",
+     "test": "Turns left away from the right wall",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "avoidWalls/A-swapped": {
+   "key": "avoidWalls/A-swapped",
+   "tests": [
+    {
+     "world": "A tunnel with the robot angled at a wall",
+     "test": "Turns right away from the left wall",
+     "outcome": "failed",
+     "failed": [
+      "an obstacle was to the left, but the robot did not turn right: it turned left on the spot, 13 times, 1.37 s in total; the first from 0 to 0.37 s"
+     ]
+    },
+    {
+     "world": "A tunnel with the robot angled at a wall",
+     "test": "Turns left away from the right wall",
+     "outcome": "failed",
+     "failed": [
+      "an obstacle was to the right, but the robot did not turn left: it turned right on the spot, 13 times, 2.3 s in total; the first from 0 to 0.3 s"
+     ]
+    }
+   ]
+  },
+  "avoidWalls/A-front-sensor": {
+   "key": "avoidWalls/A-front-sensor",
+   "tests": [
+    {
+     "world": "A tunnel with the robot angled at a wall",
+     "test": "Turns right away from the left wall",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Tunnel\" after 0.1 s",
+      "an obstacle was to the left, but the robot did not turn right: it drove forward, straight (10.46 cm/s), 3 times, 1.08 s in total; the first from 0 to 0.12 s"
+     ]
+    },
+    {
+     "world": "A tunnel with the robot angled at a wall",
+     "test": "Turns left away from the right wall",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "avoidWalls/A-never-dark": {
+   "key": "avoidWalls/A-never-dark",
+   "tests": [
+    {
+     "world": "A tunnel with the robot angled at a wall",
+     "test": "Turns right away from the left wall",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Tunnel\" after 0.1 s",
+      "an obstacle was to the left, but the robot did not turn right: it drove forward, turning left (3.66 cm/s, 77\u00b0/s), from 0 to 4.02 s"
+     ]
+    },
+    {
+     "world": "A tunnel with the robot angled at a wall",
+     "test": "Turns left away from the right wall",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Tunnel\" after 0.1 s",
+      "an obstacle was to the right, but the robot did not turn left: it drove forward, turning right (3.66 cm/s, 77\u00b0/s), from 0 to 4.02 s"
+     ]
+    }
+   ]
+  },
+  "avoidWalls/A-no-handover": {
+   "key": "avoidWalls/A-no-handover",
+   "tests": [
+    {
+     "world": "A tunnel with the robot angled at a wall",
+     "test": "Turns right away from the left wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A tunnel with the robot angled at a wall",
+     "test": "Turns left away from the right wall",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "avoidWalls/B": {
+   "key": "avoidWalls/B",
+   "tests": [
+    {
+     "world": "A tunnel with the robot angled at a wall",
+     "test": "Turns right away from the left wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A tunnel with the robot angled at a wall",
+     "test": "Turns left away from the right wall",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "avoidWalls/B-swapped": {
+   "key": "avoidWalls/B-swapped",
+   "tests": [
+    {
+     "world": "A tunnel with the robot angled at a wall",
+     "test": "Turns right away from the left wall",
+     "outcome": "failed",
+     "failed": [
+      "an obstacle was to the left, but the robot did not turn right: it turned left on the spot, 24 times, 2.48 s in total; the first from 0 to 0.25 s"
+     ]
+    },
+    {
+     "world": "A tunnel with the robot angled at a wall",
+     "test": "Turns left away from the right wall",
+     "outcome": "failed",
+     "failed": [
+      "an obstacle was to the right, but the robot did not turn left: it turned right on the spot, 23 times, 1.77 s in total; the first from 0 to 0.3 s"
+     ]
+    }
+   ]
+  },
+  "avoidWalls/B-front-sensor": {
+   "key": "avoidWalls/B-front-sensor",
+   "tests": [
+    {
+     "world": "A tunnel with the robot angled at a wall",
+     "test": "Turns right away from the left wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A tunnel with the robot angled at a wall",
+     "test": "Turns left away from the right wall",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Tunnel\" after 0.1 s",
+      "an obstacle was to the right, but the robot did not turn left: it drove forward, straight (10.46 cm/s), 8 times, 2.43 s in total; the first from 0 to 0.12 s"
+     ]
+    }
+   ]
+  },
+  "avoidWalls/B-never-dark": {
+   "key": "avoidWalls/B-never-dark",
+   "tests": [
+    {
+     "world": "A tunnel with the robot angled at a wall",
+     "test": "Turns right away from the left wall",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Tunnel\" after 0.1 s",
+      "an obstacle was to the left, but the robot did not turn right: it drove forward, turning left (3.66 cm/s, 77\u00b0/s), from 0 to 4.02 s"
+     ]
+    },
+    {
+     "world": "A tunnel with the robot angled at a wall",
+     "test": "Turns left away from the right wall",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Tunnel\" after 0.1 s",
+      "an obstacle was to the right, but the robot did not turn left: it drove forward, turning right (3.66 cm/s, 77\u00b0/s), from 0 to 4.02 s"
+     ]
+    }
+   ]
+  },
+  "avoidWalls/B-no-handover": {
+   "key": "avoidWalls/B-no-handover",
+   "tests": [
+    {
+     "world": "A tunnel with the robot angled at a wall",
+     "test": "Turns right away from the left wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A tunnel with the robot angled at a wall",
+     "test": "Turns left away from the right wall",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "avoidWalls/C": {
+   "key": "avoidWalls/C",
+   "tests": [
+    {
+     "world": "A tunnel with the robot angled at a wall",
+     "test": "Turns right away from the left wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A tunnel with the robot angled at a wall",
+     "test": "Turns left away from the right wall",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "avoidWalls/C-swapped": {
+   "key": "avoidWalls/C-swapped",
+   "tests": [
+    {
+     "world": "A tunnel with the robot angled at a wall",
+     "test": "Turns right away from the left wall",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Tunnel\" after 0.4 s",
+      "an obstacle was to the left, but the robot did not turn right: it drove forward, turning left (4.35 cm/s, 70\u00b0/s), from 0 to 4.02 s"
+     ]
+    },
+    {
+     "world": "A tunnel with the robot angled at a wall",
+     "test": "Turns left away from the right wall",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Tunnel\" after 0.2 s",
+      "an obstacle was to the right, but the robot did not turn left: it drove forward, turning right (2.27 cm/s, 43\u00b0/s), 5 times, 3.93 s in total; the first from 0 to 1.37 s"
+     ]
+    }
+   ]
+  },
+  "avoidWalls/C-front-sensor": {
+   "key": "avoidWalls/C-front-sensor",
+   "tests": [
+    {
+     "world": "A tunnel with the robot angled at a wall",
+     "test": "Turns right away from the left wall",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Tunnel\" after 0.1 s",
+      "an obstacle was to the left, but the robot did not turn right: it drove forward, straight (9.39 cm/s), 29 times, 3.55 s in total; the first from 0 to 0.15 s"
+     ]
+    },
+    {
+     "world": "A tunnel with the robot angled at a wall",
+     "test": "Turns left away from the right wall",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "avoidWalls/C-never-dark": {
+   "key": "avoidWalls/C-never-dark",
+   "tests": [
+    {
+     "world": "A tunnel with the robot angled at a wall",
+     "test": "Turns right away from the left wall",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Tunnel\" after 0.1 s",
+      "an obstacle was to the left, but the robot did not turn right: it drove forward, turning left (3.66 cm/s, 77\u00b0/s), from 0 to 4.02 s"
+     ]
+    },
+    {
+     "world": "A tunnel with the robot angled at a wall",
+     "test": "Turns left away from the right wall",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Tunnel\" after 0.1 s",
+      "an obstacle was to the right, but the robot did not turn left: it drove forward, turning right (3.66 cm/s, 77\u00b0/s), from 0 to 4.02 s"
+     ]
+    }
+   ]
+  },
+  "avoidWalls/C-no-handover": {
+   "key": "avoidWalls/C-no-handover",
+   "tests": [
+    {
+     "world": "A tunnel with the robot angled at a wall",
+     "test": "Turns right away from the left wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A tunnel with the robot angled at a wall",
+     "test": "Turns left away from the right wall",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  }
+ }
+}

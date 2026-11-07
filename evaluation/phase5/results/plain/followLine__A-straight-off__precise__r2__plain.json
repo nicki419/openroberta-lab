@@ -1,0 +1,374 @@
+{
+ "job": {
+  "id": "followLine__A-straight-off__precise__r2__plain",
+  "function": "followLine",
+  "version": "followLine/A-straight-off",
+  "sentenceKind": "precise",
+  "sentence": "Follow the black line from the start all the way to the green goal at its end, also through the curves, without leaving it.",
+  "repeat": 2,
+  "pipeline": "plain",
+  "name": "p5_followLine_A_straight_off"
+ },
+ "ms": {
+  "total": 67500,
+  "generate": 67500
+ },
+ "calls": [
+  {
+   "tokens": {
+    "in": 10242,
+    "cached": 10108,
+    "out": 11194,
+    "reasoning": 9906
+   },
+   "latencyMs": 67342
+  }
+ ],
+ "generate": {
+  "ok": true,
+  "repairs": 0,
+  "dropped": [],
+  "worlds": [
+   {
+    "name": "A straight line to the goal",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 40,
+        "y": 100,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "l1",
+        "kind": "line",
+        "points": [
+         [
+          30,
+          100
+         ],
+         [
+          230,
+          100
+         ]
+        ],
+        "width": 1.48
+       },
+       {
+        "id": "g1",
+        "kind": "rect",
+        "name": "Goal",
+        "role": "goal",
+        "x": 215,
+        "y": 85,
+        "w": 25,
+        "h": 30
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Follows the straight line to the goal",
+      "scenario": "Given a straight black line with your robot at its start, when your program runs, then the robot drives along the line and reaches the goal at the line's end.",
+      "start": "A",
+      "until": "g1",
+      "max_time_ms": 30000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "g1"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "A bend in the line",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 40,
+        "y": 150,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "l1",
+        "kind": "line",
+        "points": [
+         [
+          30,
+          150
+         ],
+         [
+          70,
+          150
+         ],
+         [
+          95,
+          148
+         ],
+         [
+          112,
+          142
+         ],
+         [
+          124,
+          132
+         ],
+         [
+          130,
+          118
+         ],
+         [
+          130,
+          60
+         ]
+        ],
+        "smooth": true,
+        "width": 1.48
+       },
+       {
+        "id": "g1",
+        "kind": "rect",
+        "name": "Goal",
+        "role": "goal",
+        "x": 115,
+        "y": 30,
+        "w": 30,
+        "h": 30
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Follows the line round the bend",
+      "scenario": "Given a line that first runs to the right and then bends upwards, with your robot at its start, when your program runs, then the robot follows the line round the bend and reaches the goal at its end.",
+      "start": "A",
+      "until": "g1",
+      "max_time_ms": 40000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "g1"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "An S-bend in the line",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 40,
+        "y": 100,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "l1",
+        "kind": "line",
+        "points": [
+         [
+          30,
+          100
+         ],
+         [
+          80,
+          100
+         ],
+         [
+          100,
+          108
+         ],
+         [
+          120,
+          116
+         ],
+         [
+          145,
+          116
+         ],
+         [
+          165,
+          108
+         ],
+         [
+          185,
+          100
+         ],
+         [
+          240,
+          100
+         ]
+        ],
+        "smooth": true,
+        "width": 1.48
+       },
+       {
+        "id": "g1",
+        "kind": "rect",
+        "name": "Goal",
+        "role": "goal",
+        "x": 225,
+        "y": 85,
+        "w": 30,
+        "h": 30
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Follows the line through the S-bend",
+      "scenario": "Given a line that bends down and then up again, with your robot at its start, when your program runs, then the robot follows the line through both bends and reaches the goal at its end.",
+      "start": "A",
+      "until": "g1",
+      "max_time_ms": 40000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "g1"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "A line with fail areas beside it",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 40,
+        "y": 100,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "l1",
+        "kind": "line",
+        "points": [
+         [
+          30,
+          100
+         ],
+         [
+          230,
+          100
+         ]
+        ],
+        "width": 1.48
+       },
+       {
+        "id": "g1",
+        "kind": "rect",
+        "name": "Goal",
+        "role": "goal",
+        "x": 215,
+        "y": 85,
+        "w": 25,
+        "h": 30
+       },
+       {
+        "id": "f1",
+        "kind": "rect",
+        "role": "fail",
+        "x": 30,
+        "y": 76,
+        "w": 170,
+        "h": 12
+       },
+       {
+        "id": "f2",
+        "kind": "rect",
+        "role": "fail",
+        "x": 30,
+        "y": 112,
+        "w": 170,
+        "h": 12
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Stays on the line to the goal",
+      "scenario": "Given a straight black line with a fail area on each side of it, with your robot at the start, when your program runs, then the robot stays on the line and reaches the goal at its end without entering a fail area.",
+      "start": "A",
+      "until": "g1",
+      "max_time_ms": 30000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "g1"
+       },
+       {
+        "check": "never_touches"
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "duplicates": 0
+ }
+}

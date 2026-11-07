@@ -1,0 +1,142 @@
+{
+ "job": {
+  "id": "stopAtWall__B-no-handover__precise__r2__plain",
+  "function": "stopAtWall",
+  "version": "stopAtWall/B-no-handover",
+  "sentenceKind": "precise",
+  "sentence": "Follow the black line, and when a wall is right in front of the robot, stop before it without touching it and stay there.",
+  "repeat": 2,
+  "pipeline": "plain",
+  "name": "p5_stopAtWall_B_no_handover"
+ },
+ "ms": {
+  "total": 33538,
+  "generate": 33538
+ },
+ "calls": [
+  {
+   "tokens": {
+    "in": 10620,
+    "cached": 10368,
+    "out": 4509,
+    "reasoning": 4010
+   },
+   "latencyMs": 33388
+  }
+ ],
+ "generate": {
+  "ok": true,
+  "repairs": 0,
+  "dropped": [],
+  "worlds": [
+   {
+    "name": "A wall right in front",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 50,
+        "y": 100,
+        "heading": 0
+       },
+       {
+        "id": "B",
+        "name": "B",
+        "x": 150,
+        "y": 120,
+        "heading": 90
+       }
+      ],
+      "items": [
+       {
+        "id": "t1",
+        "kind": "rect",
+        "name": "Wall 1",
+        "role": "obstacle",
+        "x": 58,
+        "y": 94,
+        "w": 2,
+        "h": 12
+       },
+       {
+        "id": "t2",
+        "kind": "rect",
+        "name": "Wall 2",
+        "role": "obstacle",
+        "x": 144,
+        "y": 110,
+        "w": 12,
+        "h": 2
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Stops before the wall and stays there",
+      "scenario": "Given a wall right in front of your program, when the program runs for 6 s, then the robot stands still and never touches the wall.",
+      "start": "A",
+      "until": null,
+      "max_time_ms": 6000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "never_bumps",
+        "item": "t1"
+       },
+       {
+        "check": "whenever",
+        "when": "obstacle_ahead",
+        "does": "stands_still",
+        "after_ms": 0
+       },
+       {
+        "check": "does",
+        "does": "stands_still",
+        "after_ms": 500
+       }
+      ]
+     },
+     {
+      "name": "Stops before a wall when facing up",
+      "scenario": "Given a wall right in front of your program while it faces up, when the program runs for 6 s, then the robot stands still and never touches the wall.",
+      "start": "B",
+      "until": null,
+      "max_time_ms": 6000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "never_bumps",
+        "item": "t2"
+       },
+       {
+        "check": "whenever",
+        "when": "obstacle_ahead",
+        "does": "stands_still",
+        "after_ms": 0
+       },
+       {
+        "check": "does",
+        "does": "stands_still",
+        "after_ms": 500
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "duplicates": 0
+ }
+}

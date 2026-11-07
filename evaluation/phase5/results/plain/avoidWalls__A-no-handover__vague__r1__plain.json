@@ -1,0 +1,147 @@
+{
+ "job": {
+  "id": "avoidWalls__A-no-handover__vague__r1__plain",
+  "function": "avoidWalls",
+  "version": "avoidWalls/A-no-handover",
+  "sentenceKind": "vague",
+  "sentence": "Don't hit the tunnel walls.",
+  "repeat": 1,
+  "pipeline": "plain",
+  "name": "p5_avoidWalls_A_no_handover"
+ },
+ "ms": {
+  "total": 341938,
+  "generate": 341938
+ },
+ "calls": [
+  {
+   "tokens": {
+    "in": 11918,
+    "cached": 8832,
+    "out": 32000,
+    "reasoning": 32000
+   },
+   "latencyMs": 217917
+  },
+  {
+   "tokens": {
+    "in": 11945,
+    "cached": 11776,
+    "out": 11371,
+    "reasoning": 11041
+   },
+   "latencyMs": 86269
+  },
+  {
+   "tokens": {
+    "in": 12401,
+    "cached": 11904,
+    "out": 4982,
+    "reasoning": 4632
+   },
+   "latencyMs": 37300
+  }
+ ],
+ "generate": {
+  "ok": true,
+  "repairs": 2,
+  "dropped": [],
+  "worlds": [
+   {
+    "name": "A tunnel with the robot angled at a wall",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 50,
+        "y": 100,
+        "heading": 45
+       },
+       {
+        "id": "B",
+        "name": "B",
+        "x": 110,
+        "y": 100,
+        "heading": -45
+       }
+      ],
+      "items": [
+       {
+        "id": "t1",
+        "kind": "tunnel",
+        "name": "Tunnel",
+        "role": "obstacle",
+        "points": [
+         [
+          30,
+          100
+         ],
+         [
+          180,
+          100
+         ]
+        ],
+        "width": 16
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Turns right away from the left wall",
+      "scenario": "Given your program in a tunnel in dim light with the robot angled towards the left wall, when the left sensor sees the wall, then the robot turns right and never hits the tunnel.",
+      "start": "A",
+      "until": null,
+      "max_time_ms": 4000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "never_bumps",
+        "item": "t1"
+       },
+       {
+        "check": "whenever",
+        "when": "obstacle_left",
+        "does": "turns_right",
+        "after_ms": 0
+       }
+      ]
+     },
+     {
+      "name": "Turns left away from the right wall",
+      "scenario": "Given your program in a tunnel in dim light with the robot angled towards the right wall, when the right sensor sees the wall, then the robot turns left and never hits the tunnel.",
+      "start": "B",
+      "until": null,
+      "max_time_ms": 4000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "never_bumps",
+        "item": "t1"
+       },
+       {
+        "check": "whenever",
+        "when": "obstacle_right",
+        "does": "turns_left",
+        "after_ms": 0
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "duplicates": 0
+ }
+}

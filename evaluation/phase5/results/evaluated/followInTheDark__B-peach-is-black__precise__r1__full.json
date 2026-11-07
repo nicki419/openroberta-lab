@@ -1,0 +1,496 @@
+{
+ "id": "followInTheDark__B-peach-is-black__precise__r1__full",
+ "job": {
+  "id": "followInTheDark__B-peach-is-black__precise__r1__full",
+  "function": "followInTheDark",
+  "version": "followInTheDark/B-peach-is-black",
+  "sentenceKind": "precise",
+  "sentence": "In the dark, follow a black line when there is one under the robot, and drive straight where there is none; in the light, follow the line as before.",
+  "repeat": 1,
+  "pipeline": "full",
+  "name": "p5_followInTheDark_B_peach_is_black"
+ },
+ "versions": [
+  {
+   "id": "followInTheDark/A",
+   "kind": "correct",
+   "fault": null,
+   "of": null
+  },
+  {
+   "id": "followInTheDark/A-peach-is-black",
+   "kind": "broken",
+   "fault": "peach-is-black",
+   "of": "followInTheDark/A"
+  },
+  {
+   "id": "followInTheDark/A-light-above",
+   "kind": "broken",
+   "fault": "light-above",
+   "of": "followInTheDark/A"
+  },
+  {
+   "id": "followInTheDark/A-no-handover",
+   "kind": "broken",
+   "fault": "no-handover",
+   "of": "followInTheDark/A"
+  },
+  {
+   "id": "followInTheDark/B",
+   "kind": "correct",
+   "fault": null,
+   "of": null
+  },
+  {
+   "id": "followInTheDark/B-peach-is-black",
+   "kind": "broken",
+   "fault": "peach-is-black",
+   "of": "followInTheDark/B"
+  },
+  {
+   "id": "followInTheDark/B-light-above",
+   "kind": "broken",
+   "fault": "light-above",
+   "of": "followInTheDark/B"
+  },
+  {
+   "id": "followInTheDark/B-no-handover",
+   "kind": "broken",
+   "fault": "no-handover",
+   "of": "followInTheDark/B"
+  },
+  {
+   "id": "followInTheDark/C",
+   "kind": "correct",
+   "fault": null,
+   "of": null
+  },
+  {
+   "id": "followInTheDark/C-peach-is-black",
+   "kind": "broken",
+   "fault": "peach-is-black",
+   "of": "followInTheDark/C"
+  },
+  {
+   "id": "followInTheDark/C-light-above",
+   "kind": "broken",
+   "fault": "light-above",
+   "of": "followInTheDark/C"
+  },
+  {
+   "id": "followInTheDark/C-no-handover",
+   "kind": "broken",
+   "fault": "no-handover",
+   "of": "followInTheDark/C"
+  }
+ ],
+ "runs": {
+  "followInTheDark/A": {
+   "key": "followInTheDark/A",
+   "tests": [
+    {
+     "world": "A line to a goal",
+     "test": "On the line, it follows it to the goal",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A wall across the line",
+     "test": "Stops before the wall on the line",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A line in a dark tunnel",
+     "test": "Follows the line in a dark tunnel",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A dark tunnel with no line",
+     "test": "In the dark with no line, it drives straight",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 40 s",
+      "the robot bumped into \"Tunnel\" after 13 s"
+     ]
+    }
+   ]
+  },
+  "followInTheDark/A-peach-is-black": {
+   "key": "followInTheDark/A-peach-is-black",
+   "tests": [
+    {
+     "world": "A line to a goal",
+     "test": "On the line, it follows it to the goal",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A wall across the line",
+     "test": "Stops before the wall on the line",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A line in a dark tunnel",
+     "test": "Follows the line in a dark tunnel",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A dark tunnel with no line",
+     "test": "In the dark with no line, it drives straight",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 40 s",
+      "the robot bumped into \"Tunnel\" after 1.9 s"
+     ]
+    }
+   ]
+  },
+  "followInTheDark/A-light-above": {
+   "key": "followInTheDark/A-light-above",
+   "tests": [
+    {
+     "world": "A line to a goal",
+     "test": "On the line, it follows it to the goal",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A wall across the line",
+     "test": "Stops before the wall on the line",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A line in a dark tunnel",
+     "test": "Follows the line in a dark tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 0.9 s"
+     ]
+    },
+    {
+     "world": "A dark tunnel with no line",
+     "test": "In the dark with no line, it drives straight",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 40 s",
+      "the robot bumped into \"Tunnel\" after 0.6 s"
+     ]
+    }
+   ]
+  },
+  "followInTheDark/A-no-handover": {
+   "key": "followInTheDark/A-no-handover",
+   "tests": [
+    {
+     "world": "A line to a goal",
+     "test": "On the line, it follows it to the goal",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 60 s"
+     ]
+    },
+    {
+     "world": "A wall across the line",
+     "test": "Stops before the wall on the line",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A line in a dark tunnel",
+     "test": "Follows the line in a dark tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 19.2 s"
+     ]
+    },
+    {
+     "world": "A dark tunnel with no line",
+     "test": "In the dark with no line, it drives straight",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 40 s",
+      "the robot bumped into \"Tunnel\" after 2.1 s"
+     ]
+    }
+   ]
+  },
+  "followInTheDark/B": {
+   "key": "followInTheDark/B",
+   "tests": [
+    {
+     "world": "A line to a goal",
+     "test": "On the line, it follows it to the goal",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A wall across the line",
+     "test": "Stops before the wall on the line",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A line in a dark tunnel",
+     "test": "Follows the line in a dark tunnel",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A dark tunnel with no line",
+     "test": "In the dark with no line, it drives straight",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 40 s"
+     ]
+    }
+   ]
+  },
+  "followInTheDark/B-peach-is-black": {
+   "key": "followInTheDark/B-peach-is-black",
+   "tests": [
+    {
+     "world": "A line to a goal",
+     "test": "On the line, it follows it to the goal",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A wall across the line",
+     "test": "Stops before the wall on the line",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A line in a dark tunnel",
+     "test": "Follows the line in a dark tunnel",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A dark tunnel with no line",
+     "test": "In the dark with no line, it drives straight",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 40 s",
+      "the robot bumped into \"Tunnel\" after 1.4 s"
+     ]
+    }
+   ]
+  },
+  "followInTheDark/B-light-above": {
+   "key": "followInTheDark/B-light-above",
+   "tests": [
+    {
+     "world": "A line to a goal",
+     "test": "On the line, it follows it to the goal",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A wall across the line",
+     "test": "Stops before the wall on the line",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A line in a dark tunnel",
+     "test": "Follows the line in a dark tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 0.8 s"
+     ]
+    },
+    {
+     "world": "A dark tunnel with no line",
+     "test": "In the dark with no line, it drives straight",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 40 s",
+      "the robot bumped into \"Tunnel\" after 0.5 s"
+     ]
+    }
+   ]
+  },
+  "followInTheDark/B-no-handover": {
+   "key": "followInTheDark/B-no-handover",
+   "tests": [
+    {
+     "world": "A line to a goal",
+     "test": "On the line, it follows it to the goal",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 60 s"
+     ]
+    },
+    {
+     "world": "A wall across the line",
+     "test": "Stops before the wall on the line",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A line in a dark tunnel",
+     "test": "Follows the line in a dark tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 15.1 s"
+     ]
+    },
+    {
+     "world": "A dark tunnel with no line",
+     "test": "In the dark with no line, it drives straight",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 40 s",
+      "the robot bumped into \"Tunnel\" after 1.5 s"
+     ]
+    }
+   ]
+  },
+  "followInTheDark/C": {
+   "key": "followInTheDark/C",
+   "tests": [
+    {
+     "world": "A line to a goal",
+     "test": "On the line, it follows it to the goal",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A wall across the line",
+     "test": "Stops before the wall on the line",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A line in a dark tunnel",
+     "test": "Follows the line in a dark tunnel",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A dark tunnel with no line",
+     "test": "In the dark with no line, it drives straight",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 40 s",
+      "the robot bumped into \"Tunnel\" after 12.6 s"
+     ]
+    }
+   ]
+  },
+  "followInTheDark/C-peach-is-black": {
+   "key": "followInTheDark/C-peach-is-black",
+   "tests": [
+    {
+     "world": "A line to a goal",
+     "test": "On the line, it follows it to the goal",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A wall across the line",
+     "test": "Stops before the wall on the line",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A line in a dark tunnel",
+     "test": "Follows the line in a dark tunnel",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A dark tunnel with no line",
+     "test": "In the dark with no line, it drives straight",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 40 s",
+      "the robot bumped into \"Tunnel\" after 2.5 s"
+     ]
+    }
+   ]
+  },
+  "followInTheDark/C-light-above": {
+   "key": "followInTheDark/C-light-above",
+   "tests": [
+    {
+     "world": "A line to a goal",
+     "test": "On the line, it follows it to the goal",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A wall across the line",
+     "test": "Stops before the wall on the line",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A line in a dark tunnel",
+     "test": "Follows the line in a dark tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 1 s"
+     ]
+    },
+    {
+     "world": "A dark tunnel with no line",
+     "test": "In the dark with no line, it drives straight",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 40 s",
+      "the robot bumped into \"Tunnel\" after 0.8 s"
+     ]
+    }
+   ]
+  },
+  "followInTheDark/C-no-handover": {
+   "key": "followInTheDark/C-no-handover",
+   "tests": [
+    {
+     "world": "A line to a goal",
+     "test": "On the line, it follows it to the goal",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 60 s"
+     ]
+    },
+    {
+     "world": "A wall across the line",
+     "test": "Stops before the wall on the line",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A line in a dark tunnel",
+     "test": "Follows the line in a dark tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 25.3 s"
+     ]
+    },
+    {
+     "world": "A dark tunnel with no line",
+     "test": "In the dark with no line, it drives straight",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 40 s",
+      "the robot bumped into \"Tunnel\" after 2.6 s"
+     ]
+    }
+   ]
+  }
+ }
+}

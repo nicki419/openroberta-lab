@@ -1,0 +1,559 @@
+{
+ "id": "avoidWalls__B-front-sensor__precise__r1__plain",
+ "job": {
+  "id": "avoidWalls__B-front-sensor__precise__r1__plain",
+  "function": "avoidWalls",
+  "version": "avoidWalls/B-front-sensor",
+  "sentenceKind": "precise",
+  "sentence": "Inside a dark tunnel, steer away from its walls: when a wall is close on the left, turn right, and when one is close on the right, turn left, so the robot gets through a bending tunnel without touching it.",
+  "repeat": 1,
+  "pipeline": "plain",
+  "name": "p5_avoidWalls_B_front_sensor"
+ },
+ "versions": [
+  {
+   "id": "avoidWalls/A",
+   "kind": "correct",
+   "fault": null,
+   "of": null
+  },
+  {
+   "id": "avoidWalls/A-swapped",
+   "kind": "broken",
+   "fault": "swapped",
+   "of": "avoidWalls/A"
+  },
+  {
+   "id": "avoidWalls/A-front-sensor",
+   "kind": "broken",
+   "fault": "front-sensor",
+   "of": "avoidWalls/A"
+  },
+  {
+   "id": "avoidWalls/A-never-dark",
+   "kind": "broken",
+   "fault": "never-dark",
+   "of": "avoidWalls/A"
+  },
+  {
+   "id": "avoidWalls/A-no-handover",
+   "kind": "broken",
+   "fault": "no-handover",
+   "of": "avoidWalls/A"
+  },
+  {
+   "id": "avoidWalls/B",
+   "kind": "correct",
+   "fault": null,
+   "of": null
+  },
+  {
+   "id": "avoidWalls/B-swapped",
+   "kind": "broken",
+   "fault": "swapped",
+   "of": "avoidWalls/B"
+  },
+  {
+   "id": "avoidWalls/B-front-sensor",
+   "kind": "broken",
+   "fault": "front-sensor",
+   "of": "avoidWalls/B"
+  },
+  {
+   "id": "avoidWalls/B-never-dark",
+   "kind": "broken",
+   "fault": "never-dark",
+   "of": "avoidWalls/B"
+  },
+  {
+   "id": "avoidWalls/B-no-handover",
+   "kind": "broken",
+   "fault": "no-handover",
+   "of": "avoidWalls/B"
+  },
+  {
+   "id": "avoidWalls/C",
+   "kind": "correct",
+   "fault": null,
+   "of": null
+  },
+  {
+   "id": "avoidWalls/C-swapped",
+   "kind": "broken",
+   "fault": "swapped",
+   "of": "avoidWalls/C"
+  },
+  {
+   "id": "avoidWalls/C-front-sensor",
+   "kind": "broken",
+   "fault": "front-sensor",
+   "of": "avoidWalls/C"
+  },
+  {
+   "id": "avoidWalls/C-never-dark",
+   "kind": "broken",
+   "fault": "never-dark",
+   "of": "avoidWalls/C"
+  },
+  {
+   "id": "avoidWalls/C-no-handover",
+   "kind": "broken",
+   "fault": "no-handover",
+   "of": "avoidWalls/C"
+  }
+ ],
+ "runs": {
+  "avoidWalls/A": {
+   "key": "avoidWalls/A",
+   "tests": [
+    {
+     "world": "Dark tunnels with bends",
+     "test": "Gets through the right-bending tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 60 s"
+     ]
+    },
+    {
+     "world": "Dark tunnels with bends",
+     "test": "Gets through the left-bending tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 2\" within 60 s"
+     ]
+    },
+    {
+     "world": "Dark tunnels with bends",
+     "test": "Drives straight through a dark tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 3\" within 60 s"
+     ]
+    }
+   ]
+  },
+  "avoidWalls/A-swapped": {
+   "key": "avoidWalls/A-swapped",
+   "tests": [
+    {
+     "world": "Dark tunnels with bends",
+     "test": "Gets through the right-bending tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Right-bending tunnel\" after 7.8 s",
+      "the robot did not reach \"Goal 1\" within 60 s"
+     ]
+    },
+    {
+     "world": "Dark tunnels with bends",
+     "test": "Gets through the left-bending tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Left-bending tunnel\" after 7.7 s",
+      "the robot did not reach \"Goal 2\" within 60 s"
+     ]
+    },
+    {
+     "world": "Dark tunnels with bends",
+     "test": "Drives straight through a dark tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 3\" within 60 s"
+     ]
+    }
+   ]
+  },
+  "avoidWalls/A-front-sensor": {
+   "key": "avoidWalls/A-front-sensor",
+   "tests": [
+    {
+     "world": "Dark tunnels with bends",
+     "test": "Gets through the right-bending tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Right-bending tunnel\" after 7.6 s",
+      "the robot did not reach \"Goal 1\" within 60 s"
+     ]
+    },
+    {
+     "world": "Dark tunnels with bends",
+     "test": "Gets through the left-bending tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 2\" within 60 s"
+     ]
+    },
+    {
+     "world": "Dark tunnels with bends",
+     "test": "Drives straight through a dark tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 3\" within 60 s"
+     ]
+    }
+   ]
+  },
+  "avoidWalls/A-never-dark": {
+   "key": "avoidWalls/A-never-dark",
+   "tests": [
+    {
+     "world": "Dark tunnels with bends",
+     "test": "Gets through the right-bending tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Right-bending tunnel\" after 7.6 s",
+      "the robot did not reach \"Goal 1\" within 60 s"
+     ]
+    },
+    {
+     "world": "Dark tunnels with bends",
+     "test": "Gets through the left-bending tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Left-bending tunnel\" after 7.6 s",
+      "the robot did not reach \"Goal 2\" within 60 s"
+     ]
+    },
+    {
+     "world": "Dark tunnels with bends",
+     "test": "Drives straight through a dark tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 3\" within 60 s"
+     ]
+    }
+   ]
+  },
+  "avoidWalls/A-no-handover": {
+   "key": "avoidWalls/A-no-handover",
+   "tests": [
+    {
+     "world": "Dark tunnels with bends",
+     "test": "Gets through the right-bending tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 60 s"
+     ]
+    },
+    {
+     "world": "Dark tunnels with bends",
+     "test": "Gets through the left-bending tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 2\" within 60 s"
+     ]
+    },
+    {
+     "world": "Dark tunnels with bends",
+     "test": "Drives straight through a dark tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 3\" within 60 s"
+     ]
+    }
+   ]
+  },
+  "avoidWalls/B": {
+   "key": "avoidWalls/B",
+   "tests": [
+    {
+     "world": "Dark tunnels with bends",
+     "test": "Gets through the right-bending tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 60 s"
+     ]
+    },
+    {
+     "world": "Dark tunnels with bends",
+     "test": "Gets through the left-bending tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 2\" within 60 s"
+     ]
+    },
+    {
+     "world": "Dark tunnels with bends",
+     "test": "Drives straight through a dark tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 3\" within 60 s"
+     ]
+    }
+   ]
+  },
+  "avoidWalls/B-swapped": {
+   "key": "avoidWalls/B-swapped",
+   "tests": [
+    {
+     "world": "Dark tunnels with bends",
+     "test": "Gets through the right-bending tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Right-bending tunnel\" after 7.6 s",
+      "the robot did not reach \"Goal 1\" within 60 s"
+     ]
+    },
+    {
+     "world": "Dark tunnels with bends",
+     "test": "Gets through the left-bending tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Left-bending tunnel\" after 7.7 s",
+      "the robot did not reach \"Goal 2\" within 60 s"
+     ]
+    },
+    {
+     "world": "Dark tunnels with bends",
+     "test": "Drives straight through a dark tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 3\" within 60 s"
+     ]
+    }
+   ]
+  },
+  "avoidWalls/B-front-sensor": {
+   "key": "avoidWalls/B-front-sensor",
+   "tests": [
+    {
+     "world": "Dark tunnels with bends",
+     "test": "Gets through the right-bending tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 60 s"
+     ]
+    },
+    {
+     "world": "Dark tunnels with bends",
+     "test": "Gets through the left-bending tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Left-bending tunnel\" after 7.6 s",
+      "the robot did not reach \"Goal 2\" within 60 s"
+     ]
+    },
+    {
+     "world": "Dark tunnels with bends",
+     "test": "Drives straight through a dark tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 3\" within 60 s"
+     ]
+    }
+   ]
+  },
+  "avoidWalls/B-never-dark": {
+   "key": "avoidWalls/B-never-dark",
+   "tests": [
+    {
+     "world": "Dark tunnels with bends",
+     "test": "Gets through the right-bending tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Right-bending tunnel\" after 7.6 s",
+      "the robot did not reach \"Goal 1\" within 60 s"
+     ]
+    },
+    {
+     "world": "Dark tunnels with bends",
+     "test": "Gets through the left-bending tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Left-bending tunnel\" after 7.6 s",
+      "the robot did not reach \"Goal 2\" within 60 s"
+     ]
+    },
+    {
+     "world": "Dark tunnels with bends",
+     "test": "Drives straight through a dark tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 3\" within 60 s"
+     ]
+    }
+   ]
+  },
+  "avoidWalls/B-no-handover": {
+   "key": "avoidWalls/B-no-handover",
+   "tests": [
+    {
+     "world": "Dark tunnels with bends",
+     "test": "Gets through the right-bending tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 60 s"
+     ]
+    },
+    {
+     "world": "Dark tunnels with bends",
+     "test": "Gets through the left-bending tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 2\" within 60 s"
+     ]
+    },
+    {
+     "world": "Dark tunnels with bends",
+     "test": "Drives straight through a dark tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 3\" within 60 s"
+     ]
+    }
+   ]
+  },
+  "avoidWalls/C": {
+   "key": "avoidWalls/C",
+   "tests": [
+    {
+     "world": "Dark tunnels with bends",
+     "test": "Gets through the right-bending tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 60 s"
+     ]
+    },
+    {
+     "world": "Dark tunnels with bends",
+     "test": "Gets through the left-bending tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Left-bending tunnel\" after 50.9 s",
+      "the robot did not reach \"Goal 2\" within 60 s"
+     ]
+    },
+    {
+     "world": "Dark tunnels with bends",
+     "test": "Drives straight through a dark tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 3\" within 60 s"
+     ]
+    }
+   ]
+  },
+  "avoidWalls/C-swapped": {
+   "key": "avoidWalls/C-swapped",
+   "tests": [
+    {
+     "world": "Dark tunnels with bends",
+     "test": "Gets through the right-bending tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Right-bending tunnel\" after 7.8 s",
+      "the robot did not reach \"Goal 1\" within 60 s"
+     ]
+    },
+    {
+     "world": "Dark tunnels with bends",
+     "test": "Gets through the left-bending tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Left-bending tunnel\" after 7.7 s",
+      "the robot did not reach \"Goal 2\" within 60 s"
+     ]
+    },
+    {
+     "world": "Dark tunnels with bends",
+     "test": "Drives straight through a dark tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 3\" within 60 s"
+     ]
+    }
+   ]
+  },
+  "avoidWalls/C-front-sensor": {
+   "key": "avoidWalls/C-front-sensor",
+   "tests": [
+    {
+     "world": "Dark tunnels with bends",
+     "test": "Gets through the right-bending tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Right-bending tunnel\" after 7.6 s",
+      "the robot did not reach \"Goal 1\" within 60 s"
+     ]
+    },
+    {
+     "world": "Dark tunnels with bends",
+     "test": "Gets through the left-bending tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Left-bending tunnel\" after 10.1 s",
+      "the robot did not reach \"Goal 2\" within 60 s"
+     ]
+    },
+    {
+     "world": "Dark tunnels with bends",
+     "test": "Drives straight through a dark tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 3\" within 60 s"
+     ]
+    }
+   ]
+  },
+  "avoidWalls/C-never-dark": {
+   "key": "avoidWalls/C-never-dark",
+   "tests": [
+    {
+     "world": "Dark tunnels with bends",
+     "test": "Gets through the right-bending tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Right-bending tunnel\" after 7.6 s",
+      "the robot did not reach \"Goal 1\" within 60 s"
+     ]
+    },
+    {
+     "world": "Dark tunnels with bends",
+     "test": "Gets through the left-bending tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Left-bending tunnel\" after 7.6 s",
+      "the robot did not reach \"Goal 2\" within 60 s"
+     ]
+    },
+    {
+     "world": "Dark tunnels with bends",
+     "test": "Drives straight through a dark tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 3\" within 60 s"
+     ]
+    }
+   ]
+  },
+  "avoidWalls/C-no-handover": {
+   "key": "avoidWalls/C-no-handover",
+   "tests": [
+    {
+     "world": "Dark tunnels with bends",
+     "test": "Gets through the right-bending tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 60 s"
+     ]
+    },
+    {
+     "world": "Dark tunnels with bends",
+     "test": "Gets through the left-bending tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 2\" within 60 s"
+     ]
+    },
+    {
+     "world": "Dark tunnels with bends",
+     "test": "Drives straight through a dark tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 3\" within 60 s"
+     ]
+    }
+   ]
+  }
+ }
+}

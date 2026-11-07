@@ -1,0 +1,757 @@
+{
+ "id": "avoidWalls__A-swapped__vague__r2__full",
+ "job": {
+  "id": "avoidWalls__A-swapped__vague__r2__full",
+  "function": "avoidWalls",
+  "version": "avoidWalls/A-swapped",
+  "sentenceKind": "vague",
+  "sentence": "Don't hit the tunnel walls.",
+  "repeat": 2,
+  "pipeline": "full",
+  "name": "p5_avoidWalls_A_swapped"
+ },
+ "versions": [
+  {
+   "id": "avoidWalls/A",
+   "kind": "correct",
+   "fault": null,
+   "of": null
+  },
+  {
+   "id": "avoidWalls/A-swapped",
+   "kind": "broken",
+   "fault": "swapped",
+   "of": "avoidWalls/A"
+  },
+  {
+   "id": "avoidWalls/A-front-sensor",
+   "kind": "broken",
+   "fault": "front-sensor",
+   "of": "avoidWalls/A"
+  },
+  {
+   "id": "avoidWalls/A-never-dark",
+   "kind": "broken",
+   "fault": "never-dark",
+   "of": "avoidWalls/A"
+  },
+  {
+   "id": "avoidWalls/A-no-handover",
+   "kind": "broken",
+   "fault": "no-handover",
+   "of": "avoidWalls/A"
+  },
+  {
+   "id": "avoidWalls/B",
+   "kind": "correct",
+   "fault": null,
+   "of": null
+  },
+  {
+   "id": "avoidWalls/B-swapped",
+   "kind": "broken",
+   "fault": "swapped",
+   "of": "avoidWalls/B"
+  },
+  {
+   "id": "avoidWalls/B-front-sensor",
+   "kind": "broken",
+   "fault": "front-sensor",
+   "of": "avoidWalls/B"
+  },
+  {
+   "id": "avoidWalls/B-never-dark",
+   "kind": "broken",
+   "fault": "never-dark",
+   "of": "avoidWalls/B"
+  },
+  {
+   "id": "avoidWalls/B-no-handover",
+   "kind": "broken",
+   "fault": "no-handover",
+   "of": "avoidWalls/B"
+  },
+  {
+   "id": "avoidWalls/C",
+   "kind": "correct",
+   "fault": null,
+   "of": null
+  },
+  {
+   "id": "avoidWalls/C-swapped",
+   "kind": "broken",
+   "fault": "swapped",
+   "of": "avoidWalls/C"
+  },
+  {
+   "id": "avoidWalls/C-front-sensor",
+   "kind": "broken",
+   "fault": "front-sensor",
+   "of": "avoidWalls/C"
+  },
+  {
+   "id": "avoidWalls/C-never-dark",
+   "kind": "broken",
+   "fault": "never-dark",
+   "of": "avoidWalls/C"
+  },
+  {
+   "id": "avoidWalls/C-no-handover",
+   "kind": "broken",
+   "fault": "no-handover",
+   "of": "avoidWalls/C"
+  }
+ ],
+ "runs": {
+  "avoidWalls/A": {
+   "key": "avoidWalls/A",
+   "tests": [
+    {
+     "world": "A tunnel that bends right",
+     "test": "Gets through the right bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 45 s"
+     ]
+    },
+    {
+     "world": "A tunnel that bends left",
+     "test": "Gets through the left bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Tunnel\" after 15.9 s",
+      "the robot did not reach \"Goal 1\" within 45 s"
+     ]
+    },
+    {
+     "world": "A wall across the dark tunnel",
+     "test": "In the dark, it stops before the wall",
+     "outcome": "failed",
+     "failed": [
+      "an obstacle was ahead, but the robot did not stand still: it drove forward, turning right (2.09 cm/s, 137\u00b0/s), 122 times, 13.26 s in total; the first from 1.53 to 1.7 s"
+     ]
+    },
+    {
+     "world": "A line to a wall",
+     "test": "On the line, it follows it to the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A line to a wall",
+     "test": "Started beside the line, it finds it and stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "avoidWalls/A-swapped": {
+   "key": "avoidWalls/A-swapped",
+   "tests": [
+    {
+     "world": "A tunnel that bends right",
+     "test": "Gets through the right bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Tunnel\" after 8 s",
+      "the robot did not reach \"Goal 1\" within 45 s"
+     ]
+    },
+    {
+     "world": "A tunnel that bends left",
+     "test": "Gets through the left bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Tunnel\" after 8.2 s",
+      "the robot did not reach \"Goal 1\" within 45 s"
+     ]
+    },
+    {
+     "world": "A wall across the dark tunnel",
+     "test": "In the dark, it stops before the wall",
+     "outcome": "failed",
+     "failed": [
+      "an obstacle was ahead, but the robot did not stand still: it drove forward, turning left (2.09 cm/s, 137\u00b0/s), 123 times, 15.42 s in total; the first from 1.53 to 1.7 s"
+     ]
+    },
+    {
+     "world": "A line to a wall",
+     "test": "On the line, it follows it to the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A line to a wall",
+     "test": "Started beside the line, it finds it and stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "avoidWalls/A-front-sensor": {
+   "key": "avoidWalls/A-front-sensor",
+   "tests": [
+    {
+     "world": "A tunnel that bends right",
+     "test": "Gets through the right bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Tunnel\" after 7.8 s",
+      "the robot did not reach \"Goal 1\" within 45 s"
+     ]
+    },
+    {
+     "world": "A tunnel that bends left",
+     "test": "Gets through the left bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Tunnel\" after 15.9 s",
+      "the robot did not reach \"Goal 1\" within 45 s"
+     ]
+    },
+    {
+     "world": "A wall across the dark tunnel",
+     "test": "In the dark, it stops before the wall",
+     "outcome": "failed",
+     "failed": [
+      "an obstacle was ahead, but the robot did not stand still: it turned right on the spot, 62 times, 1.05 s in total; the first from 1.53 to 1.57 s"
+     ]
+    },
+    {
+     "world": "A line to a wall",
+     "test": "On the line, it follows it to the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A line to a wall",
+     "test": "Started beside the line, it finds it and stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "avoidWalls/A-never-dark": {
+   "key": "avoidWalls/A-never-dark",
+   "tests": [
+    {
+     "world": "A tunnel that bends right",
+     "test": "Gets through the right bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Tunnel\" after 7.8 s",
+      "the robot did not reach \"Goal 1\" within 45 s"
+     ]
+    },
+    {
+     "world": "A tunnel that bends left",
+     "test": "Gets through the left bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Tunnel\" after 8.1 s",
+      "the robot did not reach \"Goal 1\" within 45 s"
+     ]
+    },
+    {
+     "world": "A wall across the dark tunnel",
+     "test": "In the dark, it stops before the wall",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 1.8 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove forward, straight (9.53 cm/s), 2 times, 0.27 s in total; the first from 1.53 to 1.78 s"
+     ]
+    },
+    {
+     "world": "A line to a wall",
+     "test": "On the line, it follows it to the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A line to a wall",
+     "test": "Started beside the line, it finds it and stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "avoidWalls/A-no-handover": {
+   "key": "avoidWalls/A-no-handover",
+   "tests": [
+    {
+     "world": "A tunnel that bends right",
+     "test": "Gets through the right bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 45 s"
+     ]
+    },
+    {
+     "world": "A tunnel that bends left",
+     "test": "Gets through the left bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 45 s"
+     ]
+    },
+    {
+     "world": "A wall across the dark tunnel",
+     "test": "In the dark, it stops before the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A line to a wall",
+     "test": "On the line, it follows it to the wall",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 60 s"
+     ]
+    },
+    {
+     "world": "A line to a wall",
+     "test": "Started beside the line, it finds it and stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 2\" within 60 s"
+     ]
+    }
+   ]
+  },
+  "avoidWalls/B": {
+   "key": "avoidWalls/B",
+   "tests": [
+    {
+     "world": "A tunnel that bends right",
+     "test": "Gets through the right bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 45 s"
+     ]
+    },
+    {
+     "world": "A tunnel that bends left",
+     "test": "Gets through the left bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Tunnel\" after 16.1 s",
+      "the robot did not reach \"Goal 1\" within 45 s"
+     ]
+    },
+    {
+     "world": "A wall across the dark tunnel",
+     "test": "In the dark, it stops before the wall",
+     "outcome": "failed",
+     "failed": [
+      "an obstacle was ahead, but the robot did not stand still: it drove forward, turning left (3.49 cm/s, 152\u00b0/s), 220 times, 9.22 s in total; the first from 1.53 to 1.63 s"
+     ]
+    },
+    {
+     "world": "A line to a wall",
+     "test": "On the line, it follows it to the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A line to a wall",
+     "test": "Started beside the line, it finds it and stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "avoidWalls/B-swapped": {
+   "key": "avoidWalls/B-swapped",
+   "tests": [
+    {
+     "world": "A tunnel that bends right",
+     "test": "Gets through the right bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Tunnel\" after 7.8 s",
+      "the robot did not reach \"Goal 1\" within 45 s"
+     ]
+    },
+    {
+     "world": "A tunnel that bends left",
+     "test": "Gets through the left bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Tunnel\" after 8.3 s",
+      "the robot did not reach \"Goal 1\" within 45 s"
+     ]
+    },
+    {
+     "world": "A wall across the dark tunnel",
+     "test": "In the dark, it stops before the wall",
+     "outcome": "failed",
+     "failed": [
+      "an obstacle was ahead, but the robot did not stand still: it drove forward, turning right (3.49 cm/s, 152\u00b0/s), 222 times, 14.78 s in total; the first from 1.53 to 1.63 s"
+     ]
+    },
+    {
+     "world": "A line to a wall",
+     "test": "On the line, it follows it to the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A line to a wall",
+     "test": "Started beside the line, it finds it and stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "avoidWalls/B-front-sensor": {
+   "key": "avoidWalls/B-front-sensor",
+   "tests": [
+    {
+     "world": "A tunnel that bends right",
+     "test": "Gets through the right bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 45 s"
+     ]
+    },
+    {
+     "world": "A tunnel that bends left",
+     "test": "Gets through the left bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Tunnel\" after 8.1 s",
+      "the robot did not reach \"Goal 1\" within 45 s"
+     ]
+    },
+    {
+     "world": "A wall across the dark tunnel",
+     "test": "In the dark, it stops before the wall",
+     "outcome": "failed",
+     "failed": [
+      "an obstacle was ahead, but the robot did not stand still: it turned left on the spot, 222 times, 5.55 s in total; the first from 1.53 to 1.57 s"
+     ]
+    },
+    {
+     "world": "A line to a wall",
+     "test": "On the line, it follows it to the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A line to a wall",
+     "test": "Started beside the line, it finds it and stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "avoidWalls/B-never-dark": {
+   "key": "avoidWalls/B-never-dark",
+   "tests": [
+    {
+     "world": "A tunnel that bends right",
+     "test": "Gets through the right bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Tunnel\" after 7.8 s",
+      "the robot did not reach \"Goal 1\" within 45 s"
+     ]
+    },
+    {
+     "world": "A tunnel that bends left",
+     "test": "Gets through the left bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Tunnel\" after 8.1 s",
+      "the robot did not reach \"Goal 1\" within 45 s"
+     ]
+    },
+    {
+     "world": "A wall across the dark tunnel",
+     "test": "In the dark, it stops before the wall",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 1.8 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove forward, straight (9.53 cm/s), 2 times, 0.27 s in total; the first from 1.53 to 1.78 s"
+     ]
+    },
+    {
+     "world": "A line to a wall",
+     "test": "On the line, it follows it to the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A line to a wall",
+     "test": "Started beside the line, it finds it and stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "avoidWalls/B-no-handover": {
+   "key": "avoidWalls/B-no-handover",
+   "tests": [
+    {
+     "world": "A tunnel that bends right",
+     "test": "Gets through the right bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 45 s"
+     ]
+    },
+    {
+     "world": "A tunnel that bends left",
+     "test": "Gets through the left bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 45 s"
+     ]
+    },
+    {
+     "world": "A wall across the dark tunnel",
+     "test": "In the dark, it stops before the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A line to a wall",
+     "test": "On the line, it follows it to the wall",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 60 s"
+     ]
+    },
+    {
+     "world": "A line to a wall",
+     "test": "Started beside the line, it finds it and stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 2\" within 60 s"
+     ]
+    }
+   ]
+  },
+  "avoidWalls/C": {
+   "key": "avoidWalls/C",
+   "tests": [
+    {
+     "world": "A tunnel that bends right",
+     "test": "Gets through the right bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 45 s"
+     ]
+    },
+    {
+     "world": "A tunnel that bends left",
+     "test": "Gets through the left bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Tunnel\" after 16 s",
+      "the robot did not reach \"Goal 1\" within 45 s"
+     ]
+    },
+    {
+     "world": "A wall across the dark tunnel",
+     "test": "In the dark, it stops before the wall",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 1.9 s",
+      "the robot bumped into \"Tunnel\" after 12 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove forward, turning right (5.42 cm/s, 72\u00b0/s), 2 times, 0.37 s in total; the first from 1.53 to 1.88 s"
+     ]
+    },
+    {
+     "world": "A line to a wall",
+     "test": "On the line, it follows it to the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A line to a wall",
+     "test": "Started beside the line, it finds it and stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "avoidWalls/C-swapped": {
+   "key": "avoidWalls/C-swapped",
+   "tests": [
+    {
+     "world": "A tunnel that bends right",
+     "test": "Gets through the right bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Tunnel\" after 8 s",
+      "the robot did not reach \"Goal 1\" within 45 s"
+     ]
+    },
+    {
+     "world": "A tunnel that bends left",
+     "test": "Gets through the left bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Tunnel\" after 8.2 s",
+      "the robot did not reach \"Goal 1\" within 45 s"
+     ]
+    },
+    {
+     "world": "A wall across the dark tunnel",
+     "test": "In the dark, it stops before the wall",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 1.9 s",
+      "the robot bumped into \"Tunnel\" after 13.2 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove forward, turning left (5.42 cm/s, 64\u00b0/s), 2 times, 0.37 s in total; the first from 1.53 to 1.88 s"
+     ]
+    },
+    {
+     "world": "A line to a wall",
+     "test": "On the line, it follows it to the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A line to a wall",
+     "test": "Started beside the line, it finds it and stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "avoidWalls/C-front-sensor": {
+   "key": "avoidWalls/C-front-sensor",
+   "tests": [
+    {
+     "world": "A tunnel that bends right",
+     "test": "Gets through the right bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Tunnel\" after 7.8 s",
+      "the robot did not reach \"Goal 1\" within 45 s"
+     ]
+    },
+    {
+     "world": "A tunnel that bends left",
+     "test": "Gets through the left bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Tunnel\" after 16 s",
+      "the robot did not reach \"Goal 1\" within 45 s"
+     ]
+    },
+    {
+     "world": "A wall across the dark tunnel",
+     "test": "In the dark, it stops before the wall",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 1.9 s",
+      "the robot bumped into \"Tunnel\" after 8.2 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove forward, turning right (4.94 cm/s, 80\u00b0/s), 2 times, 0.38 s in total; the first from 1.53 to 1.9 s"
+     ]
+    },
+    {
+     "world": "A line to a wall",
+     "test": "On the line, it follows it to the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A line to a wall",
+     "test": "Started beside the line, it finds it and stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "avoidWalls/C-never-dark": {
+   "key": "avoidWalls/C-never-dark",
+   "tests": [
+    {
+     "world": "A tunnel that bends right",
+     "test": "Gets through the right bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Tunnel\" after 7.8 s",
+      "the robot did not reach \"Goal 1\" within 45 s"
+     ]
+    },
+    {
+     "world": "A tunnel that bends left",
+     "test": "Gets through the left bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Tunnel\" after 8.1 s",
+      "the robot did not reach \"Goal 1\" within 45 s"
+     ]
+    },
+    {
+     "world": "A wall across the dark tunnel",
+     "test": "In the dark, it stops before the wall",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 1.8 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove forward, straight (9.53 cm/s), 2 times, 0.27 s in total; the first from 1.53 to 1.78 s"
+     ]
+    },
+    {
+     "world": "A line to a wall",
+     "test": "On the line, it follows it to the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A line to a wall",
+     "test": "Started beside the line, it finds it and stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "avoidWalls/C-no-handover": {
+   "key": "avoidWalls/C-no-handover",
+   "tests": [
+    {
+     "world": "A tunnel that bends right",
+     "test": "Gets through the right bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 45 s"
+     ]
+    },
+    {
+     "world": "A tunnel that bends left",
+     "test": "Gets through the left bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 45 s"
+     ]
+    },
+    {
+     "world": "A wall across the dark tunnel",
+     "test": "In the dark, it stops before the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A line to a wall",
+     "test": "On the line, it follows it to the wall",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 60 s"
+     ]
+    },
+    {
+     "world": "A line to a wall",
+     "test": "Started beside the line, it finds it and stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 2\" within 60 s"
+     ]
+    }
+   ]
+  }
+ }
+}

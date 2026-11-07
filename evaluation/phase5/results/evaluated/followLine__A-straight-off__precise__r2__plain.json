@@ -1,0 +1,583 @@
+{
+ "id": "followLine__A-straight-off__precise__r2__plain",
+ "job": {
+  "id": "followLine__A-straight-off__precise__r2__plain",
+  "function": "followLine",
+  "version": "followLine/A-straight-off",
+  "sentenceKind": "precise",
+  "sentence": "Follow the black line from the start all the way to the green goal at its end, also through the curves, without leaving it.",
+  "repeat": 2,
+  "pipeline": "plain",
+  "name": "p5_followLine_A_straight_off"
+ },
+ "versions": [
+  {
+   "id": "followLine/A",
+   "kind": "correct",
+   "fault": null,
+   "of": null
+  },
+  {
+   "id": "followLine/A-light-above",
+   "kind": "broken",
+   "fault": "light-above",
+   "of": "followLine/A"
+  },
+  {
+   "id": "followLine/A-one-turn",
+   "kind": "broken",
+   "fault": "one-turn",
+   "of": "followLine/A"
+  },
+  {
+   "id": "followLine/A-too-slow",
+   "kind": "broken",
+   "fault": "too-slow",
+   "of": "followLine/A"
+  },
+  {
+   "id": "followLine/A-straight-off",
+   "kind": "broken",
+   "fault": "straight-off",
+   "of": "followLine/A"
+  },
+  {
+   "id": "followLine/B",
+   "kind": "correct",
+   "fault": null,
+   "of": null
+  },
+  {
+   "id": "followLine/B-light-above",
+   "kind": "broken",
+   "fault": "light-above",
+   "of": "followLine/B"
+  },
+  {
+   "id": "followLine/B-one-turn",
+   "kind": "broken",
+   "fault": "one-turn",
+   "of": "followLine/B"
+  },
+  {
+   "id": "followLine/B-straight-off",
+   "kind": "broken",
+   "fault": "straight-off",
+   "of": "followLine/B"
+  },
+  {
+   "id": "followLine/C",
+   "kind": "correct",
+   "fault": null,
+   "of": null
+  },
+  {
+   "id": "followLine/C-light-above",
+   "kind": "broken",
+   "fault": "light-above",
+   "of": "followLine/C"
+  },
+  {
+   "id": "followLine/C-one-turn",
+   "kind": "broken",
+   "fault": "one-turn",
+   "of": "followLine/C"
+  },
+  {
+   "id": "followLine/C-too-slow",
+   "kind": "broken",
+   "fault": "too-slow",
+   "of": "followLine/C"
+  },
+  {
+   "id": "followLine/C-straight-off",
+   "kind": "broken",
+   "fault": "straight-off",
+   "of": "followLine/C"
+  }
+ ],
+ "runs": {
+  "followLine/A": {
+   "key": "followLine/A",
+   "tests": [
+    {
+     "world": "A straight line to the goal",
+     "test": "Follows the straight line to the goal",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A bend in the line",
+     "test": "Follows the line round the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "An S-bend in the line",
+     "test": "Follows the line through the S-bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A line with fail areas beside it",
+     "test": "Stays on the line to the goal",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "followLine/A-light-above": {
+   "key": "followLine/A-light-above",
+   "tests": [
+    {
+     "world": "A straight line to the goal",
+     "test": "Follows the straight line to the goal",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal\" within 30 s"
+     ]
+    },
+    {
+     "world": "A bend in the line",
+     "test": "Follows the line round the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal\" within 40 s"
+     ]
+    },
+    {
+     "world": "An S-bend in the line",
+     "test": "Follows the line through the S-bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal\" within 40 s"
+     ]
+    },
+    {
+     "world": "A line with fail areas beside it",
+     "test": "Stays on the line to the goal",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal\" within 30 s",
+      "the robot touched a fail area after 1 s"
+     ]
+    }
+   ]
+  },
+  "followLine/A-one-turn": {
+   "key": "followLine/A-one-turn",
+   "tests": [
+    {
+     "world": "A straight line to the goal",
+     "test": "Follows the straight line to the goal",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal\" within 30 s"
+     ]
+    },
+    {
+     "world": "A bend in the line",
+     "test": "Follows the line round the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal\" within 40 s"
+     ]
+    },
+    {
+     "world": "An S-bend in the line",
+     "test": "Follows the line through the S-bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal\" within 40 s"
+     ]
+    },
+    {
+     "world": "A line with fail areas beside it",
+     "test": "Stays on the line to the goal",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal\" within 30 s",
+      "the robot touched a fail area after 1 s"
+     ]
+    }
+   ]
+  },
+  "followLine/A-too-slow": {
+   "key": "followLine/A-too-slow",
+   "tests": [
+    {
+     "world": "A straight line to the goal",
+     "test": "Follows the straight line to the goal",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal\" within 30 s"
+     ]
+    },
+    {
+     "world": "A bend in the line",
+     "test": "Follows the line round the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "An S-bend in the line",
+     "test": "Follows the line through the S-bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal\" within 40 s"
+     ]
+    },
+    {
+     "world": "A line with fail areas beside it",
+     "test": "Stays on the line to the goal",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal\" within 30 s"
+     ]
+    }
+   ]
+  },
+  "followLine/A-straight-off": {
+   "key": "followLine/A-straight-off",
+   "tests": [
+    {
+     "world": "A straight line to the goal",
+     "test": "Follows the straight line to the goal",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal\" within 30 s"
+     ]
+    },
+    {
+     "world": "A bend in the line",
+     "test": "Follows the line round the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "An S-bend in the line",
+     "test": "Follows the line through the S-bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal\" within 40 s"
+     ]
+    },
+    {
+     "world": "A line with fail areas beside it",
+     "test": "Stays on the line to the goal",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal\" within 30 s",
+      "the robot touched a fail area after 4.4 s"
+     ]
+    }
+   ]
+  },
+  "followLine/B": {
+   "key": "followLine/B",
+   "tests": [
+    {
+     "world": "A straight line to the goal",
+     "test": "Follows the straight line to the goal",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A bend in the line",
+     "test": "Follows the line round the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "An S-bend in the line",
+     "test": "Follows the line through the S-bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A line with fail areas beside it",
+     "test": "Stays on the line to the goal",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "followLine/B-light-above": {
+   "key": "followLine/B-light-above",
+   "tests": [
+    {
+     "world": "A straight line to the goal",
+     "test": "Follows the straight line to the goal",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal\" within 30 s"
+     ]
+    },
+    {
+     "world": "A bend in the line",
+     "test": "Follows the line round the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal\" within 40 s"
+     ]
+    },
+    {
+     "world": "An S-bend in the line",
+     "test": "Follows the line through the S-bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal\" within 40 s"
+     ]
+    },
+    {
+     "world": "A line with fail areas beside it",
+     "test": "Stays on the line to the goal",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal\" within 30 s",
+      "the robot touched a fail area after 0.8 s"
+     ]
+    }
+   ]
+  },
+  "followLine/B-one-turn": {
+   "key": "followLine/B-one-turn",
+   "tests": [
+    {
+     "world": "A straight line to the goal",
+     "test": "Follows the straight line to the goal",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal\" within 30 s"
+     ]
+    },
+    {
+     "world": "A bend in the line",
+     "test": "Follows the line round the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal\" within 40 s"
+     ]
+    },
+    {
+     "world": "An S-bend in the line",
+     "test": "Follows the line through the S-bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal\" within 40 s"
+     ]
+    },
+    {
+     "world": "A line with fail areas beside it",
+     "test": "Stays on the line to the goal",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal\" within 30 s",
+      "the robot touched a fail area after 0.8 s"
+     ]
+    }
+   ]
+  },
+  "followLine/B-straight-off": {
+   "key": "followLine/B-straight-off",
+   "tests": [
+    {
+     "world": "A straight line to the goal",
+     "test": "Follows the straight line to the goal",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal\" within 30 s"
+     ]
+    },
+    {
+     "world": "A bend in the line",
+     "test": "Follows the line round the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "An S-bend in the line",
+     "test": "Follows the line through the S-bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal\" within 40 s"
+     ]
+    },
+    {
+     "world": "A line with fail areas beside it",
+     "test": "Stays on the line to the goal",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal\" within 30 s",
+      "the robot touched a fail area after 4.4 s"
+     ]
+    }
+   ]
+  },
+  "followLine/C": {
+   "key": "followLine/C",
+   "tests": [
+    {
+     "world": "A straight line to the goal",
+     "test": "Follows the straight line to the goal",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A bend in the line",
+     "test": "Follows the line round the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "An S-bend in the line",
+     "test": "Follows the line through the S-bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A line with fail areas beside it",
+     "test": "Stays on the line to the goal",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "followLine/C-light-above": {
+   "key": "followLine/C-light-above",
+   "tests": [
+    {
+     "world": "A straight line to the goal",
+     "test": "Follows the straight line to the goal",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A bend in the line",
+     "test": "Follows the line round the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal\" within 40 s"
+     ]
+    },
+    {
+     "world": "An S-bend in the line",
+     "test": "Follows the line through the S-bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal\" within 40 s"
+     ]
+    },
+    {
+     "world": "A line with fail areas beside it",
+     "test": "Stays on the line to the goal",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "followLine/C-one-turn": {
+   "key": "followLine/C-one-turn",
+   "tests": [
+    {
+     "world": "A straight line to the goal",
+     "test": "Follows the straight line to the goal",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal\" within 30 s"
+     ]
+    },
+    {
+     "world": "A bend in the line",
+     "test": "Follows the line round the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal\" within 40 s"
+     ]
+    },
+    {
+     "world": "An S-bend in the line",
+     "test": "Follows the line through the S-bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal\" within 40 s"
+     ]
+    },
+    {
+     "world": "A line with fail areas beside it",
+     "test": "Stays on the line to the goal",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal\" within 30 s",
+      "the robot touched a fail area after 1 s"
+     ]
+    }
+   ]
+  },
+  "followLine/C-too-slow": {
+   "key": "followLine/C-too-slow",
+   "tests": [
+    {
+     "world": "A straight line to the goal",
+     "test": "Follows the straight line to the goal",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A bend in the line",
+     "test": "Follows the line round the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "An S-bend in the line",
+     "test": "Follows the line through the S-bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A line with fail areas beside it",
+     "test": "Stays on the line to the goal",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "followLine/C-straight-off": {
+   "key": "followLine/C-straight-off",
+   "tests": [
+    {
+     "world": "A straight line to the goal",
+     "test": "Follows the straight line to the goal",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal\" within 30 s"
+     ]
+    },
+    {
+     "world": "A bend in the line",
+     "test": "Follows the line round the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "An S-bend in the line",
+     "test": "Follows the line through the S-bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal\" within 40 s"
+     ]
+    },
+    {
+     "world": "A line with fail areas beside it",
+     "test": "Stays on the line to the goal",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal\" within 30 s",
+      "the robot touched a fail area after 4.4 s"
+     ]
+    }
+   ]
+  }
+ }
+}

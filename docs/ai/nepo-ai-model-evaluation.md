@@ -678,6 +678,7 @@ Each folder has the scripts and their raw outputs:
 | `e6-live-session/` | `today.py`, `today.txt`: the live session's events; `fix_times.py` |
 | `e7-learners-tests-count/` | `dup_check.py` (old against new rules), `dup_summary.py`, `summary.txt`, `out_*.json` |
 | `e8-one-call-per-scenario/` | `per_scenario.py` (the replay and its evaluation), `results.json` |
+| `e16-compliance/` | `audit.py` (read only: the problems the Lab sent back, per technique and contract, the runs' planned and seen outcomes, the deferrals; `audit.json`); the results are in `nepo-ai-technique-compliance.md` |
 | `e15-tunnels/` | `tunnel_chain.py` (the replay of telemetry 728 to 735: `results.json`), `run_tests.py` (the Lab's checks and the simulator runs: `runs.json`); the simulator runs of the model's worlds and of the recipes were made with `tunnel_probe` 1 and 2 in the browser |
 | `e14-no-boundaries/` | `no_bva_chain.py` (the replay: `results.json` both sessions, `results_l2-curves_beside1.json` with the beside recipe, `results_l2-curves.json` with the side rule), `beside_repair.py`, `results_beside_repair.json` |
 | `e13-sensors-it-reads/` | `sensors_chain.py`, `results.json` |
