@@ -223,7 +223,8 @@ Everything is in `evaluation/phase5/` (its `README.md` says how to run it):
   (or a main loop that decides which function runs).
 - **A correct fix can break a later level**: `followLine` B (it steers by a threshold of 50 %) beats L1 and L2 but loses L5 once the later
   functions call it; `avoidWalls` B and C beat L6 but lose L7. Learners' fixes need checking against the later levels, or the later levels'
-  code must tolerate them.
+  code must tolerate them. (Since 2026-11-07 the levels are loosened so that every combination of correct versions beats them, L8 included:
+  `evaluation/truth/README.md`. Phase 5's two rounds were measured on the levels before.)
 - **L5 is beaten only with a dark threshold of about 70 to 75** (the light from above, in percent; 100 outside, 40 inside a tunnel): lower or
   higher, the robot loses the line at the tunnel's exit.
 - **Some faults don't break a level**: a line follower with its turns swapped follows the other edge of the line and still wins; so does one at
@@ -361,14 +362,13 @@ The same 80 requests per pipeline with the tuned pack, the kept-out versions inc
 - **The source of truth for later comparisons** (2026-11-07, at the user's request): `evaluation/truth/` fixes the corpus per level: the
   function, its correct and broken versions as NEPO XML (alone, to inject, and as the level's whole program), and **reference tests written
   by hand** that meet the user's rule on every version:
-  - 15 correct and 7 equivalent versions pass all 14 tests;
-  - 59 of 59 broken versions fail at least one.
+  - 15 correct and 4 equivalent versions pass all 15 tests;
+  - 62 of 62 broken versions fail at least one (the swapped `followInTheDark` versions count as broken since L8 belongs to that function).
 
   So the test language can tell every level's correct code from its broken code. A test set of the AI or of a learner can be measured
-  against the same versions. Open:
-  - which broken version a learner gets;
-  - 3 correct versions lose a later level with the later reference code (`followLine/B`: L5; `avoidWalls/B`, `C`: L7);
-  - L8.
+  against the same versions. Also there, since 2026-11-07: the starter code per level in two versions (one per run), added to the learner's
+  program by the Lab (`levels.code.ts`, the version chosen per program in the Edit menu), and the levels loosened (L5, L7, L8) so that every
+  combination of correct fixes beats them. Open: a line follower with its turns swapped can't finish L8.
 
 ## Changes
 
@@ -382,3 +382,5 @@ The same 80 requests per pipeline with the tuned pack, the kept-out versions inc
 - 2026-11-07: phase 5: the tuning (the causes of the false alarms, what was changed in the context pack, the recipes checked).
 - 2026-11-07: phase 5: round 2 after the tuning (results, the false alarms left, the answer after phase 5 with both rounds).
 - 2026-11-07: phase 5: the study's source of truth (`evaluation/truth/`): versions per level and reference tests that meet the rule.
+- 2026-11-07: the levels loosened (every combination of correct fixes beats them), L8 in the source of truth, the starter code and its
+  injection.

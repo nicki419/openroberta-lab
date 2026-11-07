@@ -9,7 +9,10 @@
  *    timeLimit,                      optional: seconds of the simulator's time
  *    world: {background: 'peach', size, starts: [one start], items: [...]},   the world of the Tests tab (nepoTest.sim), with soft goal
  *                                    areas and obstacles, walls or tunnels with failOnHit; size: optional, the floor's {w, h} in cm (none: 300 x 200)
- *    view: {x, y, scale}}            the designer's zoom
+ *    view: {x, y, scale},            the designer's zoom
+ *    code: {function, calls, versions: {<name>: <block_set>}}}   optional: the study's code of the level (levels.code): the function
+ *                                    the learner fixes here, in versions (one is chosen per program), and the function the main loop called
+ *                                    before (null: none, the first level with code); written from evaluation/truth (write_level_code.py)
  */
 import * as SIM from 'nepoTest.sim';
 import * as SIMRUN from 'nepoTest.simRun';
@@ -26,6 +29,14 @@ export interface Level {
     timeLimit?: number; // seconds of the simulator's time; none: no limit
     world: SIM.SimWorld;
     view?: { x: number; y: number; scale: number };
+    code?: LevelCode;
+}
+
+/** the study's code of a level: a function (a NEPO definition, as a block_set with its instance) in versions, chosen per program (levels.code) */
+export interface LevelCode {
+    function: string; // its name
+    calls: string; // the function the main loop called before this level (null: none)
+    versions: { [name: string]: string }; // the version's name ("1", "2") → the block_set XML of the function's definition
 }
 
 /** a level of a set: its id is "set folder/file name" (progress refers to it) */
@@ -71,7 +82,25 @@ export function parseLevel(json: any): Level {
     if (raw.view && typeof raw.view === 'object') {
         level.view = data.view;
     }
+    const code = parseCode(raw.code);
+    code && (level.code = code);
     return level;
+}
+
+/** a level's code, if it is one: a function's name and at least one version of its definition */
+function parseCode(raw: any): LevelCode {
+    if (!raw || typeof raw !== 'object' || typeof raw.function !== 'string' || !raw.function || !raw.versions || typeof raw.versions !== 'object') {
+        return null;
+    }
+    const versions: { [name: string]: string } = {};
+    Object.keys(raw.versions).forEach((name) => {
+        const xml = raw.versions[name];
+        typeof xml === 'string' && xml.indexOf('robProcedures_defnoreturn') >= 0 && (versions[name] = xml);
+    });
+    if (!Object.keys(versions).length) {
+        return null;
+    }
+    return { function: raw.function, calls: typeof raw.calls === 'string' && raw.calls ? raw.calls : null, versions: versions };
 }
 
 function text(value: any): string {
@@ -89,6 +118,7 @@ export function serialize(level: Level): string {
     level.timeLimit > 0 && (out.timeLimit = level.timeLimit);
     out.world = '\u0000';
     level.view && (out.view = '\u0001');
+    level.code && (out.code = level.code);
     const world = level.world;
     const worldText =
         '{"background": ' +

@@ -291,5 +291,100 @@
     "ref": "followInTheDark:start-in-dark"
    }
   ]
+ },
+ {
+  "name": "A line out of the dark",
+  "existing": false,
+  "data": {
+   "version": 3,
+   "world": {
+    "background": "peach",
+    "starts": [
+     {
+      "id": "A",
+      "name": "A",
+      "x": 40,
+      "y": 100,
+      "heading": 0
+     }
+    ],
+    "items": [
+     {
+      "id": "t1",
+      "name": "Tunnel t1",
+      "kind": "tunnel",
+      "role": "obstacle",
+      "points": [
+       [
+        30,
+        100
+       ],
+       [
+        120,
+        100
+       ]
+      ],
+      "smooth": false,
+      "width": 20
+     },
+     {
+      "id": "t2",
+      "name": "Line t2",
+      "kind": "line",
+      "points": [
+       [
+        35,
+        100
+       ],
+       [
+        190,
+        100
+       ]
+      ],
+      "smooth": false,
+      "width": 1.48
+     },
+     {
+      "id": "t3",
+      "name": "Goal t3",
+      "kind": "rect",
+      "role": "goal",
+      "x": 178,
+      "y": 90,
+      "w": 12,
+      "h": 20
+     }
+    ]
+   },
+   "view": {
+    "x": 150,
+    "y": 100,
+    "scale": 3
+   }
+  },
+  "tests": [
+   {
+    "name": "Follows the line out of the dark and on in the light",
+    "scenario": "Given the robot on a line inside a dark tunnel, when the line runs on out of the tunnel, then the robot follows it into the light and on to the goal at its end.",
+    "targets": [
+     "swapped"
+    ],
+    "start": "A",
+    "until": "t3",
+    "max_time_ms": 60000,
+    "world": [],
+    "globals": {},
+    "checks": [
+     {
+      "check": "reaches",
+      "item": "t3"
+     },
+     {
+      "check": "never_bumps"
+     }
+    ],
+    "ref": "followInTheDark:out-of-the-dark"
+   }
+  ]
  }
 ]

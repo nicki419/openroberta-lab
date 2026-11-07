@@ -42,7 +42,8 @@ def summary(ms):
 
 
 def main(a, b):
-    versions = json.load(open(os.path.join(HERE, 'corpus', 'versions.json'), encoding='utf-8'))
+    # the corpus as decided on the levels of rounds 1 and 2 (versions.json is decided on the levels loosened on 2026-11-07)
+    versions = json.load(open(os.path.join(HERE, 'corpus', 'versions-rounds-1-2.json'), encoding='utf-8'))
     held = {generate.chosen(versions, fn)[-1]['id'] for fn in FUNCTIONS}
     ra, rb = rows(a), rows(b)
     print('### %s against %s\n' % (a, b))

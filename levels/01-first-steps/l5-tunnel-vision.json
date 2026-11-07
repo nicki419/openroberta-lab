@@ -3,13 +3,21 @@
  "version": 1,
  "title": "L5 - Tunnel Vision",
  "instructions": "Make the robot go through the tunnel. Tip: The left and right light sensors on the robot check for light above, not below.",
- "world": {"background": "peach", "size": {"w":300,"h":100},
+ "world": {"background": "peach", "size": {"w":240,"h":100},
   "starts": [{"id":"A","name":"A","x":6.91,"y":53.67,"heading":0}],
   "items": [
     {"id":"lmw2akq604","kind":"line","points":[[8.97,53.46],[83.42,53.46]],"smooth":false,"closed":false,"name":"Line 1"},
-    {"id":"tmw2aktkr5","kind":"tunnel","role":"obstacle","points":[[68.29,53.46],[230.28,53.46]],"smooth":true,"width":15,"name":"Tunnel 1","failOnHit":true},
-    {"id":"lmw2alekl6","kind":"line","points":[[216.37,53.66],[281.16,53.66]],"smooth":false,"closed":false,"name":"Line 2"},
-    {"id":"smw2am5f49","kind":"rect","role":"goal","name":"Goal 1","x":281.06,"y":47.09,"w":4.98,"h":11.64}
+    {"id":"tmw2aktkr5","kind":"tunnel","role":"obstacle","points":[[68.29,53.46],[170.28,53.46]],"smooth":true,"width":15,"name":"Tunnel 1","failOnHit":true},
+    {"id":"lmw2alekl6","width":4.5,"kind":"line","points":[[156.37,53.66],[221.16,53.66]],"smooth":false,"closed":false,"name":"Line 2"},
+    {"id":"smw2am5f49","kind":"rect","role":"goal","name":"Goal 1","x":221.06,"y":47.09,"w":4.98,"h":11.64}
   ]},
- "view": {"x":156.64,"y":56.07,"scale":4.196}
+ "view": {"x":126.64,"y":56.07,"scale":4.196},
+ "code": {
+  "function": "driveInTheDark",
+  "calls": "stopAtWall",
+  "versions": {
+   "1": "<block_set xmlns=\"http://de.fhg.iais.roberta.blockly\" robottype=\"edison\" xmlversion=\"3.1\" description=\"\" tags=\"\"><instance x=\"40\" y=\"40\"><block type=\"robProcedures_defnoreturn\" id=\"p5_832\" intask=\"true\"><mutation declare=\"false\"/><field name=\"NAME\">driveInTheDark</field><statement name=\"STACK\"><block type=\"robControls_ifElse\" id=\"p5_833\" intask=\"true\"><mutation else=\"1\"/><repetitions><value name=\"IF0\"><block type=\"logic_compare\" id=\"p5_834\" intask=\"true\"><field name=\"OP\">GT</field><value name=\"A\"><block type=\"robSensors_light_getSample\" id=\"p5_835\" intask=\"true\"><mutation mode=\"LIGHT\"/><field name=\"MODE\">LIGHT</field><field name=\"SENSORPORT\">LLIGHT</field><field name=\"SLOT\"/></block></value><value name=\"B\"><block type=\"math_integer\" id=\"p5_836\" intask=\"true\"><field name=\"NUM\">70</field></block></value></block></value><statement name=\"DO0\"><block type=\"robActions_motorDiff_on\" id=\"p5_837\" intask=\"true\"><field name=\"DIRECTION\">FOREWARD</field><value name=\"POWER\"><block type=\"math_integer\" id=\"p5_838\" intask=\"true\"><field name=\"NUM\">30</field></block></value></block></statement><statement name=\"ELSE\"><block type=\"robProcedures_callnoreturn\" id=\"p5_839\" intask=\"true\"><mutation name=\"stopAtWall\"/></block></statement></repetitions></block></statement></block></instance></block_set>",
+   "2": "<block_set xmlns=\"http://de.fhg.iais.roberta.blockly\" robottype=\"edison\" xmlversion=\"3.1\" description=\"\" tags=\"\"><instance x=\"40\" y=\"40\"><block type=\"robProcedures_defnoreturn\" id=\"p5_1034\" intask=\"true\"><mutation declare=\"false\"/><field name=\"NAME\">driveInTheDark</field><statement name=\"STACK\"><block type=\"robControls_ifElse\" id=\"p5_1035\" intask=\"true\"><mutation else=\"1\"/><repetitions><value name=\"IF0\"><block type=\"logic_compare\" id=\"p5_1036\" intask=\"true\"><field name=\"OP\">LT</field><value name=\"A\"><block type=\"robSensors_light_getSample\" id=\"p5_1037\" intask=\"true\"><mutation mode=\"LIGHT\"/><field name=\"MODE\">LIGHT</field><field name=\"SENSORPORT\">RLIGHT</field><field name=\"SLOT\"/></block></value><value name=\"B\"><block type=\"math_integer\" id=\"p5_1038\" intask=\"true\"><field name=\"NUM\">30</field></block></value></block></value><statement name=\"DO0\"><block type=\"robActions_motorDiff_on\" id=\"p5_1039\" intask=\"true\"><field name=\"DIRECTION\">FOREWARD</field><value name=\"POWER\"><block type=\"math_integer\" id=\"p5_1040\" intask=\"true\"><field name=\"NUM\">40</field></block></value></block></statement><statement name=\"ELSE\"><block type=\"robProcedures_callnoreturn\" id=\"p5_1041\" intask=\"true\"><mutation name=\"stopAtWall\"/></block></statement></repetitions></block></statement></block></instance></block_set>"
+  }
+ }
 }

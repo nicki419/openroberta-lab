@@ -36,9 +36,21 @@ LEVELS = [
     ('l5', 'l5-tunnel-vision.json', 'driveInTheDark'),
     ('l6', 'l6-tunnel-vision-reloaded.json', 'avoidWalls'),
     ('l7', 'l7-well-ill-be-forked.json', 'followInTheDark'),
-    ('l8', 'l8-climax.json', None),
+    ('l8', 'l8-climax.json', 'followInTheDark'),
 ]
 LEVEL_DIR = 'levels/01-first-steps'
+# the study's starter code (2026-11-07): per function, the broken version a learner gets in each version of the study's code ("1", "2": one
+# per run, chosen per program in the Lab's Edit menu). Each loses the level where its function is new; the two of a level are faults of a
+# similar kind (a wrong action, a wrong condition, a wrong sensor or threshold), so neither run is harder by design, and none has an obvious fix
+# that is an equivalent version which loses a later level. write_level_code.py puts them into the level files.
+STARTERS = {
+    # not A-one-turn: fixing the other of its two equal turns gives followLine/A-swapped, which beats L1 to L7 but can't finish L8
+    'followLine': {'1': 'followLine/A-light-above', '2': 'followLine/B-straight-off'},
+    'stopAtWall': {'1': 'stopAtWall/A-turns', '2': 'stopAtWall/C-slows'},
+    'driveInTheDark': {'1': 'driveInTheDark/A-negated', '2': 'driveInTheDark/B-never-dark'},
+    'avoidWalls': {'1': 'avoidWalls/A-swapped', '2': 'avoidWalls/B-front-sensor'},
+    'followInTheDark': {'1': 'followInTheDark/A-light-above', '2': 'followInTheDark/B-peach-is-black'},
+}
 RULE = ('Every correct version (and every equivalent one: broken by a fault, but the level still passes it) passes every reference test of its '
         'function; every broken version fails at least one.')
 
@@ -80,17 +92,12 @@ def main():
     levels = []
     for lv, file, fn in LEVELS:
         d = json.load(open(os.path.join(HERE, '..', '..', LEVEL_DIR, file), encoding='utf-8'))
-        if fn is None:
-            levels.append({'level': lv, 'file': LEVEL_DIR + '/' + file, 'title': d['title'], 'function': None,
-                           'note': 'Not used: the program of the reference versions does not beat it (it circles where the first line ends; '
-                                   'phase 5, 2026-11-07).'})
-            continue
         have = corpus.CHAIN[:corpus.CHAIN.index(fn) + 1]
         new = fn if lv == corpus.LEVELS_OF[fn][0] else None
         levels.append({'level': lv, 'file': LEVEL_DIR + '/' + file, 'title': d['title'], 'time_limit_s': d.get('timeLimit'), 'function': fn,
                        'new_function': new, 'functions': list(reversed(have)), 'main_calls': fn,
                        'inject': ({'function': fn, 'main_call_before': have[-2] if len(have) > 1 else None, 'main_call_after': fn} if new else None),
-                       'starter': None})
+                       'starter': dict(STARTERS[fn]) if new else None})
 
     functions = []
     for fn in FUNCTIONS:
@@ -132,7 +139,12 @@ def main():
                                      'the tests'},
              'program_shape': 'main: forever: <the newest function>(); each function handles its situation or calls the function of the level '
                               'before (a priority chain: the simulator runs one motor block per frame)',
-             'levels': levels, 'functions': functions, 'tests': tests, 'versions': versions}
+             'levels': levels, 'functions': functions, 'tests': tests, 'versions': versions, 'level_check': level_check(versions)}
+    for lv in levels:
+        for name, vid in (lv['starter'] or {}).items():
+            v = [x for x in versions if x['id'] == vid]
+            assert v and v[0]['kind'] == 'broken', 'starter %s of %s is not a broken version' % (vid, lv['level'])
+            assert v[0]['levels'].get(lv['level']) not in ('win', 'win_soft'), 'starter %s beats %s' % (vid, lv['level'])
     json.dump(truth, open(os.path.join(HERE, 'truth.json'), 'w', encoding='utf-8', newline='\n'), indent=1, ensure_ascii=False)
 
     for v in versions:
@@ -146,6 +158,32 @@ def main():
     open(os.path.join(HERE, 'TRUTH.md'), 'w', encoding='utf-8', newline='\n').write(markdown(truth))
     print('wrote truth.json, functions/, programs/, tests/, TRUTH.md:', len(versions), 'versions,',
           sum(len(w['tests']) for ws in tests.values() for w in ws), 'tests')
+
+
+def level_check(versions):
+    """check_levels.py's result per level: the combinations of correct versions played and won, the equivalent versions played and won, and
+    the equivalent versions that lose (a version that has become broken since, e.g. by losing a level of its own, isn't counted)"""
+    path = os.path.join(HERE, 'levels.json')
+    if not os.path.exists(path):
+        return None
+    equivalent = {v['id'] for v in versions if v['kind'] == 'equivalent'}
+    runs = json.load(open(path, encoding='utf-8'))
+    out = {}
+    for k, r in runs.items():
+        level, what = k.split('|')
+        c = out.setdefault(level, {'combinations': 0, 'combinations_won': 0, 'equivalents': 0, 'equivalents_won': 0, 'equivalents_lost': []})
+        won = r['outcome'] in ('win', 'win_soft')
+        if what.endswith(' (others A)'):
+            vid = what[:-len(' (others A)')]
+            if vid not in equivalent:
+                continue
+            c['equivalents'] += 1
+            c['equivalents_won'] += won
+            won or c['equivalents_lost'].append(vid)
+        else:
+            c['combinations'] += 1
+            c['combinations_won'] += won
+    return dict(sorted(out.items()))
 
 
 def describe_check(c):
@@ -165,13 +203,29 @@ def markdown(t):
           'A level\'s program is its function and the functions of the levels before; the main loop calls the newest, and each function handles '
           'its situation or calls the one before:', '', '```', 'main:', '  forever:', '    <the newest function>()', '```', '',
           '| level | title | function | new code | the main loop calls |', '|---|---|---|---|---|']
+    first = {f['name']: f['levels'][0] for f in t['functions']}
     for lv in t['levels']:
-        if lv['function'] is None:
-            md.append('| %s | %s | - | %s | - |' % (lv['level'].upper(), lv['title'], lv['note']))
-        else:
-            md.append('| %s | %s | `%s` | %s | `%s()` |' % (lv['level'].upper(), lv['title'], lv['function'],
-                                                          'yes' if lv['new_function'] else 'no (the function of L1)', lv['main_calls']))
-    md += ['', 'Which broken version a learner gets per level (`starter` in `truth.json`) is not chosen yet.', '']
+        md.append('| %s | %s | `%s` | %s | `%s()` |' % (lv['level'].upper(), lv['title'], lv['function'],
+                                                      'yes' if lv['new_function'] else 'no (the function of %s)' % first[lv['function']].upper(),
+                                                      lv['main_calls']))
+    md += ['', '### The starter code', '',
+           "The broken version a learner gets where a function is new, in each version of the study's code (one per run, chosen per program in the "
+           "Lab's Edit menu; `write_level_code.py` puts them into the level files):", '',
+           '| level | function | version 1 | version 2 |', '|---|---|---|---|']
+    why = {v['id']: v['why'] for v in t['versions']}
+    for lv in t['levels']:
+        if lv['starter']:
+            md.append('| %s | `%s` | `%s`: %s | `%s`: %s |' % (lv['level'].upper(), lv['function'], lv['starter']['1'], why[lv['starter']['1']],
+                                                            lv['starter']['2'], why[lv['starter']['2']]))
+    check = t.get('level_check')
+    if check:
+        md += ['', '### Every combination of correct fixes beats the levels', '',
+               "Each level played with every combination of the correct versions of its program's functions, and with each equivalent version in "
+               "place of its function's reference version (`check_levels.py`, `levels.json`):", '',
+               '| level | combinations of correct versions: won | equivalent versions: won | equivalent versions that lose |', '|---|---|---|---|'] + [
+                   '| %s | %d of %d | %d of %d | %s |' % (k.upper(), c['combinations_won'], c['combinations'], c['equivalents_won'], c['equivalents'],
+                                                         ', '.join('`%s`' % x for x in c['equivalents_lost']) or '-') for k, c in check.items()]
+    md += ['']
     summary = ['| function | correct | broken | equivalent | tests | false alarms | broken versions caught |', '|---|---|---|---|---|---|---|']
     for f in t['functions']:
         vs = [v for v in t['versions'] if v['function'] == f['name']]
@@ -201,7 +255,7 @@ def markdown(t):
             levels = ', '.join('%s %s' % (k.upper(), o) for k, o in v['levels'].items())
             if v['kind'] == 'correct' and not v['later_levels_ok']:
                 levels += '; later: ' + ', '.join('%s %s' % (k.upper(), o) for k, o in v['later_levels'].items() if o not in ('win', 'win_soft'))
-            cells = [('pass' if v['tests_passed'][r] else '**fail**') if v['tests_passed'] else '-' for r in refs]
+            cells = [('pass' if v['tests_passed'][r] else '**fail**') if (v['tests_passed'] or {}).get(r) is not None else '-' for r in refs]
             md.append('| `%s` | %s | %s | %s | %s | %s |' % (v['id'], v['kind'], v['fault'] or '', levels, ' | '.join(cells), v['verdict'] or '-'))
         md += ['', '### The code', '']
         for v in sorted(vs, key=lambda v: ({'correct': 0, 'equivalent': 1, 'broken': 2}[v['kind']], v['id'])):

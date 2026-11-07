@@ -25,7 +25,10 @@
     "main_call_before": null,
     "main_call_after": "followLine"
    },
-   "starter": null
+   "starter": {
+    "1": "followLine/A-light-above",
+    "2": "followLine/B-straight-off"
+   }
   },
   {
    "level": "l2",
@@ -58,7 +61,10 @@
     "main_call_before": "followLine",
     "main_call_after": "stopAtWall"
    },
-   "starter": null
+   "starter": {
+    "1": "stopAtWall/A-turns",
+    "2": "stopAtWall/C-slows"
+   }
   },
   {
    "level": "l5",
@@ -78,7 +84,10 @@
     "main_call_before": "stopAtWall",
     "main_call_after": "driveInTheDark"
    },
-   "starter": null
+   "starter": {
+    "1": "driveInTheDark/A-negated",
+    "2": "driveInTheDark/B-never-dark"
+   }
   },
   {
    "level": "l6",
@@ -99,7 +108,10 @@
     "main_call_before": "driveInTheDark",
     "main_call_after": "avoidWalls"
    },
-   "starter": null
+   "starter": {
+    "1": "avoidWalls/A-swapped",
+    "2": "avoidWalls/B-front-sensor"
+   }
   },
   {
    "level": "l7",
@@ -121,14 +133,28 @@
     "main_call_before": "avoidWalls",
     "main_call_after": "followInTheDark"
    },
-   "starter": null
+   "starter": {
+    "1": "followInTheDark/A-light-above",
+    "2": "followInTheDark/B-peach-is-black"
+   }
   },
   {
    "level": "l8",
    "file": "levels/01-first-steps/l8-climax.json",
    "title": "L8 - Climax",
-   "function": null,
-   "note": "Not used: the program of the reference versions does not beat it (it circles where the first line ends; phase 5, 2026-11-07)."
+   "time_limit_s": null,
+   "function": "followInTheDark",
+   "new_function": null,
+   "functions": [
+    "followInTheDark",
+    "avoidWalls",
+    "driveInTheDark",
+    "stopAtWall",
+    "followLine"
+   ],
+   "main_calls": "followInTheDark",
+   "inject": null,
+   "starter": null
   }
  ],
  "functions": [
@@ -267,7 +293,8 @@
   {
    "name": "followInTheDark",
    "levels": [
-    "l7"
+    "l7",
+    "l8"
    ],
    "hands_over_to": "avoidWalls",
    "reference_version": "followInTheDark/A",
@@ -292,7 +319,8 @@
    "tests": [
     "followInTheDark:dark-line-bends-right",
     "followInTheDark:dark-line-bends-left",
-    "followInTheDark:start-in-dark"
+    "followInTheDark:start-in-dark",
+    "followInTheDark:out-of-the-dark"
    ]
   }
  ],
@@ -1612,6 +1640,101 @@
       "ref": "followInTheDark:start-in-dark"
      }
     ]
+   },
+   {
+    "name": "A line out of the dark",
+    "existing": false,
+    "data": {
+     "version": 3,
+     "world": {
+      "background": "peach",
+      "starts": [
+       {
+        "id": "A",
+        "name": "A",
+        "x": 40,
+        "y": 100,
+        "heading": 0
+       }
+      ],
+      "items": [
+       {
+        "id": "t1",
+        "name": "Tunnel t1",
+        "kind": "tunnel",
+        "role": "obstacle",
+        "points": [
+         [
+          30,
+          100
+         ],
+         [
+          120,
+          100
+         ]
+        ],
+        "smooth": false,
+        "width": 20
+       },
+       {
+        "id": "t2",
+        "name": "Line t2",
+        "kind": "line",
+        "points": [
+         [
+          35,
+          100
+         ],
+         [
+          190,
+          100
+         ]
+        ],
+        "smooth": false,
+        "width": 1.48
+       },
+       {
+        "id": "t3",
+        "name": "Goal t3",
+        "kind": "rect",
+        "role": "goal",
+        "x": 178,
+        "y": 90,
+        "w": 12,
+        "h": 20
+       }
+      ]
+     },
+     "view": {
+      "x": 150,
+      "y": 100,
+      "scale": 3
+     }
+    },
+    "tests": [
+     {
+      "name": "Follows the line out of the dark and on in the light",
+      "scenario": "Given the robot on a line inside a dark tunnel, when the line runs on out of the tunnel, then the robot follows it into the light and on to the goal at its end.",
+      "targets": [
+       "swapped"
+      ],
+      "start": "A",
+      "until": "t3",
+      "max_time_ms": 60000,
+      "world": [],
+      "globals": {},
+      "checks": [
+       {
+        "check": "reaches",
+        "item": "t3"
+       },
+       {
+        "check": "never_bumps"
+       }
+      ],
+      "ref": "followInTheDark:out-of-the-dark"
+     }
+    ]
    }
   ]
  },
@@ -1639,7 +1762,8 @@
     "l4": "win_soft",
     "l5": "win",
     "l6": "win",
-    "l7": "win"
+    "l7": "win",
+    "l8": "win_soft"
    },
    "later_levels_ok": true,
    "tests_passed": {
@@ -1871,11 +1995,12 @@
    },
    "later_levels": {
     "l4": "win_soft",
-    "l5": "fail_hit",
+    "l5": "win",
     "l6": "win",
-    "l7": "win"
+    "l7": "win",
+    "l8": "win_soft"
    },
-   "later_levels_ok": false,
+   "later_levels_ok": true,
    "tests_passed": {
     "followLine:straight-in-time": true,
     "followLine:bend-left": true,
@@ -2101,7 +2226,8 @@
     "l4": "win_soft",
     "l5": "win",
     "l6": "win",
-    "l7": "win"
+    "l7": "win",
+    "l8": "win_soft"
    },
    "later_levels_ok": true,
    "tests_passed": {
@@ -2332,7 +2458,8 @@
    "later_levels": {
     "l5": "win",
     "l6": "win",
-    "l7": "win"
+    "l7": "win",
+    "l8": "win_soft"
    },
    "later_levels_ok": true,
    "tests_passed": {
@@ -2504,7 +2631,8 @@
    "later_levels": {
     "l5": "win",
     "l6": "win",
-    "l7": "win"
+    "l7": "win",
+    "l8": "win_soft"
    },
    "later_levels_ok": true,
    "tests_passed": {
@@ -2676,7 +2804,8 @@
    "later_levels": {
     "l5": "win",
     "l6": "win",
-    "l7": "win"
+    "l7": "win",
+    "l8": "win_soft"
    },
    "later_levels_ok": true,
    "tests_passed": {
@@ -2848,7 +2977,8 @@
    },
    "later_levels": {
     "l6": "win",
-    "l7": "win"
+    "l7": "win",
+    "l8": "win_soft"
    },
    "later_levels_ok": true,
    "tests_passed": {
@@ -3082,7 +3212,8 @@
    },
    "later_levels": {
     "l6": "win",
-    "l7": "win"
+    "l7": "win",
+    "l8": "win_soft"
    },
    "later_levels_ok": true,
    "tests_passed": {
@@ -3316,7 +3447,8 @@
    },
    "later_levels": {
     "l6": "win",
-    "l7": "win"
+    "l7": "win",
+    "l8": "win_soft"
    },
    "later_levels_ok": true,
    "tests_passed": {
@@ -3555,7 +3687,8 @@
     "l6": "win"
    },
    "later_levels": {
-    "l7": "win"
+    "l7": "win",
+    "l8": "win_soft"
    },
    "later_levels_ok": true,
    "tests_passed": {
@@ -3764,9 +3897,10 @@
     "l6": "win"
    },
    "later_levels": {
-    "l7": "fail_hit"
+    "l7": "win",
+    "l8": "win_soft"
    },
-   "later_levels_ok": false,
+   "later_levels_ok": true,
    "tests_passed": {
     "avoidWalls:tunnel-bends-right": true,
     "avoidWalls:tunnel-bends-left": true,
@@ -3973,9 +4107,10 @@
     "l6": "win"
    },
    "later_levels": {
-    "l7": "fail_hit"
+    "l7": "win",
+    "l8": "win_soft"
    },
-   "later_levels_ok": false,
+   "later_levels_ok": true,
    "tests_passed": {
     "avoidWalls:tunnel-bends-right": true,
     "avoidWalls:tunnel-bends-left": true,
@@ -4181,14 +4316,16 @@
     "l4": "win_soft",
     "l5": "win",
     "l6": "win",
-    "l7": "win"
+    "l7": "win",
+    "l8": "win_soft"
    },
    "later_levels": null,
    "later_levels_ok": true,
    "tests_passed": {
     "followInTheDark:dark-line-bends-right": true,
     "followInTheDark:dark-line-bends-left": true,
-    "followInTheDark:start-in-dark": true
+    "followInTheDark:start-in-dark": true,
+    "followInTheDark:out-of-the-dark": true
    },
    "tests_failed_why": {},
    "verdict": "ok",
@@ -4199,7 +4336,7 @@
    "id": "followInTheDark/A-swapped",
    "function": "followInTheDark",
    "variant": "A-swapped",
-   "kind": "equivalent",
+   "kind": "broken",
    "of": "followInTheDark/A",
    "fault": "swapped",
    "why": "the two turns swapped",
@@ -4216,17 +4353,23 @@
     "    avoidWalls()"
    ],
    "levels": {
-    "l7": "win"
+    "l7": "win",
+    "l8": "fail_hit"
    },
    "later_levels": null,
    "later_levels_ok": null,
    "tests_passed": {
     "followInTheDark:dark-line-bends-right": true,
     "followInTheDark:dark-line-bends-left": true,
-    "followInTheDark:start-in-dark": true
+    "followInTheDark:start-in-dark": true,
+    "followInTheDark:out-of-the-dark": false
    },
-   "tests_failed_why": {},
-   "verdict": "ok",
+   "tests_failed_why": {
+    "followInTheDark:out-of-the-dark": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   },
+   "verdict": "caught",
    "function_xml": "<block_set xmlns=\"http://de.fhg.iais.roberta.blockly\" robottype=\"edison\" xmlversion=\"3.1\" description=\"\" tags=\"\"><instance x=\"40\" y=\"40\"><block type=\"robProcedures_defnoreturn\" id=\"p5_2264\" intask=\"true\"><mutation declare=\"false\"/><field name=\"NAME\">followInTheDark</field><statement name=\"STACK\"><block type=\"robControls_ifElse\" id=\"p5_2265\" intask=\"true\"><mutation else=\"1\"/><repetitions><value name=\"IF0\"><block type=\"logic_compare\" id=\"p5_2266\" intask=\"true\"><field name=\"OP\">LT</field><value name=\"A\"><block type=\"robSensors_light_getSample\" id=\"p5_2267\" intask=\"true\"><mutation mode=\"LIGHT\"/><field name=\"MODE\">LIGHT</field><field name=\"SENSORPORT\">LLIGHT</field><field name=\"SLOT\"/></block></value><value name=\"B\"><block type=\"math_integer\" id=\"p5_2268\" intask=\"true\"><field name=\"NUM\">70</field></block></value></block></value><statement name=\"DO0\"><block type=\"robControls_ifElse\" id=\"p5_2269\" intask=\"true\"><mutation elseif=\"1\" else=\"1\"/><repetitions><value name=\"IF0\"><block type=\"logic_compare\" id=\"p5_2270\" intask=\"true\"><field name=\"OP\">LT</field><value name=\"A\"><block type=\"robSensors_light_getSample\" id=\"p5_2271\" intask=\"true\"><mutation mode=\"LIGHT\"/><field name=\"MODE\">LIGHT</field><field name=\"SENSORPORT\">LINETRACKER</field><field name=\"SLOT\"/></block></value><value name=\"B\"><block type=\"math_integer\" id=\"p5_2272\" intask=\"true\"><field name=\"NUM\">45</field></block></value></block></value><statement name=\"DO0\"><block type=\"robActions_motorDiff_curve\" id=\"p5_2273\" intask=\"true\"><field name=\"DIRECTION\">FOREWARD</field><value name=\"POWER_LEFT\"><block type=\"math_integer\" id=\"p5_2274\" intask=\"true\"><field name=\"NUM\">30</field></block></value><value name=\"POWER_RIGHT\"><block type=\"math_integer\" id=\"p5_2275\" intask=\"true\"><field name=\"NUM\">10</field></block></value></block></statement><value name=\"IF1\"><block type=\"logic_compare\" id=\"p5_2276\" intask=\"true\"><field name=\"OP\">GT</field><value name=\"A\"><block type=\"robSensors_light_getSample\" id=\"p5_2277\" intask=\"true\"><mutation mode=\"LIGHT\"/><field name=\"MODE\">LIGHT</field><field name=\"SENSORPORT\">LINETRACKER</field><field name=\"SLOT\"/></block></value><value name=\"B\"><block type=\"math_integer\" id=\"p5_2278\" intask=\"true\"><field name=\"NUM\">90</field></block></value></block></value><statement name=\"DO1\"><block type=\"robActions_motorDiff_curve\" id=\"p5_2279\" intask=\"true\"><field name=\"DIRECTION\">FOREWARD</field><value name=\"POWER_LEFT\"><block type=\"math_integer\" id=\"p5_2280\" intask=\"true\"><field name=\"NUM\">10</field></block></value><value name=\"POWER_RIGHT\"><block type=\"math_integer\" id=\"p5_2281\" intask=\"true\"><field name=\"NUM\">30</field></block></value></block></statement><statement name=\"ELSE\"><block type=\"robProcedures_callnoreturn\" id=\"p5_2282\" intask=\"true\"><mutation name=\"avoidWalls\"/></block></statement></repetitions></block></statement><statement name=\"ELSE\"><block type=\"robProcedures_callnoreturn\" id=\"p5_2283\" intask=\"true\"><mutation name=\"avoidWalls\"/></block></statement></repetitions></block></statement></block></instance></block_set>",
    "program": "<block_set xmlns=\"http://de.fhg.iais.roberta.blockly\" robottype=\"edison\" xmlversion=\"3.1\" description=\"\" tags=\"\"><instance x=\"40\" y=\"40\"><block type=\"robControls_start\" id=\"p5_2261\" intask=\"true\" deletable=\"false\"><mutation declare=\"false\"/><field name=\"DEBUG\">FALSE</field></block><block type=\"robControls_loopForever\" id=\"p5_2262\" intask=\"true\"><statement name=\"DO\"><block type=\"robProcedures_callnoreturn\" id=\"p5_2263\" intask=\"true\"><mutation name=\"followInTheDark\"/></block></statement></block></instance><instance x=\"420\" y=\"40\"><block type=\"robProcedures_defnoreturn\" id=\"p5_2264\" intask=\"true\"><mutation declare=\"false\"/><field name=\"NAME\">followInTheDark</field><statement name=\"STACK\"><block type=\"robControls_ifElse\" id=\"p5_2265\" intask=\"true\"><mutation else=\"1\"/><repetitions><value name=\"IF0\"><block type=\"logic_compare\" id=\"p5_2266\" intask=\"true\"><field name=\"OP\">LT</field><value name=\"A\"><block type=\"robSensors_light_getSample\" id=\"p5_2267\" intask=\"true\"><mutation mode=\"LIGHT\"/><field name=\"MODE\">LIGHT</field><field name=\"SENSORPORT\">LLIGHT</field><field name=\"SLOT\"/></block></value><value name=\"B\"><block type=\"math_integer\" id=\"p5_2268\" intask=\"true\"><field name=\"NUM\">70</field></block></value></block></value><statement name=\"DO0\"><block type=\"robControls_ifElse\" id=\"p5_2269\" intask=\"true\"><mutation elseif=\"1\" else=\"1\"/><repetitions><value name=\"IF0\"><block type=\"logic_compare\" id=\"p5_2270\" intask=\"true\"><field name=\"OP\">LT</field><value name=\"A\"><block type=\"robSensors_light_getSample\" id=\"p5_2271\" intask=\"true\"><mutation mode=\"LIGHT\"/><field name=\"MODE\">LIGHT</field><field name=\"SENSORPORT\">LINETRACKER</field><field name=\"SLOT\"/></block></value><value name=\"B\"><block type=\"math_integer\" id=\"p5_2272\" intask=\"true\"><field name=\"NUM\">45</field></block></value></block></value><statement name=\"DO0\"><block type=\"robActions_motorDiff_curve\" id=\"p5_2273\" intask=\"true\"><field name=\"DIRECTION\">FOREWARD</field><value name=\"POWER_LEFT\"><block type=\"math_integer\" id=\"p5_2274\" intask=\"true\"><field name=\"NUM\">30</field></block></value><value name=\"POWER_RIGHT\"><block type=\"math_integer\" id=\"p5_2275\" intask=\"true\"><field name=\"NUM\">10</field></block></value></block></statement><value name=\"IF1\"><block type=\"logic_compare\" id=\"p5_2276\" intask=\"true\"><field name=\"OP\">GT</field><value name=\"A\"><block type=\"robSensors_light_getSample\" id=\"p5_2277\" intask=\"true\"><mutation mode=\"LIGHT\"/><field name=\"MODE\">LIGHT</field><field name=\"SENSORPORT\">LINETRACKER</field><field name=\"SLOT\"/></block></value><value name=\"B\"><block type=\"math_integer\" id=\"p5_2278\" intask=\"true\"><field name=\"NUM\">90</field></block></value></block></value><statement name=\"DO1\"><block type=\"robActions_motorDiff_curve\" id=\"p5_2279\" intask=\"true\"><field name=\"DIRECTION\">FOREWARD</field><value name=\"POWER_LEFT\"><block type=\"math_integer\" id=\"p5_2280\" intask=\"true\"><field name=\"NUM\">10</field></block></value><value name=\"POWER_RIGHT\"><block type=\"math_integer\" id=\"p5_2281\" intask=\"true\"><field name=\"NUM\">30</field></block></value></block></statement><statement name=\"ELSE\"><block type=\"robProcedures_callnoreturn\" id=\"p5_2282\" intask=\"true\"><mutation name=\"avoidWalls\"/></block></statement></repetitions></block></statement><statement name=\"ELSE\"><block type=\"robProcedures_callnoreturn\" id=\"p5_2283\" intask=\"true\"><mutation name=\"avoidWalls\"/></block></statement></repetitions></block></statement></block></instance><instance x=\"800\" y=\"40\"><block type=\"robProcedures_defnoreturn\" id=\"p5_2284\" intask=\"true\"><mutation declare=\"false\"/><field name=\"NAME\">avoidWalls</field><statement name=\"STACK\"><block type=\"robControls_ifElse\" id=\"p5_2285\" intask=\"true\"><mutation else=\"1\"/><repetitions><value name=\"IF0\"><block type=\"logic_compare\" id=\"p5_2286\" intask=\"true\"><field name=\"OP\">LT</field><value name=\"A\"><block type=\"robSensors_light_getSample\" id=\"p5_2287\" intask=\"true\"><mutation mode=\"LIGHT\"/><field name=\"MODE\">LIGHT</field><field name=\"SENSORPORT\">LLIGHT</field><field name=\"SLOT\"/></block></value><value name=\"B\"><block type=\"math_integer\" id=\"p5_2288\" intask=\"true\"><field name=\"NUM\">70</field></block></value></block></value><statement name=\"DO0\"><block type=\"robControls_ifElse\" id=\"p5_2289\" intask=\"true\"><mutation elseif=\"1\" else=\"1\"/><repetitions><value name=\"IF0\"><block type=\"robSensors_infrared_getSample\" id=\"p5_2290\" intask=\"true\"><mutation mode=\"OBSTACLE\"/><field name=\"MODE\">OBSTACLE</field><field name=\"SENSORPORT\">LEFT</field><field name=\"SLOT\"/></block></value><statement name=\"DO0\"><block type=\"robActions_motorDiff_turn_for\" id=\"p5_2291\" intask=\"true\"><field name=\"DIRECTION\">RIGHT</field><value name=\"POWER\"><block type=\"math_integer\" id=\"p5_2292\" intask=\"true\"><field name=\"NUM\">30</field></block></value><value name=\"DEGREE\"><block type=\"math_integer\" id=\"p5_2293\" intask=\"true\"><field name=\"NUM\">20</field></block></value></block></statement><value name=\"IF1\"><block type=\"robSensors_infrared_getSample\" id=\"p5_2294\" intask=\"true\"><mutation mode=\"OBSTACLE\"/><field name=\"MODE\">OBSTACLE</field><field name=\"SENSORPORT\">RIGHT</field><field name=\"SLOT\"/></block></value><statement name=\"DO1\"><block type=\"robActions_motorDiff_turn_for\" id=\"p5_2295\" intask=\"true\"><field name=\"DIRECTION\">LEFT</field><value name=\"POWER\"><block type=\"math_integer\" id=\"p5_2296\" intask=\"true\"><field name=\"NUM\">30</field></block></value><value name=\"DEGREE\"><block type=\"math_integer\" id=\"p5_2297\" intask=\"true\"><field name=\"NUM\">20</field></block></value></block></statement><statement name=\"ELSE\"><block type=\"robProcedures_callnoreturn\" id=\"p5_2298\" intask=\"true\"><mutation name=\"driveInTheDark\"/></block></statement></repetitions></block></statement><statement name=\"ELSE\"><block type=\"robProcedures_callnoreturn\" id=\"p5_2299\" intask=\"true\"><mutation name=\"driveInTheDark\"/></block></statement></repetitions></block></statement></block></instance><instance x=\"420\" y=\"300\"><block type=\"robProcedures_defnoreturn\" id=\"p5_2300\" intask=\"true\"><mutation declare=\"false\"/><field name=\"NAME\">driveInTheDark</field><statement name=\"STACK\"><block type=\"robControls_ifElse\" id=\"p5_2301\" intask=\"true\"><mutation else=\"1\"/><repetitions><value name=\"IF0\"><block type=\"logic_compare\" id=\"p5_2302\" intask=\"true\"><field name=\"OP\">LT</field><value name=\"A\"><block type=\"robSensors_light_getSample\" id=\"p5_2303\" intask=\"true\"><mutation mode=\"LIGHT\"/><field name=\"MODE\">LIGHT</field><field name=\"SENSORPORT\">LLIGHT</field><field name=\"SLOT\"/></block></value><value name=\"B\"><block type=\"math_integer\" id=\"p5_2304\" intask=\"true\"><field name=\"NUM\">70</field></block></value></block></value><statement name=\"DO0\"><block type=\"robActions_motorDiff_on\" id=\"p5_2305\" intask=\"true\"><field name=\"DIRECTION\">FOREWARD</field><value name=\"POWER\"><block type=\"math_integer\" id=\"p5_2306\" intask=\"true\"><field name=\"NUM\">30</field></block></value></block></statement><statement name=\"ELSE\"><block type=\"robProcedures_callnoreturn\" id=\"p5_2307\" intask=\"true\"><mutation name=\"stopAtWall\"/></block></statement></repetitions></block></statement></block></instance><instance x=\"800\" y=\"300\"><block type=\"robProcedures_defnoreturn\" id=\"p5_2308\" intask=\"true\"><mutation declare=\"false\"/><field name=\"NAME\">stopAtWall</field><statement name=\"STACK\"><block type=\"robControls_ifElse\" id=\"p5_2309\" intask=\"true\"><mutation else=\"1\"/><repetitions><value name=\"IF0\"><block type=\"robSensors_infrared_getSample\" id=\"p5_2310\" intask=\"true\"><mutation mode=\"OBSTACLE\"/><field name=\"MODE\">OBSTACLE</field><field name=\"SENSORPORT\">FRONT</field><field name=\"SLOT\"/></block></value><statement name=\"DO0\"><block type=\"robActions_motorDiff_stop\" id=\"p5_2311\" intask=\"true\"/></statement><statement name=\"ELSE\"><block type=\"robProcedures_callnoreturn\" id=\"p5_2312\" intask=\"true\"><mutation name=\"followLine\"/></block></statement></repetitions></block></statement></block></instance><instance x=\"420\" y=\"560\"><block type=\"robProcedures_defnoreturn\" id=\"p5_2313\" intask=\"true\"><mutation declare=\"false\"/><field name=\"NAME\">followLine</field><statement name=\"STACK\"><block type=\"robControls_ifElse\" id=\"p5_2314\" intask=\"true\"><mutation else=\"1\"/><repetitions><value name=\"IF0\"><block type=\"robSensors_light_getSample\" id=\"p5_2315\" intask=\"true\"><mutation mode=\"LINE\"/><field name=\"MODE\">LINE</field><field name=\"SENSORPORT\">LINETRACKER</field><field name=\"SLOT\"/></block></value><statement name=\"DO0\"><block type=\"robActions_motorDiff_curve\" id=\"p5_2316\" intask=\"true\"><field name=\"DIRECTION\">FOREWARD</field><value name=\"POWER_LEFT\"><block type=\"math_integer\" id=\"p5_2317\" intask=\"true\"><field name=\"NUM\">10</field></block></value><value name=\"POWER_RIGHT\"><block type=\"math_integer\" id=\"p5_2318\" intask=\"true\"><field name=\"NUM\">40</field></block></value></block></statement><statement name=\"ELSE\"><block type=\"robActions_motorDiff_curve\" id=\"p5_2319\" intask=\"true\"><field name=\"DIRECTION\">FOREWARD</field><value name=\"POWER_LEFT\"><block type=\"math_integer\" id=\"p5_2320\" intask=\"true\"><field name=\"NUM\">40</field></block></value><value name=\"POWER_RIGHT\"><block type=\"math_integer\" id=\"p5_2321\" intask=\"true\"><field name=\"NUM\">10</field></block></value></block></statement></repetitions></block></statement></block></instance></block_set>"
   },
@@ -4251,14 +4394,16 @@
     "    avoidWalls()"
    ],
    "levels": {
-    "l7": "fail_hit"
+    "l7": "fail_hit",
+    "l8": "fail_hit"
    },
    "later_levels": null,
    "later_levels_ok": null,
    "tests_passed": {
     "followInTheDark:dark-line-bends-right": true,
     "followInTheDark:dark-line-bends-left": true,
-    "followInTheDark:start-in-dark": false
+    "followInTheDark:start-in-dark": false,
+    "followInTheDark:out-of-the-dark": true
    },
    "tests_failed_why": {
     "followInTheDark:start-in-dark": [
@@ -4291,14 +4436,16 @@
     "    avoidWalls()"
    ],
    "levels": {
-    "l7": "fail_hit"
+    "l7": "fail_hit",
+    "l8": "fail_hit"
    },
    "later_levels": null,
    "later_levels_ok": null,
    "tests_passed": {
     "followInTheDark:dark-line-bends-right": false,
     "followInTheDark:dark-line-bends-left": false,
-    "followInTheDark:start-in-dark": false
+    "followInTheDark:start-in-dark": false,
+    "followInTheDark:out-of-the-dark": false
    },
    "tests_failed_why": {
     "followInTheDark:dark-line-bends-right": [
@@ -4311,6 +4458,10 @@
     "followInTheDark:start-in-dark": [
      "the robot did not reach \"Goal t2\" within 60 s",
      "the robot bumped into \"Tunnel t1\" after 0.6 s"
+    ],
+    "followInTheDark:out-of-the-dark": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel t1\" after 0.9 s"
     ]
    },
    "verdict": "caught",
@@ -4334,18 +4485,24 @@
     "      curve(30, 10)"
    ],
    "levels": {
-    "l7": "no_result"
+    "l7": "no_result",
+    "l8": "no_result"
    },
    "later_levels": null,
    "later_levels_ok": null,
    "tests_passed": {
     "followInTheDark:dark-line-bends-right": true,
     "followInTheDark:dark-line-bends-left": true,
-    "followInTheDark:start-in-dark": false
+    "followInTheDark:start-in-dark": false,
+    "followInTheDark:out-of-the-dark": false
    },
    "tests_failed_why": {
     "followInTheDark:start-in-dark": [
      "the robot did not reach \"Goal t2\" within 60 s"
+    ],
+    "followInTheDark:out-of-the-dark": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel t1\" after 10.7 s"
     ]
    },
    "verdict": "caught",
@@ -4378,14 +4535,16 @@
     "l4": "win_soft",
     "l5": "win",
     "l6": "win",
-    "l7": "win"
+    "l7": "win",
+    "l8": "win_soft"
    },
    "later_levels": null,
    "later_levels_ok": true,
    "tests_passed": {
     "followInTheDark:dark-line-bends-right": true,
     "followInTheDark:dark-line-bends-left": true,
-    "followInTheDark:start-in-dark": true
+    "followInTheDark:start-in-dark": true,
+    "followInTheDark:out-of-the-dark": true
    },
    "tests_failed_why": {},
    "verdict": "ok",
@@ -4396,7 +4555,7 @@
    "id": "followInTheDark/B-swapped",
    "function": "followInTheDark",
    "variant": "B-swapped",
-   "kind": "equivalent",
+   "kind": "broken",
    "of": "followInTheDark/B",
    "fault": "swapped",
    "why": "the two turns swapped",
@@ -4413,17 +4572,23 @@
     "    avoidWalls()"
    ],
    "levels": {
-    "l7": "win"
+    "l7": "win",
+    "l8": "fail_hit"
    },
    "later_levels": null,
    "later_levels_ok": null,
    "tests_passed": {
     "followInTheDark:dark-line-bends-right": true,
     "followInTheDark:dark-line-bends-left": true,
-    "followInTheDark:start-in-dark": true
+    "followInTheDark:start-in-dark": true,
+    "followInTheDark:out-of-the-dark": false
    },
-   "tests_failed_why": {},
-   "verdict": "ok",
+   "tests_failed_why": {
+    "followInTheDark:out-of-the-dark": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   },
+   "verdict": "caught",
    "function_xml": "<block_set xmlns=\"http://de.fhg.iais.roberta.blockly\" robottype=\"edison\" xmlversion=\"3.1\" description=\"\" tags=\"\"><instance x=\"40\" y=\"40\"><block type=\"robProcedures_defnoreturn\" id=\"p5_2567\" intask=\"true\"><mutation declare=\"false\"/><field name=\"NAME\">followInTheDark</field><statement name=\"STACK\"><block type=\"robControls_ifElse\" id=\"p5_2568\" intask=\"true\"><mutation else=\"1\"/><repetitions><value name=\"IF0\"><block type=\"logic_compare\" id=\"p5_2569\" intask=\"true\"><field name=\"OP\">LT</field><value name=\"A\"><block type=\"robSensors_light_getSample\" id=\"p5_2570\" intask=\"true\"><mutation mode=\"LIGHT\"/><field name=\"MODE\">LIGHT</field><field name=\"SENSORPORT\">RLIGHT</field><field name=\"SLOT\"/></block></value><value name=\"B\"><block type=\"math_integer\" id=\"p5_2571\" intask=\"true\"><field name=\"NUM\">60</field></block></value></block></value><statement name=\"DO0\"><block type=\"robControls_ifElse\" id=\"p5_2572\" intask=\"true\"><mutation elseif=\"1\" else=\"1\"/><repetitions><value name=\"IF0\"><block type=\"logic_compare\" id=\"p5_2573\" intask=\"true\"><field name=\"OP\">LT</field><value name=\"A\"><block type=\"robSensors_light_getSample\" id=\"p5_2574\" intask=\"true\"><mutation mode=\"LIGHT\"/><field name=\"MODE\">LIGHT</field><field name=\"SENSORPORT\">LINETRACKER</field><field name=\"SLOT\"/></block></value><value name=\"B\"><block type=\"math_integer\" id=\"p5_2575\" intask=\"true\"><field name=\"NUM\">30</field></block></value></block></value><statement name=\"DO0\"><block type=\"robActions_motorDiff_curve\" id=\"p5_2576\" intask=\"true\"><field name=\"DIRECTION\">FOREWARD</field><value name=\"POWER_LEFT\"><block type=\"math_integer\" id=\"p5_2577\" intask=\"true\"><field name=\"NUM\">35</field></block></value><value name=\"POWER_RIGHT\"><block type=\"math_integer\" id=\"p5_2578\" intask=\"true\"><field name=\"NUM\">15</field></block></value></block></statement><value name=\"IF1\"><block type=\"logic_compare\" id=\"p5_2579\" intask=\"true\"><field name=\"OP\">GT</field><value name=\"A\"><block type=\"robSensors_light_getSample\" id=\"p5_2580\" intask=\"true\"><mutation mode=\"LIGHT\"/><field name=\"MODE\">LIGHT</field><field name=\"SENSORPORT\">LINETRACKER</field><field name=\"SLOT\"/></block></value><value name=\"B\"><block type=\"math_integer\" id=\"p5_2581\" intask=\"true\"><field name=\"NUM\">95</field></block></value></block></value><statement name=\"DO1\"><block type=\"robActions_motorDiff_curve\" id=\"p5_2582\" intask=\"true\"><field name=\"DIRECTION\">FOREWARD</field><value name=\"POWER_LEFT\"><block type=\"math_integer\" id=\"p5_2583\" intask=\"true\"><field name=\"NUM\">15</field></block></value><value name=\"POWER_RIGHT\"><block type=\"math_integer\" id=\"p5_2584\" intask=\"true\"><field name=\"NUM\">35</field></block></value></block></statement><statement name=\"ELSE\"><block type=\"robProcedures_callnoreturn\" id=\"p5_2585\" intask=\"true\"><mutation name=\"avoidWalls\"/></block></statement></repetitions></block></statement><statement name=\"ELSE\"><block type=\"robProcedures_callnoreturn\" id=\"p5_2586\" intask=\"true\"><mutation name=\"avoidWalls\"/></block></statement></repetitions></block></statement></block></instance></block_set>",
    "program": "<block_set xmlns=\"http://de.fhg.iais.roberta.blockly\" robottype=\"edison\" xmlversion=\"3.1\" description=\"\" tags=\"\"><instance x=\"40\" y=\"40\"><block type=\"robControls_start\" id=\"p5_2564\" intask=\"true\" deletable=\"false\"><mutation declare=\"false\"/><field name=\"DEBUG\">FALSE</field></block><block type=\"robControls_loopForever\" id=\"p5_2565\" intask=\"true\"><statement name=\"DO\"><block type=\"robProcedures_callnoreturn\" id=\"p5_2566\" intask=\"true\"><mutation name=\"followInTheDark\"/></block></statement></block></instance><instance x=\"420\" y=\"40\"><block type=\"robProcedures_defnoreturn\" id=\"p5_2567\" intask=\"true\"><mutation declare=\"false\"/><field name=\"NAME\">followInTheDark</field><statement name=\"STACK\"><block type=\"robControls_ifElse\" id=\"p5_2568\" intask=\"true\"><mutation else=\"1\"/><repetitions><value name=\"IF0\"><block type=\"logic_compare\" id=\"p5_2569\" intask=\"true\"><field name=\"OP\">LT</field><value name=\"A\"><block type=\"robSensors_light_getSample\" id=\"p5_2570\" intask=\"true\"><mutation mode=\"LIGHT\"/><field name=\"MODE\">LIGHT</field><field name=\"SENSORPORT\">RLIGHT</field><field name=\"SLOT\"/></block></value><value name=\"B\"><block type=\"math_integer\" id=\"p5_2571\" intask=\"true\"><field name=\"NUM\">60</field></block></value></block></value><statement name=\"DO0\"><block type=\"robControls_ifElse\" id=\"p5_2572\" intask=\"true\"><mutation elseif=\"1\" else=\"1\"/><repetitions><value name=\"IF0\"><block type=\"logic_compare\" id=\"p5_2573\" intask=\"true\"><field name=\"OP\">LT</field><value name=\"A\"><block type=\"robSensors_light_getSample\" id=\"p5_2574\" intask=\"true\"><mutation mode=\"LIGHT\"/><field name=\"MODE\">LIGHT</field><field name=\"SENSORPORT\">LINETRACKER</field><field name=\"SLOT\"/></block></value><value name=\"B\"><block type=\"math_integer\" id=\"p5_2575\" intask=\"true\"><field name=\"NUM\">30</field></block></value></block></value><statement name=\"DO0\"><block type=\"robActions_motorDiff_curve\" id=\"p5_2576\" intask=\"true\"><field name=\"DIRECTION\">FOREWARD</field><value name=\"POWER_LEFT\"><block type=\"math_integer\" id=\"p5_2577\" intask=\"true\"><field name=\"NUM\">35</field></block></value><value name=\"POWER_RIGHT\"><block type=\"math_integer\" id=\"p5_2578\" intask=\"true\"><field name=\"NUM\">15</field></block></value></block></statement><value name=\"IF1\"><block type=\"logic_compare\" id=\"p5_2579\" intask=\"true\"><field name=\"OP\">GT</field><value name=\"A\"><block type=\"robSensors_light_getSample\" id=\"p5_2580\" intask=\"true\"><mutation mode=\"LIGHT\"/><field name=\"MODE\">LIGHT</field><field name=\"SENSORPORT\">LINETRACKER</field><field name=\"SLOT\"/></block></value><value name=\"B\"><block type=\"math_integer\" id=\"p5_2581\" intask=\"true\"><field name=\"NUM\">95</field></block></value></block></value><statement name=\"DO1\"><block type=\"robActions_motorDiff_curve\" id=\"p5_2582\" intask=\"true\"><field name=\"DIRECTION\">FOREWARD</field><value name=\"POWER_LEFT\"><block type=\"math_integer\" id=\"p5_2583\" intask=\"true\"><field name=\"NUM\">15</field></block></value><value name=\"POWER_RIGHT\"><block type=\"math_integer\" id=\"p5_2584\" intask=\"true\"><field name=\"NUM\">35</field></block></value></block></statement><statement name=\"ELSE\"><block type=\"robProcedures_callnoreturn\" id=\"p5_2585\" intask=\"true\"><mutation name=\"avoidWalls\"/></block></statement></repetitions></block></statement><statement name=\"ELSE\"><block type=\"robProcedures_callnoreturn\" id=\"p5_2586\" intask=\"true\"><mutation name=\"avoidWalls\"/></block></statement></repetitions></block></statement></block></instance><instance x=\"800\" y=\"40\"><block type=\"robProcedures_defnoreturn\" id=\"p5_2587\" intask=\"true\"><mutation declare=\"false\"/><field name=\"NAME\">avoidWalls</field><statement name=\"STACK\"><block type=\"robControls_ifElse\" id=\"p5_2588\" intask=\"true\"><mutation else=\"1\"/><repetitions><value name=\"IF0\"><block type=\"logic_compare\" id=\"p5_2589\" intask=\"true\"><field name=\"OP\">LT</field><value name=\"A\"><block type=\"robSensors_light_getSample\" id=\"p5_2590\" intask=\"true\"><mutation mode=\"LIGHT\"/><field name=\"MODE\">LIGHT</field><field name=\"SENSORPORT\">LLIGHT</field><field name=\"SLOT\"/></block></value><value name=\"B\"><block type=\"math_integer\" id=\"p5_2591\" intask=\"true\"><field name=\"NUM\">70</field></block></value></block></value><statement name=\"DO0\"><block type=\"robControls_ifElse\" id=\"p5_2592\" intask=\"true\"><mutation elseif=\"1\" else=\"1\"/><repetitions><value name=\"IF0\"><block type=\"robSensors_infrared_getSample\" id=\"p5_2593\" intask=\"true\"><mutation mode=\"OBSTACLE\"/><field name=\"MODE\">OBSTACLE</field><field name=\"SENSORPORT\">LEFT</field><field name=\"SLOT\"/></block></value><statement name=\"DO0\"><block type=\"robActions_motorDiff_turn_for\" id=\"p5_2594\" intask=\"true\"><field name=\"DIRECTION\">RIGHT</field><value name=\"POWER\"><block type=\"math_integer\" id=\"p5_2595\" intask=\"true\"><field name=\"NUM\">30</field></block></value><value name=\"DEGREE\"><block type=\"math_integer\" id=\"p5_2596\" intask=\"true\"><field name=\"NUM\">20</field></block></value></block></statement><value name=\"IF1\"><block type=\"robSensors_infrared_getSample\" id=\"p5_2597\" intask=\"true\"><mutation mode=\"OBSTACLE\"/><field name=\"MODE\">OBSTACLE</field><field name=\"SENSORPORT\">RIGHT</field><field name=\"SLOT\"/></block></value><statement name=\"DO1\"><block type=\"robActions_motorDiff_turn_for\" id=\"p5_2598\" intask=\"true\"><field name=\"DIRECTION\">LEFT</field><value name=\"POWER\"><block type=\"math_integer\" id=\"p5_2599\" intask=\"true\"><field name=\"NUM\">30</field></block></value><value name=\"DEGREE\"><block type=\"math_integer\" id=\"p5_2600\" intask=\"true\"><field name=\"NUM\">20</field></block></value></block></statement><statement name=\"ELSE\"><block type=\"robProcedures_callnoreturn\" id=\"p5_2601\" intask=\"true\"><mutation name=\"driveInTheDark\"/></block></statement></repetitions></block></statement><statement name=\"ELSE\"><block type=\"robProcedures_callnoreturn\" id=\"p5_2602\" intask=\"true\"><mutation name=\"driveInTheDark\"/></block></statement></repetitions></block></statement></block></instance><instance x=\"420\" y=\"300\"><block type=\"robProcedures_defnoreturn\" id=\"p5_2603\" intask=\"true\"><mutation declare=\"false\"/><field name=\"NAME\">driveInTheDark</field><statement name=\"STACK\"><block type=\"robControls_ifElse\" id=\"p5_2604\" intask=\"true\"><mutation else=\"1\"/><repetitions><value name=\"IF0\"><block type=\"logic_compare\" id=\"p5_2605\" intask=\"true\"><field name=\"OP\">LT</field><value name=\"A\"><block type=\"robSensors_light_getSample\" id=\"p5_2606\" intask=\"true\"><mutation mode=\"LIGHT\"/><field name=\"MODE\">LIGHT</field><field name=\"SENSORPORT\">LLIGHT</field><field name=\"SLOT\"/></block></value><value name=\"B\"><block type=\"math_integer\" id=\"p5_2607\" intask=\"true\"><field name=\"NUM\">70</field></block></value></block></value><statement name=\"DO0\"><block type=\"robActions_motorDiff_on\" id=\"p5_2608\" intask=\"true\"><field name=\"DIRECTION\">FOREWARD</field><value name=\"POWER\"><block type=\"math_integer\" id=\"p5_2609\" intask=\"true\"><field name=\"NUM\">30</field></block></value></block></statement><statement name=\"ELSE\"><block type=\"robProcedures_callnoreturn\" id=\"p5_2610\" intask=\"true\"><mutation name=\"stopAtWall\"/></block></statement></repetitions></block></statement></block></instance><instance x=\"800\" y=\"300\"><block type=\"robProcedures_defnoreturn\" id=\"p5_2611\" intask=\"true\"><mutation declare=\"false\"/><field name=\"NAME\">stopAtWall</field><statement name=\"STACK\"><block type=\"robControls_ifElse\" id=\"p5_2612\" intask=\"true\"><mutation else=\"1\"/><repetitions><value name=\"IF0\"><block type=\"robSensors_infrared_getSample\" id=\"p5_2613\" intask=\"true\"><mutation mode=\"OBSTACLE\"/><field name=\"MODE\">OBSTACLE</field><field name=\"SENSORPORT\">FRONT</field><field name=\"SLOT\"/></block></value><statement name=\"DO0\"><block type=\"robActions_motorDiff_stop\" id=\"p5_2614\" intask=\"true\"/></statement><statement name=\"ELSE\"><block type=\"robProcedures_callnoreturn\" id=\"p5_2615\" intask=\"true\"><mutation name=\"followLine\"/></block></statement></repetitions></block></statement></block></instance><instance x=\"420\" y=\"560\"><block type=\"robProcedures_defnoreturn\" id=\"p5_2616\" intask=\"true\"><mutation declare=\"false\"/><field name=\"NAME\">followLine</field><statement name=\"STACK\"><block type=\"robControls_ifElse\" id=\"p5_2617\" intask=\"true\"><mutation else=\"1\"/><repetitions><value name=\"IF0\"><block type=\"robSensors_light_getSample\" id=\"p5_2618\" intask=\"true\"><mutation mode=\"LINE\"/><field name=\"MODE\">LINE</field><field name=\"SENSORPORT\">LINETRACKER</field><field name=\"SLOT\"/></block></value><statement name=\"DO0\"><block type=\"robActions_motorDiff_curve\" id=\"p5_2619\" intask=\"true\"><field name=\"DIRECTION\">FOREWARD</field><value name=\"POWER_LEFT\"><block type=\"math_integer\" id=\"p5_2620\" intask=\"true\"><field name=\"NUM\">10</field></block></value><value name=\"POWER_RIGHT\"><block type=\"math_integer\" id=\"p5_2621\" intask=\"true\"><field name=\"NUM\">40</field></block></value></block></statement><statement name=\"ELSE\"><block type=\"robActions_motorDiff_curve\" id=\"p5_2622\" intask=\"true\"><field name=\"DIRECTION\">FOREWARD</field><value name=\"POWER_LEFT\"><block type=\"math_integer\" id=\"p5_2623\" intask=\"true\"><field name=\"NUM\">40</field></block></value><value name=\"POWER_RIGHT\"><block type=\"math_integer\" id=\"p5_2624\" intask=\"true\"><field name=\"NUM\">10</field></block></value></block></statement></repetitions></block></statement></block></instance></block_set>"
   },
@@ -4448,14 +4613,16 @@
     "    avoidWalls()"
    ],
    "levels": {
-    "l7": "fail_hit"
+    "l7": "fail_hit",
+    "l8": "fail_hit"
    },
    "later_levels": null,
    "later_levels_ok": null,
    "tests_passed": {
     "followInTheDark:dark-line-bends-right": true,
     "followInTheDark:dark-line-bends-left": true,
-    "followInTheDark:start-in-dark": false
+    "followInTheDark:start-in-dark": false,
+    "followInTheDark:out-of-the-dark": true
    },
    "tests_failed_why": {
     "followInTheDark:start-in-dark": [
@@ -4488,14 +4655,16 @@
     "    avoidWalls()"
    ],
    "levels": {
-    "l7": "fail_hit"
+    "l7": "fail_hit",
+    "l8": "fail_hit"
    },
    "later_levels": null,
    "later_levels_ok": null,
    "tests_passed": {
     "followInTheDark:dark-line-bends-right": false,
     "followInTheDark:dark-line-bends-left": false,
-    "followInTheDark:start-in-dark": false
+    "followInTheDark:start-in-dark": false,
+    "followInTheDark:out-of-the-dark": false
    },
    "tests_failed_why": {
     "followInTheDark:dark-line-bends-right": [
@@ -4508,6 +4677,10 @@
     "followInTheDark:start-in-dark": [
      "the robot did not reach \"Goal t2\" within 60 s",
      "the robot bumped into \"Tunnel t1\" after 0.5 s"
+    ],
+    "followInTheDark:out-of-the-dark": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel t1\" after 0.8 s"
     ]
    },
    "verdict": "caught",
@@ -4531,18 +4704,24 @@
     "      curve(35, 15)"
    ],
    "levels": {
-    "l7": "no_result"
+    "l7": "no_result",
+    "l8": "no_result"
    },
    "later_levels": null,
    "later_levels_ok": null,
    "tests_passed": {
     "followInTheDark:dark-line-bends-right": true,
     "followInTheDark:dark-line-bends-left": true,
-    "followInTheDark:start-in-dark": false
+    "followInTheDark:start-in-dark": false,
+    "followInTheDark:out-of-the-dark": false
    },
    "tests_failed_why": {
     "followInTheDark:start-in-dark": [
      "the robot did not reach \"Goal t2\" within 60 s"
+    ],
+    "followInTheDark:out-of-the-dark": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel t1\" after 8.1 s"
     ]
    },
    "verdict": "caught",
@@ -4575,14 +4754,16 @@
     "l4": "win_soft",
     "l5": "win",
     "l6": "win",
-    "l7": "win"
+    "l7": "win",
+    "l8": "win_soft"
    },
    "later_levels": null,
    "later_levels_ok": true,
    "tests_passed": {
     "followInTheDark:dark-line-bends-right": true,
     "followInTheDark:dark-line-bends-left": true,
-    "followInTheDark:start-in-dark": true
+    "followInTheDark:start-in-dark": true,
+    "followInTheDark:out-of-the-dark": true
    },
    "tests_failed_why": {},
    "verdict": "ok",
@@ -4593,7 +4774,7 @@
    "id": "followInTheDark/C-swapped",
    "function": "followInTheDark",
    "variant": "C-swapped",
-   "kind": "equivalent",
+   "kind": "broken",
    "of": "followInTheDark/C",
    "fault": "swapped",
    "why": "the two turns swapped",
@@ -4610,17 +4791,23 @@
     "    avoidWalls()"
    ],
    "levels": {
-    "l7": "win"
+    "l7": "win",
+    "l8": "fail_hit"
    },
    "later_levels": null,
    "later_levels_ok": null,
    "tests_passed": {
     "followInTheDark:dark-line-bends-right": true,
     "followInTheDark:dark-line-bends-left": true,
-    "followInTheDark:start-in-dark": true
+    "followInTheDark:start-in-dark": true,
+    "followInTheDark:out-of-the-dark": false
    },
-   "tests_failed_why": {},
-   "verdict": "ok",
+   "tests_failed_why": {
+    "followInTheDark:out-of-the-dark": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   },
+   "verdict": "caught",
    "function_xml": "<block_set xmlns=\"http://de.fhg.iais.roberta.blockly\" robottype=\"edison\" xmlversion=\"3.1\" description=\"\" tags=\"\"><instance x=\"40\" y=\"40\"><block type=\"robProcedures_defnoreturn\" id=\"p5_2870\" intask=\"true\"><mutation declare=\"false\"/><field name=\"NAME\">followInTheDark</field><statement name=\"STACK\"><block type=\"robControls_ifElse\" id=\"p5_2871\" intask=\"true\"><mutation else=\"1\"/><repetitions><value name=\"IF0\"><block type=\"logic_compare\" id=\"p5_2872\" intask=\"true\"><field name=\"OP\">LT</field><value name=\"A\"><block type=\"robSensors_light_getSample\" id=\"p5_2873\" intask=\"true\"><mutation mode=\"LIGHT\"/><field name=\"MODE\">LIGHT</field><field name=\"SENSORPORT\">LLIGHT</field><field name=\"SLOT\"/></block></value><value name=\"B\"><block type=\"math_integer\" id=\"p5_2874\" intask=\"true\"><field name=\"NUM\">70</field></block></value></block></value><statement name=\"DO0\"><block type=\"robControls_ifElse\" id=\"p5_2875\" intask=\"true\"><mutation elseif=\"1\" else=\"1\"/><repetitions><value name=\"IF0\"><block type=\"logic_compare\" id=\"p5_2876\" intask=\"true\"><field name=\"OP\">LT</field><value name=\"A\"><block type=\"robSensors_light_getSample\" id=\"p5_2877\" intask=\"true\"><mutation mode=\"LIGHT\"/><field name=\"MODE\">LIGHT</field><field name=\"SENSORPORT\">LINETRACKER</field><field name=\"SLOT\"/></block></value><value name=\"B\"><block type=\"math_integer\" id=\"p5_2878\" intask=\"true\"><field name=\"NUM\">40</field></block></value></block></value><statement name=\"DO0\"><block type=\"robActions_motorDiff_curve\" id=\"p5_2879\" intask=\"true\"><field name=\"DIRECTION\">FOREWARD</field><value name=\"POWER_LEFT\"><block type=\"math_integer\" id=\"p5_2880\" intask=\"true\"><field name=\"NUM\">30</field></block></value><value name=\"POWER_RIGHT\"><block type=\"math_integer\" id=\"p5_2881\" intask=\"true\"><field name=\"NUM\">0</field></block></value></block></statement><value name=\"IF1\"><block type=\"logic_compare\" id=\"p5_2882\" intask=\"true\"><field name=\"OP\">GT</field><value name=\"A\"><block type=\"robSensors_light_getSample\" id=\"p5_2883\" intask=\"true\"><mutation mode=\"LIGHT\"/><field name=\"MODE\">LIGHT</field><field name=\"SENSORPORT\">LINETRACKER</field><field name=\"SLOT\"/></block></value><value name=\"B\"><block type=\"math_integer\" id=\"p5_2884\" intask=\"true\"><field name=\"NUM\">88</field></block></value></block></value><statement name=\"DO1\"><block type=\"robActions_motorDiff_curve\" id=\"p5_2885\" intask=\"true\"><field name=\"DIRECTION\">FOREWARD</field><value name=\"POWER_LEFT\"><block type=\"math_integer\" id=\"p5_2886\" intask=\"true\"><field name=\"NUM\">0</field></block></value><value name=\"POWER_RIGHT\"><block type=\"math_integer\" id=\"p5_2887\" intask=\"true\"><field name=\"NUM\">30</field></block></value></block></statement><statement name=\"ELSE\"><block type=\"robProcedures_callnoreturn\" id=\"p5_2888\" intask=\"true\"><mutation name=\"avoidWalls\"/></block></statement></repetitions></block></statement><statement name=\"ELSE\"><block type=\"robProcedures_callnoreturn\" id=\"p5_2889\" intask=\"true\"><mutation name=\"avoidWalls\"/></block></statement></repetitions></block></statement></block></instance></block_set>",
    "program": "<block_set xmlns=\"http://de.fhg.iais.roberta.blockly\" robottype=\"edison\" xmlversion=\"3.1\" description=\"\" tags=\"\"><instance x=\"40\" y=\"40\"><block type=\"robControls_start\" id=\"p5_2867\" intask=\"true\" deletable=\"false\"><mutation declare=\"false\"/><field name=\"DEBUG\">FALSE</field></block><block type=\"robControls_loopForever\" id=\"p5_2868\" intask=\"true\"><statement name=\"DO\"><block type=\"robProcedures_callnoreturn\" id=\"p5_2869\" intask=\"true\"><mutation name=\"followInTheDark\"/></block></statement></block></instance><instance x=\"420\" y=\"40\"><block type=\"robProcedures_defnoreturn\" id=\"p5_2870\" intask=\"true\"><mutation declare=\"false\"/><field name=\"NAME\">followInTheDark</field><statement name=\"STACK\"><block type=\"robControls_ifElse\" id=\"p5_2871\" intask=\"true\"><mutation else=\"1\"/><repetitions><value name=\"IF0\"><block type=\"logic_compare\" id=\"p5_2872\" intask=\"true\"><field name=\"OP\">LT</field><value name=\"A\"><block type=\"robSensors_light_getSample\" id=\"p5_2873\" intask=\"true\"><mutation mode=\"LIGHT\"/><field name=\"MODE\">LIGHT</field><field name=\"SENSORPORT\">LLIGHT</field><field name=\"SLOT\"/></block></value><value name=\"B\"><block type=\"math_integer\" id=\"p5_2874\" intask=\"true\"><field name=\"NUM\">70</field></block></value></block></value><statement name=\"DO0\"><block type=\"robControls_ifElse\" id=\"p5_2875\" intask=\"true\"><mutation elseif=\"1\" else=\"1\"/><repetitions><value name=\"IF0\"><block type=\"logic_compare\" id=\"p5_2876\" intask=\"true\"><field name=\"OP\">LT</field><value name=\"A\"><block type=\"robSensors_light_getSample\" id=\"p5_2877\" intask=\"true\"><mutation mode=\"LIGHT\"/><field name=\"MODE\">LIGHT</field><field name=\"SENSORPORT\">LINETRACKER</field><field name=\"SLOT\"/></block></value><value name=\"B\"><block type=\"math_integer\" id=\"p5_2878\" intask=\"true\"><field name=\"NUM\">40</field></block></value></block></value><statement name=\"DO0\"><block type=\"robActions_motorDiff_curve\" id=\"p5_2879\" intask=\"true\"><field name=\"DIRECTION\">FOREWARD</field><value name=\"POWER_LEFT\"><block type=\"math_integer\" id=\"p5_2880\" intask=\"true\"><field name=\"NUM\">30</field></block></value><value name=\"POWER_RIGHT\"><block type=\"math_integer\" id=\"p5_2881\" intask=\"true\"><field name=\"NUM\">0</field></block></value></block></statement><value name=\"IF1\"><block type=\"logic_compare\" id=\"p5_2882\" intask=\"true\"><field name=\"OP\">GT</field><value name=\"A\"><block type=\"robSensors_light_getSample\" id=\"p5_2883\" intask=\"true\"><mutation mode=\"LIGHT\"/><field name=\"MODE\">LIGHT</field><field name=\"SENSORPORT\">LINETRACKER</field><field name=\"SLOT\"/></block></value><value name=\"B\"><block type=\"math_integer\" id=\"p5_2884\" intask=\"true\"><field name=\"NUM\">88</field></block></value></block></value><statement name=\"DO1\"><block type=\"robActions_motorDiff_curve\" id=\"p5_2885\" intask=\"true\"><field name=\"DIRECTION\">FOREWARD</field><value name=\"POWER_LEFT\"><block type=\"math_integer\" id=\"p5_2886\" intask=\"true\"><field name=\"NUM\">0</field></block></value><value name=\"POWER_RIGHT\"><block type=\"math_integer\" id=\"p5_2887\" intask=\"true\"><field name=\"NUM\">30</field></block></value></block></statement><statement name=\"ELSE\"><block type=\"robProcedures_callnoreturn\" id=\"p5_2888\" intask=\"true\"><mutation name=\"avoidWalls\"/></block></statement></repetitions></block></statement><statement name=\"ELSE\"><block type=\"robProcedures_callnoreturn\" id=\"p5_2889\" intask=\"true\"><mutation name=\"avoidWalls\"/></block></statement></repetitions></block></statement></block></instance><instance x=\"800\" y=\"40\"><block type=\"robProcedures_defnoreturn\" id=\"p5_2890\" intask=\"true\"><mutation declare=\"false\"/><field name=\"NAME\">avoidWalls</field><statement name=\"STACK\"><block type=\"robControls_ifElse\" id=\"p5_2891\" intask=\"true\"><mutation else=\"1\"/><repetitions><value name=\"IF0\"><block type=\"logic_compare\" id=\"p5_2892\" intask=\"true\"><field name=\"OP\">LT</field><value name=\"A\"><block type=\"robSensors_light_getSample\" id=\"p5_2893\" intask=\"true\"><mutation mode=\"LIGHT\"/><field name=\"MODE\">LIGHT</field><field name=\"SENSORPORT\">LLIGHT</field><field name=\"SLOT\"/></block></value><value name=\"B\"><block type=\"math_integer\" id=\"p5_2894\" intask=\"true\"><field name=\"NUM\">70</field></block></value></block></value><statement name=\"DO0\"><block type=\"robControls_ifElse\" id=\"p5_2895\" intask=\"true\"><mutation elseif=\"1\" else=\"1\"/><repetitions><value name=\"IF0\"><block type=\"robSensors_infrared_getSample\" id=\"p5_2896\" intask=\"true\"><mutation mode=\"OBSTACLE\"/><field name=\"MODE\">OBSTACLE</field><field name=\"SENSORPORT\">LEFT</field><field name=\"SLOT\"/></block></value><statement name=\"DO0\"><block type=\"robActions_motorDiff_turn_for\" id=\"p5_2897\" intask=\"true\"><field name=\"DIRECTION\">RIGHT</field><value name=\"POWER\"><block type=\"math_integer\" id=\"p5_2898\" intask=\"true\"><field name=\"NUM\">30</field></block></value><value name=\"DEGREE\"><block type=\"math_integer\" id=\"p5_2899\" intask=\"true\"><field name=\"NUM\">20</field></block></value></block></statement><value name=\"IF1\"><block type=\"robSensors_infrared_getSample\" id=\"p5_2900\" intask=\"true\"><mutation mode=\"OBSTACLE\"/><field name=\"MODE\">OBSTACLE</field><field name=\"SENSORPORT\">RIGHT</field><field name=\"SLOT\"/></block></value><statement name=\"DO1\"><block type=\"robActions_motorDiff_turn_for\" id=\"p5_2901\" intask=\"true\"><field name=\"DIRECTION\">LEFT</field><value name=\"POWER\"><block type=\"math_integer\" id=\"p5_2902\" intask=\"true\"><field name=\"NUM\">30</field></block></value><value name=\"DEGREE\"><block type=\"math_integer\" id=\"p5_2903\" intask=\"true\"><field name=\"NUM\">20</field></block></value></block></statement><statement name=\"ELSE\"><block type=\"robProcedures_callnoreturn\" id=\"p5_2904\" intask=\"true\"><mutation name=\"driveInTheDark\"/></block></statement></repetitions></block></statement><statement name=\"ELSE\"><block type=\"robProcedures_callnoreturn\" id=\"p5_2905\" intask=\"true\"><mutation name=\"driveInTheDark\"/></block></statement></repetitions></block></statement></block></instance><instance x=\"420\" y=\"300\"><block type=\"robProcedures_defnoreturn\" id=\"p5_2906\" intask=\"true\"><mutation declare=\"false\"/><field name=\"NAME\">driveInTheDark</field><statement name=\"STACK\"><block type=\"robControls_ifElse\" id=\"p5_2907\" intask=\"true\"><mutation else=\"1\"/><repetitions><value name=\"IF0\"><block type=\"logic_compare\" id=\"p5_2908\" intask=\"true\"><field name=\"OP\">LT</field><value name=\"A\"><block type=\"robSensors_light_getSample\" id=\"p5_2909\" intask=\"true\"><mutation mode=\"LIGHT\"/><field name=\"MODE\">LIGHT</field><field name=\"SENSORPORT\">LLIGHT</field><field name=\"SLOT\"/></block></value><value name=\"B\"><block type=\"math_integer\" id=\"p5_2910\" intask=\"true\"><field name=\"NUM\">70</field></block></value></block></value><statement name=\"DO0\"><block type=\"robActions_motorDiff_on\" id=\"p5_2911\" intask=\"true\"><field name=\"DIRECTION\">FOREWARD</field><value name=\"POWER\"><block type=\"math_integer\" id=\"p5_2912\" intask=\"true\"><field name=\"NUM\">30</field></block></value></block></statement><statement name=\"ELSE\"><block type=\"robProcedures_callnoreturn\" id=\"p5_2913\" intask=\"true\"><mutation name=\"stopAtWall\"/></block></statement></repetitions></block></statement></block></instance><instance x=\"800\" y=\"300\"><block type=\"robProcedures_defnoreturn\" id=\"p5_2914\" intask=\"true\"><mutation declare=\"false\"/><field name=\"NAME\">stopAtWall</field><statement name=\"STACK\"><block type=\"robControls_ifElse\" id=\"p5_2915\" intask=\"true\"><mutation else=\"1\"/><repetitions><value name=\"IF0\"><block type=\"robSensors_infrared_getSample\" id=\"p5_2916\" intask=\"true\"><mutation mode=\"OBSTACLE\"/><field name=\"MODE\">OBSTACLE</field><field name=\"SENSORPORT\">FRONT</field><field name=\"SLOT\"/></block></value><statement name=\"DO0\"><block type=\"robActions_motorDiff_stop\" id=\"p5_2917\" intask=\"true\"/></statement><statement name=\"ELSE\"><block type=\"robProcedures_callnoreturn\" id=\"p5_2918\" intask=\"true\"><mutation name=\"followLine\"/></block></statement></repetitions></block></statement></block></instance><instance x=\"420\" y=\"560\"><block type=\"robProcedures_defnoreturn\" id=\"p5_2919\" intask=\"true\"><mutation declare=\"false\"/><field name=\"NAME\">followLine</field><statement name=\"STACK\"><block type=\"robControls_ifElse\" id=\"p5_2920\" intask=\"true\"><mutation else=\"1\"/><repetitions><value name=\"IF0\"><block type=\"robSensors_light_getSample\" id=\"p5_2921\" intask=\"true\"><mutation mode=\"LINE\"/><field name=\"MODE\">LINE</field><field name=\"SENSORPORT\">LINETRACKER</field><field name=\"SLOT\"/></block></value><statement name=\"DO0\"><block type=\"robActions_motorDiff_curve\" id=\"p5_2922\" intask=\"true\"><field name=\"DIRECTION\">FOREWARD</field><value name=\"POWER_LEFT\"><block type=\"math_integer\" id=\"p5_2923\" intask=\"true\"><field name=\"NUM\">10</field></block></value><value name=\"POWER_RIGHT\"><block type=\"math_integer\" id=\"p5_2924\" intask=\"true\"><field name=\"NUM\">40</field></block></value></block></statement><statement name=\"ELSE\"><block type=\"robActions_motorDiff_curve\" id=\"p5_2925\" intask=\"true\"><field name=\"DIRECTION\">FOREWARD</field><value name=\"POWER_LEFT\"><block type=\"math_integer\" id=\"p5_2926\" intask=\"true\"><field name=\"NUM\">40</field></block></value><value name=\"POWER_RIGHT\"><block type=\"math_integer\" id=\"p5_2927\" intask=\"true\"><field name=\"NUM\">10</field></block></value></block></statement></repetitions></block></statement></block></instance></block_set>"
   },
@@ -4645,14 +4832,16 @@
     "    avoidWalls()"
    ],
    "levels": {
-    "l7": "fail_hit"
+    "l7": "fail_hit",
+    "l8": "fail_hit"
    },
    "later_levels": null,
    "later_levels_ok": null,
    "tests_passed": {
     "followInTheDark:dark-line-bends-right": true,
     "followInTheDark:dark-line-bends-left": true,
-    "followInTheDark:start-in-dark": false
+    "followInTheDark:start-in-dark": false,
+    "followInTheDark:out-of-the-dark": true
    },
    "tests_failed_why": {
     "followInTheDark:start-in-dark": [
@@ -4685,14 +4874,16 @@
     "    avoidWalls()"
    ],
    "levels": {
-    "l7": "fail_hit"
+    "l7": "fail_hit",
+    "l8": "fail_hit"
    },
    "later_levels": null,
    "later_levels_ok": null,
    "tests_passed": {
     "followInTheDark:dark-line-bends-right": false,
     "followInTheDark:dark-line-bends-left": false,
-    "followInTheDark:start-in-dark": false
+    "followInTheDark:start-in-dark": false,
+    "followInTheDark:out-of-the-dark": false
    },
    "tests_failed_why": {
     "followInTheDark:dark-line-bends-right": [
@@ -4706,6 +4897,10 @@
     "followInTheDark:start-in-dark": [
      "the robot did not reach \"Goal t2\" within 60 s",
      "the robot bumped into \"Tunnel t1\" after 0.8 s"
+    ],
+    "followInTheDark:out-of-the-dark": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel t1\" after 1.3 s"
     ]
    },
    "verdict": "caught",
@@ -4729,23 +4924,84 @@
     "      curve(30, 0)"
    ],
    "levels": {
-    "l7": "no_result"
+    "l7": "no_result",
+    "l8": "no_result"
    },
    "later_levels": null,
    "later_levels_ok": null,
    "tests_passed": {
     "followInTheDark:dark-line-bends-right": true,
     "followInTheDark:dark-line-bends-left": true,
-    "followInTheDark:start-in-dark": false
+    "followInTheDark:start-in-dark": false,
+    "followInTheDark:out-of-the-dark": false
    },
    "tests_failed_why": {
     "followInTheDark:start-in-dark": [
      "the robot did not reach \"Goal t2\" within 60 s"
+    ],
+    "followInTheDark:out-of-the-dark": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel t1\" after 13.8 s"
     ]
    },
    "verdict": "caught",
    "function_xml": "<block_set xmlns=\"http://de.fhg.iais.roberta.blockly\" robottype=\"edison\" xmlversion=\"3.1\" description=\"\" tags=\"\"><instance x=\"40\" y=\"40\"><block type=\"robProcedures_defnoreturn\" id=\"p5_3053\" intask=\"true\"><mutation declare=\"false\"/><field name=\"NAME\">followInTheDark</field><statement name=\"STACK\"><block type=\"robControls_if\" id=\"p5_3054\" intask=\"true\"><value name=\"IF0\"><block type=\"logic_compare\" id=\"p5_3055\" intask=\"true\"><field name=\"OP\">LT</field><value name=\"A\"><block type=\"robSensors_light_getSample\" id=\"p5_3056\" intask=\"true\"><mutation mode=\"LIGHT\"/><field name=\"MODE\">LIGHT</field><field name=\"SENSORPORT\">LLIGHT</field><field name=\"SLOT\"/></block></value><value name=\"B\"><block type=\"math_integer\" id=\"p5_3057\" intask=\"true\"><field name=\"NUM\">70</field></block></value></block></value><statement name=\"DO0\"><block type=\"robControls_if\" id=\"p5_3058\" intask=\"true\"><mutation elseif=\"1\"/><repetitions><value name=\"IF0\"><block type=\"logic_compare\" id=\"p5_3059\" intask=\"true\"><field name=\"OP\">LT</field><value name=\"A\"><block type=\"robSensors_light_getSample\" id=\"p5_3060\" intask=\"true\"><mutation mode=\"LIGHT\"/><field name=\"MODE\">LIGHT</field><field name=\"SENSORPORT\">LINETRACKER</field><field name=\"SLOT\"/></block></value><value name=\"B\"><block type=\"math_integer\" id=\"p5_3061\" intask=\"true\"><field name=\"NUM\">40</field></block></value></block></value><statement name=\"DO0\"><block type=\"robActions_motorDiff_curve\" id=\"p5_3062\" intask=\"true\"><field name=\"DIRECTION\">FOREWARD</field><value name=\"POWER_LEFT\"><block type=\"math_integer\" id=\"p5_3063\" intask=\"true\"><field name=\"NUM\">0</field></block></value><value name=\"POWER_RIGHT\"><block type=\"math_integer\" id=\"p5_3064\" intask=\"true\"><field name=\"NUM\">30</field></block></value></block></statement><value name=\"IF1\"><block type=\"logic_compare\" id=\"p5_3065\" intask=\"true\"><field name=\"OP\">GT</field><value name=\"A\"><block type=\"robSensors_light_getSample\" id=\"p5_3066\" intask=\"true\"><mutation mode=\"LIGHT\"/><field name=\"MODE\">LIGHT</field><field name=\"SENSORPORT\">LINETRACKER</field><field name=\"SLOT\"/></block></value><value name=\"B\"><block type=\"math_integer\" id=\"p5_3067\" intask=\"true\"><field name=\"NUM\">88</field></block></value></block></value><statement name=\"DO1\"><block type=\"robActions_motorDiff_curve\" id=\"p5_3068\" intask=\"true\"><field name=\"DIRECTION\">FOREWARD</field><value name=\"POWER_LEFT\"><block type=\"math_integer\" id=\"p5_3069\" intask=\"true\"><field name=\"NUM\">30</field></block></value><value name=\"POWER_RIGHT\"><block type=\"math_integer\" id=\"p5_3070\" intask=\"true\"><field name=\"NUM\">0</field></block></value></block></statement></repetitions></block></statement></block></statement></block></instance></block_set>",
    "program": "<block_set xmlns=\"http://de.fhg.iais.roberta.blockly\" robottype=\"edison\" xmlversion=\"3.1\" description=\"\" tags=\"\"><instance x=\"40\" y=\"40\"><block type=\"robControls_start\" id=\"p5_3050\" intask=\"true\" deletable=\"false\"><mutation declare=\"false\"/><field name=\"DEBUG\">FALSE</field></block><block type=\"robControls_loopForever\" id=\"p5_3051\" intask=\"true\"><statement name=\"DO\"><block type=\"robProcedures_callnoreturn\" id=\"p5_3052\" intask=\"true\"><mutation name=\"followInTheDark\"/></block></statement></block></instance><instance x=\"420\" y=\"40\"><block type=\"robProcedures_defnoreturn\" id=\"p5_3053\" intask=\"true\"><mutation declare=\"false\"/><field name=\"NAME\">followInTheDark</field><statement name=\"STACK\"><block type=\"robControls_if\" id=\"p5_3054\" intask=\"true\"><value name=\"IF0\"><block type=\"logic_compare\" id=\"p5_3055\" intask=\"true\"><field name=\"OP\">LT</field><value name=\"A\"><block type=\"robSensors_light_getSample\" id=\"p5_3056\" intask=\"true\"><mutation mode=\"LIGHT\"/><field name=\"MODE\">LIGHT</field><field name=\"SENSORPORT\">LLIGHT</field><field name=\"SLOT\"/></block></value><value name=\"B\"><block type=\"math_integer\" id=\"p5_3057\" intask=\"true\"><field name=\"NUM\">70</field></block></value></block></value><statement name=\"DO0\"><block type=\"robControls_if\" id=\"p5_3058\" intask=\"true\"><mutation elseif=\"1\"/><repetitions><value name=\"IF0\"><block type=\"logic_compare\" id=\"p5_3059\" intask=\"true\"><field name=\"OP\">LT</field><value name=\"A\"><block type=\"robSensors_light_getSample\" id=\"p5_3060\" intask=\"true\"><mutation mode=\"LIGHT\"/><field name=\"MODE\">LIGHT</field><field name=\"SENSORPORT\">LINETRACKER</field><field name=\"SLOT\"/></block></value><value name=\"B\"><block type=\"math_integer\" id=\"p5_3061\" intask=\"true\"><field name=\"NUM\">40</field></block></value></block></value><statement name=\"DO0\"><block type=\"robActions_motorDiff_curve\" id=\"p5_3062\" intask=\"true\"><field name=\"DIRECTION\">FOREWARD</field><value name=\"POWER_LEFT\"><block type=\"math_integer\" id=\"p5_3063\" intask=\"true\"><field name=\"NUM\">0</field></block></value><value name=\"POWER_RIGHT\"><block type=\"math_integer\" id=\"p5_3064\" intask=\"true\"><field name=\"NUM\">30</field></block></value></block></statement><value name=\"IF1\"><block type=\"logic_compare\" id=\"p5_3065\" intask=\"true\"><field name=\"OP\">GT</field><value name=\"A\"><block type=\"robSensors_light_getSample\" id=\"p5_3066\" intask=\"true\"><mutation mode=\"LIGHT\"/><field name=\"MODE\">LIGHT</field><field name=\"SENSORPORT\">LINETRACKER</field><field name=\"SLOT\"/></block></value><value name=\"B\"><block type=\"math_integer\" id=\"p5_3067\" intask=\"true\"><field name=\"NUM\">88</field></block></value></block></value><statement name=\"DO1\"><block type=\"robActions_motorDiff_curve\" id=\"p5_3068\" intask=\"true\"><field name=\"DIRECTION\">FOREWARD</field><value name=\"POWER_LEFT\"><block type=\"math_integer\" id=\"p5_3069\" intask=\"true\"><field name=\"NUM\">30</field></block></value><value name=\"POWER_RIGHT\"><block type=\"math_integer\" id=\"p5_3070\" intask=\"true\"><field name=\"NUM\">0</field></block></value></block></statement></repetitions></block></statement></block></statement></block></instance><instance x=\"800\" y=\"40\"><block type=\"robProcedures_defnoreturn\" id=\"p5_3071\" intask=\"true\"><mutation declare=\"false\"/><field name=\"NAME\">avoidWalls</field><statement name=\"STACK\"><block type=\"robControls_ifElse\" id=\"p5_3072\" intask=\"true\"><mutation else=\"1\"/><repetitions><value name=\"IF0\"><block type=\"logic_compare\" id=\"p5_3073\" intask=\"true\"><field name=\"OP\">LT</field><value name=\"A\"><block type=\"robSensors_light_getSample\" id=\"p5_3074\" intask=\"true\"><mutation mode=\"LIGHT\"/><field name=\"MODE\">LIGHT</field><field name=\"SENSORPORT\">LLIGHT</field><field name=\"SLOT\"/></block></value><value name=\"B\"><block type=\"math_integer\" id=\"p5_3075\" intask=\"true\"><field name=\"NUM\">70</field></block></value></block></value><statement name=\"DO0\"><block type=\"robControls_ifElse\" id=\"p5_3076\" intask=\"true\"><mutation elseif=\"1\" else=\"1\"/><repetitions><value name=\"IF0\"><block type=\"robSensors_infrared_getSample\" id=\"p5_3077\" intask=\"true\"><mutation mode=\"OBSTACLE\"/><field name=\"MODE\">OBSTACLE</field><field name=\"SENSORPORT\">LEFT</field><field name=\"SLOT\"/></block></value><statement name=\"DO0\"><block type=\"robActions_motorDiff_turn_for\" id=\"p5_3078\" intask=\"true\"><field name=\"DIRECTION\">RIGHT</field><value name=\"POWER\"><block type=\"math_integer\" id=\"p5_3079\" intask=\"true\"><field name=\"NUM\">30</field></block></value><value name=\"DEGREE\"><block type=\"math_integer\" id=\"p5_3080\" intask=\"true\"><field name=\"NUM\">20</field></block></value></block></statement><value name=\"IF1\"><block type=\"robSensors_infrared_getSample\" id=\"p5_3081\" intask=\"true\"><mutation mode=\"OBSTACLE\"/><field name=\"MODE\">OBSTACLE</field><field name=\"SENSORPORT\">RIGHT</field><field name=\"SLOT\"/></block></value><statement name=\"DO1\"><block type=\"robActions_motorDiff_turn_for\" id=\"p5_3082\" intask=\"true\"><field name=\"DIRECTION\">LEFT</field><value name=\"POWER\"><block type=\"math_integer\" id=\"p5_3083\" intask=\"true\"><field name=\"NUM\">30</field></block></value><value name=\"DEGREE\"><block type=\"math_integer\" id=\"p5_3084\" intask=\"true\"><field name=\"NUM\">20</field></block></value></block></statement><statement name=\"ELSE\"><block type=\"robProcedures_callnoreturn\" id=\"p5_3085\" intask=\"true\"><mutation name=\"driveInTheDark\"/></block></statement></repetitions></block></statement><statement name=\"ELSE\"><block type=\"robProcedures_callnoreturn\" id=\"p5_3086\" intask=\"true\"><mutation name=\"driveInTheDark\"/></block></statement></repetitions></block></statement></block></instance><instance x=\"420\" y=\"300\"><block type=\"robProcedures_defnoreturn\" id=\"p5_3087\" intask=\"true\"><mutation declare=\"false\"/><field name=\"NAME\">driveInTheDark</field><statement name=\"STACK\"><block type=\"robControls_ifElse\" id=\"p5_3088\" intask=\"true\"><mutation else=\"1\"/><repetitions><value name=\"IF0\"><block type=\"logic_compare\" id=\"p5_3089\" intask=\"true\"><field name=\"OP\">LT</field><value name=\"A\"><block type=\"robSensors_light_getSample\" id=\"p5_3090\" intask=\"true\"><mutation mode=\"LIGHT\"/><field name=\"MODE\">LIGHT</field><field name=\"SENSORPORT\">LLIGHT</field><field name=\"SLOT\"/></block></value><value name=\"B\"><block type=\"math_integer\" id=\"p5_3091\" intask=\"true\"><field name=\"NUM\">70</field></block></value></block></value><statement name=\"DO0\"><block type=\"robActions_motorDiff_on\" id=\"p5_3092\" intask=\"true\"><field name=\"DIRECTION\">FOREWARD</field><value name=\"POWER\"><block type=\"math_integer\" id=\"p5_3093\" intask=\"true\"><field name=\"NUM\">30</field></block></value></block></statement><statement name=\"ELSE\"><block type=\"robProcedures_callnoreturn\" id=\"p5_3094\" intask=\"true\"><mutation name=\"stopAtWall\"/></block></statement></repetitions></block></statement></block></instance><instance x=\"800\" y=\"300\"><block type=\"robProcedures_defnoreturn\" id=\"p5_3095\" intask=\"true\"><mutation declare=\"false\"/><field name=\"NAME\">stopAtWall</field><statement name=\"STACK\"><block type=\"robControls_ifElse\" id=\"p5_3096\" intask=\"true\"><mutation else=\"1\"/><repetitions><value name=\"IF0\"><block type=\"robSensors_infrared_getSample\" id=\"p5_3097\" intask=\"true\"><mutation mode=\"OBSTACLE\"/><field name=\"MODE\">OBSTACLE</field><field name=\"SENSORPORT\">FRONT</field><field name=\"SLOT\"/></block></value><statement name=\"DO0\"><block type=\"robActions_motorDiff_stop\" id=\"p5_3098\" intask=\"true\"/></statement><statement name=\"ELSE\"><block type=\"robProcedures_callnoreturn\" id=\"p5_3099\" intask=\"true\"><mutation name=\"followLine\"/></block></statement></repetitions></block></statement></block></instance><instance x=\"420\" y=\"560\"><block type=\"robProcedures_defnoreturn\" id=\"p5_3100\" intask=\"true\"><mutation declare=\"false\"/><field name=\"NAME\">followLine</field><statement name=\"STACK\"><block type=\"robControls_ifElse\" id=\"p5_3101\" intask=\"true\"><mutation else=\"1\"/><repetitions><value name=\"IF0\"><block type=\"robSensors_light_getSample\" id=\"p5_3102\" intask=\"true\"><mutation mode=\"LINE\"/><field name=\"MODE\">LINE</field><field name=\"SENSORPORT\">LINETRACKER</field><field name=\"SLOT\"/></block></value><statement name=\"DO0\"><block type=\"robActions_motorDiff_curve\" id=\"p5_3103\" intask=\"true\"><field name=\"DIRECTION\">FOREWARD</field><value name=\"POWER_LEFT\"><block type=\"math_integer\" id=\"p5_3104\" intask=\"true\"><field name=\"NUM\">10</field></block></value><value name=\"POWER_RIGHT\"><block type=\"math_integer\" id=\"p5_3105\" intask=\"true\"><field name=\"NUM\">40</field></block></value></block></statement><statement name=\"ELSE\"><block type=\"robActions_motorDiff_curve\" id=\"p5_3106\" intask=\"true\"><field name=\"DIRECTION\">FOREWARD</field><value name=\"POWER_LEFT\"><block type=\"math_integer\" id=\"p5_3107\" intask=\"true\"><field name=\"NUM\">40</field></block></value><value name=\"POWER_RIGHT\"><block type=\"math_integer\" id=\"p5_3108\" intask=\"true\"><field name=\"NUM\">10</field></block></value></block></statement></repetitions></block></statement></block></instance></block_set>"
   }
- ]
+ ],
+ "level_check": {
+  "l1": {
+   "combinations": 3,
+   "combinations_won": 3,
+   "equivalents": 4,
+   "equivalents_won": 4,
+   "equivalents_lost": []
+  },
+  "l2": {
+   "combinations": 3,
+   "combinations_won": 3,
+   "equivalents": 4,
+   "equivalents_won": 4,
+   "equivalents_lost": []
+  },
+  "l4": {
+   "combinations": 9,
+   "combinations_won": 9,
+   "equivalents": 4,
+   "equivalents_won": 4,
+   "equivalents_lost": []
+  },
+  "l5": {
+   "combinations": 27,
+   "combinations_won": 27,
+   "equivalents": 4,
+   "equivalents_won": 4,
+   "equivalents_lost": []
+  },
+  "l6": {
+   "combinations": 81,
+   "combinations_won": 81,
+   "equivalents": 4,
+   "equivalents_won": 4,
+   "equivalents_lost": []
+  },
+  "l7": {
+   "combinations": 243,
+   "combinations_won": 243,
+   "equivalents": 4,
+   "equivalents_won": 4,
+   "equivalents_lost": []
+  },
+  "l8": {
+   "combinations": 243,
+   "combinations_won": 243,
+   "equivalents": 4,
+   "equivalents_won": 1,
+   "equivalents_lost": [
+    "followLine/A-swapped",
+    "followLine/B-swapped",
+    "followLine/C-swapped"
+   ]
+  }
+ }
 }

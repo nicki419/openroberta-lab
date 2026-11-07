@@ -15,8 +15,9 @@ DARK = 70  # LLIGHT below this: inside a tunnel (100 in the open, 40 from 15 cm 
 # the functions in the order the levels unlock them; each hands over to the one before
 CHAIN = ['followLine', 'stopAtWall', 'driveInTheDark', 'avoidWalls', 'followInTheDark']
 # the levels each function is for (its own levels: a broken version loses one of them)
-LEVELS_OF = {'followLine': ['l1', 'l2'], 'stopAtWall': ['l4'], 'driveInTheDark': ['l5'], 'avoidWalls': ['l6'], 'followInTheDark': ['l7']}
-LEVEL_ORDER = ['l1', 'l2', 'l4', 'l5', 'l6', 'l7']
+# (2026-11-07: L8, the climax, plays all functions; it belongs to the last one, as L2 to followLine, since its lines were softened)
+LEVELS_OF = {'followLine': ['l1', 'l2'], 'stopAtWall': ['l4'], 'driveInTheDark': ['l5'], 'avoidWalls': ['l6'], 'followInTheDark': ['l7', 'l8']}
+LEVEL_ORDER = ['l1', 'l2', 'l4', 'l5', 'l6', 'l7', 'l8']
 
 
 def handover(fn):

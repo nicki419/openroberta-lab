@@ -67,3 +67,8 @@ puts the robot back on its start.
 - **`world`:** a simulation world as in the Tests tab (`OpenRobertaWeb/src/app/nepotest/nepoTest.sim.ts`).
 - **`timeLimit`:** in seconds, optional.
 - **`soft`:** the conditions of a soft goal area. For now there is one, `still` (seconds).
+- **`code`** (the study's levels): the broken function the learner gets at this level, in two versions; the Lab adds it to the learner's
+  program when the level is played (`docs/ai/nepo-levels.md`, "The study's code per level"). It is written by
+  `evaluation/truth/write_level_code.py`; the Level designer keeps it when it saves the level again.
+- **After changing a level of the study's set** (`01-first-steps`), run `evaluation/truth/check_levels.py` (every combination of correct
+  fixes must still beat it) and `evaluation/phase5/verify.py` (every broken version must still lose it); see `evaluation/truth/README.md`.

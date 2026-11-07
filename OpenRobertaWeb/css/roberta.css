@@ -664,6 +664,15 @@ body.blocklyMinimalBody * {
     border-top-color: #1f8f3a;
 }
 
+/* the study's code was added to the program (levels.code.ts) */
+#simDiv.nepoLevels #levelMessage.notice {
+    border-top-color: #2b78c2;
+}
+
+#simDiv.nepoLevels #levelMessage.notice .levelMessageTitle {
+    color: #2b78c2;
+}
+
 .levelMessageTitle {
     font-size: 20px;
     font-weight: bold;

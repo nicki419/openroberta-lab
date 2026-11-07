@@ -84,7 +84,7 @@ def followLine():
     drive(40)
 ```
 
-### followLine/B: correct; later levels lost: L5 fail_hit
+### followLine/B: correct
 
 L1 win, L2 win
 
@@ -711,7 +711,7 @@ def avoidWalls():
       turn_left(30, 20 deg)
 ```
 
-### avoidWalls/B: correct; later levels lost: L7 fail_hit
+### avoidWalls/B: correct
 
 L1 win, L2 win, L4 win_soft, L5 win, L6 win
 
@@ -792,7 +792,7 @@ def avoidWalls():
       turn_right(40, 15 deg)
 ```
 
-### avoidWalls/C: correct; later levels lost: L7 fail_hit
+### avoidWalls/C: correct
 
 L1 win, L2 win, L4 win_soft, L5 win, L6 win
 
@@ -873,11 +873,11 @@ def avoidWalls():
       curve(0, 30)
 ```
 
-## followInTheDark (L7)
+## followInTheDark (L7, L8)
 
 ### followInTheDark/A: correct
 
-L1 win, L2 win, L4 win_soft, L5 win, L6 win, L7 win
+L1 win, L2 win, L4 win_soft, L5 win, L6 win, L7 win, L8 win_soft
 
 ```
 def followInTheDark():
@@ -892,9 +892,9 @@ def followInTheDark():
     avoidWalls()
 ```
 
-### followInTheDark/A-swapped: equivalent (still wins)
+### followInTheDark/A-swapped: broken
 
-The two turns swapped. L7 win
+The two turns swapped. L7 win, L8 fail_hit
 
 ```
 def followInTheDark():
@@ -911,7 +911,7 @@ def followInTheDark():
 
 ### followInTheDark/A-peach-is-black: broken
 
-The black threshold above the floor (83): it steers everywhere. L7 fail_hit
+The black threshold above the floor (83): it steers everywhere. L7 fail_hit, L8 fail_hit
 
 ```
 def followInTheDark():
@@ -928,7 +928,7 @@ def followInTheDark():
 
 ### followInTheDark/A-light-above: broken
 
-Reads the light from above instead of the floor. L7 fail_hit
+Reads the light from above instead of the floor. L7 fail_hit, L8 fail_hit
 
 ```
 def followInTheDark():
@@ -945,7 +945,7 @@ def followInTheDark():
 
 ### followInTheDark/A-no-handover: broken
 
-Nothing happens off the line in the dark and in the light (the calls of avoidWalls are missing). L7 no_result
+Nothing happens off the line in the dark and in the light (the calls of avoidWalls are missing). L7 no_result, L8 no_result
 
 ```
 def followInTheDark():
@@ -958,7 +958,7 @@ def followInTheDark():
 
 ### followInTheDark/B: correct
 
-L1 win, L2 win, L4 win_soft, L5 win, L6 win, L7 win
+L1 win, L2 win, L4 win_soft, L5 win, L6 win, L7 win, L8 win_soft
 
 ```
 def followInTheDark():
@@ -973,9 +973,9 @@ def followInTheDark():
     avoidWalls()
 ```
 
-### followInTheDark/B-swapped: equivalent (still wins)
+### followInTheDark/B-swapped: broken
 
-The two turns swapped. L7 win
+The two turns swapped. L7 win, L8 fail_hit
 
 ```
 def followInTheDark():
@@ -992,7 +992,7 @@ def followInTheDark():
 
 ### followInTheDark/B-peach-is-black: broken
 
-The black threshold above the floor (83): it steers everywhere. L7 fail_hit
+The black threshold above the floor (83): it steers everywhere. L7 fail_hit, L8 fail_hit
 
 ```
 def followInTheDark():
@@ -1009,7 +1009,7 @@ def followInTheDark():
 
 ### followInTheDark/B-light-above: broken
 
-Reads the light from above instead of the floor. L7 fail_hit
+Reads the light from above instead of the floor. L7 fail_hit, L8 fail_hit
 
 ```
 def followInTheDark():
@@ -1026,7 +1026,7 @@ def followInTheDark():
 
 ### followInTheDark/B-no-handover: broken
 
-Nothing happens off the line in the dark and in the light (the calls of avoidWalls are missing). L7 no_result
+Nothing happens off the line in the dark and in the light (the calls of avoidWalls are missing). L7 no_result, L8 no_result
 
 ```
 def followInTheDark():
@@ -1039,7 +1039,7 @@ def followInTheDark():
 
 ### followInTheDark/C: correct
 
-L1 win, L2 win, L4 win_soft, L5 win, L6 win, L7 win
+L1 win, L2 win, L4 win_soft, L5 win, L6 win, L7 win, L8 win_soft
 
 ```
 def followInTheDark():
@@ -1054,9 +1054,9 @@ def followInTheDark():
     avoidWalls()
 ```
 
-### followInTheDark/C-swapped: equivalent (still wins)
+### followInTheDark/C-swapped: broken
 
-The two turns swapped. L7 win
+The two turns swapped. L7 win, L8 fail_hit
 
 ```
 def followInTheDark():
@@ -1073,7 +1073,7 @@ def followInTheDark():
 
 ### followInTheDark/C-peach-is-black: broken
 
-The black threshold above the floor (83): it steers everywhere. L7 fail_hit
+The black threshold above the floor (83): it steers everywhere. L7 fail_hit, L8 fail_hit
 
 ```
 def followInTheDark():
@@ -1090,7 +1090,7 @@ def followInTheDark():
 
 ### followInTheDark/C-light-above: broken
 
-Reads the light from above instead of the floor. L7 fail_hit
+Reads the light from above instead of the floor. L7 fail_hit, L8 fail_hit
 
 ```
 def followInTheDark():
@@ -1107,7 +1107,7 @@ def followInTheDark():
 
 ### followInTheDark/C-no-handover: broken
 
-Nothing happens off the line in the dark and in the light (the calls of avoidWalls are missing). L7 no_result
+Nothing happens off the line in the dark and in the light (the calls of avoidWalls are missing). L7 no_result, L8 no_result
 
 ```
 def followInTheDark():

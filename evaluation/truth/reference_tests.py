@@ -159,7 +159,7 @@ IDS = {
     'stopAtWall': ['wall-ahead', 'no-wall'],
     'driveInTheDark': ['through-tunnel', 'start-in-dark', 'bend-in-light'],
     'avoidWalls': ['tunnel-bends-right', 'tunnel-bends-left', 'through-tunnel'],
-    'followInTheDark': ['dark-line-bends-right', 'dark-line-bends-left', 'start-in-dark'],
+    'followInTheDark': ['dark-line-bends-right', 'dark-line-bends-left', 'start-in-dark', 'out-of-the-dark'],
 }
 
 
@@ -185,8 +185,23 @@ def _worlds():
                        through_the_tunnel(['no-handover'])],
         'followInTheDark': [line_in_the_dark('right', ['peach-is-black', 'light-above', 'no-handover']),
                             line_in_the_dark('left', ['peach-is-black', 'light-above', 'no-handover']),
-                            starts_in_the_dark(['peach-is-black', 'light-above', 'no-handover'])],
+                            starts_in_the_dark(['peach-is-black', 'light-above', 'no-handover']),
+                            line_out_of_the_dark(['swapped'])],
     }
+
+
+def line_out_of_the_dark(targets):
+    """(2026-11-07) a line that runs out of a dark tunnel into the light, the goal at its end in the light: the line follower of the dark hands
+    over to the one of the light (followLine) while the robot is on the line. As in L8, where the wide tunnel's last line runs out into the
+    light: a follower in the dark that holds the other edge of the line than the one of the light (its turns swapped) leaves the robot on the
+    wrong side, and the one of the light turns away."""
+    x, y = 40, 100
+    return world('A line out of the dark', [start('A', x, y)],
+                 [tunnel('t1', [[x - 10, y], [x + 80, y]], 20), line('t2', [[x - 5, y], [x + 150, y]]), goal('t3', x + 138, y - 10, 12, 20)],
+                 [test('Follows the line out of the dark and on in the light', 'A', [reaches('t3'), never_bumps()],
+                       'Given the robot on a line inside a dark tunnel, when the line runs on out of the tunnel, then the robot follows it into the '
+                       'light and on to the goal at its end.',
+                       targets, until='t3')])
 
 
 def bend_in_the_light():

@@ -8,7 +8,7 @@ import threading
 import browser
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-MAX_MS = 60000  # a level without a time limit is played this long (the slowest reference win, L6, takes 34 s)
+MAX_MS = 180000  # a level without a time limit is played this long (the slowest reference win: L8, about 50 s since 2026-11-07)
 
 
 def levels():

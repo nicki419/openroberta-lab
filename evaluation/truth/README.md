@@ -5,7 +5,9 @@ For every level of the study (`levels/01-first-steps`), this folder fixes:
 - the function the learner fixes at that level;
 - its **correct versions** (3 per function: A, B, C);
 - its **broken versions**, made by fixed faults;
-- **reference tests** that tell the two apart.
+- **reference tests** that tell the two apart;
+- the **starter code**: per level, the broken version a learner gets, in two versions of the study's code (one per run);
+- that **every combination of correct fixes beats every level** (`check_levels.py`).
 
 Your rule (2026-11-06): *every correct version passes every test, and every broken version fails at least one.* Later analyses use it to
 compare test sets against it, whether the learners wrote them, the AI assistant did, or the plain call of phase 5. The files are committed and
@@ -19,10 +21,13 @@ Checked on 2026-11-07 (`verify.py`, on the committed programs):
 | `stopAtWall` | L4 | 3 | 12 | 0 | 2 | 0 | 12 of 12 |
 | `driveInTheDark` | L5 | 3 | 15 | 0 | 3 | 0 | 15 of 15 |
 | `avoidWalls` | L6 | 3 | 12 | 0 | 3 | 0 | 12 of 12 |
-| `followInTheDark` | L7 | 3 | 9 | 3 | 3 | 0 | 9 of 9 |
+| `followInTheDark` | L7, L8 | 3 | 12 | 0 | 4 | 0 | 12 of 12 |
 
-- **The results repeat exactly.** Two full runs gave the same result on all 228 runs (each version × each test of its function), including
-  the failure texts. The simulator runs in virtual time.
+Every level was beaten by every combination of the correct versions of its program's functions (`check_levels.py`: 3 programs at L1 and
+L2, 9 at L4, 27 at L5, 81 at L6, 243 at L7 and L8), and by each equivalent version, except the swapped line followers at L8 (see "Open").
+
+- **The results repeat exactly.** Two full runs of the then 14 tests gave the same result on all 228 runs (each version × each test of its
+  function), including the failure texts. The simulator runs in virtual time.
 - **The exports open in the Lab.** One version per function was loaded through the Lab's own import: its functions were in the Program tab,
   and its reference tests in the Tests tab.
 
@@ -59,7 +64,10 @@ The versions come from the phase 5 corpus (`evaluation/phase5/corpus.py`, decide
 | `reference_tests.py` | the reference tests, written by hand: what each test is for (`targets`: the faults it is there to catch) |
 | `results.json` | the last run of `verify.py`: every version, every test, passed or failed, and why |
 | `verify.py` | runs the reference tests on every version and checks the rule (exit code 1 if it is broken) |
-| `build.py` | writes `truth.json`, `functions/`, `programs/`, `tests/` and `TRUTH.md` |
+| `check_levels.py` | plays every level with every combination of the correct versions of its program's functions, and with each equivalent version (exit code 1 if one loses) |
+| `levels.json` | the last run of `check_levels.py`: every program on every level, its outcome |
+| `build.py` | writes `truth.json`, `functions/`, `programs/`, `tests/` and `TRUTH.md`; `STARTERS` there is the choice of the starter code |
+| `write_level_code.py` | writes the starter code from `truth.json` into the level files (`code`), where the Lab takes it from |
 
 ### `truth.json`
 
@@ -70,9 +78,8 @@ The versions come from the phase 5 corpus (`evaluation/phase5/corpus.py`, decide
   - `main_calls`;
   - `inject`: what changes from the level before: the new function's definition is added, and the main loop's call changes from
     `main_call_before` to `main_call_after`;
-  - `starter`: the broken version the learner gets. Not chosen yet.
-
-  L8 is listed without a function (see "Open").
+  - `starter`: the broken version the learner gets, per version of the study's code: `{"1": <version id>, "2": <version id>}`.
+- `level_check`: per level, how many programs `check_levels.py` played and how many won.
 - `functions[]`: `name`, `levels`, `hands_over_to` (the function it calls when its situation isn't there), `reference_version`, `faults`
   (`fault`, `why`), and `tests` (the ids of its reference tests).
 - `tests`: per function, the worlds with their tests. Each test has its id in `ref` (`<function>:<id>`, e.g. `stopAtWall:wall-ahead`).
@@ -102,7 +109,7 @@ caught it.
 
 ## The reference tests
 
-There are 14 tests, one world each, written the way the context pack's recipes write them (`OpenRobertaServer/src/main/resources/ai/tests.md`).
+There are 15 tests, one world each, written the way the context pack's recipes write them (`OpenRobertaServer/src/main/resources/ai/tests.md`).
 Each test runs the level's whole program:
 
 - `followLine`:
@@ -124,43 +131,72 @@ Each test runs the level's whole program:
 - `followInTheDark`:
   - a line in a wide dark tunnel (45 cm, as in L7) that bends right;
   - the same, bending left;
-  - a start in the dark with no line.
+  - a start in the dark with no line;
+  - a line out of a dark tunnel into the light, the goal at its end (since L8 belongs to `followInTheDark`: the swapped versions, which follow
+    the other edge of the line in the dark than `followLine` in the light, lose it there and here).
 
 **Found on the way (2026-11-07):** at the edge of a line, the floor sensor sometimes reads above 90. So a broken `followInTheDark` whose black
 threshold lies above the plain floor ("peach-is-black"), or one that does nothing between black and white ("no-handover"), still follows a line
 in the dark. Only where there is no line does it fail: it circles, or it doesn't move. L7 starts that way. The test without a line catches
 these faults; the line tests catch "light-above".
 
-## Injecting a level's code
+## The starter code
 
-At the level where a function is new (`levels[].inject`):
+| level | function | version 1 | version 2 |
+|---|---|---|---|
+| L1 | `followLine` | `A-light-above`: reads the light from above instead of the floor | `B-straight-off`: drives straight when off the line |
+| L4 | `stopAtWall` | `A-turns`: turns away instead of stopping | `C-slows`: slows down instead of stopping |
+| L5 | `driveInTheDark` | `A-negated`: the comparison the wrong way round | `B-never-dark`: the threshold below what the sensor reads |
+| L6 | `avoidWalls` | `A-swapped`: turns towards the wall | `B-front-sensor`: reads FRONT instead of the side |
+| L7 | `followInTheDark` | `A-light-above`: reads the light from above instead of the floor | `B-peach-is-black`: the black threshold above the floor |
 
-1. add `functions/<function>/<starter>.xml` (its definition) to the learner's program;
-2. change the main loop's call from `main_call_before` to `main_call_after`.
+Each loses the level where its function is new. The two of a level are faults of a similar kind, so neither run is harder by design; each
+version is built on other correct versions, so the second run doesn't show the same code. **Not `followLine/A-one-turn`:** its two turns are
+the same, and fixing the other one gives `followLine/A-swapped`, which beats L1 to L7 but can't finish L8 (see "Open").
 
-The learner's functions from earlier levels stay as they fixed them. Each function calls the one before, so the new function calls the
-learner's own fix. The ids in the XML are those of the corpus. If an id is already in the workspace, Blockly gives the block a new one.
+**Injecting a level's code** is built into the Lab (`OpenRobertaWeb/src/app/levels/levels.code.ts`, `docs/ai/nepo-levels.md`, "The study's
+code per level"): the version is chosen per program in the Edit menu, and when a level with code is played, its starter is added to the
+learner's program and the main loop calls it instead of the function before (`levels[].inject`). The learner's functions from earlier levels
+stay as they fixed them; each function calls the one before, so the new function calls the learner's own fix. `write_level_code.py` puts the
+starters into the level files. The ids in the XML are those of the corpus; if an id is already in the workspace, Blockly gives the block a new
+one.
+
+## The levels, loosened (2026-11-07)
+
+Before, a correct fix of an earlier level could make a later level unbeatable (`followLine/B` lost L5, `avoidWalls/B` and `C` lost L7), and
+L8 was beaten by none of the corpus's line followers. The levels were changed until every combination of correct versions beat them
+(`check_levels.py`), and the corpus was decided again on them (`evaluation/phase5/verify.py`):
+
+- **L5:** the tunnel 60 cm shorter, the line after it 4.5 cm wide (a landing strip).
+- **L7:** the line in the wide tunnel begins at x 60, on the robot's straight path.
+- **L8:** the lines drawn anew as straights and arcs (radius 17 to 18 cm): no U-turn, zigzag, tight corner or hairpin. The line after the
+  first tunnel runs through the tunnel's bend and on down the middle of the dark corridor of the wide tunnel into the last line; the last line
+  runs up to the wall at the goal. L8 belongs to `followInTheDark` now, as L2 to `followLine`.
+
+**Why:** the line followers steer along one edge of the line. One that comes to a thin line from the other side (out of the dark, or past
+the end of a line) is turned away by the line's white border; and one that drives blind keeps the small angle it had when it lost sight.
+Where a level asked for that, whether a correct program won was luck.
 
 ## Open
 
-- **Some correct versions break a later level.** `followLine/B` loses L5. `avoidWalls/B` and `avoidWalls/C` lose L7. In both cases the later
-  functions are in their reference version A. A learner whose fix works like one of these can't beat the later level with the injected
-  code, even if they fix that level's function correctly. Possible answers:
-  - the later starter code tolerates them;
-  - the later level is made more forgiving;
-  - their kind of fix counts as wrong in the study.
-- **Which broken version each learner gets** (`starter`). The equivalent ones can't be used: the level passes them.
-- **L8** isn't covered: the reference program doesn't beat it (it circles where the first line ends). There is no L3 in the set.
+- **The swapped line followers can't finish L8.** `followLine/*-swapped` and `followInTheDark/*-swapped` (the two turns swapped: they
+  follow the other edge of the line) beat their own levels and every level up to L7, but lose L8: where the robot comes out of the wide
+  tunnel into the light, the line follower of the light takes over from the one of the dark, and if the two follow different edges, the new
+  one is on the wrong side and turns away into the tunnel's wall. A wider line didn't help. A learner can write such a follower; if one gets
+  stuck at L8, the staff can let them stop there. A level that avoids it needs no handover from a line follower in the dark to one in the
+  light (as in L5, where the robot drives straight in the dark).
+- There is no L3 in the set.
 - **L2 has no code of its own**: it plays L1's `followLine`. Two broken versions beat L1 and lose only L2 (`followLine/C-light-above` and
   `C-straight-off`).
 
 ## Changing it
 
-1. Change the corpus (`evaluation/phase5/corpus.py`, then `python verify.py` there, which plays the levels) or the tests
-   (`reference_tests.py`).
+1. Change the corpus (`evaluation/phase5/corpus.py`, then `python verify.py` there, which plays the levels), the tests
+   (`reference_tests.py`), the starters (`STARTERS` in `build.py`) or a level (then `python check_levels.py` and phase 5's `verify.py`).
 2. Run `python build.py` (it reads the corpus).
 3. Run `python verify.py` (it checks the programs in `truth.json`).
 4. Run `python build.py` again, which takes the results in.
+5. Run `python write_level_code.py`, which puts the starters into the level files.
 
 These steps need the Lab (`./ora.sh start-from-git`) and phase 5's headless Chromes (`evaluation/phase5/README.md`), e.g.
 `PHASE5_PORTS=9333,9334`. Use one process per Chrome.

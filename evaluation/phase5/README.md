@@ -14,7 +14,7 @@ broken version of that level's function. A good set of tests passes on every cor
 | `corpus.py` | the level functions (a priority chain: each handles its situation or hands over to the one before), their correct versions, and the faults that break them |
 | `browser.py`, `browser/` | the headless Chromes (`chrome.sh <port>`, `boot.sh`, the CDP driver `cdp.mjs`) and the page scripts |
 | `judge.py`, `browser/judge.js` | plays a program on a level, headless, and decides it as the level player does (win, soft win, fail area, bump, time) |
-| `verify.py` | decides the corpus on the levels: `corpus/versions.json`, the programs as Lab exports in `corpus/programs/` |
+| `verify.py` | decides the corpus on the levels: `corpus/versions.json`, the programs as Lab exports in `corpus/programs/`. Decided again on 2026-11-07 on the loosened levels (L8 added to `followInTheDark`: its swapped versions are broken now); rounds 1 and 2 used the corpus as it was, `corpus/versions-rounds-1-2.json` (`compare.py` reads that one) |
 | `corpus_doc.py` | `corpus/CORPUS.md`: every version as pseudocode, with what the levels said |
 | `sentences.py` | the learner's sentence per function, precise and vague |
 | `generate.py`, `browser/gen.js` | the full pipeline: the assistant's analyze and generate through the running Lab, as `levels.aiAssistant` `write()` (`results/generated/`) |
@@ -47,6 +47,8 @@ into the Lab's telemetry as anonymous sessions (`session-N.jsonl`).
   a robot that should stop at a wall creeps into it. So the level functions form a priority chain.
 - **L5 is beaten only with a dark threshold of about 70 to 75** (light from above, in percent): lower or higher, the robot loses the line at the
   tunnel's exit.
-- **A correct fix can break a later level**: `followLine` B loses L5 with the later functions, `avoidWalls` B and C lose L7.
-- **L8 isn't beaten by the reference program** (it circles where the first line ends), and wasn't in the telemetry either: it is left out.
+- **A correct fix can break a later level**: `followLine` B loses L5 with the later functions, `avoidWalls` B and C lose L7 (on the levels of
+  round 1 and 2; since 2026-11-07 the levels are loosened, `evaluation/truth/README.md`).
+- **L8 wasn't beaten by the reference program** (it circled where the first line ends), and wasn't in the telemetry either: it is left out of
+  rounds 1 and 2. Since 2026-11-07 its lines are softened, and it belongs to `followInTheDark` (`corpus.py`).
 - **Some faults don't break a level**: a line follower with its turns swapped follows the other edge of the line and still wins.

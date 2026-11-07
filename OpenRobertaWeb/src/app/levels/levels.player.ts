@@ -19,6 +19,7 @@
  *   the learner has played; loading a program brings its progress back (a program without one starts anew). A change of the progress is an
  *   unsaved change of the program (autosave saves it: levels.autosave).
  * - Events (onEvent) tell others what happens: a level is opened, an attempt begins and ends, a set is chosen.
+ * - The progress also holds the study's code of the program (codeState: its version, the levels whose code was added; levels.code adds it).
  */
 import * as GUISTATE_C from 'guiState.controller';
 // @ts-ignore (Blockly has no type declarations)
@@ -46,6 +47,13 @@ export interface Progress {
     set: string;
     sets: { [set: string]: { current: string; beaten: string[] } };
     levels: { [level: string]: LevelStats };
+    code?: CodeState; // the study's code (levels.code): the version chosen for this program, the levels whose code was added
+}
+
+/** the study's code in this program (levels.code): its version, and per level whose code was added, how */
+export interface CodeState {
+    version: string;
+    added: { [level: string]: { function: string; definition: string; main: string; at: number } };
 }
 
 /** a level's attempts, and what the telemetry counts (levels.telemetry): time, the tests there were when it was first opened, test runs */
@@ -184,9 +192,9 @@ export function init(): void {
     );
 }
 
-/** the progress to save with the program (JSON), once the learner has played (else null: the program stays as it is) */
+/** the progress to save with the program (JSON), once the learner has played or the study's code was chosen (else null: the program stays as it is) */
 function serializeProgress(): string {
-    return Object.keys(progress.levels).length ? JSON.stringify(progress) : null;
+    return Object.keys(progress.levels).length || progress.code ? JSON.stringify(progress) : null;
 }
 
 /** the progress of a loaded program (null: none, the levels start anew) */
@@ -206,6 +214,9 @@ function loadProgress(json: string): void {
                     const s = p.levels[id];
                     s && typeof s === 'object' && (loaded.levels[id] = Object.assign({}, s, { attempts: Number(s.attempts) || 0 }));
                 });
+            }
+            if (p.code && typeof p.code === 'object' && typeof p.code.version === 'string') {
+                loaded.code = { version: p.code.version, added: p.code.added && typeof p.code.added === 'object' ? p.code.added : {} };
             }
         }
     } catch (e) {
@@ -228,6 +239,50 @@ export function getProgress(): Progress {
 export function currentLevel(): { id: string; set: string; index: number } {
     const c = current();
     return c.id ? { id: c.id, set: c.set.id, index: c.index } : null;
+}
+
+/** the level played, with its level (null for a level tried from the Level designer) */
+export function currentEntry(): LEVEL.LevelEntry {
+    const c = current();
+    return c.id ? c.set.levels[c.index] : null;
+}
+
+/** the levels of the set played (none while a level of the Level designer is tried) */
+export function setLevels(): LEVEL.LevelEntry[] {
+    const set = trial ? null : currentSet();
+    return set ? set.levels.slice() : [];
+}
+
+/** the study's code in this program (levels.code; null: no version chosen) */
+export function codeState(): CodeState {
+    return progress.code || null;
+}
+
+/** the study's code in this program changed (levels.code): saved with the progress */
+export function setCodeState(state: CodeState): void {
+    progress.code = state;
+    !trial && GUISTATE_C.setProgramSaved(false);
+}
+
+/** a notice over the scene (levels.code: code was added), with a button to close it */
+export function showNotice(title: string, message: string): void {
+    const box = ui.message;
+    if (!box) {
+        return;
+    }
+    box.innerHTML = '';
+    box.className = 'notice';
+    html('div', 'levelMessageTitle', box).textContent = title;
+    html('div', 'levelMessageText', box).textContent = message;
+    const buttons = html('div', 'levelMessageButtons', box);
+    const b = html('button', 'btn btn-primary', buttons);
+    b.type = 'button';
+    b.textContent = text('close');
+    b.addEventListener('click', (e: Event) => {
+        e.preventDefault();
+        hideMessage();
+    });
+    box.style.display = '';
 }
 
 /** a level's stats in the progress (to count in them; saved with the program) */

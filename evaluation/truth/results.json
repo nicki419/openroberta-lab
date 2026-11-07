@@ -242,7 +242,7 @@
    }
   ]
  },
- "followLine/B-light-above": {
+ "followLine/B-one-turn": {
   "function": "followLine",
   "kind": "broken",
   "tests": [
@@ -276,7 +276,7 @@
    }
   ]
  },
- "followLine/B-one-turn": {
+ "followLine/B-light-above": {
   "function": "followLine",
   "kind": "broken",
   "tests": [
@@ -1535,37 +1535,6 @@
    }
   ]
  },
- "driveInTheDark/C-no-handover": {
-  "function": "driveInTheDark",
-  "kind": "broken",
-  "tests": [
-   {
-    "world": "Through the tunnel",
-    "test": "Follows the line into the tunnel and gets through the dark",
-    "passed": false,
-    "outcome": "failed",
-    "failed": [
-     "the robot did not reach \"Goal t3\" within 60 s"
-    ]
-   },
-   {
-    "world": "Starts in the dark",
-    "test": "In the dark, drives straight on",
-    "passed": true,
-    "outcome": "passed",
-    "failed": []
-   },
-   {
-    "world": "In the light, a bend to the left",
-    "test": "In the light, still follows the line round a bend",
-    "passed": false,
-    "outcome": "failed",
-    "failed": [
-     "the robot did not reach \"Goal t2\" within 40 s"
-    ]
-   }
-  ]
- },
  "avoidWalls/A-never-dark": {
   "function": "avoidWalls",
   "kind": "broken",
@@ -1596,6 +1565,37 @@
     "passed": true,
     "outcome": "passed",
     "failed": []
+   }
+  ]
+ },
+ "driveInTheDark/C-no-handover": {
+  "function": "driveInTheDark",
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "Through the tunnel",
+    "test": "Follows the line into the tunnel and gets through the dark",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   },
+   {
+    "world": "Starts in the dark",
+    "test": "In the dark, drives straight on",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "In the light, a bend to the left",
+    "test": "In the light, still follows the line round a bend",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 40 s"
+    ]
    }
   ]
  },
@@ -1844,39 +1844,6 @@
    }
   ]
  },
- "avoidWalls/B-no-handover": {
-  "function": "avoidWalls",
-  "kind": "broken",
-  "tests": [
-   {
-    "world": "A tunnel that bends to the right",
-    "test": "Turns away from the wall on its left and gets round the bend",
-    "passed": false,
-    "outcome": "failed",
-    "failed": [
-     "the robot did not reach \"Goal t3\" within 60 s"
-    ]
-   },
-   {
-    "world": "A tunnel that bends to the left",
-    "test": "Turns away from the wall on its right and gets round the bend",
-    "passed": false,
-    "outcome": "failed",
-    "failed": [
-     "the robot did not reach \"Goal t3\" within 60 s"
-    ]
-   },
-   {
-    "world": "Through the tunnel",
-    "test": "Follows the line into the tunnel and gets through the dark",
-    "passed": false,
-    "outcome": "failed",
-    "failed": [
-     "the robot did not reach \"Goal t3\" within 60 s"
-    ]
-   }
-  ]
- },
  "avoidWalls/C-never-dark": {
   "function": "avoidWalls",
   "kind": "broken",
@@ -1910,6 +1877,39 @@
    }
   ]
  },
+ "avoidWalls/B-no-handover": {
+  "function": "avoidWalls",
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "A tunnel that bends to the right",
+    "test": "Turns away from the wall on its left and gets round the bend",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   },
+   {
+    "world": "A tunnel that bends to the left",
+    "test": "Turns away from the wall on its right and gets round the bend",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   },
+   {
+    "world": "Through the tunnel",
+    "test": "Follows the line into the tunnel and gets through the dark",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   }
+  ]
+ },
  "followInTheDark/A": {
   "function": "followInTheDark",
   "kind": "correct",
@@ -1934,12 +1934,19 @@
     "passed": true,
     "outcome": "passed",
     "failed": []
+   },
+   {
+    "world": "A line out of the dark",
+    "test": "Follows the line out of the dark and on in the light",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
    }
   ]
  },
  "followInTheDark/A-swapped": {
   "function": "followInTheDark",
-  "kind": "equivalent",
+  "kind": "broken",
   "tests": [
    {
     "world": "A line in the dark that bends to the right",
@@ -1961,6 +1968,15 @@
     "passed": true,
     "outcome": "passed",
     "failed": []
+   },
+   {
+    "world": "A line out of the dark",
+    "test": "Follows the line out of the dark and on in the light",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
    }
   ]
  },
@@ -1991,6 +2007,13 @@
      "the robot did not reach \"Goal t2\" within 60 s",
      "the robot bumped into \"Tunnel t1\" after 0.6 s"
     ]
+   },
+   {
+    "world": "A line out of the dark",
+    "test": "Follows the line out of the dark and on in the light",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
    }
   ]
  },
@@ -2026,6 +2049,16 @@
      "the robot did not reach \"Goal t2\" within 60 s",
      "the robot bumped into \"Tunnel t1\" after 0.6 s"
     ]
+   },
+   {
+    "world": "A line out of the dark",
+    "test": "Follows the line out of the dark and on in the light",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel t1\" after 0.9 s"
+    ]
    }
   ]
  },
@@ -2055,6 +2088,16 @@
     "failed": [
      "the robot did not reach \"Goal t2\" within 60 s"
     ]
+   },
+   {
+    "world": "A line out of the dark",
+    "test": "Follows the line out of the dark and on in the light",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel t1\" after 10.7 s"
+    ]
    }
   ]
  },
@@ -2082,12 +2125,19 @@
     "passed": true,
     "outcome": "passed",
     "failed": []
+   },
+   {
+    "world": "A line out of the dark",
+    "test": "Follows the line out of the dark and on in the light",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
    }
   ]
  },
  "followInTheDark/B-swapped": {
   "function": "followInTheDark",
-  "kind": "equivalent",
+  "kind": "broken",
   "tests": [
    {
     "world": "A line in the dark that bends to the right",
@@ -2109,6 +2159,15 @@
     "passed": true,
     "outcome": "passed",
     "failed": []
+   },
+   {
+    "world": "A line out of the dark",
+    "test": "Follows the line out of the dark and on in the light",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
    }
   ]
  },
@@ -2139,41 +2198,13 @@
      "the robot did not reach \"Goal t2\" within 60 s",
      "the robot bumped into \"Tunnel t1\" after 0.5 s"
     ]
-   }
-  ]
- },
- "followInTheDark/B-light-above": {
-  "function": "followInTheDark",
-  "kind": "broken",
-  "tests": [
-   {
-    "world": "A line in the dark that bends to the right",
-    "test": "In the dark, follows the line round a bend to the right",
-    "passed": false,
-    "outcome": "failed",
-    "failed": [
-     "the robot did not reach \"Goal t3\" within 60 s",
-     "the robot bumped into \"Tunnel t1\" after 1.2 s"
-    ]
    },
    {
-    "world": "A line in the dark that bends to the left",
-    "test": "In the dark, follows the line round a bend to the left",
-    "passed": false,
-    "outcome": "failed",
-    "failed": [
-     "the robot did not reach \"Goal t3\" within 60 s"
-    ]
-   },
-   {
-    "world": "Starts in the dark",
-    "test": "In the dark, drives straight on",
-    "passed": false,
-    "outcome": "failed",
-    "failed": [
-     "the robot did not reach \"Goal t2\" within 60 s",
-     "the robot bumped into \"Tunnel t1\" after 0.5 s"
-    ]
+    "world": "A line out of the dark",
+    "test": "Follows the line out of the dark and on in the light",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
    }
   ]
  },
@@ -2210,6 +2241,51 @@
    }
   ]
  },
+ "followInTheDark/B-light-above": {
+  "function": "followInTheDark",
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "A line in the dark that bends to the right",
+    "test": "In the dark, follows the line round a bend to the right",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel t1\" after 1.2 s"
+    ]
+   },
+   {
+    "world": "A line in the dark that bends to the left",
+    "test": "In the dark, follows the line round a bend to the left",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   },
+   {
+    "world": "Starts in the dark",
+    "test": "In the dark, drives straight on",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 60 s",
+     "the robot bumped into \"Tunnel t1\" after 0.5 s"
+    ]
+   },
+   {
+    "world": "A line out of the dark",
+    "test": "Follows the line out of the dark and on in the light",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel t1\" after 0.8 s"
+    ]
+   }
+  ]
+ },
  "followInTheDark/C": {
   "function": "followInTheDark",
   "kind": "correct",
@@ -2234,12 +2310,19 @@
     "passed": true,
     "outcome": "passed",
     "failed": []
+   },
+   {
+    "world": "A line out of the dark",
+    "test": "Follows the line out of the dark and on in the light",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
    }
   ]
  },
  "followInTheDark/C-swapped": {
   "function": "followInTheDark",
-  "kind": "equivalent",
+  "kind": "broken",
   "tests": [
    {
     "world": "A line in the dark that bends to the right",
@@ -2261,6 +2344,15 @@
     "passed": true,
     "outcome": "passed",
     "failed": []
+   },
+   {
+    "world": "A line out of the dark",
+    "test": "Follows the line out of the dark and on in the light",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
    }
   ]
  },
@@ -2291,6 +2383,13 @@
      "the robot did not reach \"Goal t2\" within 60 s",
      "the robot bumped into \"Tunnel t1\" after 0.8 s"
     ]
+   },
+   {
+    "world": "A line out of the dark",
+    "test": "Follows the line out of the dark and on in the light",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
    }
   ]
  },
@@ -2327,6 +2426,16 @@
      "the robot did not reach \"Goal t2\" within 60 s",
      "the robot bumped into \"Tunnel t1\" after 0.8 s"
     ]
+   },
+   {
+    "world": "A line out of the dark",
+    "test": "Follows the line out of the dark and on in the light",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel t1\" after 1.3 s"
+    ]
    }
   ]
  },
@@ -2356,6 +2465,16 @@
     "failed": [
      "the robot did not reach \"Goal t2\" within 60 s"
     ]
+   },
+   {
+    "world": "A line out of the dark",
+    "test": "Follows the line out of the dark and on in the light",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel t1\" after 8.1 s"
+    ]
    }
   ]
  },
@@ -2384,6 +2503,16 @@
     "outcome": "failed",
     "failed": [
      "the robot did not reach \"Goal t2\" within 60 s"
+    ]
+   },
+   {
+    "world": "A line out of the dark",
+    "test": "Follows the line out of the dark and on in the light",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel t1\" after 13.8 s"
     ]
    }
   ]

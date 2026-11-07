@@ -10,5 +10,13 @@
     {"role":"obstacle","kind":"rect","w":11.82,"name":"Obstacle 1","x":84.1,"h":21.46,"y":14.44,"failOnHit":true,"id":"smw24v5mx9"},
     {"role":"goal","kind":"rect","w":15.06,"name":"Goal 1","x":69.04,"h":21.18,"y":14.81,"id":"smw24vbvga","soft":{"still":3}}
   ]},
- "view": {"x":62,"y":19.16,"scale":6.227}
+ "view": {"x":62,"y":19.16,"scale":6.227},
+ "code": {
+  "function": "stopAtWall",
+  "calls": "followLine",
+  "versions": {
+   "1": "<block_set xmlns=\"http://de.fhg.iais.roberta.blockly\" robottype=\"edison\" xmlversion=\"3.1\" description=\"\" tags=\"\"><instance x=\"40\" y=\"40\"><block type=\"robProcedures_defnoreturn\" id=\"p5_182\" intask=\"true\"><mutation declare=\"false\"/><field name=\"NAME\">stopAtWall</field><statement name=\"STACK\"><block type=\"robControls_ifElse\" id=\"p5_183\" intask=\"true\"><mutation else=\"1\"/><repetitions><value name=\"IF0\"><block type=\"robSensors_infrared_getSample\" id=\"p5_184\" intask=\"true\"><mutation mode=\"OBSTACLE\"/><field name=\"MODE\">OBSTACLE</field><field name=\"SENSORPORT\">FRONT</field><field name=\"SLOT\"/></block></value><statement name=\"DO0\"><block type=\"robActions_motorDiff_turn_for\" id=\"p5_185\" intask=\"true\"><field name=\"DIRECTION\">RIGHT</field><value name=\"POWER\"><block type=\"math_integer\" id=\"p5_186\" intask=\"true\"><field name=\"NUM\">30</field></block></value><value name=\"DEGREE\"><block type=\"math_integer\" id=\"p5_187\" intask=\"true\"><field name=\"NUM\">90</field></block></value></block></statement><statement name=\"ELSE\"><block type=\"robProcedures_callnoreturn\" id=\"p5_188\" intask=\"true\"><mutation name=\"followLine\"/></block></statement></repetitions></block></statement></block></instance></block_set>",
+   "2": "<block_set xmlns=\"http://de.fhg.iais.roberta.blockly\" robottype=\"edison\" xmlversion=\"3.1\" description=\"\" tags=\"\"><instance x=\"40\" y=\"40\"><block type=\"robProcedures_defnoreturn\" id=\"p5_637\" intask=\"true\"><mutation declare=\"false\"/><field name=\"NAME\">stopAtWall</field><statement name=\"STACK\"><block type=\"robControls_ifElse\" id=\"p5_638\" intask=\"true\"><mutation else=\"1\"/><repetitions><value name=\"IF0\"><block type=\"robSensors_infrared_getSample\" id=\"p5_639\" intask=\"true\"><mutation mode=\"OBSTACLE\"/><field name=\"MODE\">OBSTACLE</field><field name=\"SENSORPORT\">RIGHT</field><field name=\"SLOT\"/></block></value><statement name=\"DO0\"><block type=\"robActions_motorDiff_on\" id=\"p5_640\" intask=\"true\"><field name=\"DIRECTION\">FOREWARD</field><value name=\"POWER\"><block type=\"math_integer\" id=\"p5_641\" intask=\"true\"><field name=\"NUM\">10</field></block></value></block></statement><statement name=\"ELSE\"><block type=\"robProcedures_callnoreturn\" id=\"p5_642\" intask=\"true\"><mutation name=\"followLine\"/></block></statement></repetitions></block></statement></block></instance></block_set>"
+  }
+ }
 }

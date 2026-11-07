@@ -123,6 +123,8 @@ latched sensors from EdPy's library. The document also lists which behaviour is 
   appended to a `.jsonl` file per participant. Every event says whether the AI test assistant was on.
 - **The study's source of truth** (`evaluation/truth/`): per level, the function the learner fixes, its correct and broken
   versions, and reference tests that tell them apart. The files are committed and used as they are; `truth.json` is for analysis.
+- **The study's code per level** (`levels.code.ts`): a level's `code` (its broken function, in two versions) is added to the
+  learner's program when the level is played; the version is chosen per program in the Edit menu ("Level code: version 1/2").
 
 Read it before changing the simulator's level hooks, the level format or the telemetry. `levels/README.md` is the
 designers' guide.

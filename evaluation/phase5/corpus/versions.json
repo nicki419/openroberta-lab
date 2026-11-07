@@ -41,7 +41,7 @@
    },
    "later l5": {
     "outcome": "win",
-    "at_s": 28,
+    "at_s": 22.2,
     "error": null
    },
    "later l6": {
@@ -51,7 +51,12 @@
    },
    "later l7": {
     "outcome": "win",
-    "at_s": 26.8,
+    "at_s": 26.1,
+    "error": null
+   },
+   "later l8": {
+    "outcome": "win_soft",
+    "at_s": 67.9,
     "error": null
    }
   },
@@ -297,8 +302,8 @@
     "error": null
    },
    "later l5": {
-    "outcome": "fail_hit",
-    "at_s": 15.9,
+    "outcome": "win",
+    "at_s": 18.3,
     "error": null
    },
    "later l6": {
@@ -308,12 +313,17 @@
    },
    "later l7": {
     "outcome": "win",
-    "at_s": 26.8,
+    "at_s": 26.1,
+    "error": null
+   },
+   "later l8": {
+    "outcome": "win_soft",
+    "at_s": 54.4,
     "error": null
    }
   },
   "ok": true,
-  "later_ok": false
+  "later_ok": true
  },
  {
   "id": "followLine/B-swapped",
@@ -572,7 +582,7 @@
    },
    "later l5": {
     "outcome": "win",
-    "at_s": 22.8,
+    "at_s": 17.1,
     "error": null
    },
    "later l6": {
@@ -582,7 +592,12 @@
    },
    "later l7": {
     "outcome": "win",
-    "at_s": 26.8,
+    "at_s": 26.1,
+    "error": null
+   },
+   "later l8": {
+    "outcome": "win_soft",
+    "at_s": 54.4,
     "error": null
    }
   },
@@ -873,7 +888,7 @@
    },
    "later l5": {
     "outcome": "win",
-    "at_s": 28,
+    "at_s": 22.2,
     "error": null
    },
    "later l6": {
@@ -883,7 +898,12 @@
    },
    "later l7": {
     "outcome": "win",
-    "at_s": 26.8,
+    "at_s": 26.1,
+    "error": null
+   },
+   "later l8": {
+    "outcome": "win_soft",
+    "at_s": 67.9,
     "error": null
    }
   },
@@ -911,7 +931,7 @@
   "runs": {
    "l4": {
     "outcome": "no_result",
-    "at_s": 60,
+    "at_s": 180,
     "error": null
    }
   },
@@ -939,7 +959,7 @@
   "runs": {
    "l4": {
     "outcome": "no_result",
-    "at_s": 60,
+    "at_s": 180,
     "error": null
    }
   },
@@ -969,7 +989,7 @@
   "runs": {
    "l4": {
     "outcome": "no_result",
-    "at_s": 60,
+    "at_s": 180,
     "error": null
    }
   },
@@ -1040,7 +1060,7 @@
    },
    "later l5": {
     "outcome": "win",
-    "at_s": 28,
+    "at_s": 22.2,
     "error": null
    },
    "later l6": {
@@ -1050,7 +1070,12 @@
    },
    "later l7": {
     "outcome": "win",
-    "at_s": 26.8,
+    "at_s": 26.1,
+    "error": null
+   },
+   "later l8": {
+    "outcome": "win_soft",
+    "at_s": 67.9,
     "error": null
    }
   },
@@ -1079,7 +1104,7 @@
   "runs": {
    "l4": {
     "outcome": "no_result",
-    "at_s": 60,
+    "at_s": 180,
     "error": null
    }
   },
@@ -1108,7 +1133,7 @@
   "runs": {
    "l4": {
     "outcome": "no_result",
-    "at_s": 60,
+    "at_s": 180,
     "error": null
    }
   },
@@ -1138,7 +1163,7 @@
   "runs": {
    "l4": {
     "outcome": "no_result",
-    "at_s": 60,
+    "at_s": 180,
     "error": null
    }
   },
@@ -1208,7 +1233,7 @@
    },
    "later l5": {
     "outcome": "win",
-    "at_s": 28,
+    "at_s": 22.2,
     "error": null
    },
    "later l6": {
@@ -1218,7 +1243,12 @@
    },
    "later l7": {
     "outcome": "win",
-    "at_s": 26.8,
+    "at_s": 26.1,
+    "error": null
+   },
+   "later l8": {
+    "outcome": "win_soft",
+    "at_s": 68,
     "error": null
    }
   },
@@ -1246,7 +1276,7 @@
   "runs": {
    "l4": {
     "outcome": "no_result",
-    "at_s": 60,
+    "at_s": 180,
     "error": null
    }
   },
@@ -1274,7 +1304,7 @@
   "runs": {
    "l4": {
     "outcome": "no_result",
-    "at_s": 60,
+    "at_s": 180,
     "error": null
    }
   },
@@ -1304,7 +1334,7 @@
   "runs": {
    "l4": {
     "outcome": "no_result",
-    "at_s": 60,
+    "at_s": 180,
     "error": null
    }
   },
@@ -1376,7 +1406,7 @@
    },
    "l5": {
     "outcome": "win",
-    "at_s": 28,
+    "at_s": 22.2,
     "error": null
    },
    "later l6": {
@@ -1386,7 +1416,12 @@
    },
    "later l7": {
     "outcome": "win",
-    "at_s": 26.8,
+    "at_s": 26.1,
+    "error": null
+   },
+   "later l8": {
+    "outcome": "win_soft",
+    "at_s": 67.9,
     "error": null
    }
   },
@@ -1533,7 +1568,7 @@
   "runs": {
    "l5": {
     "outcome": "no_result",
-    "at_s": 60,
+    "at_s": 180,
     "error": null
    }
   },
@@ -1577,7 +1612,7 @@
    },
    "l5": {
     "outcome": "win",
-    "at_s": 24.4,
+    "at_s": 20.1,
     "error": null
    },
    "later l6": {
@@ -1587,7 +1622,12 @@
    },
    "later l7": {
     "outcome": "win",
-    "at_s": 21,
+    "at_s": 20.3,
+    "error": null
+   },
+   "later l8": {
+    "outcome": "win_soft",
+    "at_s": 64.7,
     "error": null
    }
   },
@@ -1734,7 +1774,7 @@
   "runs": {
    "l5": {
     "outcome": "no_result",
-    "at_s": 60,
+    "at_s": 180,
     "error": null
    }
   },
@@ -1778,7 +1818,7 @@
    },
    "l5": {
     "outcome": "win",
-    "at_s": 27.9,
+    "at_s": 22.2,
     "error": null
    },
    "later l6": {
@@ -1788,7 +1828,12 @@
    },
    "later l7": {
     "outcome": "win",
-    "at_s": 26.8,
+    "at_s": 26.1,
+    "error": null
+   },
+   "later l8": {
+    "outcome": "win_soft",
+    "at_s": 67.8,
     "error": null
    }
   },
@@ -1935,7 +1980,7 @@
   "runs": {
    "l5": {
     "outcome": "no_result",
-    "at_s": 60,
+    "at_s": 180,
     "error": null
    }
   },
@@ -1995,7 +2040,7 @@
    },
    "l5": {
     "outcome": "win",
-    "at_s": 28,
+    "at_s": 22.2,
     "error": null
    },
    "l6": {
@@ -2005,7 +2050,12 @@
    },
    "later l7": {
     "outcome": "win",
-    "at_s": 26.8,
+    "at_s": 26.1,
+    "error": null
+   },
+   "later l8": {
+    "outcome": "win_soft",
+    "at_s": 67.9,
     "error": null
    }
   },
@@ -2186,7 +2236,7 @@
   "runs": {
    "l6": {
     "outcome": "no_result",
-    "at_s": 60,
+    "at_s": 180,
     "error": null
    }
   },
@@ -2246,7 +2296,7 @@
    },
    "l5": {
     "outcome": "win",
-    "at_s": 28,
+    "at_s": 22.2,
     "error": null
    },
    "l6": {
@@ -2255,13 +2305,18 @@
     "error": null
    },
    "later l7": {
-    "outcome": "fail_hit",
-    "at_s": 16.5,
+    "outcome": "win",
+    "at_s": 25.9,
+    "error": null
+   },
+   "later l8": {
+    "outcome": "win_soft",
+    "at_s": 67.9,
     "error": null
    }
   },
   "ok": true,
-  "later_ok": false
+  "later_ok": true
  },
  {
   "id": "avoidWalls/B-swapped",
@@ -2437,7 +2492,7 @@
   "runs": {
    "l6": {
     "outcome": "no_result",
-    "at_s": 60,
+    "at_s": 180,
     "error": null
    }
   },
@@ -2495,7 +2550,7 @@
    },
    "l5": {
     "outcome": "win",
-    "at_s": 28,
+    "at_s": 22.2,
     "error": null
    },
    "l6": {
@@ -2504,13 +2559,18 @@
     "error": null
    },
    "later l7": {
-    "outcome": "fail_hit",
-    "at_s": 15.6,
+    "outcome": "win",
+    "at_s": 25.8,
+    "error": null
+   },
+   "later l8": {
+    "outcome": "win_soft",
+    "at_s": 67.9,
     "error": null
    }
   },
   "ok": true,
-  "later_ok": false
+  "later_ok": true
  },
  {
   "id": "avoidWalls/C-swapped",
@@ -2678,7 +2738,7 @@
   "runs": {
    "l6": {
     "outcome": "no_result",
-    "at_s": 60,
+    "at_s": 180,
     "error": null
    }
   },
@@ -2738,7 +2798,7 @@
    },
    "l5": {
     "outcome": "win",
-    "at_s": 28,
+    "at_s": 22.2,
     "error": null
    },
    "l6": {
@@ -2748,7 +2808,12 @@
    },
    "l7": {
     "outcome": "win",
-    "at_s": 26.8,
+    "at_s": 26.1,
+    "error": null
+   },
+   "l8": {
+    "outcome": "win_soft",
+    "at_s": 67.9,
     "error": null
    }
   },
@@ -2793,12 +2858,17 @@
   "runs": {
    "l7": {
     "outcome": "win",
-    "at_s": 25.8,
+    "at_s": 26,
+    "error": null
+   },
+   "l8": {
+    "outcome": "fail_hit",
+    "at_s": 47.1,
     "error": null
    }
   },
-  "ok": false,
-  "equivalent": true
+  "ok": true,
+  "equivalent": false
  },
  {
   "id": "followInTheDark/A-peach-is-black",
@@ -2839,6 +2909,11 @@
    "l7": {
     "outcome": "fail_hit",
     "at_s": 0.9,
+    "error": null
+   },
+   "l8": {
+    "outcome": "fail_hit",
+    "at_s": 30.9,
     "error": null
    }
   },
@@ -2885,6 +2960,11 @@
     "outcome": "fail_hit",
     "at_s": 0.9,
     "error": null
+   },
+   "l8": {
+    "outcome": "fail_hit",
+    "at_s": 29.8,
+    "error": null
    }
   },
   "ok": true,
@@ -2929,7 +3009,12 @@
   "runs": {
    "l7": {
     "outcome": "no_result",
-    "at_s": 60,
+    "at_s": 180,
+    "error": null
+   },
+   "l8": {
+    "outcome": "no_result",
+    "at_s": 180,
     "error": null
    }
   },
@@ -2989,7 +3074,7 @@
    },
    "l5": {
     "outcome": "win",
-    "at_s": 28,
+    "at_s": 22.2,
     "error": null
    },
    "l6": {
@@ -2999,7 +3084,12 @@
    },
    "l7": {
     "outcome": "win",
-    "at_s": 25.7,
+    "at_s": 25.8,
+    "error": null
+   },
+   "l8": {
+    "outcome": "win_soft",
+    "at_s": 67.1,
     "error": null
    }
   },
@@ -3044,12 +3134,17 @@
   "runs": {
    "l7": {
     "outcome": "win",
-    "at_s": 25.6,
+    "at_s": 25.8,
+    "error": null
+   },
+   "l8": {
+    "outcome": "fail_hit",
+    "at_s": 45.7,
     "error": null
    }
   },
-  "ok": false,
-  "equivalent": true
+  "ok": true,
+  "equivalent": false
  },
  {
   "id": "followInTheDark/B-peach-is-black",
@@ -3090,6 +3185,11 @@
    "l7": {
     "outcome": "fail_hit",
     "at_s": 0.8,
+    "error": null
+   },
+   "l8": {
+    "outcome": "fail_hit",
+    "at_s": 30.5,
     "error": null
    }
   },
@@ -3136,6 +3236,11 @@
     "outcome": "fail_hit",
     "at_s": 0.8,
     "error": null
+   },
+   "l8": {
+    "outcome": "fail_hit",
+    "at_s": 29.8,
+    "error": null
    }
   },
   "ok": true,
@@ -3180,7 +3285,12 @@
   "runs": {
    "l7": {
     "outcome": "no_result",
-    "at_s": 60,
+    "at_s": 180,
+    "error": null
+   },
+   "l8": {
+    "outcome": "no_result",
+    "at_s": 180,
     "error": null
    }
   },
@@ -3240,7 +3350,7 @@
    },
    "l5": {
     "outcome": "win",
-    "at_s": 28.4,
+    "at_s": 22.2,
     "error": null
    },
    "l6": {
@@ -3250,7 +3360,12 @@
    },
    "l7": {
     "outcome": "win",
-    "at_s": 27.1,
+    "at_s": 26.2,
+    "error": null
+   },
+   "l8": {
+    "outcome": "win_soft",
+    "at_s": 68,
     "error": null
    }
   },
@@ -3295,12 +3410,17 @@
   "runs": {
    "l7": {
     "outcome": "win",
-    "at_s": 25.9,
+    "at_s": 26.1,
+    "error": null
+   },
+   "l8": {
+    "outcome": "fail_hit",
+    "at_s": 47.3,
     "error": null
    }
   },
-  "ok": false,
-  "equivalent": true
+  "ok": true,
+  "equivalent": false
  },
  {
   "id": "followInTheDark/C-peach-is-black",
@@ -3341,6 +3461,11 @@
    "l7": {
     "outcome": "fail_hit",
     "at_s": 1.1,
+    "error": null
+   },
+   "l8": {
+    "outcome": "fail_hit",
+    "at_s": 31.6,
     "error": null
    }
   },
@@ -3387,6 +3512,11 @@
     "outcome": "fail_hit",
     "at_s": 1.1,
     "error": null
+   },
+   "l8": {
+    "outcome": "fail_hit",
+    "at_s": 29.9,
+    "error": null
    }
   },
   "ok": true,
@@ -3431,7 +3561,12 @@
   "runs": {
    "l7": {
     "outcome": "no_result",
-    "at_s": 60,
+    "at_s": 180,
+    "error": null
+   },
+   "l8": {
+    "outcome": "no_result",
+    "at_s": 180,
     "error": null
    }
   },

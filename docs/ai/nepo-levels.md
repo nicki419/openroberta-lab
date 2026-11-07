@@ -22,6 +22,7 @@ Designers' guide: `levels/README.md`. Configuration: `.env.example`.
 | Telemetry | `OpenRobertaWeb/src/app/levels/levels.telemetry.ts` (an attempt's EdPy is asked for once: `attemptSource`, also used by the AI test assistant when the learner asks for tests) |
 | The Level designer tab | `OpenRobertaWeb/src/app/roberta/controller/levels.controller.ts`; markup `#tabLevels`, `#levels` in `index.html` |
 | The world editor (level mode) | `OpenRobertaWeb/src/app/nepotest/nepoTest.simEditor.ts` (`mode: 'level'`) |
+| The study's code per level: added to the program when a level is played, the version chosen in the Edit menu | `OpenRobertaWeb/src/app/levels/levels.code.ts`; the code in the level files (`code`), written by `evaluation/truth/write_level_code.py` |
 | Hooks in the simulator | `simulation.scene.ts` (`ILevelHost`, `showFullyLoadedSim`, `update`, `handleKeyEvent`, `centerBackground` with `insetRight`), `simulation.roberta.ts` (`levelHost`, `level()`, `stopProgram`, `callbackOnTermination`, `resetPose`) |
 | A panel beside the scene (none at present; the AI test assistant's until 2026-11-06, now a tab of the Tests tab: `docs/ai/nepo-ai-tests.md`) | an element of `#simDiv` with the class `levelSidePanel`: the scene is centred in the rest (`levels.player` `insetRight`, `sidePanelChanged`) |
 | Progress in the program XML | `nepoTest.suite.ts` (`setLevelProgress`, `split`/`merge`, `loadExtras`); NepoTest's `blocks.py` `split_program` leaves it out |
@@ -31,8 +32,14 @@ Designers' guide: `levels/README.md`. Configuration: `.env.example`.
 
 ```json
 {"format": "nepo-level", "version": 1, "title": "...", "instructions": "...", "timeLimit": 15,
- "world": {"background": "peach", "size": {"w": 150, "h": 100}, "starts": [one start], "items": [...]}, "view": {...}}
+ "world": {"background": "peach", "size": {"w": 150, "h": 100}, "starts": [one start], "items": [...]}, "view": {...},
+ "code": {"function": "stopAtWall", "calls": "followLine", "versions": {"1": "<block_set ...>", "2": "<block_set ...>"}}}
 ```
+
+- **`code`** (optional, since 2026-11-07): the study's code of the level (see "The study's code per level"): the function the learner
+  fixes here, the function the main loop called before (`null` at the first level with code), and per version of the study's code the
+  function's definition (a `block_set` with one instance). `parseLevel` keeps it and `serialize` writes it, so the Level designer keeps it
+  when it saves a level again. It is written by `evaluation/truth/write_level_code.py`, not by hand.
 
 - **`world`:** the Tests tab's simulation world (`nepoTest.sim.ts`, data version 3): cm from the top left of the
   peach floor, angles counterclockwise.
@@ -135,6 +142,8 @@ The server adds `serverTime`, `userId`, `account` and `session`.
 | `attempt_started` | `level`, `set`, `attempt`, `tests` (how many), `nepo` (the program XML with its tests and the progress), `edpy` (from `/projectWorkflow/source`; `edpyError` if none) |
 | `attempt_ended` | `level`, `set`, `attempt`, `outcome`, `simTime` (s), `item` (the obstacle hit), `activeMs`, `tests`, `testsAdded` (how many), `aiTestsAdded`, and the AI tests' counts |
 | `level_beaten` | `level`, `set`, `attempts`, `winningAttempt`, `activeMs`, `wallMs` (since first opened), `testsAtStart`, `tests`, `testsAdded` ([{id, name, ai, copy, edited}]), `testRuns`, `aiTestRuns` (runs with AI tests), and the AI tests' counts |
+| `code_version_chosen` | `version` (the study's code: chosen in the Edit menu for this program) |
+| `code_added` | `level`, `version`, `function`, `definition` (`added`; `existing`: the program had a function of that name; `missing`: the level has no code in this version), `main` (`replaced`: the call of the function before; `created`: a main loop with the call; `appended`; `kept`: it called the function already) |
 | `test_run` | `level`, `set`, `from` (runner or simulation), `passed`, `failed`, `error`, `skipped`, `tests`, `outcomes` ([{id, outcome, ai}]), `aiTestsRun`, `aiTestsEditedRun`, `aiPassed`, `aiFailed`, `aiError`, `aiSkipped`, and the AI tests' counts |
 | the AI test assistant's events | `ai_switched`, `ai_panel`, `ai_asked`, `ai_analyzed`, `ai_tests_generated`, `ai_tests_checked`, `ai_failed_answered`, `ai_tests_fixed`, `ai_stale`, `ai_tests_added`, and the server's `ai_call` (until 2026-11-06 also `ai_inferred`, `ai_offer_shown`, `ai_offer_answered`, `ai_ask_again`): `docs/ai/nepo-ai-tests.md` |
 
@@ -152,17 +161,52 @@ checks or their world), `aiTestsCopied`, `aiTestsDeleted` (added to this program
 **When events are sent:** the queue goes every 5 s, and an attempt at once (it is big). When the page is hidden or left,
 the queue goes with `navigator.sendBeacon`, carrying the init token from `COMM.getInitToken()`.
 
-## The study's code per level (source of truth)
+## The study's code per level
 
-In the study, the learner gets broken code per level, fixes it and writes tests for it. Each level's code is its own function, and the main
-loop calls the newest one. `evaluation/truth/` fixes this per level (made 2026-11-07, `evaluation/truth/README.md`):
+In the study, the learner gets broken code per level, fixes it and writes tests for it. Each learner plays the levels twice, once with the AI
+test assistant and once without (half of them in each order), in two programs of their account. Each level's code is its own function, and
+the main loop calls the newest one; each function handles its situation or calls the function of the level before.
 
-- the function;
-- its correct versions (3 per function) and its broken ones (made by fixed faults), each as NEPO XML of the function alone (to inject into a
-  learner's program) and as the level's whole program (a Lab export with the reference tests in its Tests tab);
-- the reference tests: every correct version passes them, every broken one fails at least one (checked by `verify.py`).
+**The source of truth** (`evaluation/truth/`, `README.md` there; made 2026-11-07):
+- per level the function;
+- its correct versions (3 per function) and its broken ones (made by fixed faults), each as NEPO XML of the function alone and as the level's
+  whole program (a Lab export with the reference tests in its Tests tab);
+- the reference tests: every correct version passes them, every broken one fails at least one (`verify.py`);
+- the starter code: per function, the broken version a learner gets, in two versions of the study's code (`STARTERS` in `build.py`);
+- every level is beaten by every combination of the correct versions of its program's functions (`check_levels.py`): whatever correct fix a
+  learner made earlier, the later levels can be beaten with it.
 
-`truth.json` holds all of it for analysis. Which broken version a learner gets is not chosen yet, and the injection isn't built.
+**Adding the code** (`levels.code.ts`):
+- **The version** of the study's code is chosen per program in the Edit menu ("Level code: version 1", "… version 2"; the items are there
+  for the Edison when the set's levels have code), by the study's staff when they open a participant's program. It is saved with the
+  program's progress (`progress.code`). Once code was added, the other versions can't be chosen (their items are disabled): another version
+  needs another program.
+- **When a level with code is played** (opened for the first time, or the version is chosen while it is played), its function in the
+  program's version is added to the program, to the right of its blocks, and the main loop calls it instead of the function before. The
+  functions the learner fixed stay as they are; the new function calls the last of them. The code of earlier levels that wasn't added yet is
+  added first. Each level's code is added once per program (`progress.code.added`); a notice over the scene says so ("New code"). A loaded
+  program's progress comes before its blocks, so the code is added a moment later.
+- **The main loop:** the call of the function before is replaced by a call of the new one; a program without a main loop gets one; a main
+  loop that calls neither gets the call at its end; one that calls the new function already is kept. A function of the same name that is
+  already there is kept, and only the main loop changes.
+- **Telemetry:** `code_version_chosen`, `code_added` (see "Telemetry").
+- **The AI switch is per account, not per program** (`docs/ai/nepo-ai-tests.md`): when the staff switch between a participant's two
+  programs, they switch the AI too.
+
+**The levels were loosened on 2026-11-07** so that every combination of correct fixes beats them (`check_levels.py`); before, a correct
+`followLine` could make L5 unbeatable, a correct `avoidWalls` L7, and L8 was beaten by none:
+- **L5:** the tunnel 60 cm shorter (102 cm), the line after it 4.5 cm wide. Driving straight in the dark, the robot drifts by the angle it
+  had when the light fell; a line follower steers along one edge of the line and finds a thin line again only if it comes out of the dark on
+  that side.
+- **L7:** the line in the wide tunnel begins at x 60, on the robot's straight path, so the robot meets it head on and follows it into the
+  lower fork. Before, it met the line's end 1 cm beside its path, was turned away by its white border, and drove on diagonally in the dark.
+- **L8:** its lines drawn anew as straights and arcs (radius 17 to 18 cm) instead of a U-turn, five turns of 110° to 150°, a tight corner and a
+  hairpin. The line after the first tunnel runs through the tunnel's bend (the robot follows it in the dark) and on down the middle of the
+  dark corridor of the wide tunnel into the last line, which runs up to the wall at the goal. The tunnels, walls, fail areas and the goal
+  are as before. L8 now belongs to `followInTheDark`, as L2 to `followLine`: it has no new code.
+- **Still open:** a line follower with its turns swapped (it follows the other edge of the line) beats L1 to L7 but can't finish L8: where
+  the robot comes out of the wide tunnel into the light, the line follower of the light takes over from the one of the dark, and if they
+  follow different edges, it turns away into the wall. The starter code avoids starters whose obvious fix is such a follower.
 
 ## Checking it
 

@@ -18,9 +18,33 @@ main:
 | L5 | L5 - Tunnel Vision | `driveInTheDark` | yes | `driveInTheDark()` |
 | L6 | L6 - Tunnel Vision Reloaded | `avoidWalls` | yes | `avoidWalls()` |
 | L7 | L7 - Well I'll Be Forked | `followInTheDark` | yes | `followInTheDark()` |
-| L8 | L8 - Climax | - | Not used: the program of the reference versions does not beat it (it circles where the first line ends; phase 5, 2026-11-07). | - |
+| L8 | L8 - Climax | `followInTheDark` | no (the function of L7) | `followInTheDark()` |
 
-Which broken version a learner gets per level (`starter` in `truth.json`) is not chosen yet.
+### The starter code
+
+The broken version a learner gets where a function is new, in each version of the study's code (one per run, chosen per program in the Lab's Edit menu; `write_level_code.py` puts them into the level files):
+
+| level | function | version 1 | version 2 |
+|---|---|---|---|
+| L1 | `followLine` | `followLine/A-light-above`: reads the light from above (LLIGHT) instead of the floor | `followLine/B-straight-off`: drives straight when off the line |
+| L4 | `stopAtWall` | `stopAtWall/A-turns`: turns away instead of stopping | `stopAtWall/C-slows`: slows down instead of stopping |
+| L5 | `driveInTheDark` | `driveInTheDark/A-negated`: the comparison the wrong way round: drives straight in the light | `driveInTheDark/B-never-dark`: the threshold below what the light sensor ever reads (40 in a tunnel) |
+| L6 | `avoidWalls` | `avoidWalls/A-swapped`: turns towards the wall: the turns swapped | `avoidWalls/B-front-sensor`: reads FRONT instead of the first side sensor |
+| L7 | `followInTheDark` | `followInTheDark/A-light-above`: reads the light from above instead of the floor | `followInTheDark/B-peach-is-black`: the black threshold above the floor (83): it steers everywhere |
+
+### Every combination of correct fixes beats the levels
+
+Each level played with every combination of the correct versions of its program's functions, and with each equivalent version in place of its function's reference version (`check_levels.py`, `levels.json`):
+
+| level | combinations of correct versions: won | equivalent versions: won | equivalent versions that lose |
+|---|---|---|---|
+| L1 | 3 of 3 | 4 of 4 | - |
+| L2 | 3 of 3 | 4 of 4 | - |
+| L4 | 9 of 9 | 4 of 4 | - |
+| L5 | 27 of 27 | 4 of 4 | - |
+| L6 | 81 of 81 | 4 of 4 | - |
+| L7 | 243 of 243 | 4 of 4 | - |
+| L8 | 243 of 243 | 1 of 4 | `followLine/A-swapped`, `followLine/B-swapped`, `followLine/C-swapped` |
 
 ## Summary
 
@@ -30,7 +54,7 @@ Which broken version a learner gets per level (`starter` in `truth.json`) is not
 | `stopAtWall` | 3 | 12 | 0 | 2 | 0 | 12 of 12 |
 | `driveInTheDark` | 3 | 15 | 0 | 3 | 0 | 15 of 15 |
 | `avoidWalls` | 3 | 12 | 0 | 3 | 0 | 12 of 12 |
-| `followInTheDark` | 3 | 9 | 3 | 3 | 0 | 9 of 9 |
+| `followInTheDark` | 3 | 12 | 0 | 4 | 0 | 12 of 12 |
 
 ## followLine (L1, L2)
 
@@ -47,7 +71,7 @@ The first function: it hands over to nothing.
 | version | kind | fault | levels | `straight-in-time` | `bend-left` | `bend-right` | verdict |
 |---|---|---|---|---|---|---|---|
 | `followLine/A` | correct |  | L1 win, L2 win | pass | pass | pass | ok |
-| `followLine/B` | correct |  | L1 win, L2 win; later: L5 fail_hit | pass | pass | pass | ok |
+| `followLine/B` | correct |  | L1 win, L2 win | pass | pass | pass | ok |
 | `followLine/C` | correct |  | L1 win, L2 win | pass | pass | pass | ok |
 | `followLine/A-swapped` | equivalent | swapped | L1 win, L2 win | pass | pass | pass | ok |
 | `followLine/B-swapped` | equivalent | swapped | L1 win, L2 win | pass | pass | pass | ok |
@@ -658,8 +682,8 @@ Hands over to `driveInTheDark`.
 | version | kind | fault | levels | `tunnel-bends-right` | `tunnel-bends-left` | `through-tunnel` | verdict |
 |---|---|---|---|---|---|---|---|
 | `avoidWalls/A` | correct |  | L1 win, L2 win, L4 win_soft, L5 win, L6 win | pass | pass | pass | ok |
-| `avoidWalls/B` | correct |  | L1 win, L2 win, L4 win_soft, L5 win, L6 win; later: L7 fail_hit | pass | pass | pass | ok |
-| `avoidWalls/C` | correct |  | L1 win, L2 win, L4 win_soft, L5 win, L6 win; later: L7 fail_hit | pass | pass | pass | ok |
+| `avoidWalls/B` | correct |  | L1 win, L2 win, L4 win_soft, L5 win, L6 win | pass | pass | pass | ok |
+| `avoidWalls/C` | correct |  | L1 win, L2 win, L4 win_soft, L5 win, L6 win | pass | pass | pass | ok |
 | `avoidWalls/A-front-sensor` | broken | front-sensor | L6 fail_hit | **fail** | pass | pass | caught |
 | `avoidWalls/A-never-dark` | broken | never-dark | L6 fail_hit | **fail** | **fail** | pass | caught |
 | `avoidWalls/A-no-handover` | broken | no-handover | L6 no_result | **fail** | **fail** | **fail** | caught |
@@ -888,7 +912,7 @@ def avoidWalls():
     driveInTheDark()
 ```
 
-## followInTheDark (L7)
+## followInTheDark (L7, L8)
 
 Hands over to `avoidWalls`.
 
@@ -897,26 +921,27 @@ Hands over to `avoidWalls`.
 - **`followInTheDark:dark-line-bends-right`**: Given the robot on a line inside a dark tunnel, when the line bends to the right, then the robot follows it to the goal at its end without bumping into the tunnel. (world "A line in the dark that bends to the right", start A, until it touches t3, at most 60 s; checks: reaches t3, never_bumps t1; there for: peach-is-black, light-above, no-handover)
 - **`followInTheDark:dark-line-bends-left`**: Given the robot on a line inside a dark tunnel, when the line bends to the left, then the robot follows it to the goal at its end without bumping into the tunnel. (world "A line in the dark that bends to the left", start A, until it touches t3, at most 60 s; checks: reaches t3, never_bumps t1; there for: peach-is-black, light-above, no-handover)
 - **`followInTheDark:start-in-dark`**: Given the robot inside a dark tunnel with no line, when the program runs, then it drives straight on to the goal without bumping into the tunnel's walls. (world "Starts in the dark", start A, until it touches t2, at most 60 s; checks: reaches t2, never_bumps t1; there for: peach-is-black, light-above, no-handover)
+- **`followInTheDark:out-of-the-dark`**: Given the robot on a line inside a dark tunnel, when the line runs on out of the tunnel, then the robot follows it into the light and on to the goal at its end. (world "A line out of the dark", start A, until it touches t3, at most 60 s; checks: reaches t3, never_bumps anything; there for: swapped)
 
 ### Versions and results
 
-| version | kind | fault | levels | `dark-line-bends-right` | `dark-line-bends-left` | `start-in-dark` | verdict |
-|---|---|---|---|---|---|---|---|
-| `followInTheDark/A` | correct |  | L1 win, L2 win, L4 win_soft, L5 win, L6 win, L7 win | pass | pass | pass | ok |
-| `followInTheDark/B` | correct |  | L1 win, L2 win, L4 win_soft, L5 win, L6 win, L7 win | pass | pass | pass | ok |
-| `followInTheDark/C` | correct |  | L1 win, L2 win, L4 win_soft, L5 win, L6 win, L7 win | pass | pass | pass | ok |
-| `followInTheDark/A-swapped` | equivalent | swapped | L7 win | pass | pass | pass | ok |
-| `followInTheDark/B-swapped` | equivalent | swapped | L7 win | pass | pass | pass | ok |
-| `followInTheDark/C-swapped` | equivalent | swapped | L7 win | pass | pass | pass | ok |
-| `followInTheDark/A-light-above` | broken | light-above | L7 fail_hit | **fail** | **fail** | **fail** | caught |
-| `followInTheDark/A-no-handover` | broken | no-handover | L7 no_result | pass | pass | **fail** | caught |
-| `followInTheDark/A-peach-is-black` | broken | peach-is-black | L7 fail_hit | pass | pass | **fail** | caught |
-| `followInTheDark/B-light-above` | broken | light-above | L7 fail_hit | **fail** | **fail** | **fail** | caught |
-| `followInTheDark/B-no-handover` | broken | no-handover | L7 no_result | pass | pass | **fail** | caught |
-| `followInTheDark/B-peach-is-black` | broken | peach-is-black | L7 fail_hit | pass | pass | **fail** | caught |
-| `followInTheDark/C-light-above` | broken | light-above | L7 fail_hit | **fail** | **fail** | **fail** | caught |
-| `followInTheDark/C-no-handover` | broken | no-handover | L7 no_result | pass | pass | **fail** | caught |
-| `followInTheDark/C-peach-is-black` | broken | peach-is-black | L7 fail_hit | pass | pass | **fail** | caught |
+| version | kind | fault | levels | `dark-line-bends-right` | `dark-line-bends-left` | `start-in-dark` | `out-of-the-dark` | verdict |
+|---|---|---|---|---|---|---|---|---|
+| `followInTheDark/A` | correct |  | L1 win, L2 win, L4 win_soft, L5 win, L6 win, L7 win, L8 win_soft | pass | pass | pass | pass | ok |
+| `followInTheDark/B` | correct |  | L1 win, L2 win, L4 win_soft, L5 win, L6 win, L7 win, L8 win_soft | pass | pass | pass | pass | ok |
+| `followInTheDark/C` | correct |  | L1 win, L2 win, L4 win_soft, L5 win, L6 win, L7 win, L8 win_soft | pass | pass | pass | pass | ok |
+| `followInTheDark/A-light-above` | broken | light-above | L7 fail_hit, L8 fail_hit | **fail** | **fail** | **fail** | **fail** | caught |
+| `followInTheDark/A-no-handover` | broken | no-handover | L7 no_result, L8 no_result | pass | pass | **fail** | **fail** | caught |
+| `followInTheDark/A-peach-is-black` | broken | peach-is-black | L7 fail_hit, L8 fail_hit | pass | pass | **fail** | pass | caught |
+| `followInTheDark/A-swapped` | broken | swapped | L7 win, L8 fail_hit | pass | pass | pass | **fail** | caught |
+| `followInTheDark/B-light-above` | broken | light-above | L7 fail_hit, L8 fail_hit | **fail** | **fail** | **fail** | **fail** | caught |
+| `followInTheDark/B-no-handover` | broken | no-handover | L7 no_result, L8 no_result | pass | pass | **fail** | **fail** | caught |
+| `followInTheDark/B-peach-is-black` | broken | peach-is-black | L7 fail_hit, L8 fail_hit | pass | pass | **fail** | pass | caught |
+| `followInTheDark/B-swapped` | broken | swapped | L7 win, L8 fail_hit | pass | pass | pass | **fail** | caught |
+| `followInTheDark/C-light-above` | broken | light-above | L7 fail_hit, L8 fail_hit | **fail** | **fail** | **fail** | **fail** | caught |
+| `followInTheDark/C-no-handover` | broken | no-handover | L7 no_result, L8 no_result | pass | pass | **fail** | **fail** | caught |
+| `followInTheDark/C-peach-is-black` | broken | peach-is-black | L7 fail_hit, L8 fail_hit | pass | pass | **fail** | pass | caught |
+| `followInTheDark/C-swapped` | broken | swapped | L7 win, L8 fail_hit | pass | pass | pass | **fail** | caught |
 
 ### The code
 
@@ -965,51 +990,6 @@ def followInTheDark():
     avoidWalls()
 ```
 
-**`followInTheDark/A-swapped`** (equivalent): the two turns swapped
-
-```
-def followInTheDark():
-  if (LLIGHT.light < 70):
-    if (LINETRACKER.light < 45):
-      curve(30, 10)
-    elif (LINETRACKER.light > 90):
-      curve(10, 30)
-    else:
-      avoidWalls()
-  else:
-    avoidWalls()
-```
-
-**`followInTheDark/B-swapped`** (equivalent): the two turns swapped
-
-```
-def followInTheDark():
-  if (RLIGHT.light < 60):
-    if (LINETRACKER.light < 30):
-      curve(35, 15)
-    elif (LINETRACKER.light > 95):
-      curve(15, 35)
-    else:
-      avoidWalls()
-  else:
-    avoidWalls()
-```
-
-**`followInTheDark/C-swapped`** (equivalent): the two turns swapped
-
-```
-def followInTheDark():
-  if (LLIGHT.light < 70):
-    if (LINETRACKER.light < 40):
-      curve(30, 0)
-    elif (LINETRACKER.light > 88):
-      curve(0, 30)
-    else:
-      avoidWalls()
-  else:
-    avoidWalls()
-```
-
 **`followInTheDark/A-light-above`** (broken): reads the light from above instead of the floor
 
 ```
@@ -1045,6 +1025,21 @@ def followInTheDark():
       curve(10, 30)
     elif (LINETRACKER.light > 90):
       curve(30, 10)
+    else:
+      avoidWalls()
+  else:
+    avoidWalls()
+```
+
+**`followInTheDark/A-swapped`** (broken): the two turns swapped
+
+```
+def followInTheDark():
+  if (LLIGHT.light < 70):
+    if (LINETRACKER.light < 45):
+      curve(30, 10)
+    elif (LINETRACKER.light > 90):
+      curve(10, 30)
     else:
       avoidWalls()
   else:
@@ -1092,6 +1087,21 @@ def followInTheDark():
     avoidWalls()
 ```
 
+**`followInTheDark/B-swapped`** (broken): the two turns swapped
+
+```
+def followInTheDark():
+  if (RLIGHT.light < 60):
+    if (LINETRACKER.light < 30):
+      curve(35, 15)
+    elif (LINETRACKER.light > 95):
+      curve(15, 35)
+    else:
+      avoidWalls()
+  else:
+    avoidWalls()
+```
+
 **`followInTheDark/C-light-above`** (broken): reads the light from above instead of the floor
 
 ```
@@ -1127,6 +1137,21 @@ def followInTheDark():
       curve(0, 30)
     elif (LINETRACKER.light > 88):
       curve(30, 0)
+    else:
+      avoidWalls()
+  else:
+    avoidWalls()
+```
+
+**`followInTheDark/C-swapped`** (broken): the two turns swapped
+
+```
+def followInTheDark():
+  if (LLIGHT.light < 70):
+    if (LINETRACKER.light < 40):
+      curve(30, 0)
+    elif (LINETRACKER.light > 88):
+      curve(0, 30)
     else:
       avoidWalls()
   else:
