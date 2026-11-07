@@ -4,6 +4,8 @@ The measurement of phase 5 of the AI test assistant (decisions and results: `doc
 assistant writes tests for a **broken** program, as a learner of the study gets one per level; the tests are then run on **every** correct and
 broken version of that level's function. A good set of tests passes on every correct version and fails on every broken one.
 
+**The corpus fixed for the study** (2026-11-07): `evaluation/truth/` holds the versions of `corpus/versions.json` as committed files, with reference tests that meet the rule on every version. Later analyses use that folder.
+
 ## What is here
 
 | File | What it does |

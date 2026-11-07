@@ -1,0 +1,2391 @@
+{
+ "followLine/A": {
+  "function": "followLine",
+  "kind": "correct",
+  "tests": [
+   {
+    "world": "A straight line, in time",
+    "test": "Follows a straight line to its end within 20 s",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "A bend to the left",
+    "test": "Follows a bend to the left",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "A bend to the right",
+    "test": "Follows a bend to the right",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   }
+  ]
+ },
+ "followLine/A-swapped": {
+  "function": "followLine",
+  "kind": "equivalent",
+  "tests": [
+   {
+    "world": "A straight line, in time",
+    "test": "Follows a straight line to its end within 20 s",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "A bend to the left",
+    "test": "Follows a bend to the left",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "A bend to the right",
+    "test": "Follows a bend to the right",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   }
+  ]
+ },
+ "followLine/A-one-turn": {
+  "function": "followLine",
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "A straight line, in time",
+    "test": "Follows a straight line to its end within 20 s",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 20 s"
+    ]
+   },
+   {
+    "world": "A bend to the left",
+    "test": "Follows a bend to the left",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 40 s"
+    ]
+   },
+   {
+    "world": "A bend to the right",
+    "test": "Follows a bend to the right",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 40 s"
+    ]
+   }
+  ]
+ },
+ "followLine/A-light-above": {
+  "function": "followLine",
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "A straight line, in time",
+    "test": "Follows a straight line to its end within 20 s",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 20 s"
+    ]
+   },
+   {
+    "world": "A bend to the left",
+    "test": "Follows a bend to the left",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 40 s"
+    ]
+   },
+   {
+    "world": "A bend to the right",
+    "test": "Follows a bend to the right",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 40 s"
+    ]
+   }
+  ]
+ },
+ "followLine/A-too-slow": {
+  "function": "followLine",
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "A straight line, in time",
+    "test": "Follows a straight line to its end within 20 s",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 20 s"
+    ]
+   },
+   {
+    "world": "A bend to the left",
+    "test": "Follows a bend to the left",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 40 s"
+    ]
+   },
+   {
+    "world": "A bend to the right",
+    "test": "Follows a bend to the right",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 40 s"
+    ]
+   }
+  ]
+ },
+ "followLine/A-straight-off": {
+  "function": "followLine",
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "A straight line, in time",
+    "test": "Follows a straight line to its end within 20 s",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 20 s",
+     "the robot bumped into the edge of the floor after 19.6 s"
+    ]
+   },
+   {
+    "world": "A bend to the left",
+    "test": "Follows a bend to the left",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 40 s",
+     "the robot bumped into the edge of the floor after 10.5 s"
+    ]
+   },
+   {
+    "world": "A bend to the right",
+    "test": "Follows a bend to the right",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 40 s",
+     "the robot bumped into the edge of the floor after 19.8 s"
+    ]
+   }
+  ]
+ },
+ "followLine/B-swapped": {
+  "function": "followLine",
+  "kind": "equivalent",
+  "tests": [
+   {
+    "world": "A straight line, in time",
+    "test": "Follows a straight line to its end within 20 s",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "A bend to the left",
+    "test": "Follows a bend to the left",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "A bend to the right",
+    "test": "Follows a bend to the right",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   }
+  ]
+ },
+ "followLine/B": {
+  "function": "followLine",
+  "kind": "correct",
+  "tests": [
+   {
+    "world": "A straight line, in time",
+    "test": "Follows a straight line to its end within 20 s",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "A bend to the left",
+    "test": "Follows a bend to the left",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "A bend to the right",
+    "test": "Follows a bend to the right",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   }
+  ]
+ },
+ "followLine/B-light-above": {
+  "function": "followLine",
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "A straight line, in time",
+    "test": "Follows a straight line to its end within 20 s",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 20 s",
+     "the robot bumped into the edge of the floor after 2.5 s"
+    ]
+   },
+   {
+    "world": "A bend to the left",
+    "test": "Follows a bend to the left",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 40 s"
+    ]
+   },
+   {
+    "world": "A bend to the right",
+    "test": "Follows a bend to the right",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 40 s"
+    ]
+   }
+  ]
+ },
+ "followLine/B-one-turn": {
+  "function": "followLine",
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "A straight line, in time",
+    "test": "Follows a straight line to its end within 20 s",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 20 s",
+     "the robot bumped into the edge of the floor after 2.5 s"
+    ]
+   },
+   {
+    "world": "A bend to the left",
+    "test": "Follows a bend to the left",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 40 s"
+    ]
+   },
+   {
+    "world": "A bend to the right",
+    "test": "Follows a bend to the right",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 40 s"
+    ]
+   }
+  ]
+ },
+ "followLine/B-too-slow": {
+  "function": "followLine",
+  "kind": "equivalent",
+  "tests": [
+   {
+    "world": "A straight line, in time",
+    "test": "Follows a straight line to its end within 20 s",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "A bend to the left",
+    "test": "Follows a bend to the left",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "A bend to the right",
+    "test": "Follows a bend to the right",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   }
+  ]
+ },
+ "followLine/B-straight-off": {
+  "function": "followLine",
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "A straight line, in time",
+    "test": "Follows a straight line to its end within 20 s",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 20 s",
+     "the robot bumped into the edge of the floor after 19.6 s"
+    ]
+   },
+   {
+    "world": "A bend to the left",
+    "test": "Follows a bend to the left",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 40 s",
+     "the robot bumped into the edge of the floor after 10.3 s"
+    ]
+   },
+   {
+    "world": "A bend to the right",
+    "test": "Follows a bend to the right",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 40 s",
+     "the robot bumped into the edge of the floor after 19.8 s"
+    ]
+   }
+  ]
+ },
+ "followLine/C": {
+  "function": "followLine",
+  "kind": "correct",
+  "tests": [
+   {
+    "world": "A straight line, in time",
+    "test": "Follows a straight line to its end within 20 s",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "A bend to the left",
+    "test": "Follows a bend to the left",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "A bend to the right",
+    "test": "Follows a bend to the right",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   }
+  ]
+ },
+ "followLine/C-swapped": {
+  "function": "followLine",
+  "kind": "equivalent",
+  "tests": [
+   {
+    "world": "A straight line, in time",
+    "test": "Follows a straight line to its end within 20 s",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "A bend to the left",
+    "test": "Follows a bend to the left",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "A bend to the right",
+    "test": "Follows a bend to the right",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   }
+  ]
+ },
+ "followLine/C-light-above": {
+  "function": "followLine",
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "A straight line, in time",
+    "test": "Follows a straight line to its end within 20 s",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "A bend to the left",
+    "test": "Follows a bend to the left",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 40 s"
+    ]
+   },
+   {
+    "world": "A bend to the right",
+    "test": "Follows a bend to the right",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 40 s"
+    ]
+   }
+  ]
+ },
+ "followLine/C-one-turn": {
+  "function": "followLine",
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "A straight line, in time",
+    "test": "Follows a straight line to its end within 20 s",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 20 s"
+    ]
+   },
+   {
+    "world": "A bend to the left",
+    "test": "Follows a bend to the left",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 40 s"
+    ]
+   },
+   {
+    "world": "A bend to the right",
+    "test": "Follows a bend to the right",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 40 s"
+    ]
+   }
+  ]
+ },
+ "followLine/C-too-slow": {
+  "function": "followLine",
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "A straight line, in time",
+    "test": "Follows a straight line to its end within 20 s",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 20 s"
+    ]
+   },
+   {
+    "world": "A bend to the left",
+    "test": "Follows a bend to the left",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "A bend to the right",
+    "test": "Follows a bend to the right",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   }
+  ]
+ },
+ "followLine/C-straight-off": {
+  "function": "followLine",
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "A straight line, in time",
+    "test": "Follows a straight line to its end within 20 s",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "A bend to the left",
+    "test": "Follows a bend to the left",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 40 s",
+     "the robot bumped into the edge of the floor after 10.4 s"
+    ]
+   },
+   {
+    "world": "A bend to the right",
+    "test": "Follows a bend to the right",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 40 s",
+     "the robot bumped into the edge of the floor after 19.8 s"
+    ]
+   }
+  ]
+ },
+ "stopAtWall/A": {
+  "function": "stopAtWall",
+  "kind": "correct",
+  "tests": [
+   {
+    "world": "A wall across the line",
+    "test": "Stops in front of the wall and stays there",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "A line without a wall",
+    "test": "With nothing ahead, follows the line",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   }
+  ]
+ },
+ "stopAtWall/A-negated": {
+  "function": "stopAtWall",
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "A wall across the line",
+    "test": "Stops in front of the wall and stays there",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "at the end (after 30 s), the robot was not completely in \"Goal t3\""
+    ]
+   },
+   {
+    "world": "A line without a wall",
+    "test": "With nothing ahead, follows the line",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 40 s"
+    ]
+   }
+  ]
+ },
+ "stopAtWall/A-turns": {
+  "function": "stopAtWall",
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "A wall across the line",
+    "test": "Stops in front of the wall and stays there",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not stand still: it drove forward, straight (8.72 cm/s), from 15 to 30 s"
+    ]
+   },
+   {
+    "world": "A line without a wall",
+    "test": "With nothing ahead, follows the line",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   }
+  ]
+ },
+ "stopAtWall/A-slows": {
+  "function": "stopAtWall",
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "A wall across the line",
+    "test": "Stops in front of the wall and stays there",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot bumped into \"Wall t2\" after 8.8 s",
+     "the robot did not stand still: it drove forward, straight (3.48 cm/s), from 29.98 to 30 s"
+    ]
+   },
+   {
+    "world": "A line without a wall",
+    "test": "With nothing ahead, follows the line",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   }
+  ]
+ },
+ "stopAtWall/B": {
+  "function": "stopAtWall",
+  "kind": "correct",
+  "tests": [
+   {
+    "world": "A wall across the line",
+    "test": "Stops in front of the wall and stays there",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "A line without a wall",
+    "test": "With nothing ahead, follows the line",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   }
+  ]
+ },
+ "stopAtWall/B-negated": {
+  "function": "stopAtWall",
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "A wall across the line",
+    "test": "Stops in front of the wall and stays there",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "at the end (after 30 s), the robot was not completely in \"Goal t3\""
+    ]
+   },
+   {
+    "world": "A line without a wall",
+    "test": "With nothing ahead, follows the line",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 40 s"
+    ]
+   }
+  ]
+ },
+ "stopAtWall/A-no-handover": {
+  "function": "stopAtWall",
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "A wall across the line",
+    "test": "Stops in front of the wall and stays there",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "at the end (after 30 s), the robot was not completely in \"Goal t3\""
+    ]
+   },
+   {
+    "world": "A line without a wall",
+    "test": "With nothing ahead, follows the line",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 40 s"
+    ]
+   }
+  ]
+ },
+ "stopAtWall/B-turns": {
+  "function": "stopAtWall",
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "A wall across the line",
+    "test": "Stops in front of the wall and stays there",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not stand still: it drove forward, straight (8.72 cm/s), from 15 to 30 s"
+    ]
+   },
+   {
+    "world": "A line without a wall",
+    "test": "With nothing ahead, follows the line",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   }
+  ]
+ },
+ "stopAtWall/B-slows": {
+  "function": "stopAtWall",
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "A wall across the line",
+    "test": "Stops in front of the wall and stays there",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot bumped into \"Wall t2\" after 8.8 s",
+     "the robot did not stand still: it drove forward, straight (3.48 cm/s), from 29.98 to 30 s"
+    ]
+   },
+   {
+    "world": "A line without a wall",
+    "test": "With nothing ahead, follows the line",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   }
+  ]
+ },
+ "stopAtWall/C": {
+  "function": "stopAtWall",
+  "kind": "correct",
+  "tests": [
+   {
+    "world": "A wall across the line",
+    "test": "Stops in front of the wall and stays there",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "A line without a wall",
+    "test": "With nothing ahead, follows the line",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   }
+  ]
+ },
+ "stopAtWall/C-negated": {
+  "function": "stopAtWall",
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "A wall across the line",
+    "test": "Stops in front of the wall and stays there",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "at the end (after 30 s), the robot was not completely in \"Goal t3\""
+    ]
+   },
+   {
+    "world": "A line without a wall",
+    "test": "With nothing ahead, follows the line",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 40 s"
+    ]
+   }
+  ]
+ },
+ "stopAtWall/B-no-handover": {
+  "function": "stopAtWall",
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "A wall across the line",
+    "test": "Stops in front of the wall and stays there",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "at the end (after 30 s), the robot was not completely in \"Goal t3\""
+    ]
+   },
+   {
+    "world": "A line without a wall",
+    "test": "With nothing ahead, follows the line",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 40 s"
+    ]
+   }
+  ]
+ },
+ "stopAtWall/C-turns": {
+  "function": "stopAtWall",
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "A wall across the line",
+    "test": "Stops in front of the wall and stays there",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not stand still: it drove forward, straight (8.72 cm/s), from 15 to 30 s"
+    ]
+   },
+   {
+    "world": "A line without a wall",
+    "test": "With nothing ahead, follows the line",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   }
+  ]
+ },
+ "stopAtWall/C-slows": {
+  "function": "stopAtWall",
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "A wall across the line",
+    "test": "Stops in front of the wall and stays there",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot bumped into \"Wall t2\" after 8.8 s",
+     "the robot did not stand still: it drove forward, straight (3.48 cm/s), from 29.98 to 30 s"
+    ]
+   },
+   {
+    "world": "A line without a wall",
+    "test": "With nothing ahead, follows the line",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   }
+  ]
+ },
+ "driveInTheDark/A": {
+  "function": "driveInTheDark",
+  "kind": "correct",
+  "tests": [
+   {
+    "world": "Through the tunnel",
+    "test": "Follows the line into the tunnel and gets through the dark",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Starts in the dark",
+    "test": "In the dark, drives straight on",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "In the light, a bend to the left",
+    "test": "In the light, still follows the line round a bend",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   }
+  ]
+ },
+ "driveInTheDark/A-never-dark": {
+  "function": "driveInTheDark",
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "Through the tunnel",
+    "test": "Follows the line into the tunnel and gets through the dark",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel t2\" after 6.2 s"
+    ]
+   },
+   {
+    "world": "Starts in the dark",
+    "test": "In the dark, drives straight on",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 60 s",
+     "the robot bumped into \"Tunnel t1\" after 0.4 s"
+    ]
+   },
+   {
+    "world": "In the light, a bend to the left",
+    "test": "In the light, still follows the line round a bend",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   }
+  ]
+ },
+ "driveInTheDark/A-floor-sensor": {
+  "function": "driveInTheDark",
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "Through the tunnel",
+    "test": "Follows the line into the tunnel and gets through the dark",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel t2\" after 5.2 s"
+    ]
+   },
+   {
+    "world": "Starts in the dark",
+    "test": "In the dark, drives straight on",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 60 s",
+     "the robot bumped into \"Tunnel t1\" after 0.4 s"
+    ]
+   },
+   {
+    "world": "In the light, a bend to the left",
+    "test": "In the light, still follows the line round a bend",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 40 s"
+    ]
+   }
+  ]
+ },
+ "driveInTheDark/A-negated": {
+  "function": "driveInTheDark",
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "Through the tunnel",
+    "test": "Follows the line into the tunnel and gets through the dark",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel t2\" after 5.4 s"
+    ]
+   },
+   {
+    "world": "Starts in the dark",
+    "test": "In the dark, drives straight on",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 60 s",
+     "the robot bumped into \"Tunnel t1\" after 0.4 s"
+    ]
+   },
+   {
+    "world": "In the light, a bend to the left",
+    "test": "In the light, still follows the line round a bend",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 40 s",
+     "the robot bumped into the edge of the floor after 26.2 s"
+    ]
+   }
+  ]
+ },
+ "driveInTheDark/A-curves": {
+  "function": "driveInTheDark",
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "Through the tunnel",
+    "test": "Follows the line into the tunnel and gets through the dark",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel t2\" after 5.4 s"
+    ]
+   },
+   {
+    "world": "Starts in the dark",
+    "test": "In the dark, drives straight on",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 60 s",
+     "the robot bumped into \"Tunnel t1\" after 0.5 s"
+    ]
+   },
+   {
+    "world": "In the light, a bend to the left",
+    "test": "In the light, still follows the line round a bend",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   }
+  ]
+ },
+ "stopAtWall/C-no-handover": {
+  "function": "stopAtWall",
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "A wall across the line",
+    "test": "Stops in front of the wall and stays there",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "at the end (after 30 s), the robot was not completely in \"Goal t3\""
+    ]
+   },
+   {
+    "world": "A line without a wall",
+    "test": "With nothing ahead, follows the line",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 40 s"
+    ]
+   }
+  ]
+ },
+ "driveInTheDark/B": {
+  "function": "driveInTheDark",
+  "kind": "correct",
+  "tests": [
+   {
+    "world": "Through the tunnel",
+    "test": "Follows the line into the tunnel and gets through the dark",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Starts in the dark",
+    "test": "In the dark, drives straight on",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "In the light, a bend to the left",
+    "test": "In the light, still follows the line round a bend",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   }
+  ]
+ },
+ "driveInTheDark/B-never-dark": {
+  "function": "driveInTheDark",
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "Through the tunnel",
+    "test": "Follows the line into the tunnel and gets through the dark",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel t2\" after 6.2 s"
+    ]
+   },
+   {
+    "world": "Starts in the dark",
+    "test": "In the dark, drives straight on",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 60 s",
+     "the robot bumped into \"Tunnel t1\" after 0.4 s"
+    ]
+   },
+   {
+    "world": "In the light, a bend to the left",
+    "test": "In the light, still follows the line round a bend",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   }
+  ]
+ },
+ "driveInTheDark/B-floor-sensor": {
+  "function": "driveInTheDark",
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "Through the tunnel",
+    "test": "Follows the line into the tunnel and gets through the dark",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel t2\" after 4 s"
+    ]
+   },
+   {
+    "world": "Starts in the dark",
+    "test": "In the dark, drives straight on",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 60 s",
+     "the robot bumped into \"Tunnel t1\" after 0.4 s"
+    ]
+   },
+   {
+    "world": "In the light, a bend to the left",
+    "test": "In the light, still follows the line round a bend",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 40 s"
+    ]
+   }
+  ]
+ },
+ "driveInTheDark/B-negated": {
+  "function": "driveInTheDark",
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "Through the tunnel",
+    "test": "Follows the line into the tunnel and gets through the dark",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel t2\" after 4.4 s"
+    ]
+   },
+   {
+    "world": "Starts in the dark",
+    "test": "In the dark, drives straight on",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 60 s",
+     "the robot bumped into \"Tunnel t1\" after 0.4 s"
+    ]
+   },
+   {
+    "world": "In the light, a bend to the left",
+    "test": "In the light, still follows the line round a bend",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 40 s",
+     "the robot bumped into the edge of the floor after 19.6 s"
+    ]
+   }
+  ]
+ },
+ "driveInTheDark/B-curves": {
+  "function": "driveInTheDark",
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "Through the tunnel",
+    "test": "Follows the line into the tunnel and gets through the dark",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel t2\" after 5.4 s"
+    ]
+   },
+   {
+    "world": "Starts in the dark",
+    "test": "In the dark, drives straight on",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 60 s",
+     "the robot bumped into \"Tunnel t1\" after 0.5 s"
+    ]
+   },
+   {
+    "world": "In the light, a bend to the left",
+    "test": "In the light, still follows the line round a bend",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   }
+  ]
+ },
+ "driveInTheDark/A-no-handover": {
+  "function": "driveInTheDark",
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "Through the tunnel",
+    "test": "Follows the line into the tunnel and gets through the dark",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   },
+   {
+    "world": "Starts in the dark",
+    "test": "In the dark, drives straight on",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "In the light, a bend to the left",
+    "test": "In the light, still follows the line round a bend",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 40 s"
+    ]
+   }
+  ]
+ },
+ "driveInTheDark/C": {
+  "function": "driveInTheDark",
+  "kind": "correct",
+  "tests": [
+   {
+    "world": "Through the tunnel",
+    "test": "Follows the line into the tunnel and gets through the dark",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Starts in the dark",
+    "test": "In the dark, drives straight on",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "In the light, a bend to the left",
+    "test": "In the light, still follows the line round a bend",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   }
+  ]
+ },
+ "driveInTheDark/C-never-dark": {
+  "function": "driveInTheDark",
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "Through the tunnel",
+    "test": "Follows the line into the tunnel and gets through the dark",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel t2\" after 6.2 s"
+    ]
+   },
+   {
+    "world": "Starts in the dark",
+    "test": "In the dark, drives straight on",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 60 s",
+     "the robot bumped into \"Tunnel t1\" after 0.4 s"
+    ]
+   },
+   {
+    "world": "In the light, a bend to the left",
+    "test": "In the light, still follows the line round a bend",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   }
+  ]
+ },
+ "driveInTheDark/C-floor-sensor": {
+  "function": "driveInTheDark",
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "Through the tunnel",
+    "test": "Follows the line into the tunnel and gets through the dark",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel t2\" after 5.2 s"
+    ]
+   },
+   {
+    "world": "Starts in the dark",
+    "test": "In the dark, drives straight on",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 60 s",
+     "the robot bumped into \"Tunnel t1\" after 0.4 s"
+    ]
+   },
+   {
+    "world": "In the light, a bend to the left",
+    "test": "In the light, still follows the line round a bend",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 40 s"
+    ]
+   }
+  ]
+ },
+ "driveInTheDark/C-negated": {
+  "function": "driveInTheDark",
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "Through the tunnel",
+    "test": "Follows the line into the tunnel and gets through the dark",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel t2\" after 5.4 s"
+    ]
+   },
+   {
+    "world": "Starts in the dark",
+    "test": "In the dark, drives straight on",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 60 s",
+     "the robot bumped into \"Tunnel t1\" after 0.4 s"
+    ]
+   },
+   {
+    "world": "In the light, a bend to the left",
+    "test": "In the light, still follows the line round a bend",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 40 s",
+     "the robot bumped into the edge of the floor after 26.2 s"
+    ]
+   }
+  ]
+ },
+ "driveInTheDark/C-curves": {
+  "function": "driveInTheDark",
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "Through the tunnel",
+    "test": "Follows the line into the tunnel and gets through the dark",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel t2\" after 5.3 s"
+    ]
+   },
+   {
+    "world": "Starts in the dark",
+    "test": "In the dark, drives straight on",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 60 s",
+     "the robot bumped into \"Tunnel t1\" after 0.5 s"
+    ]
+   },
+   {
+    "world": "In the light, a bend to the left",
+    "test": "In the light, still follows the line round a bend",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   }
+  ]
+ },
+ "driveInTheDark/B-no-handover": {
+  "function": "driveInTheDark",
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "Through the tunnel",
+    "test": "Follows the line into the tunnel and gets through the dark",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   },
+   {
+    "world": "Starts in the dark",
+    "test": "In the dark, drives straight on",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "In the light, a bend to the left",
+    "test": "In the light, still follows the line round a bend",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 40 s"
+    ]
+   }
+  ]
+ },
+ "avoidWalls/A": {
+  "function": "avoidWalls",
+  "kind": "correct",
+  "tests": [
+   {
+    "world": "A tunnel that bends to the right",
+    "test": "Turns away from the wall on its left and gets round the bend",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "A tunnel that bends to the left",
+    "test": "Turns away from the wall on its right and gets round the bend",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Through the tunnel",
+    "test": "Follows the line into the tunnel and gets through the dark",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   }
+  ]
+ },
+ "avoidWalls/A-swapped": {
+  "function": "avoidWalls",
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "A tunnel that bends to the right",
+    "test": "Turns away from the wall on its left and gets round the bend",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel t2\" after 10.9 s"
+    ]
+   },
+   {
+    "world": "A tunnel that bends to the left",
+    "test": "Turns away from the wall on its right and gets round the bend",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel t2\" after 10.7 s"
+    ]
+   },
+   {
+    "world": "Through the tunnel",
+    "test": "Follows the line into the tunnel and gets through the dark",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   }
+  ]
+ },
+ "avoidWalls/A-front-sensor": {
+  "function": "avoidWalls",
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "A tunnel that bends to the right",
+    "test": "Turns away from the wall on its left and gets round the bend",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot bumped into \"Tunnel t2\" after 10.7 s"
+    ]
+   },
+   {
+    "world": "A tunnel that bends to the left",
+    "test": "Turns away from the wall on its right and gets round the bend",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Through the tunnel",
+    "test": "Follows the line into the tunnel and gets through the dark",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   }
+  ]
+ },
+ "driveInTheDark/C-no-handover": {
+  "function": "driveInTheDark",
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "Through the tunnel",
+    "test": "Follows the line into the tunnel and gets through the dark",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   },
+   {
+    "world": "Starts in the dark",
+    "test": "In the dark, drives straight on",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "In the light, a bend to the left",
+    "test": "In the light, still follows the line round a bend",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 40 s"
+    ]
+   }
+  ]
+ },
+ "avoidWalls/A-never-dark": {
+  "function": "avoidWalls",
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "A tunnel that bends to the right",
+    "test": "Turns away from the wall on its left and gets round the bend",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel t2\" after 10.7 s"
+    ]
+   },
+   {
+    "world": "A tunnel that bends to the left",
+    "test": "Turns away from the wall on its right and gets round the bend",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel t2\" after 10.7 s"
+    ]
+   },
+   {
+    "world": "Through the tunnel",
+    "test": "Follows the line into the tunnel and gets through the dark",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   }
+  ]
+ },
+ "avoidWalls/B": {
+  "function": "avoidWalls",
+  "kind": "correct",
+  "tests": [
+   {
+    "world": "A tunnel that bends to the right",
+    "test": "Turns away from the wall on its left and gets round the bend",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "A tunnel that bends to the left",
+    "test": "Turns away from the wall on its right and gets round the bend",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Through the tunnel",
+    "test": "Follows the line into the tunnel and gets through the dark",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   }
+  ]
+ },
+ "avoidWalls/B-swapped": {
+  "function": "avoidWalls",
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "A tunnel that bends to the right",
+    "test": "Turns away from the wall on its left and gets round the bend",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel t2\" after 10.7 s"
+    ]
+   },
+   {
+    "world": "A tunnel that bends to the left",
+    "test": "Turns away from the wall on its right and gets round the bend",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel t2\" after 10.8 s"
+    ]
+   },
+   {
+    "world": "Through the tunnel",
+    "test": "Follows the line into the tunnel and gets through the dark",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   }
+  ]
+ },
+ "avoidWalls/B-front-sensor": {
+  "function": "avoidWalls",
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "A tunnel that bends to the right",
+    "test": "Turns away from the wall on its left and gets round the bend",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "A tunnel that bends to the left",
+    "test": "Turns away from the wall on its right and gets round the bend",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot bumped into \"Tunnel t2\" after 10.7 s"
+    ]
+   },
+   {
+    "world": "Through the tunnel",
+    "test": "Follows the line into the tunnel and gets through the dark",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   }
+  ]
+ },
+ "avoidWalls/B-never-dark": {
+  "function": "avoidWalls",
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "A tunnel that bends to the right",
+    "test": "Turns away from the wall on its left and gets round the bend",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel t2\" after 10.7 s"
+    ]
+   },
+   {
+    "world": "A tunnel that bends to the left",
+    "test": "Turns away from the wall on its right and gets round the bend",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel t2\" after 10.7 s"
+    ]
+   },
+   {
+    "world": "Through the tunnel",
+    "test": "Follows the line into the tunnel and gets through the dark",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   }
+  ]
+ },
+ "avoidWalls/A-no-handover": {
+  "function": "avoidWalls",
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "A tunnel that bends to the right",
+    "test": "Turns away from the wall on its left and gets round the bend",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   },
+   {
+    "world": "A tunnel that bends to the left",
+    "test": "Turns away from the wall on its right and gets round the bend",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   },
+   {
+    "world": "Through the tunnel",
+    "test": "Follows the line into the tunnel and gets through the dark",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   }
+  ]
+ },
+ "avoidWalls/C": {
+  "function": "avoidWalls",
+  "kind": "correct",
+  "tests": [
+   {
+    "world": "A tunnel that bends to the right",
+    "test": "Turns away from the wall on its left and gets round the bend",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "A tunnel that bends to the left",
+    "test": "Turns away from the wall on its right and gets round the bend",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Through the tunnel",
+    "test": "Follows the line into the tunnel and gets through the dark",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   }
+  ]
+ },
+ "avoidWalls/C-swapped": {
+  "function": "avoidWalls",
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "A tunnel that bends to the right",
+    "test": "Turns away from the wall on its left and gets round the bend",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel t2\" after 10.9 s"
+    ]
+   },
+   {
+    "world": "A tunnel that bends to the left",
+    "test": "Turns away from the wall on its right and gets round the bend",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel t2\" after 10.8 s"
+    ]
+   },
+   {
+    "world": "Through the tunnel",
+    "test": "Follows the line into the tunnel and gets through the dark",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   }
+  ]
+ },
+ "avoidWalls/C-front-sensor": {
+  "function": "avoidWalls",
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "A tunnel that bends to the right",
+    "test": "Turns away from the wall on its left and gets round the bend",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel t2\" after 10.7 s"
+    ]
+   },
+   {
+    "world": "A tunnel that bends to the left",
+    "test": "Turns away from the wall on its right and gets round the bend",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Through the tunnel",
+    "test": "Follows the line into the tunnel and gets through the dark",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   }
+  ]
+ },
+ "avoidWalls/B-no-handover": {
+  "function": "avoidWalls",
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "A tunnel that bends to the right",
+    "test": "Turns away from the wall on its left and gets round the bend",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   },
+   {
+    "world": "A tunnel that bends to the left",
+    "test": "Turns away from the wall on its right and gets round the bend",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   },
+   {
+    "world": "Through the tunnel",
+    "test": "Follows the line into the tunnel and gets through the dark",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   }
+  ]
+ },
+ "avoidWalls/C-never-dark": {
+  "function": "avoidWalls",
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "A tunnel that bends to the right",
+    "test": "Turns away from the wall on its left and gets round the bend",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel t2\" after 10.7 s"
+    ]
+   },
+   {
+    "world": "A tunnel that bends to the left",
+    "test": "Turns away from the wall on its right and gets round the bend",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel t2\" after 10.7 s"
+    ]
+   },
+   {
+    "world": "Through the tunnel",
+    "test": "Follows the line into the tunnel and gets through the dark",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   }
+  ]
+ },
+ "followInTheDark/A": {
+  "function": "followInTheDark",
+  "kind": "correct",
+  "tests": [
+   {
+    "world": "A line in the dark that bends to the right",
+    "test": "In the dark, follows the line round a bend to the right",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "A line in the dark that bends to the left",
+    "test": "In the dark, follows the line round a bend to the left",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Starts in the dark",
+    "test": "In the dark, drives straight on",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   }
+  ]
+ },
+ "followInTheDark/A-swapped": {
+  "function": "followInTheDark",
+  "kind": "equivalent",
+  "tests": [
+   {
+    "world": "A line in the dark that bends to the right",
+    "test": "In the dark, follows the line round a bend to the right",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "A line in the dark that bends to the left",
+    "test": "In the dark, follows the line round a bend to the left",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Starts in the dark",
+    "test": "In the dark, drives straight on",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   }
+  ]
+ },
+ "followInTheDark/A-peach-is-black": {
+  "function": "followInTheDark",
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "A line in the dark that bends to the right",
+    "test": "In the dark, follows the line round a bend to the right",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "A line in the dark that bends to the left",
+    "test": "In the dark, follows the line round a bend to the left",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Starts in the dark",
+    "test": "In the dark, drives straight on",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 60 s",
+     "the robot bumped into \"Tunnel t1\" after 0.6 s"
+    ]
+   }
+  ]
+ },
+ "followInTheDark/A-light-above": {
+  "function": "followInTheDark",
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "A line in the dark that bends to the right",
+    "test": "In the dark, follows the line round a bend to the right",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel t1\" after 1.4 s"
+    ]
+   },
+   {
+    "world": "A line in the dark that bends to the left",
+    "test": "In the dark, follows the line round a bend to the left",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   },
+   {
+    "world": "Starts in the dark",
+    "test": "In the dark, drives straight on",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 60 s",
+     "the robot bumped into \"Tunnel t1\" after 0.6 s"
+    ]
+   }
+  ]
+ },
+ "followInTheDark/A-no-handover": {
+  "function": "followInTheDark",
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "A line in the dark that bends to the right",
+    "test": "In the dark, follows the line round a bend to the right",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "A line in the dark that bends to the left",
+    "test": "In the dark, follows the line round a bend to the left",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Starts in the dark",
+    "test": "In the dark, drives straight on",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 60 s"
+    ]
+   }
+  ]
+ },
+ "followInTheDark/B": {
+  "function": "followInTheDark",
+  "kind": "correct",
+  "tests": [
+   {
+    "world": "A line in the dark that bends to the right",
+    "test": "In the dark, follows the line round a bend to the right",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "A line in the dark that bends to the left",
+    "test": "In the dark, follows the line round a bend to the left",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Starts in the dark",
+    "test": "In the dark, drives straight on",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   }
+  ]
+ },
+ "followInTheDark/B-swapped": {
+  "function": "followInTheDark",
+  "kind": "equivalent",
+  "tests": [
+   {
+    "world": "A line in the dark that bends to the right",
+    "test": "In the dark, follows the line round a bend to the right",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "A line in the dark that bends to the left",
+    "test": "In the dark, follows the line round a bend to the left",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Starts in the dark",
+    "test": "In the dark, drives straight on",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   }
+  ]
+ },
+ "followInTheDark/B-peach-is-black": {
+  "function": "followInTheDark",
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "A line in the dark that bends to the right",
+    "test": "In the dark, follows the line round a bend to the right",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "A line in the dark that bends to the left",
+    "test": "In the dark, follows the line round a bend to the left",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Starts in the dark",
+    "test": "In the dark, drives straight on",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 60 s",
+     "the robot bumped into \"Tunnel t1\" after 0.5 s"
+    ]
+   }
+  ]
+ },
+ "followInTheDark/B-light-above": {
+  "function": "followInTheDark",
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "A line in the dark that bends to the right",
+    "test": "In the dark, follows the line round a bend to the right",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel t1\" after 1.2 s"
+    ]
+   },
+   {
+    "world": "A line in the dark that bends to the left",
+    "test": "In the dark, follows the line round a bend to the left",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   },
+   {
+    "world": "Starts in the dark",
+    "test": "In the dark, drives straight on",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 60 s",
+     "the robot bumped into \"Tunnel t1\" after 0.5 s"
+    ]
+   }
+  ]
+ },
+ "avoidWalls/C-no-handover": {
+  "function": "avoidWalls",
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "A tunnel that bends to the right",
+    "test": "Turns away from the wall on its left and gets round the bend",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   },
+   {
+    "world": "A tunnel that bends to the left",
+    "test": "Turns away from the wall on its right and gets round the bend",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   },
+   {
+    "world": "Through the tunnel",
+    "test": "Follows the line into the tunnel and gets through the dark",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s"
+    ]
+   }
+  ]
+ },
+ "followInTheDark/C": {
+  "function": "followInTheDark",
+  "kind": "correct",
+  "tests": [
+   {
+    "world": "A line in the dark that bends to the right",
+    "test": "In the dark, follows the line round a bend to the right",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "A line in the dark that bends to the left",
+    "test": "In the dark, follows the line round a bend to the left",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Starts in the dark",
+    "test": "In the dark, drives straight on",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   }
+  ]
+ },
+ "followInTheDark/C-swapped": {
+  "function": "followInTheDark",
+  "kind": "equivalent",
+  "tests": [
+   {
+    "world": "A line in the dark that bends to the right",
+    "test": "In the dark, follows the line round a bend to the right",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "A line in the dark that bends to the left",
+    "test": "In the dark, follows the line round a bend to the left",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Starts in the dark",
+    "test": "In the dark, drives straight on",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   }
+  ]
+ },
+ "followInTheDark/C-peach-is-black": {
+  "function": "followInTheDark",
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "A line in the dark that bends to the right",
+    "test": "In the dark, follows the line round a bend to the right",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "A line in the dark that bends to the left",
+    "test": "In the dark, follows the line round a bend to the left",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Starts in the dark",
+    "test": "In the dark, drives straight on",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 60 s",
+     "the robot bumped into \"Tunnel t1\" after 0.8 s"
+    ]
+   }
+  ]
+ },
+ "followInTheDark/C-light-above": {
+  "function": "followInTheDark",
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "A line in the dark that bends to the right",
+    "test": "In the dark, follows the line round a bend to the right",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel t1\" after 1.9 s"
+    ]
+   },
+   {
+    "world": "A line in the dark that bends to the left",
+    "test": "In the dark, follows the line round a bend to the left",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t3\" within 60 s",
+     "the robot bumped into \"Tunnel t1\" after 3.6 s"
+    ]
+   },
+   {
+    "world": "Starts in the dark",
+    "test": "In the dark, drives straight on",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 60 s",
+     "the robot bumped into \"Tunnel t1\" after 0.8 s"
+    ]
+   }
+  ]
+ },
+ "followInTheDark/B-no-handover": {
+  "function": "followInTheDark",
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "A line in the dark that bends to the right",
+    "test": "In the dark, follows the line round a bend to the right",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "A line in the dark that bends to the left",
+    "test": "In the dark, follows the line round a bend to the left",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Starts in the dark",
+    "test": "In the dark, drives straight on",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 60 s"
+    ]
+   }
+  ]
+ },
+ "followInTheDark/C-no-handover": {
+  "function": "followInTheDark",
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "A line in the dark that bends to the right",
+    "test": "In the dark, follows the line round a bend to the right",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "A line in the dark that bends to the left",
+    "test": "In the dark, follows the line round a bend to the left",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "Starts in the dark",
+    "test": "In the dark, drives straight on",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 60 s"
+    ]
+   }
+  ]
+ }
+}

@@ -1,0 +1,176 @@
+[
+ {
+  "name": "A wall across the line",
+  "existing": false,
+  "data": {
+   "version": 3,
+   "world": {
+    "background": "peach",
+    "starts": [
+     {
+      "id": "A",
+      "name": "A",
+      "x": 20,
+      "y": 50,
+      "heading": 0
+     }
+    ],
+    "items": [
+     {
+      "id": "t1",
+      "name": "Line t1",
+      "kind": "line",
+      "points": [
+       [
+        25,
+        50
+       ],
+       [
+        110,
+        50
+       ]
+      ],
+      "smooth": false,
+      "width": 1.48
+     },
+     {
+      "id": "t2",
+      "name": "Wall t2",
+      "kind": "rect",
+      "role": "obstacle",
+      "x": 100,
+      "y": 38,
+      "w": 3,
+      "h": 24
+     },
+     {
+      "id": "t3",
+      "name": "Goal t3",
+      "kind": "rect",
+      "role": "goal",
+      "x": 84,
+      "y": 39,
+      "w": 16,
+      "h": 22
+     }
+    ]
+   },
+   "view": {
+    "x": 150,
+    "y": 100,
+    "scale": 3
+   }
+  },
+  "tests": [
+   {
+    "name": "Stops in front of the wall and stays there",
+    "scenario": "Given the robot on a line that runs into a wall, when the program runs for 30 s, then it stops in front of the wall (it ends in the area before it), never bumps into it, and stands still from 15 s on (it gets there in about 9 s; L4 wants it to stand still in front of the wall).",
+    "targets": [
+     "negated",
+     "no-handover",
+     "turns",
+     "slows"
+    ],
+    "start": "A",
+    "until": null,
+    "max_time_ms": 30000,
+    "world": [],
+    "globals": {},
+    "checks": [
+     {
+      "check": "ends_in",
+      "item": "t3"
+     },
+     {
+      "check": "never_bumps",
+      "item": "t2"
+     },
+     {
+      "check": "does",
+      "does": "stands_still",
+      "after_ms": 15000
+     }
+    ],
+    "ref": "stopAtWall:wall-ahead"
+   }
+  ]
+ },
+ {
+  "name": "A line without a wall",
+  "existing": false,
+  "data": {
+   "version": 3,
+   "world": {
+    "background": "peach",
+    "starts": [
+     {
+      "id": "A",
+      "name": "A",
+      "x": 20,
+      "y": 100,
+      "heading": 0
+     }
+    ],
+    "items": [
+     {
+      "id": "t1",
+      "name": "Line t1",
+      "kind": "line",
+      "points": [
+       [
+        25,
+        100
+       ],
+       [
+        200,
+        100
+       ]
+      ],
+      "smooth": false,
+      "width": 1.48
+     },
+     {
+      "id": "t2",
+      "name": "Goal t2",
+      "kind": "rect",
+      "role": "goal",
+      "x": 195,
+      "y": 90,
+      "w": 12,
+      "h": 20
+     }
+    ]
+   },
+   "view": {
+    "x": 150,
+    "y": 100,
+    "scale": 3
+   }
+  },
+  "tests": [
+   {
+    "name": "With nothing ahead, follows the line",
+    "scenario": "Given the robot on a line with nothing ahead, when the program runs, then it follows the line to the goal at its end.",
+    "targets": [
+     "negated",
+     "no-handover"
+    ],
+    "start": "A",
+    "until": "t2",
+    "max_time_ms": 40000,
+    "world": [],
+    "globals": {},
+    "checks": [
+     {
+      "check": "reaches",
+      "item": "t2"
+     },
+     {
+      "check": "never_bumps"
+     }
+    ],
+    "ref": "stopAtWall:no-wall"
+   }
+  ]
+ }
+]

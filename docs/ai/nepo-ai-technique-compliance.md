@@ -358,6 +358,17 @@ The same 80 requests per pipeline with the tuned pack, the kept-out versions inc
   follows one, whatever the program does on a plain floor; "a wall ahead" across the robot's whole front unless the learner says left
   or right; `whenever` … `stands_still` with a margin. A change of the oracle rules: the user's decision.
 - The user's review of the corpus as the study's starter code (`evaluation/phase5/corpus/CORPUS.md`).
+- **The source of truth for later comparisons** (2026-11-07, at the user's request): `evaluation/truth/` fixes the corpus per level: the
+  function, its correct and broken versions as NEPO XML (alone, to inject, and as the level's whole program), and **reference tests written
+  by hand** that meet the user's rule on every version:
+  - 15 correct and 7 equivalent versions pass all 14 tests;
+  - 59 of 59 broken versions fail at least one.
+
+  So the test language can tell every level's correct code from its broken code. A test set of the AI or of a learner can be measured
+  against the same versions. Open:
+  - which broken version a learner gets;
+  - 3 correct versions lose a later level with the later reference code (`followLine/B`: L5; `avoidWalls/B`, `C`: L7);
+  - L8.
 
 ## Changes
 
@@ -370,3 +381,4 @@ The same 80 requests per pipeline with the tuned pack, the kept-out versions inc
   requests; `evaluate.py` now refuses such runs); the full pipeline's numbers updated; the answer after phase 5 added.
 - 2026-11-07: phase 5: the tuning (the causes of the false alarms, what was changed in the context pack, the recipes checked).
 - 2026-11-07: phase 5: round 2 after the tuning (results, the false alarms left, the answer after phase 5 with both rounds).
+- 2026-11-07: phase 5: the study's source of truth (`evaluation/truth/`): versions per level and reference tests that meet the rule.

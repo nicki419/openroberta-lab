@@ -121,6 +121,8 @@ latched sensors from EdPy's library. The document also lists which behaviour is 
 - **Progress:** saved inside the program XML, with autosave once the program has been saved by hand.
 - **Study telemetry:** attempts with NEPO and EdPy snapshots, time and tests per level (the AI's tests counted apart),
   appended to a `.jsonl` file per participant. Every event says whether the AI test assistant was on.
+- **The study's source of truth** (`evaluation/truth/`): per level, the function the learner fixes, its correct and broken
+  versions, and reference tests that tell them apart. The files are committed and used as they are; `truth.json` is for analysis.
 
 Read it before changing the simulator's level hooks, the level format or the telemetry. `levels/README.md` is the
 designers' guide.

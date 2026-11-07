@@ -152,6 +152,18 @@ checks or their world), `aiTestsCopied`, `aiTestsDeleted` (added to this program
 **When events are sent:** the queue goes every 5 s, and an attempt at once (it is big). When the page is hidden or left,
 the queue goes with `navigator.sendBeacon`, carrying the init token from `COMM.getInitToken()`.
 
+## The study's code per level (source of truth)
+
+In the study, the learner gets broken code per level, fixes it and writes tests for it. Each level's code is its own function, and the main
+loop calls the newest one. `evaluation/truth/` fixes this per level (made 2026-11-07, `evaluation/truth/README.md`):
+
+- the function;
+- its correct versions (3 per function) and its broken ones (made by fixed faults), each as NEPO XML of the function alone (to inject into a
+  learner's program) and as the level's whole program (a Lab export with the reference tests in its Tests tab);
+- the reference tests: every correct version passes them, every broken one fails at least one (checked by `verify.py`).
+
+`truth.json` holds all of it for analysis. Which broken version a learner gets is not chosen yet, and the injection isn't built.
+
 ## Checking it
 
 - **Server:** `mvn -o -pl OpenRobertaServer test -Dtest=LevelsControllerTest,EnvFileTest,NepoTestSuitePersistenceTest`.

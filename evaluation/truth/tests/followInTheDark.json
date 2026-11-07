@@ -1,0 +1,295 @@
+[
+ {
+  "name": "A line in the dark that bends to the right",
+  "existing": false,
+  "data": {
+   "version": 3,
+   "world": {
+    "background": "peach",
+    "starts": [
+     {
+      "id": "A",
+      "name": "A",
+      "x": 40,
+      "y": 90,
+      "heading": 0
+     }
+    ],
+    "items": [
+     {
+      "id": "t1",
+      "name": "Tunnel t1",
+      "kind": "tunnel",
+      "role": "obstacle",
+      "points": [
+       [
+        30,
+        100
+       ],
+       [
+        260,
+        100
+       ]
+      ],
+      "smooth": false,
+      "width": 45
+     },
+     {
+      "id": "t2",
+      "name": "Line t2",
+      "kind": "line",
+      "points": [
+       [
+        35,
+        90
+       ],
+       [
+        90,
+        90
+       ],
+       [
+        130,
+        110
+       ],
+       [
+        200,
+        110
+       ]
+      ],
+      "smooth": true,
+      "width": 1.48
+     },
+     {
+      "id": "t3",
+      "name": "Goal t3",
+      "kind": "rect",
+      "role": "goal",
+      "x": 190,
+      "y": 103,
+      "w": 10,
+      "h": 14
+     }
+    ]
+   },
+   "view": {
+    "x": 150,
+    "y": 100,
+    "scale": 3
+   }
+  },
+  "tests": [
+   {
+    "name": "In the dark, follows the line round a bend to the right",
+    "scenario": "Given the robot on a line inside a dark tunnel, when the line bends to the right, then the robot follows it to the goal at its end without bumping into the tunnel.",
+    "targets": [
+     "peach-is-black",
+     "light-above",
+     "no-handover"
+    ],
+    "start": "A",
+    "until": "t3",
+    "max_time_ms": 60000,
+    "world": [],
+    "globals": {},
+    "checks": [
+     {
+      "check": "reaches",
+      "item": "t3"
+     },
+     {
+      "check": "never_bumps",
+      "item": "t1"
+     }
+    ],
+    "ref": "followInTheDark:dark-line-bends-right"
+   }
+  ]
+ },
+ {
+  "name": "A line in the dark that bends to the left",
+  "existing": false,
+  "data": {
+   "version": 3,
+   "world": {
+    "background": "peach",
+    "starts": [
+     {
+      "id": "A",
+      "name": "A",
+      "x": 40,
+      "y": 110,
+      "heading": 0
+     }
+    ],
+    "items": [
+     {
+      "id": "t1",
+      "name": "Tunnel t1",
+      "kind": "tunnel",
+      "role": "obstacle",
+      "points": [
+       [
+        30,
+        100
+       ],
+       [
+        260,
+        100
+       ]
+      ],
+      "smooth": false,
+      "width": 45
+     },
+     {
+      "id": "t2",
+      "name": "Line t2",
+      "kind": "line",
+      "points": [
+       [
+        35,
+        110
+       ],
+       [
+        90,
+        110
+       ],
+       [
+        130,
+        90
+       ],
+       [
+        200,
+        90
+       ]
+      ],
+      "smooth": true,
+      "width": 1.48
+     },
+     {
+      "id": "t3",
+      "name": "Goal t3",
+      "kind": "rect",
+      "role": "goal",
+      "x": 190,
+      "y": 83,
+      "w": 10,
+      "h": 14
+     }
+    ]
+   },
+   "view": {
+    "x": 150,
+    "y": 100,
+    "scale": 3
+   }
+  },
+  "tests": [
+   {
+    "name": "In the dark, follows the line round a bend to the left",
+    "scenario": "Given the robot on a line inside a dark tunnel, when the line bends to the left, then the robot follows it to the goal at its end without bumping into the tunnel.",
+    "targets": [
+     "peach-is-black",
+     "light-above",
+     "no-handover"
+    ],
+    "start": "A",
+    "until": "t3",
+    "max_time_ms": 60000,
+    "world": [],
+    "globals": {},
+    "checks": [
+     {
+      "check": "reaches",
+      "item": "t3"
+     },
+     {
+      "check": "never_bumps",
+      "item": "t1"
+     }
+    ],
+    "ref": "followInTheDark:dark-line-bends-left"
+   }
+  ]
+ },
+ {
+  "name": "Starts in the dark",
+  "existing": false,
+  "data": {
+   "version": 3,
+   "world": {
+    "background": "peach",
+    "starts": [
+     {
+      "id": "A",
+      "name": "A",
+      "x": 30,
+      "y": 100,
+      "heading": 0
+     }
+    ],
+    "items": [
+     {
+      "id": "t1",
+      "name": "Tunnel t1",
+      "kind": "tunnel",
+      "role": "obstacle",
+      "points": [
+       [
+        20,
+        100
+       ],
+       [
+        130,
+        100
+       ]
+      ],
+      "smooth": false,
+      "width": 15
+     },
+     {
+      "id": "t2",
+      "name": "Goal t2",
+      "kind": "rect",
+      "role": "goal",
+      "x": 80,
+      "y": 95,
+      "w": 10,
+      "h": 10
+     }
+    ]
+   },
+   "view": {
+    "x": 150,
+    "y": 100,
+    "scale": 3
+   }
+  },
+  "tests": [
+   {
+    "name": "In the dark, drives straight on",
+    "scenario": "Given the robot inside a dark tunnel with no line, when the program runs, then it drives straight on to the goal without bumping into the tunnel's walls.",
+    "targets": [
+     "peach-is-black",
+     "light-above",
+     "no-handover"
+    ],
+    "start": "A",
+    "until": "t2",
+    "max_time_ms": 60000,
+    "world": [],
+    "globals": {},
+    "checks": [
+     {
+      "check": "reaches",
+      "item": "t2"
+     },
+     {
+      "check": "never_bumps",
+      "item": "t1"
+     }
+    ],
+    "ref": "followInTheDark:start-in-dark"
+   }
+  ]
+ }
+]
