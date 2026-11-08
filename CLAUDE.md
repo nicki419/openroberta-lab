@@ -261,6 +261,7 @@ Run the server locally: `./admin.sh -git-mode create-empty-db` once, then `./ora
 The server reads `.env` in the working directory (see `.env.example`: the Level designer, the levels folder, the telemetry
 folder). Rebuilding the server jar (`mvn -o -pl OpenRobertaServer install -DskipTests`) fails while the Lab runs: it locks
 the jars in `OpenRobertaServer/target/resources`.
+To host it in a Docker container: `docs/hosting-docker.md` (not run yet).
 On Windows use Git Bash. "Show source" works offline. Running a program on a real Edison needs the external Edison
 compile service and the EdComm audio cable.
 

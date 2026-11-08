@@ -1,0 +1,11 @@
+# kept out of the Docker build context (docs/hosting-docker.md): secrets, study data, local databases, large local folders
+.env
+*.env
+admin/
+OpenRobertaServer/db-embedded/
+**/node_modules/
+**/target/
+**/__pycache__/
+evaluation/
+.idea/
+.git/
