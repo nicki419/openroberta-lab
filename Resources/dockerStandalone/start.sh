@@ -28,7 +28,8 @@ if [[ ${CREATE_DB} = 'yes' ]]; then
 fi
 
 # more -d parameters are added by '$*' and can be supplied by the docker run command
-java $REMOTE_DEBUG $GC_LOGGING -cp ${JAVA_LIB_DIR}/\* de.fhg.iais.roberta.main.ServerStarter \
+# exec: java replaces this shell as PID 1, so it gets docker stop's SIGTERM and shuts the database down cleanly
+exec java $REMOTE_DEBUG $GC_LOGGING -cp ${JAVA_LIB_DIR}/\* de.fhg.iais.roberta.main.ServerStarter \
      -d database.mode=embedded \
      -d database.parentdir=$DB_PARENTDIR \
      -d database.name=$DB_NAME \

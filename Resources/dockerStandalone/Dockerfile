@@ -1,6 +1,7 @@
 ARG BASEVERSION=35
 
-FROM --platform=$BUILDPLATFORM maven:3.8-adoptopenjdk-8 AS build
+# JDK 11 like CI: test sources use Java 9+ APIs (List.of), which JDK 8 cannot compile
+FROM --platform=$BUILDPLATFORM maven:3.8-openjdk-11 AS build
 
 RUN mkdir -p /tmp/build && cd /tmp/build
 WORKDIR /tmp/build
