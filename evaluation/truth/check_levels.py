@@ -2,11 +2,11 @@
 
 In the study a learner keeps the fixes of the earlier levels: whatever correct version of an earlier function they wrote, the later levels must be
 beatable with it, once they fix the later functions correctly too. So every level is played with every combination of the correct versions of the
-functions its program has (3 per function: 3 at L2, 9 at L4, 27 at L6, 81 at L7 and L8), and the equivalent versions (broken by a fault, but their
+functions its program has (3 per function: 3 at L1 and L2, 9 at L4, 27 at L6, 81 at L7 and L8), and the equivalent versions (broken by a fault, but their
 level passes them) each in place of the reference version, with the other functions in their reference version. A function the study gives as it
 is (corpus.GIVEN: driveInTheDark, brought by L6 since L5 was taken out on 2026-11-08) is played in its reference version only.
 
-python check_levels.py [--again] [level ...]   (l2 l4 l6 l7 l8; the Lab and the Chromes of phase 5: PHASE5_PORTS=9333,9334)
+python check_levels.py [--again] [level ...]   (l1 l2 l4 l6 l7 l8; the Lab and the Chromes of phase 5: PHASE5_PORTS=9333,9334)
 Plays the programs that levels.json has no run of yet (--again: every program of the levels named), drops the runs of programs the study no longer
 has, writes levels.json and prints the levels with the combinations that lose. Exit code 1 if one loses.
 """
@@ -22,7 +22,7 @@ import corpus  # noqa: E402
 import judge  # noqa: E402
 from nepo import program  # noqa: E402
 
-LEVELS = {'l2': 'followLine', 'l4': 'stopAtWall', 'l6': 'avoidWalls', 'l7': 'followInTheDark', 'l8': 'followInTheDark'}  # L1, L5: until 2026-11-08
+LEVELS = {'l1': 'followLine', 'l2': 'followLine', 'l4': 'stopAtWall', 'l6': 'avoidWalls', 'l7': 'followInTheDark', 'l8': 'followInTheDark'}  # L5: until 2026-11-08; L1 new since
 OUT = os.path.join(HERE, 'levels.json')
 MAX_MS = 300000  # L8 takes about 50 s; a level without a time limit is played this long
 

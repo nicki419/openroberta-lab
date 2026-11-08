@@ -12,13 +12,14 @@ main:
 
 | level | title | function | new code | the main loop calls |
 |---|---|---|---|---|
-| L2 | L2 - Curves | `followLine` | yes | `followLine()` |
+| L1 | L1 - Straight Ahead | `followLine` | yes | `followLine()` |
+| L2 | L2 - Curves | `followLine` | no (the function of L1) | `followLine()` |
 | L4 | L4 - Beware the Wall | `stopAtWall` | yes | `stopAtWall()` |
 | L6 | L6 - Tunnel Vision Reloaded | `avoidWalls` | yes, with `driveInTheDark` (`driveInTheDark/A`, as it is) | `avoidWalls()` |
 | L7 | L7 - Well I'll Be Forked | `followInTheDark` | yes | `followInTheDark()` |
 | L8 | L8 - Climax | `followInTheDark` | no (the function of L7) | `followInTheDark()` |
 
-**Since the pilot study (2026-11-08)** the study plays five levels: L1 (the same code as L2) and L5 (a straight tunnel; L6 has a bent one) were taken out. L2 brings `followLine`. L6 brings `driveInTheDark` as it is, correct, before its own `avoidWalls`, so the learner never fixes `driveInTheDark`: its versions are not study code, and they keep their judgement on L5. Without the time limit of L1, the slow line followers beat L2: they are equivalent now, and the reference test of that time limit is gone.
+**Since the pilot study (2026-11-08)** the study plays six levels. L5 (a straight tunnel; L6 has a bent one) was taken out: L6 brings `driveInTheDark` as it is, correct, before its own `avoidWalls`, so the learner never fixes `driveInTheDark`: its versions are not study code, and they keep their judgement on L5. L1 is a new level, "Straight Ahead": a straight line between walls that falls to the robot's right (so a line follower must steer right), no time limit. The slow line followers beat it and L2: they are equivalent now (the old L1 had a time limit of 20 s), and the reference test of that time limit is gone.
 
 ### The starter code
 
@@ -26,7 +27,7 @@ The broken version a learner gets where a function is new, in each version of th
 
 | level | function | version 1 | version 2 |
 |---|---|---|---|
-| L2 | `followLine` | `followLine/A-light-above`: reads the light from above (LLIGHT) instead of the floor | `followLine/B-straight-off`: drives straight when off the line |
+| L1 | `followLine` | `followLine/A-light-above`: reads the light from above (LLIGHT) instead of the floor | `followLine/B-straight-off`: drives straight when off the line |
 | L4 | `stopAtWall` | `stopAtWall/A-turns`: turns away instead of stopping | `stopAtWall/C-slows`: slows down instead of stopping |
 | L6 | `avoidWalls` | `avoidWalls/A-swapped`: turns towards the wall: the turns swapped | `avoidWalls/B-front-sensor`: reads FRONT instead of the first side sensor |
 | L7 | `followInTheDark` | `followInTheDark/A-light-above`: reads the light from above instead of the floor | `followInTheDark/B-peach-is-black`: the black threshold above the floor (83): it steers everywhere |
@@ -37,6 +38,7 @@ Each level played with every combination of the correct versions of its program'
 
 | level | combinations of correct versions: won | equivalent versions: won | equivalent versions that lose |
 |---|---|---|---|
+| L1 | 3 of 3 | 6 of 6 | - |
 | L2 | 3 of 3 | 6 of 6 | - |
 | L4 | 9 of 9 | 6 of 6 | - |
 | L6 | 27 of 27 | 6 of 6 | - |
@@ -53,7 +55,7 @@ Each level played with every combination of the correct versions of its program'
 | `avoidWalls` | 3 | 12 | 0 | 3 | 0 | 12 of 12 |
 | `followInTheDark` | 3 | 12 | 0 | 4 | 0 | 12 of 12 |
 
-## followLine (L2)
+## followLine (L1, L2)
 
 The first function: it hands over to nothing.
 
@@ -66,24 +68,24 @@ The first function: it hands over to nothing.
 
 | version | kind | fault | levels | `bend-left` | `bend-right` | verdict |
 |---|---|---|---|---|---|---|
-| `followLine/A` | correct |  | L2 win | pass | pass | ok |
-| `followLine/B` | correct |  | L2 win | pass | pass | ok |
-| `followLine/C` | correct |  | L2 win | pass | pass | ok |
-| `followLine/A-swapped` | equivalent | swapped | L2 win | pass | pass | ok |
-| `followLine/A-too-slow` | equivalent | too-slow | L2 win | pass | pass | ok |
-| `followLine/B-swapped` | equivalent | swapped | L2 win | pass | pass | ok |
-| `followLine/B-too-slow` | equivalent | too-slow | L2 win | pass | pass | ok |
-| `followLine/C-swapped` | equivalent | swapped | L2 win | pass | pass | ok |
-| `followLine/C-too-slow` | equivalent | too-slow | L2 win | pass | pass | ok |
-| `followLine/A-light-above` | broken | light-above | L2 fail_area | **fail** | **fail** | caught |
-| `followLine/A-one-turn` | broken | one-turn | L2 fail_hit | **fail** | **fail** | caught |
-| `followLine/A-straight-off` | broken | straight-off | L2 fail_hit | **fail** | **fail** | caught |
-| `followLine/B-light-above` | broken | light-above | L2 fail_area | **fail** | **fail** | caught |
-| `followLine/B-one-turn` | broken | one-turn | L2 fail_hit | **fail** | **fail** | caught |
-| `followLine/B-straight-off` | broken | straight-off | L2 fail_hit | **fail** | **fail** | caught |
-| `followLine/C-light-above` | broken | light-above | L2 fail_area | **fail** | **fail** | caught |
-| `followLine/C-one-turn` | broken | one-turn | L2 fail_hit | **fail** | **fail** | caught |
-| `followLine/C-straight-off` | broken | straight-off | L2 fail_hit | **fail** | **fail** | caught |
+| `followLine/A` | correct |  | L1 win, L2 win | pass | pass | ok |
+| `followLine/B` | correct |  | L1 win, L2 win | pass | pass | ok |
+| `followLine/C` | correct |  | L1 win, L2 win | pass | pass | ok |
+| `followLine/A-swapped` | equivalent | swapped | L1 win, L2 win | pass | pass | ok |
+| `followLine/A-too-slow` | equivalent | too-slow | L1 win, L2 win | pass | pass | ok |
+| `followLine/B-swapped` | equivalent | swapped | L1 win, L2 win | pass | pass | ok |
+| `followLine/B-too-slow` | equivalent | too-slow | L1 win, L2 win | pass | pass | ok |
+| `followLine/C-swapped` | equivalent | swapped | L1 win, L2 win | pass | pass | ok |
+| `followLine/C-too-slow` | equivalent | too-slow | L1 win, L2 win | pass | pass | ok |
+| `followLine/A-light-above` | broken | light-above | L1 fail_hit, L2 fail_area | **fail** | **fail** | caught |
+| `followLine/A-one-turn` | broken | one-turn | L1 fail_hit, L2 fail_hit | **fail** | **fail** | caught |
+| `followLine/A-straight-off` | broken | straight-off | L1 fail_hit, L2 fail_hit | **fail** | **fail** | caught |
+| `followLine/B-light-above` | broken | light-above | L1 fail_hit, L2 fail_area | **fail** | **fail** | caught |
+| `followLine/B-one-turn` | broken | one-turn | L1 fail_hit, L2 fail_hit | **fail** | **fail** | caught |
+| `followLine/B-straight-off` | broken | straight-off | L1 fail_hit, L2 fail_hit | **fail** | **fail** | caught |
+| `followLine/C-light-above` | broken | light-above | L1 win, L2 fail_area | **fail** | **fail** | caught |
+| `followLine/C-one-turn` | broken | one-turn | L1 fail_hit, L2 fail_hit | **fail** | **fail** | caught |
+| `followLine/C-straight-off` | broken | straight-off | L1 fail_hit, L2 fail_hit | **fail** | **fail** | caught |
 
 ### The code
 
@@ -292,9 +294,9 @@ Hands over to `followLine`.
 
 | version | kind | fault | levels | `wall-ahead` | `no-wall` | verdict |
 |---|---|---|---|---|---|---|
-| `stopAtWall/A` | correct |  | L2 win, L4 win_soft | pass | pass | ok |
-| `stopAtWall/B` | correct |  | L2 win, L4 win_soft | pass | pass | ok |
-| `stopAtWall/C` | correct |  | L2 win, L4 win_soft | pass | pass | ok |
+| `stopAtWall/A` | correct |  | L1 win, L2 win, L4 win_soft | pass | pass | ok |
+| `stopAtWall/B` | correct |  | L1 win, L2 win, L4 win_soft | pass | pass | ok |
+| `stopAtWall/C` | correct |  | L1 win, L2 win, L4 win_soft | pass | pass | ok |
 | `stopAtWall/A-negated` | broken | negated | L4 no_result | **fail** | **fail** | caught |
 | `stopAtWall/A-no-handover` | broken | no-handover | L4 no_result | **fail** | **fail** | caught |
 | `stopAtWall/A-slows` | broken | slows | L4 fail_hit | **fail** | pass | caught |
@@ -468,9 +470,9 @@ Hands over to `stopAtWall`.
 
 | version | kind | fault | levels | `through-tunnel` | `start-in-dark` | `bend-in-light` | verdict |
 |---|---|---|---|---|---|---|---|
-| `driveInTheDark/A` | correct |  | L2 win, L4 win_soft, L5 win | pass | pass | pass | ok |
-| `driveInTheDark/B` | correct |  | L2 win, L4 win_soft, L5 win | pass | pass | pass | ok |
-| `driveInTheDark/C` | correct |  | L2 win, L4 win_soft, L5 win | pass | pass | pass | ok |
+| `driveInTheDark/A` | correct |  | L1 win, L2 win, L4 win_soft, L5 win | pass | pass | pass | ok |
+| `driveInTheDark/B` | correct |  | L1 win, L2 win, L4 win_soft, L5 win | pass | pass | pass | ok |
+| `driveInTheDark/C` | correct |  | L1 win, L2 win, L4 win_soft, L5 win | pass | pass | pass | ok |
 | `driveInTheDark/A-curves` | broken | curves | L5 fail_hit | **fail** | **fail** | pass | caught |
 | `driveInTheDark/A-floor-sensor` | broken | floor-sensor | L5 fail_hit | **fail** | **fail** | **fail** | caught |
 | `driveInTheDark/A-negated` | broken | negated | L5 fail_hit | **fail** | **fail** | **fail** | caught |
@@ -677,9 +679,9 @@ Hands over to `driveInTheDark`.
 
 | version | kind | fault | levels | `tunnel-bends-right` | `tunnel-bends-left` | `through-tunnel` | verdict |
 |---|---|---|---|---|---|---|---|
-| `avoidWalls/A` | correct |  | L2 win, L4 win_soft, L6 win | pass | pass | pass | ok |
-| `avoidWalls/B` | correct |  | L2 win, L4 win_soft, L6 win | pass | pass | pass | ok |
-| `avoidWalls/C` | correct |  | L2 win, L4 win_soft, L6 win | pass | pass | pass | ok |
+| `avoidWalls/A` | correct |  | L1 win, L2 win, L4 win_soft, L6 win | pass | pass | pass | ok |
+| `avoidWalls/B` | correct |  | L1 win, L2 win, L4 win_soft, L6 win | pass | pass | pass | ok |
+| `avoidWalls/C` | correct |  | L1 win, L2 win, L4 win_soft, L6 win | pass | pass | pass | ok |
 | `avoidWalls/A-front-sensor` | broken | front-sensor | L6 fail_hit | **fail** | pass | pass | caught |
 | `avoidWalls/A-never-dark` | broken | never-dark | L6 fail_hit | **fail** | **fail** | pass | caught |
 | `avoidWalls/A-no-handover` | broken | no-handover | L6 no_result | **fail** | **fail** | **fail** | caught |
@@ -923,9 +925,9 @@ Hands over to `avoidWalls`.
 
 | version | kind | fault | levels | `dark-line-bends-right` | `dark-line-bends-left` | `start-in-dark` | `out-of-the-dark` | verdict |
 |---|---|---|---|---|---|---|---|---|
-| `followInTheDark/A` | correct |  | L2 win, L4 win_soft, L6 win, L7 win, L8 win_soft | pass | pass | pass | pass | ok |
-| `followInTheDark/B` | correct |  | L2 win, L4 win_soft, L6 win, L7 win, L8 win_soft | pass | pass | pass | pass | ok |
-| `followInTheDark/C` | correct |  | L2 win, L4 win_soft, L6 win, L7 win, L8 win_soft | pass | pass | pass | pass | ok |
+| `followInTheDark/A` | correct |  | L1 win, L2 win, L4 win_soft, L6 win, L7 win, L8 win_soft | pass | pass | pass | pass | ok |
+| `followInTheDark/B` | correct |  | L1 win, L2 win, L4 win_soft, L6 win, L7 win, L8 win_soft | pass | pass | pass | pass | ok |
+| `followInTheDark/C` | correct |  | L1 win, L2 win, L4 win_soft, L6 win, L7 win, L8 win_soft | pass | pass | pass | pass | ok |
 | `followInTheDark/A-light-above` | broken | light-above | L7 fail_hit, L8 fail_hit | **fail** | **fail** | **fail** | **fail** | caught |
 | `followInTheDark/A-no-handover` | broken | no-handover | L7 no_result, L8 no_result | pass | pass | **fail** | **fail** | caught |
 | `followInTheDark/A-peach-is-black` | broken | peach-is-black | L7 fail_hit, L8 fail_hit | pass | pass | **fail** | pass | caught |

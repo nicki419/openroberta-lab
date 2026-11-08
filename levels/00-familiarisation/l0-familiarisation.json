@@ -1,0 +1,13 @@
+{
+ "format": "nepo-level",
+ "version": 1,
+ "title": "L0 - Familiarisation",
+ "instructions": "Run the program: the robot drives towards the wall, stops in front of it and sounds the alarm.",
+ "world": {"background": "peach", "size": {"w":120,"h":80},
+  "starts": [{"heading":0,"name":"A","x":15,"y":55,"id":"A"}],
+  "items": [
+    {"role":"obstacle","kind":"rect","w":6,"name":"Wall","x":100,"h":70,"y":5,"failOnHit":true,"id":"w0wall"},
+    {"role":"goal","kind":"rect","w":15,"name":"In front of the wall","x":85,"h":70,"y":5,"id":"w0goal","soft":{"still":3}}
+  ]},
+ "view": {"x":60,"y":40,"scale":6}
+}

@@ -2539,5 +2539,104 @@
    105.8
   ],
   "error": null
+ },
+ "l1|followLine/A": {
+  "outcome": "win",
+  "at_s": 14.4,
+  "last": [
+   14433.3,
+   129.6,
+   41.94,
+   -8.6
+  ],
+  "error": null
+ },
+ "l1|followLine/B": {
+  "outcome": "win",
+  "at_s": 10.3,
+  "last": [
+   10316.7,
+   129.69,
+   41.96,
+   -10
+  ],
+  "error": null
+ },
+ "l1|followLine/C": {
+  "outcome": "win",
+  "at_s": 10.1,
+  "last": [
+   10050,
+   129.67,
+   41.98,
+   -8.6
+  ],
+  "error": null
+ },
+ "l1|followLine/A-swapped (others A)": {
+  "outcome": "win",
+  "at_s": 14.4,
+  "last": [
+   14416.7,
+   129.42,
+   43.42,
+   -10
+  ],
+  "error": null
+ },
+ "l1|followLine/A-too-slow (others A)": {
+  "outcome": "win",
+  "at_s": 28.9,
+  "last": [
+   28850,
+   129.54,
+   41.91,
+   -9.3
+  ],
+  "error": null
+ },
+ "l1|followLine/B-swapped (others A)": {
+  "outcome": "win",
+  "at_s": 10.3,
+  "last": [
+   10300,
+   129.45,
+   43.44,
+   -11.4
+  ],
+  "error": null
+ },
+ "l1|followLine/B-too-slow (others A)": {
+  "outcome": "win",
+  "at_s": 20.6,
+  "last": [
+   20616.7,
+   129.6,
+   41.92,
+   -9.3
+  ],
+  "error": null
+ },
+ "l1|followLine/C-swapped (others A)": {
+  "outcome": "win",
+  "at_s": 10,
+  "last": [
+   10016.7,
+   129.45,
+   43.5,
+   -10
+  ],
+  "error": null
+ },
+ "l1|followLine/C-too-slow (others A)": {
+  "outcome": "win",
+  "at_s": 20.1,
+  "last": [
+   20133.3,
+   129.6,
+   41.93,
+   -9.3
+  ],
+  "error": null
  }
 }

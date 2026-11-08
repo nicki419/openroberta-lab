@@ -33,10 +33,11 @@ def corpus_versions_reference(fn):
     return fn + '/A'
 
 FUNCTIONS = corpus.CHAIN
-MADE = '2026-11-08'  # first made 2026-11-07 on seven levels; made again for the five the study plays since the pilot study
-# (2026-11-08, the pilot study: L1 and L5 taken out. L2 brings followLine; L6 brings driveInTheDark as it is, its reference version, before its
-# own avoidWalls: corpus.GIVEN)
+MADE = '2026-11-08'  # first made 2026-11-07 on seven levels; made again for the six the study plays since the pilot study
+# (2026-11-08, the pilot study: L5 taken out; L6 brings driveInTheDark as it is, its reference version, before its own avoidWalls: corpus.GIVEN.
+# L1 taken out and brought back the same day as a new level, l1-straight-ahead: a straight line between walls, falling to the robot's right)
 LEVELS = [
+    ('l1', 'l1-straight-ahead.json', 'followLine'),
     ('l2', 'l2-curves.json', 'followLine'),
     ('l4', 'l4-beware-the-wall.json', 'stopAtWall'),
     ('l6', 'l6-tunnel-vision-reloaded.json', 'avoidWalls'),
@@ -222,10 +223,11 @@ def markdown(t):
                                                       ('yes' + (', with ' + given if given else '')) if lv['new_function']
                                                       else 'no (the function of %s)' % first[lv['function']].upper(),
                                                       lv['main_calls']))
-    md += ['', '**Since the pilot study (2026-11-08)** the study plays five levels: L1 (the same code as L2) and L5 (a straight tunnel; L6 has a '
-               'bent one) were taken out. L2 brings `followLine`. L6 brings `driveInTheDark` as it is, correct, before its own `avoidWalls`, '
-               'so the learner never fixes `driveInTheDark`: its versions are not study code, and they keep their judgement on L5. Without the time '
-               'limit of L1, the slow line followers beat L2: they are equivalent now, and the reference test of that time limit is gone.']
+    md += ['', '**Since the pilot study (2026-11-08)** the study plays six levels. L5 (a straight tunnel; L6 has a bent one) was taken out: L6 '
+               'brings `driveInTheDark` as it is, correct, before its own `avoidWalls`, so the learner never fixes `driveInTheDark`: its versions '
+               'are not study code, and they keep their judgement on L5. L1 is a new level, "Straight Ahead": a straight line between walls that '
+               'falls to the robot\'s right (so a line follower must steer right), no time limit. The slow line followers beat it and L2: they are '
+               'equivalent now (the old L1 had a time limit of 20 s), and the reference test of that time limit is gone.']
     md += ['', '### The starter code', '',
            "The broken version a learner gets where a function is new, in each version of the study's code (one per run, chosen per program in the "
            "Lab's Edit menu; `write_level_code.py` puts them into the level files):", '',

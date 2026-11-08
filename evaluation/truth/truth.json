@@ -10,9 +10,9 @@
  "program_shape": "main: forever: <the newest function>(); each function handles its situation or calls the function of the level before (a priority chain: the simulator runs one motor block per frame)",
  "levels": [
   {
-   "level": "l2",
-   "file": "levels/01-first-steps/l2-curves.json",
-   "title": "L2 - Curves",
+   "level": "l1",
+   "file": "levels/01-first-steps/l1-straight-ahead.json",
+   "title": "L1 - Straight Ahead",
    "time_limit_s": null,
    "function": "followLine",
    "new_function": "followLine",
@@ -30,6 +30,20 @@
     "1": "followLine/A-light-above",
     "2": "followLine/B-straight-off"
    }
+  },
+  {
+   "level": "l2",
+   "file": "levels/01-first-steps/l2-curves.json",
+   "title": "L2 - Curves",
+   "time_limit_s": null,
+   "function": "followLine",
+   "new_function": null,
+   "functions": [
+    "followLine"
+   ],
+   "main_calls": "followLine",
+   "inject": null,
+   "starter": null
   },
   {
    "level": "l4",
@@ -133,6 +147,7 @@
   {
    "name": "followLine",
    "levels": [
+    "l1",
     "l2"
    ],
    "given_in": null,
@@ -1650,6 +1665,7 @@
     "    curve(40, 10)"
    ],
    "levels": {
+    "l1": "win",
     "l2": "win"
    },
    "later_levels": {
@@ -1684,6 +1700,7 @@
     "    curve(10, 40)"
    ],
    "levels": {
+    "l1": "win",
     "l2": "win"
    },
    "later_levels": null,
@@ -1713,6 +1730,7 @@
     "    curve(40, 10)"
    ],
    "levels": {
+    "l1": "fail_hit",
     "l2": "fail_area"
    },
    "later_levels": null,
@@ -1749,6 +1767,7 @@
     "    curve(10, 40)"
    ],
    "levels": {
+    "l1": "fail_hit",
     "l2": "fail_hit"
    },
    "later_levels": null,
@@ -1785,6 +1804,7 @@
     "    curve(20, 5)"
    ],
    "levels": {
+    "l1": "win",
     "l2": "win"
    },
    "later_levels": null,
@@ -1814,6 +1834,7 @@
     "    drive(40)"
    ],
    "levels": {
+    "l1": "fail_hit",
     "l2": "fail_hit"
    },
    "later_levels": null,
@@ -1852,6 +1873,7 @@
     "    curve(50, 20)"
    ],
    "levels": {
+    "l1": "win",
     "l2": "win"
    },
    "later_levels": {
@@ -1886,6 +1908,7 @@
     "    curve(20, 50)"
    ],
    "levels": {
+    "l1": "win",
     "l2": "win"
    },
    "later_levels": null,
@@ -1915,6 +1938,7 @@
     "    curve(50, 20)"
    ],
    "levels": {
+    "l1": "fail_hit",
     "l2": "fail_area"
    },
    "later_levels": null,
@@ -1951,6 +1975,7 @@
     "    curve(20, 50)"
    ],
    "levels": {
+    "l1": "fail_hit",
     "l2": "fail_hit"
    },
    "later_levels": null,
@@ -1987,6 +2012,7 @@
     "    curve(25, 10)"
    ],
    "levels": {
+    "l1": "win",
     "l2": "win"
    },
    "later_levels": null,
@@ -2016,6 +2042,7 @@
     "    drive(40)"
    ],
    "levels": {
+    "l1": "fail_hit",
     "l2": "fail_hit"
    },
    "later_levels": null,
@@ -2056,6 +2083,7 @@
     "    drive(40)"
    ],
    "levels": {
+    "l1": "win",
     "l2": "win"
    },
    "later_levels": {
@@ -2092,6 +2120,7 @@
     "    drive(40)"
    ],
    "levels": {
+    "l1": "win",
     "l2": "win"
    },
    "later_levels": null,
@@ -2123,6 +2152,7 @@
     "    drive(40)"
    ],
    "levels": {
+    "l1": "win",
     "l2": "fail_area"
    },
    "later_levels": null,
@@ -2161,6 +2191,7 @@
     "    drive(40)"
    ],
    "levels": {
+    "l1": "fail_hit",
     "l2": "fail_hit"
    },
    "later_levels": null,
@@ -2199,6 +2230,7 @@
     "    drive(20)"
    ],
    "levels": {
+    "l1": "win",
     "l2": "win"
    },
    "later_levels": null,
@@ -2230,6 +2262,7 @@
     "    drive(40)"
    ],
    "levels": {
+    "l1": "fail_hit",
     "l2": "fail_hit"
    },
    "later_levels": null,
@@ -2268,6 +2301,7 @@
     "    followLine()"
    ],
    "levels": {
+    "l1": "win",
     "l2": "win",
     "l4": "win_soft"
    },
@@ -2439,6 +2473,7 @@
     "    followLine()"
    ],
    "levels": {
+    "l1": "win",
     "l2": "win",
     "l4": "win_soft"
    },
@@ -2610,6 +2645,7 @@
     "    followLine()"
    ],
    "levels": {
+    "l1": "win",
     "l2": "win",
     "l4": "win_soft"
    },
@@ -2781,6 +2817,7 @@
     "    stopAtWall()"
    ],
    "levels": {
+    "l1": "win",
     "l2": "win",
     "l4": "win_soft",
     "l5": "win"
@@ -3015,6 +3052,7 @@
     "    stopAtWall()"
    ],
    "levels": {
+    "l1": "win",
     "l2": "win",
     "l4": "win_soft",
     "l5": "win"
@@ -3249,6 +3287,7 @@
     "    stopAtWall()"
    ],
    "levels": {
+    "l1": "win",
     "l2": "win",
     "l4": "win_soft",
     "l5": "win"
@@ -3488,6 +3527,7 @@
     "    driveInTheDark()"
    ],
    "levels": {
+    "l1": "win",
     "l2": "win",
     "l4": "win_soft",
     "l6": "win"
@@ -3696,6 +3736,7 @@
     "    driveInTheDark()"
    ],
    "levels": {
+    "l1": "win",
     "l2": "win",
     "l4": "win_soft",
     "l6": "win"
@@ -3904,6 +3945,7 @@
     "    driveInTheDark()"
    ],
    "levels": {
+    "l1": "win",
     "l2": "win",
     "l4": "win_soft",
     "l6": "win"
@@ -4113,6 +4155,7 @@
     "    avoidWalls()"
    ],
    "levels": {
+    "l1": "win",
     "l2": "win",
     "l4": "win_soft",
     "l6": "win",
@@ -4330,6 +4373,7 @@
     "    avoidWalls()"
    ],
    "levels": {
+    "l1": "win",
     "l2": "win",
     "l4": "win_soft",
     "l6": "win",
@@ -4547,6 +4591,7 @@
     "    avoidWalls()"
    ],
    "levels": {
+    "l1": "win",
     "l2": "win",
     "l4": "win_soft",
     "l6": "win",
@@ -4746,6 +4791,13 @@
   }
  ],
  "level_check": {
+  "l1": {
+   "combinations": 3,
+   "combinations_won": 3,
+   "equivalents": 6,
+   "equivalents_won": 6,
+   "equivalents_lost": []
+  },
   "l2": {
    "combinations": 3,
    "combinations_won": 3,

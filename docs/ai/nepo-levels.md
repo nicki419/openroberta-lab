@@ -12,7 +12,8 @@ Designers' guide: `levels/README.md`. Configuration: `.env.example`.
 
 | What | Where |
 |---|---|
-| Level sets (a folder per set, a `.json` file per level, both ordered by name) | `levels/` (`LEVELS_DIR`) |
+| Level sets (a folder per set, a `.json` file per level, both ordered by name; a folder beginning with `00-` is a warm-up set) | `levels/` (`LEVELS_DIR`) |
+| The programs every new account gets (the familiarisation program with L0, the study's two programs) | `study-programs/` (`STUDY_PROGRAMS_DIR`, server property `study.programs.dir`), added by `OpenRobertaServer/.../persistence/StudyPrograms.java` from `ClientUser` `createUser`; written by `study-programs/make.py`; test `StudyProgramsRestTest` |
 | `.env`: `LEVEL_DESIGNER`, `LEVELS_DIR`, `LEVEL_TELEMETRY_DIR` → server properties `levels.designer`, `levels.dir`, `levels.telemetry.dir` | `OpenRobertaServer/.../main/EnvFile.java`, read in `ServerStarter.main` (`-d` overrides it); defaults in `openRoberta.properties` |
 | REST `GET /levels` (the sets with their levels), `POST /levels/telemetry` | `OpenRobertaServer/.../restServices/all/controller/LevelsController.java` |
 | The designer flag sent to the browser | `ClientInit` (`server.levels.designer`), `guiState.controller.js` `isLevelDesignerOn()` |
@@ -207,22 +208,55 @@ the main loop calls the newest one; each function handles its situation or calls
   hairpin. The line after the first tunnel runs through the tunnel's bend (the robot follows it in the dark) and on down the middle of the
   dark corridor of the wide tunnel into the last line, which runs up to the wall at the goal. The tunnels, walls, fail areas and the goal
   are as before. L8 now belongs to `followInTheDark`, as L2 to `followLine`: it has no new code.
-- **Still open:** a line follower with its turns swapped (it follows the other edge of the line) beats L2 to L7 but can't finish L8: where
+- **Still open:** a line follower with its turns swapped (it follows the other edge of the line) beats L1 to L7 but can't finish L8: where
   the robot comes out of the wide tunnel into the light, the line follower of the light takes over from the one of the dark, and if they
   follow different edges, it turns away into the wall. The starter code avoids starters whose obvious fix is such a follower.
 
-**L1 and L5 were taken out on 2026-11-08** (the pilot study). The set now has five levels: L2, L4, L6, L7, L8.
-- **L1** had the same code as L2 (`followLine`). L2 now brings that code (`calls: null`, the same starters), and L1's time limit (20 s) went
-  with it.
+**The pilot study's levels (2026-11-08).** The set now has six levels: L1, L2, L4, L6, L7, L8.
+- **L1** was first taken out (it had the same code as L2), then came back the same day as a new level, **"Straight Ahead"**
+  (`l1-straight-ahead.json`, the user's): a straight line between two walls that lose the level, the goal at its end, no time limit (the old
+  L1 had 20 s). It brings `followLine` again (`calls: null`, the same starters); L2 has the function of L1. **Mirrored:** as drawn, the line
+  rose to the robot's left, so a line follower needed only left turns there, and version 2's starter `followLine/B-straight-off` (it drives
+  straight where it should turn right) won it; a robot that only drives straight did fail (it bumps after 3.1 s). Mirrored top to bottom
+  (walls and goal with it), the line falls to the robot's right: both starters lose (`A-light-above` after 1.0 s, `B-straight-off` after
+  1.6 s), every correct version of every function wins, and every combination of correct fixes and each equivalent version beats it.
 - **L5**, the straight tunnel, went because L6 has a bent one. L5 brought `driveInTheDark`, which L6's `avoidWalls` calls in the dark (L6 has
   no line inside its tunnel, so it can't be beaten without it). L6 now brings `driveInTheDark` **as it is, correct** (its reference version
   `driveInTheDark/A`, the same in both versions of the study's code: `code.given`), added before its broken `avoidWalls`; the main loop's call
   of `stopAtWall` becomes one of `avoidWalls`. So every level is still one function to fix, and the learner never fixes `driveInTheDark`.
   Verified in headless Chrome: a program with the code of L2 and L4 that opens L6 gets `driveInTheDark` (`<` 70) and `avoidWalls`, its main
   loop calls `avoidWalls`, and `code_added` records `given: {driveInTheDark: added}`.
-- **The source of truth and phase 5 follow** (`evaluation/truth/README.md`, `evaluation/phase5/recount-5-levels.md`): without L1,
-  `followLine/A-too-slow` and `C-too-slow` beat L2 and are equivalent; the reference test of L1's time limit is gone and the bend tests
-  allow 60 s; every combination of correct fixes still beats the five levels (only the swapped line followers lose L8, as before).
+- **The source of truth and phase 5 follow** (`evaluation/truth/README.md`, `evaluation/phase5/recount-study-levels.md`): without the old
+  L1's time limit, `followLine/A-too-slow` and `C-too-slow` beat L1 and L2 and are equivalent; the reference test of that time limit is gone
+  and the bend tests allow 60 s; every combination of correct fixes still beats the six levels (only the swapped line followers lose L8, as
+  before).
+
+## The familiarisation: L0 and the programs of a new account (2026-11-08)
+
+Before the study, each participant gets to know the Lab with a level of its own and a program that already works.
+
+- **L0** (`levels/00-familiarisation/l0-familiarisation.json`): an empty floor (120 × 80 cm) with a wall across it (`failOnHit`) and a soft
+  goal area in front of the wall (standing still 3 s beats it). Its set is a **warm-up set** (its folder begins with `00-`): a program
+  plays it only if its progress is in it, a program without progress begins with the first other set, and the bar offers only the sets of
+  the program's kind (`levels.player` `isWarmUp`, `offeredSets`; a warm-up set's progress is saved even before a level was played). So the
+  familiarisation program sees only L0, and the study's programs never see it.
+- **Every new account gets three programs** (`ClientUser` `createUser` → `StudyPrograms.addTo`), for the robot group `edison`, with the
+  default configuration, from the files of `study-programs/` (one per program, named after it; `STUDY_PROGRAMS_DIR` in `.env`, by default
+  `study-programs` in the working directory; no folder: no programs, as before). A program that can't be added is logged; the account is
+  created anyway. Accounts made by a group owner for a user group (`/userGroup/addGroupMembers`) don't get them.
+  - **Familiarisation:** `forever: if an obstacle is ahead (FRONT): stop, play 880 Hz for 200 ms, play 440 Hz for 200 ms; else steer forwards,
+    left 48 %, right 50 %`. It works as it is: the robot drives slightly to the left, meets the wall at about 26°, stops in front of it,
+    sounds the alarm, and beats L0 after 7.6 s (a sharper curve, 40/50 or 45/50, reaches the floor's top edge first). Its Tests tab has one
+    test, "Stops at the wall and sounds the alarm" (L0's floor and wall, the area before the wall an ordinary goal; checks: never bumps
+    into the wall, ends in the area, within 500 ms after an obstacle appears it plays a sound), which passes. Its progress opens L0.
+  - **WithAI**, **WithoutAI:** the study's two blank programs (the start block, as a new Edison program); the level code is added when a
+    level is played, its version chosen per program in the Edit menu.
+- `study-programs/make.py` writes the three files (the test's blocks are made by the Lab, `nepoTest.aiFormat` `suiteXml`) and checks that
+  the program beats L0 and its test passes.
+- **Verified (2026-11-08):** `StudyProgramsRestTest` (a new account gets the three programs with their content; without the folder, none);
+  in headless Chrome on the Lab: a throwaway account got Familiarisation, WithAI and WithoutAI (then deleted); the familiarisation program
+  opened L0, its test passed in the Tests tab, and run in the Program tab's simulator it beat L0 ("The robot stood still in the goal area");
+  a blank study program opened L2 of the study's set; neither showed a set chooser.
 
 ## Checking it
 

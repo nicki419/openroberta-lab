@@ -44,6 +44,7 @@ public final class EnvFile {
         properties.put("LEVEL_DESIGNER", "levels.designer"); // true: the Level designer tab is shown
         properties.put("LEVELS_DIR", "levels.dir"); // the folder of the level sets (a folder per set, a file per level)
         properties.put("LEVEL_TELEMETRY_DIR", "levels.telemetry.dir"); // the folder of the study's telemetry (a file per participant)
+        properties.put("STUDY_PROGRAMS_DIR", "study.programs.dir"); // the programs every new account gets (a file per program; empty: none)
         properties.put("AI_PROVIDERS", "ai.providers"); // the AI test assistant's APIs in the order they are asked: deepseek, ucloud
         for ( String provider : AI_PROVIDERS ) { // DeepSeek's own API, SDU's UCloud: the address, the model, the reasoning effort of each call
             String env = provider.toUpperCase(), property = "ai." + provider + ".";

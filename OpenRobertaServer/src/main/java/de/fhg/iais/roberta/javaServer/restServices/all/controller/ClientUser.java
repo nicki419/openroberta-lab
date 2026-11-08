@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -44,6 +45,7 @@ import de.fhg.iais.roberta.main.MailManagement;
 import de.fhg.iais.roberta.persistence.LostPasswordProcessor;
 import de.fhg.iais.roberta.persistence.PendingEmailConfirmationsProcessor;
 import de.fhg.iais.roberta.persistence.ProcessorStatus;
+import de.fhg.iais.roberta.persistence.StudyPrograms;
 import de.fhg.iais.roberta.persistence.UserGroupProcessor;
 import de.fhg.iais.roberta.persistence.UserProcessor;
 import de.fhg.iais.roberta.persistence.bo.LostPassword;
@@ -86,12 +88,14 @@ public class ClientUser {
     private final MailManagement mailManagement;
 
     private final boolean isPublicServer;
+    private final String studyProgramsDir; // the programs every new account gets (StudyPrograms); null: none
 
     @Inject
     public ClientUser(RobotCommunicator brickCommunicator, ServerProperties serverProperties, MailManagement mailManagement) {
         this.brickCommunicator = brickCommunicator;
         this.mailManagement = mailManagement;
         this.isPublicServer = serverProperties.getBooleanProperty("server.public");
+        this.studyProgramsDir = serverProperties.getStringProperty("study.programs.dir");
     }
 
     // TODO: static variables (they are changed!) in a REST resource are very dangerous. Refactor, i.e. remove!
@@ -362,6 +366,12 @@ public class ClientUser {
             //String tag = request.getString("tag");
             boolean isYoungerThen14 = request.getIsYoungerThen14();
             User newUser = up.createUser(account, password, userName, role, email, null, isYoungerThen14);
+            if ( up.succeeded() && newUser != null ) {
+                List<String> programs = StudyPrograms.addTo(dbSession, newUser, this.studyProgramsDir); // the familiarisation and the study's programs
+                if ( !programs.isEmpty() ) {
+                    LOG.info("programs added to the new account " + account + ": " + programs);
+                }
+            }
             if ( up.succeeded() && newUser != null && this.isPublicServer && !email.equals("") ) {
                 PendingEmailConfirmationsProcessor pendingConfirmationProcessor = new PendingEmailConfirmationsProcessor(dbSession, httpSessionState.getUserId());
                 String lang = request.getLanguage();

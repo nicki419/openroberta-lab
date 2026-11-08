@@ -128,8 +128,11 @@ latched sensors from EdPy's library. The document also lists which behaviour is 
   versions, and reference tests that tell them apart. The files are committed and used as they are; `truth.json` is for analysis.
 - **The study's code per level** (`levels.code.ts`): a level's `code` (its broken function, in two versions, and any functions it
   brings correct, `given`) is added to the learner's program when the level is played; the version is chosen per program in the Edit
-  menu ("Level code: version 1/2"). Since the pilot study (2026-11-08) the set has five levels (L2, L4, L6, L7, L8): L1 and L5 were taken
-  out, and L6 brings `driveInTheDark` correct.
+  menu ("Level code: version 1/2"). Since the pilot study (2026-11-08) the set has six levels (L1, L2, L4, L6, L7, L8): L5 was taken
+  out (L6 brings `driveInTheDark` correct), and L1 is a new level, "Straight Ahead" (a straight line between walls).
+- **The familiarisation** (2026-11-08): L0 in the warm-up set `levels/00-familiarisation` (a folder beginning with `00-` is played only by a
+  program whose progress is in it). Every new account gets three programs from `study-programs/` (`StudyPrograms`, called by
+  `ClientUser` `createUser`; `STUDY_PROGRAMS_DIR`): Familiarisation (working code, one passing test, opens L0), WithAI and WithoutAI (blank).
 
 Read it before changing the simulator's level hooks, the level format or the telemetry. `levels/README.md` is the
 designers' guide.

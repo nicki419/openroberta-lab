@@ -10,6 +10,10 @@ order. Beating a level unlocks the next one. They can go back to a level they ha
   once a study has started.
 - The server reads the folder each time the page loads, so reload the page after adding or changing a level. The
   folder is `levels` in the working directory, or `LEVELS_DIR` in `.env` (see `.env.example`).
+- **A warm-up set** is a folder whose name begins with `00-` (`00-familiarisation`: L0, a wall on an empty floor, before the
+  study). A program plays it only if its progress is in it: the familiarisation program every new account gets
+  (`study-programs/Familiarisation.xml`) opens it. Every other program begins with the first set that isn't a warm-up set,
+  and the bar offers only the sets of the program's kind, so the study's programs never see L0.
 
 ## Making a level
 

@@ -16,15 +16,16 @@ DARK = 70  # LLIGHT below this: inside a tunnel (100 in the open, 40 from 15 cm 
 CHAIN = ['followLine', 'stopAtWall', 'driveInTheDark', 'avoidWalls', 'followInTheDark']
 # the levels each function is for (its own levels: a broken version loses one of them)
 # (2026-11-07: L8, the climax, plays all functions; it belongs to the last one, as L2 to followLine, since its lines were softened)
-# (2026-11-08, the pilot study: L1 and L5 taken out. followLine is judged on L2 alone. driveInTheDark keeps its judgement on L5, which the study
-# no longer plays: L6 brings its reference version as it is (GIVEN), so the learner never fixes it, and its versions are not study code. L5's
-# file is in git before 2026-11-08, so verify.py can't judge driveInTheDark again without it.)
-LEVELS_OF = {'followLine': ['l2'], 'stopAtWall': ['l4'], 'driveInTheDark': ['l5'], 'avoidWalls': ['l6'], 'followInTheDark': ['l7', 'l8']}
-LEVEL_ORDER = ['l2', 'l4', 'l5', 'l6', 'l7', 'l8']
-STUDY_LEVELS = ['l2', 'l4', 'l6', 'l7', 'l8']  # the levels the study plays
+# (2026-11-08, the pilot study: L5 taken out. driveInTheDark keeps its judgement on L5, which the study no longer plays: L6 brings its reference
+# version as it is (GIVEN), so the learner never fixes it, and its versions are not study code. L5's file is in git before 2026-11-08, so
+# verify.py can't judge driveInTheDark again without it. L1 was taken out too and came back the same day as a new level, l1-straight-ahead: a
+# straight line between walls, no time limit; the runs of the old L1 (a straight line, 20 s) were replaced by runs on it: rejudge.py --play l1.)
+LEVELS_OF = {'followLine': ['l1', 'l2'], 'stopAtWall': ['l4'], 'driveInTheDark': ['l5'], 'avoidWalls': ['l6'], 'followInTheDark': ['l7', 'l8']}
+LEVEL_ORDER = ['l1', 'l2', 'l4', 'l5', 'l6', 'l7', 'l8']
+STUDY_LEVELS = ['l1', 'l2', 'l4', 'l6', 'l7', 'l8']  # the levels the study plays
 GIVEN = {'driveInTheDark': 'l6'}  # functions the study gives as they are (their reference version), and the level that brings them
 STUDY_FUNCTIONS = [f for f in CHAIN if f not in GIVEN]  # the functions the learner fixes
-REMOVED_LEVELS = {'l1': '2026-11-08', 'l5': '2026-11-08'}  # taken out of the study (the pilot study): their runs in versions.json no longer count
+REMOVED_LEVELS = {'l5': '2026-11-08'}  # taken out of the study (the pilot study): their runs in versions.json no longer count
 
 
 def handover(fn):

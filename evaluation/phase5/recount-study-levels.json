@@ -23,7 +23,7 @@
     "sets with a false alarm": 40,
     "the seen fault caught": 55
    },
-   "5 levels, equivalent versions left out (first count)": {
+   "study levels, equivalent versions left out (first count)": {
     "requests": 60,
     "broken versions caught": 73,
     "good sets": 23,
@@ -37,7 +37,7 @@
     "sets with a false alarm": 32,
     "the seen fault caught": 65
    },
-   "5 levels, equivalent versions must pass": {
+   "study levels, equivalent versions must pass": {
     "requests": 60,
     "broken versions caught": 72,
     "good sets": 22,
@@ -54,7 +54,7 @@
    "dropped as no longer broken": 4,
    "sets that fail an equivalent version": 4,
    "followInTheDark sets that catch every swapped version": "10 of 16",
-   "by function, 5 levels": {
+   "by function, study levels": {
     "followLine": {
      "requests": 12,
      "broken versions caught": 78,
@@ -93,7 +93,7 @@
     "sets with a false alarm": 48,
     "the seen fault caught": 40
    },
-   "5 levels, equivalent versions left out (first count)": {
+   "study levels, equivalent versions left out (first count)": {
     "requests": 60,
     "broken versions caught": 66,
     "good sets": 27,
@@ -107,7 +107,7 @@
     "sets with a false alarm": 58,
     "the seen fault caught": 40
    },
-   "5 levels, equivalent versions must pass": {
+   "study levels, equivalent versions must pass": {
     "requests": 60,
     "broken versions caught": 63,
     "good sets": 10,
@@ -124,7 +124,7 @@
    "dropped as no longer broken": 4,
    "sets that fail an equivalent version": 9,
    "followInTheDark sets that catch every swapped version": "10 of 16",
-   "by function, 5 levels": {
+   "by function, study levels": {
     "followLine": {
      "requests": 12,
      "broken versions caught": 78,
@@ -163,7 +163,7 @@
     "sets with a false alarm": 14,
     "the seen fault caught": 72
    },
-   "5 levels, equivalent versions left out (first count)": {
+   "study levels, equivalent versions left out (first count)": {
     "requests": 60,
     "broken versions caught": 83,
     "good sets": 55,
@@ -177,7 +177,7 @@
     "sets with a false alarm": 13,
     "the seen fault caught": 75
    },
-   "5 levels, equivalent versions must pass": {
+   "study levels, equivalent versions must pass": {
     "requests": 60,
     "broken versions caught": 76,
     "good sets": 37,
@@ -194,7 +194,7 @@
    "dropped as no longer broken": 4,
    "sets that fail an equivalent version": 2,
    "followInTheDark sets that catch every swapped version": "0 of 16",
-   "by function, 5 levels": {
+   "by function, study levels": {
     "followLine": {
      "requests": 12,
      "broken versions caught": 87,
@@ -233,7 +233,7 @@
     "sets with a false alarm": 20,
     "the seen fault caught": 70
    },
-   "5 levels, equivalent versions left out (first count)": {
+   "study levels, equivalent versions left out (first count)": {
     "requests": 60,
     "broken versions caught": 89,
     "good sets": 62,
@@ -247,7 +247,7 @@
     "sets with a false alarm": 25,
     "the seen fault caught": 73
    },
-   "5 levels, equivalent versions must pass": {
+   "study levels, equivalent versions must pass": {
     "requests": 60,
     "broken versions caught": 79,
     "good sets": 37,
@@ -264,7 +264,7 @@
    "dropped as no longer broken": 4,
    "sets that fail an equivalent version": 7,
    "followInTheDark sets that catch every swapped version": "0 of 16",
-   "by function, 5 levels": {
+   "by function, study levels": {
     "followLine": {
      "requests": 12,
      "broken versions caught": 66,
@@ -303,7 +303,7 @@
     "sets with a false alarm": 4,
     "the seen fault caught": 71
    },
-   "5 levels, equivalent versions left out (first count)": {
+   "study levels, equivalent versions left out (first count)": {
     "requests": 60,
     "broken versions caught": 76,
     "good sets": 45,
@@ -317,7 +317,7 @@
     "sets with a false alarm": 3,
     "the seen fault caught": 75
    },
-   "5 levels, equivalent versions must pass": {
+   "study levels, equivalent versions must pass": {
     "requests": 60,
     "broken versions caught": 71,
     "good sets": 32,
@@ -334,7 +334,7 @@
    "dropped as no longer broken": 4,
    "sets that fail an equivalent version": 0,
    "followInTheDark sets that catch every swapped version": "0 of 16",
-   "by function, 5 levels": {
+   "by function, study levels": {
     "followLine": {
      "requests": 12,
      "broken versions caught": 91,
@@ -373,7 +373,7 @@
     "sets with a false alarm": 6,
     "the seen fault caught": 76
    },
-   "5 levels, equivalent versions left out (first count)": {
+   "study levels, equivalent versions left out (first count)": {
     "requests": 60,
     "broken versions caught": 83,
     "good sets": 58,
@@ -387,7 +387,7 @@
     "sets with a false alarm": 8,
     "the seen fault caught": 78
    },
-   "5 levels, equivalent versions must pass": {
+   "study levels, equivalent versions must pass": {
     "requests": 60,
     "broken versions caught": 76,
     "good sets": 42,
@@ -404,7 +404,7 @@
    "dropped as no longer broken": 4,
    "sets that fail an equivalent version": 2,
    "followInTheDark sets that catch every swapped version": "0 of 15",
-   "by function, 5 levels": {
+   "by function, study levels": {
     "followLine": {
      "requests": 12,
      "broken versions caught": 81,

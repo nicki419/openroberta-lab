@@ -20,6 +20,10 @@
  *   unsaved change of the program (autosave saves it: levels.autosave).
  * - Events (onEvent) tell others what happens: a level is opened, an attempt begins and ends, a set is chosen.
  * - The progress also holds the study's code of the program (codeState: its version, the levels whose code was added; levels.code adds it).
+ * - **Warm-up sets** (a folder whose name begins with 00-, since 2026-11-08: 00-familiarisation, L0, before the study): a program plays one only if
+ *   its progress is in it (the familiarisation program every new account gets: study-programs/). A program without progress begins with the first
+ *   set that isn't one, and the bar offers only the sets of the program's kind, so the study's programs never see L0 and the familiarisation
+ *   program sees only it.
  */
 import * as GUISTATE_C from 'guiState.controller';
 // @ts-ignore (Blockly has no type declarations)
@@ -194,7 +198,7 @@ export function init(): void {
 
 /** the progress to save with the program (JSON), once the learner has played or the study's code was chosen (else null: the program stays as it is) */
 function serializeProgress(): string {
-    return Object.keys(progress.levels).length || progress.code ? JSON.stringify(progress) : null;
+    return Object.keys(progress.levels).length || progress.code || isWarmUp(progress.set) ? JSON.stringify(progress) : null; // a warm-up set: kept even before a level was played
 }
 
 /** the progress of a loaded program (null: none, the levels start anew) */
@@ -409,7 +413,18 @@ interface Current {
 }
 
 function currentSet(): LEVEL.LevelSet {
-    return sets.filter((s) => s.id === progress.set)[0] || sets[0] || null;
+    return sets.filter((s) => s.id === progress.set)[0] || sets.filter((s) => !isWarmUp(s.id))[0] || sets[0] || null;
+}
+
+/** a warm-up set (its folder begins with 00-): played only by a program whose progress is in it */
+function isWarmUp(setId: string): boolean {
+    return /^00-/.test(setId || '');
+}
+
+/** the sets the bar offers: those of the current set's kind (warm-up or not) */
+function offeredSets(): LEVEL.LevelSet[] {
+    const set = currentSet();
+    return set ? sets.filter((s) => isWarmUp(s.id) === isWarmUp(set.id)) : sets;
 }
 
 function setProgress(set: LEVEL.LevelSet): { current: string; beaten: string[] } {
@@ -484,7 +499,7 @@ export function selectLevel(id: string): void {
 }
 
 export function selectSet(id: string): void {
-    if (!sets.some((s) => s.id === id) || progress.set === id) {
+    if (!offeredSets().some((s) => s.id === id) || progress.set === id) {
         return;
     }
     changeLevel(() => {
@@ -776,7 +791,7 @@ function renderBar(): void {
     ui.setText.textContent = text('set') + ' ';
     ui.levelText.textContent = text('level') + ' ';
     ui.set.innerHTML = '';
-    sets.forEach((set) => {
+    offeredSets().forEach((set) => {
         const o = html('option', '', ui.set);
         o.value = set.id;
         o.textContent = set.name;
@@ -794,7 +809,7 @@ function renderBar(): void {
         ui.level.value = c.id;
     }
     const playing = !trial && !!c.set;
-    ui.setLabel.style.display = playing && sets.length > 1 ? '' : 'none';
+    ui.setLabel.style.display = playing && offeredSets().length > 1 ? '' : 'none';
     ui.levelLabel.style.display = playing ? '' : 'none';
     ui.trying.style.display = trial ? '' : 'none';
     ui.trying.textContent = text('trying');

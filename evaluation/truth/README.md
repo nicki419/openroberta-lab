@@ -13,24 +13,24 @@ Your rule (2026-11-06): *every correct version passes every test, and every brok
 compare test sets against it, whether the learners wrote them, the AI assistant did, or the plain call of phase 5. The files are committed and
 used as they are. Don't build them again unless you mean to change the truth (see "Changing it").
 
-**Five levels since the pilot study (2026-11-08):** L1 (the same code as L2) and L5 (a straight tunnel; L6 has a bent one) were taken out.
-L2 brings `followLine`. L6 brings `driveInTheDark` as it is, its correct reference version, before its own `avoidWalls` (`corpus.GIVEN`; the
-level file's `code.given`), so the learner never fixes `driveInTheDark`: its versions are not study code and keep their judgement on L5.
-Without L1's time limit, `followLine/A-too-slow` and `C-too-slow` beat L2: they are equivalent now (phase 5's `rejudge.py`), and the test of
-L1's time limit is gone.
+**Six levels since the pilot study (2026-11-08):** L5 (a straight tunnel; L6 has a bent one) was taken out: L6 brings `driveInTheDark` as it
+is, its correct reference version, before its own `avoidWalls` (`corpus.GIVEN`; the level file's `code.given`), so the learner never fixes
+`driveInTheDark`: its versions are not study code and keep their judgement on L5. L1 is a new level, "Straight Ahead" (`l1-straight-ahead.json`, 2026-11-08): a straight line between two walls that lose the level, the goal at its end, no time limit. The line falls to the robot's right: the file as drawn (rising to the robot's left) was mirrored top to bottom, because a line that needs only left turns let version 2's starter (`followLine/B-straight-off`, which can't turn right) win it. Its runs replaced those of the old L1
+(phase 5's `rejudge.py --play l1`). Without the old L1's time limit, `followLine/A-too-slow` and `C-too-slow` beat L1 and L2: they are
+equivalent now, and the test of that time limit is gone.
 
 Checked on 2026-11-08 (`verify.py`; `followLine` run again, the other functions as on 2026-11-07):
 
 | function | levels | correct | broken | equivalent | reference tests | false alarms | broken versions caught |
 |---|---|---|---|---|---|---|---|
-| `followLine` | L2 | 3 | 9 | 6 | 2 | 0 | 9 of 9 |
+| `followLine` | L1, L2 | 3 | 9 | 6 | 2 | 0 | 9 of 9 |
 | `stopAtWall` | L4 | 3 | 12 | 0 | 2 | 0 | 12 of 12 |
 | `driveInTheDark` | (L5, no longer played; given at L6) | 3 | 15 | 0 | 3 | 0 | 15 of 15 |
 | `avoidWalls` | L6 | 3 | 12 | 0 | 3 | 0 | 12 of 12 |
 | `followInTheDark` | L7, L8 | 3 | 12 | 0 | 4 | 0 | 12 of 12 |
 
-Every level was beaten by every combination of the correct versions of its program's functions (`check_levels.py`: 3 programs at L2, 9 at
-L4, 27 at L6 (`driveInTheDark` in its reference version), 81 at L7 and L8), and by each equivalent version, except the swapped line followers
+Every level was beaten by every combination of the correct versions of its program's functions (`check_levels.py`: 3 programs at L1 and
+L2, 9 at L4, 27 at L6 (`driveInTheDark` in its reference version), 81 at L7 and L8), and by each equivalent version, except the swapped line followers
 at L8 (see "Open"). (Until 2026-11-08: 3 programs at L1 and L2, 9 at L4, 27 at L5, 81 at L6, 243 at L7 and L8.)
 
 - **The results repeat exactly.** Two full runs of the then 14 tests gave the same result on all 228 runs (each version × each test of its
@@ -152,15 +152,15 @@ these faults; the line tests catch "light-above".
 
 | level | function | version 1 | version 2 |
 |---|---|---|---|
-| L2 | `followLine` | `A-light-above`: reads the light from above instead of the floor | `B-straight-off`: drives straight when off the line |
+| L1 | `followLine` | `A-light-above`: reads the light from above instead of the floor | `B-straight-off`: drives straight when off the line |
 | L4 | `stopAtWall` | `A-turns`: turns away instead of stopping | `C-slows`: slows down instead of stopping |
 | L6 | `avoidWalls` (with `driveInTheDark/A`, correct, in both) | `A-swapped`: turns towards the wall | `B-front-sensor`: reads FRONT instead of the side |
 | L7 | `followInTheDark` | `A-light-above`: reads the light from above instead of the floor | `B-peach-is-black`: the black threshold above the floor |
 
 Each loses the level where its function is new. The two of a level are faults of a similar kind, so neither run is harder by design; each
 version is built on other correct versions, so the second run doesn't show the same code. **Not `followLine/A-one-turn`:** its two turns are
-the same, and fixing the other one gives `followLine/A-swapped`, which beats L2 to L7 but can't finish L8 (see "Open"). (Until
-2026-11-08, L1 had `followLine`'s starters and L5 `driveInTheDark`'s: `A-negated` and `B-never-dark`.)
+the same, and fixing the other one gives `followLine/A-swapped`, which beats L1 to L7 but can't finish L8 (see "Open"). (Until
+2026-11-08, L5 had `driveInTheDark`'s: `A-negated` and `B-never-dark`.)
 
 **Injecting a level's code** is built into the Lab (`OpenRobertaWeb/src/app/levels/levels.code.ts`, `docs/ai/nepo-levels.md`, "The study's
 code per level"): the version is chosen per program in the Edit menu, and when a level with code is played, its starter is added to the
@@ -194,7 +194,8 @@ Where a level asked for that, whether a correct program won was luck.
   one is on the wrong side and turns away into the tunnel's wall. A wider line didn't help. A learner can write such a follower; if one gets
   stuck at L8, the staff can let them stop there. A level that avoids it needs no handover from a line follower in the dark to one in the
   light (as in L5, where the robot drives straight in the dark).
-- There are no L1, L3 and L5 in the set (L1 and L5 were taken out on 2026-11-08; their files are in git before that).
+- There are no L3 and L5 in the set (L5 was taken out on 2026-11-08; its file is in git before that). The old L1 (`l1-straight-line.json`)
+  is in git before 2026-11-08 too.
 - `driveInTheDark` can't be judged again (phase 5's `verify.py`) without L5's file.
 
 ## Changing it

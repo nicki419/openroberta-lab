@@ -5,6 +5,9 @@ followLine/A-too-slow and C-too-slow lose no level of theirs.
 
 python rejudge.py [corpus file]        prints what changes (versions.json: the corpus phase 5 uses)
 python rejudge.py --write [file]       writes it into the file
+python rejudge.py --play l1 --write    plays the versions a level judges on it again first (a level changed: L1, a new level since 2026-11-08):
+                                       every correct version (it must beat every level up to its own) and the versions of the level's
+                                       function; their runs on that level are replaced (the Lab and phase 5's Chromes must run)
 """
 import json
 import os
@@ -51,11 +54,31 @@ def no_longer_broken(path):
     return {vid for vid, kind, before, now in changes(vs) if kind == 'broken' and before and not now}
 
 
+def play(vs, level):
+    """plays every version the level judges on it (judge.py) and replaces its run there"""
+    import judge
+    lv = judge.levels()[level]
+    mine = [v for v in vs if (v['kind'] == 'correct' and level in levels_up_to(v['function'])) or level in corpus.LEVELS_OF[v['function']]]
+    jobs = [{'key': v['id'], 'level': lv, 'xml': v['xml']} for v in mine]
+    print(len(jobs), 'versions to play on', level, flush=True)
+    results = {}
+    for i in range(0, len(jobs), 24):
+        for r in judge.judge(jobs[i:i + 24]):
+            results[r['key']] = r
+    for v in mine:
+        r = results[v['id']]
+        v['runs'][level] = {'outcome': r['outcome'], 'at_s': r.get('at_s'), 'error': r.get('error')}
+        print('  %-36s %s at %s s' % (v['id'], r['outcome'], r.get('at_s')), flush=True)
+
+
 def main(args):
     write = '--write' in args
-    args = [a for a in args if a != '--write']
+    level = args[args.index('--play') + 1] if '--play' in args else None
+    args = [a for i, a in enumerate(args) if a not in ('--write', '--play') and (i == 0 or args[i - 1] != '--play')]
     path = os.path.join(HERE, 'corpus', args[0] if args else 'versions.json')
     vs = json.load(open(path, encoding='utf-8'))
+    if level:
+        play(vs, level)
     found = changes(vs)
     for vid, kind, before, now in found:
         print('%-36s %-8s %s -> %s' % (vid, kind, before, now))
