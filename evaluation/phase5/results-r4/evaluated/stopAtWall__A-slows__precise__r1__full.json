@@ -1,0 +1,401 @@
+{
+ "id": "stopAtWall__A-slows__precise__r1__full",
+ "job": {
+  "id": "stopAtWall__A-slows__precise__r1__full",
+  "function": "stopAtWall",
+  "version": "stopAtWall/A-slows",
+  "sentenceKind": "precise",
+  "sentence": "Follow the black line, and when a wall is right in front of the robot, stop before it without touching it and stay there.",
+  "repeat": 1,
+  "pipeline": "full",
+  "name": "p5_stopAtWall_A_slows"
+ },
+ "versions": [
+  {
+   "id": "stopAtWall/A",
+   "kind": "correct",
+   "fault": null,
+   "of": null
+  },
+  {
+   "id": "stopAtWall/A-negated",
+   "kind": "broken",
+   "fault": "negated",
+   "of": "stopAtWall/A"
+  },
+  {
+   "id": "stopAtWall/A-no-handover",
+   "kind": "broken",
+   "fault": "no-handover",
+   "of": "stopAtWall/A"
+  },
+  {
+   "id": "stopAtWall/A-turns",
+   "kind": "broken",
+   "fault": "turns",
+   "of": "stopAtWall/A"
+  },
+  {
+   "id": "stopAtWall/A-slows",
+   "kind": "broken",
+   "fault": "slows",
+   "of": "stopAtWall/A"
+  },
+  {
+   "id": "stopAtWall/B",
+   "kind": "correct",
+   "fault": null,
+   "of": null
+  },
+  {
+   "id": "stopAtWall/B-negated",
+   "kind": "broken",
+   "fault": "negated",
+   "of": "stopAtWall/B"
+  },
+  {
+   "id": "stopAtWall/B-no-handover",
+   "kind": "broken",
+   "fault": "no-handover",
+   "of": "stopAtWall/B"
+  },
+  {
+   "id": "stopAtWall/B-turns",
+   "kind": "broken",
+   "fault": "turns",
+   "of": "stopAtWall/B"
+  },
+  {
+   "id": "stopAtWall/B-slows",
+   "kind": "broken",
+   "fault": "slows",
+   "of": "stopAtWall/B"
+  },
+  {
+   "id": "stopAtWall/C",
+   "kind": "correct",
+   "fault": null,
+   "of": null
+  },
+  {
+   "id": "stopAtWall/C-negated",
+   "kind": "broken",
+   "fault": "negated",
+   "of": "stopAtWall/C"
+  },
+  {
+   "id": "stopAtWall/C-no-handover",
+   "kind": "broken",
+   "fault": "no-handover",
+   "of": "stopAtWall/C"
+  },
+  {
+   "id": "stopAtWall/C-turns",
+   "kind": "broken",
+   "fault": "turns",
+   "of": "stopAtWall/C"
+  },
+  {
+   "id": "stopAtWall/C-slows",
+   "kind": "broken",
+   "fault": "slows",
+   "of": "stopAtWall/C"
+  }
+ ],
+ "runs": {
+  "stopAtWall/A": {
+   "key": "stopAtWall/A",
+   "tests": [
+    {
+     "world": "A line to its end",
+     "test": "On the line, it follows it to the goal",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A wall across the line",
+     "test": "Stops before the wall on the line",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "stopAtWall/A-negated": {
+   "key": "stopAtWall/A-negated",
+   "tests": [
+    {
+     "world": "A line to its end",
+     "test": "On the line, it follows it to the goal",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 60 s"
+     ]
+    },
+    {
+     "world": "A wall across the line",
+     "test": "Stops before the wall on the line",
+     "outcome": "failed",
+     "failed": [
+      "at the end (after 20 s), the robot was not completely in \"Before the wall\""
+     ]
+    }
+   ]
+  },
+  "stopAtWall/A-no-handover": {
+   "key": "stopAtWall/A-no-handover",
+   "tests": [
+    {
+     "world": "A line to its end",
+     "test": "On the line, it follows it to the goal",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 60 s"
+     ]
+    },
+    {
+     "world": "A wall across the line",
+     "test": "Stops before the wall on the line",
+     "outcome": "failed",
+     "failed": [
+      "at the end (after 20 s), the robot was not completely in \"Before the wall\""
+     ]
+    }
+   ]
+  },
+  "stopAtWall/A-turns": {
+   "key": "stopAtWall/A-turns",
+   "tests": [
+    {
+     "world": "A line to its end",
+     "test": "On the line, it follows it to the goal",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A wall across the line",
+     "test": "Stops before the wall on the line",
+     "outcome": "failed",
+     "failed": [
+      "at the end (after 20 s), the robot was not completely in \"Before the wall\""
+     ]
+    }
+   ]
+  },
+  "stopAtWall/A-slows": {
+   "key": "stopAtWall/A-slows",
+   "tests": [
+    {
+     "world": "A line to its end",
+     "test": "On the line, it follows it to the goal",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A wall across the line",
+     "test": "Stops before the wall on the line",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 3.1 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove forward, straight (3.33 cm/s), 2 times, 0.52 s in total; the first from 2.62 to 3.12 s"
+     ]
+    }
+   ]
+  },
+  "stopAtWall/B": {
+   "key": "stopAtWall/B",
+   "tests": [
+    {
+     "world": "A line to its end",
+     "test": "On the line, it follows it to the goal",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A wall across the line",
+     "test": "Stops before the wall on the line",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "stopAtWall/B-negated": {
+   "key": "stopAtWall/B-negated",
+   "tests": [
+    {
+     "world": "A line to its end",
+     "test": "On the line, it follows it to the goal",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 60 s"
+     ]
+    },
+    {
+     "world": "A wall across the line",
+     "test": "Stops before the wall on the line",
+     "outcome": "failed",
+     "failed": [
+      "at the end (after 20 s), the robot was not completely in \"Before the wall\""
+     ]
+    }
+   ]
+  },
+  "stopAtWall/B-no-handover": {
+   "key": "stopAtWall/B-no-handover",
+   "tests": [
+    {
+     "world": "A line to its end",
+     "test": "On the line, it follows it to the goal",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 60 s"
+     ]
+    },
+    {
+     "world": "A wall across the line",
+     "test": "Stops before the wall on the line",
+     "outcome": "failed",
+     "failed": [
+      "at the end (after 20 s), the robot was not completely in \"Before the wall\""
+     ]
+    }
+   ]
+  },
+  "stopAtWall/B-turns": {
+   "key": "stopAtWall/B-turns",
+   "tests": [
+    {
+     "world": "A line to its end",
+     "test": "On the line, it follows it to the goal",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A wall across the line",
+     "test": "Stops before the wall on the line",
+     "outcome": "failed",
+     "failed": [
+      "at the end (after 20 s), the robot was not completely in \"Before the wall\""
+     ]
+    }
+   ]
+  },
+  "stopAtWall/B-slows": {
+   "key": "stopAtWall/B-slows",
+   "tests": [
+    {
+     "world": "A line to its end",
+     "test": "On the line, it follows it to the goal",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A wall across the line",
+     "test": "Stops before the wall on the line",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 3.1 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove forward, straight (3.33 cm/s), 2 times, 0.52 s in total; the first from 2.62 to 3.12 s"
+     ]
+    }
+   ]
+  },
+  "stopAtWall/C": {
+   "key": "stopAtWall/C",
+   "tests": [
+    {
+     "world": "A line to its end",
+     "test": "On the line, it follows it to the goal",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A wall across the line",
+     "test": "Stops before the wall on the line",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "stopAtWall/C-negated": {
+   "key": "stopAtWall/C-negated",
+   "tests": [
+    {
+     "world": "A line to its end",
+     "test": "On the line, it follows it to the goal",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 60 s"
+     ]
+    },
+    {
+     "world": "A wall across the line",
+     "test": "Stops before the wall on the line",
+     "outcome": "failed",
+     "failed": [
+      "at the end (after 20 s), the robot was not completely in \"Before the wall\""
+     ]
+    }
+   ]
+  },
+  "stopAtWall/C-no-handover": {
+   "key": "stopAtWall/C-no-handover",
+   "tests": [
+    {
+     "world": "A line to its end",
+     "test": "On the line, it follows it to the goal",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 60 s"
+     ]
+    },
+    {
+     "world": "A wall across the line",
+     "test": "Stops before the wall on the line",
+     "outcome": "failed",
+     "failed": [
+      "at the end (after 20 s), the robot was not completely in \"Before the wall\""
+     ]
+    }
+   ]
+  },
+  "stopAtWall/C-turns": {
+   "key": "stopAtWall/C-turns",
+   "tests": [
+    {
+     "world": "A line to its end",
+     "test": "On the line, it follows it to the goal",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A wall across the line",
+     "test": "Stops before the wall on the line",
+     "outcome": "failed",
+     "failed": [
+      "at the end (after 20 s), the robot was not completely in \"Before the wall\""
+     ]
+    }
+   ]
+  },
+  "stopAtWall/C-slows": {
+   "key": "stopAtWall/C-slows",
+   "tests": [
+    {
+     "world": "A line to its end",
+     "test": "On the line, it follows it to the goal",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A wall across the line",
+     "test": "Stops before the wall on the line",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 3 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove forward, straight (3.3 cm/s), 2 times, 0.43 s in total; the first from 2.62 to 3.03 s"
+     ]
+    }
+   ]
+  }
+ }
+}

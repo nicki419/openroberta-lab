@@ -17,7 +17,8 @@ and path of the analysis it tests, its inputs, what it expects and where that ex
    "world": {"background": "peach",
              "starts": [{"id": "A", "name": "A", "x": 30, "y": 100, "heading": 0}],
              "items": [{"id": "l1", "kind": "line", "points": [[20, 100], [260, 100]], "width": 1.48},
-                       {"id": "t1", "name": "Box", "kind": "rect", "role": "obstacle", "x": 150, "y": 95, "w": 10, "h": 10}]},
+                       {"id": "t1", "name": "Box", "kind": "rect", "role": "obstacle", "x": 150, "y": 95, "w": 10, "h": 10},
+                       {"id": "t2", "name": "Before the box", "kind": "rect", "role": "goal", "x": 135, "y": 90, "w": 15, "h": 20}]},
    "tests": [
      {"name": "Stops before the box",
       "scenario": "Given a box on the line, when the program runs for 30 s, then the robot stops in front of the box without bumping into it.",
@@ -27,16 +28,18 @@ and path of the analysis it tests, its inputs, what it expects and where that ex
       "world": [],
       "globals": {},
       "checks": [{"check": "never_bumps", "item": "t1"},
-                 {"check": "whenever", "when": "obstacle_ahead", "after_ms": 200, "does": "stands_still"}],
+                 {"check": "whenever", "when": "obstacle_ahead", "after_ms": 200, "does": "stands_still"},
+                 {"check": "ends_in", "item": "t2"}],
       "scenario_id": "S2",
       "path_ids": ["P2"],
       "planned_branch_ids": ["D1.1"],
       "input_selection": {
         "equivalence_partitions": [{"dimension": "what is ahead on the line", "class": "an obstacle on the line",
                                     "selected_realization": "the box t1, 120 cm along the line from A", "realized_by": {"items": ["t1"]}}]},
-      "expected_results": ["The robot stops when the box is ahead, and stays there."],
+      "expected_results": ["The robot drives up to the box, stops when the box is ahead, and stays there."],
       "postconditions": [{"description": "During the whole run, the robot never touches the box.", "check_indices": [0]},
-                         {"description": "Whenever the box is ahead, the robot stands still.", "check_indices": [1]}],
+                         {"description": "Whenever the box is ahead, the robot stands still.", "check_indices": [1]},
+                         {"description": "At the end, the robot stands just before the box.", "check_indices": [2]}],
       "oracle": {"basis": "learner_description", "confidence": "high", "assumptions": [], "review_required": false},
       "source_block_ids": ["b4", "b6"],
       "reason": "The learner said the robot should stop at obstacles."}]}],
@@ -132,7 +135,10 @@ The answer around the worlds:
   that turns in steps (turn by 20°, then drive on, then look again) drives forward between its steps while the wall is
   still in view, and one that turns in a curve may turn the other way first. Something the robot drives up to can use
   `after` with `event` `obstacle` too; something in view from the start never "appears", so `after` has nothing to
-  decide: use `whenever`.
+  decide: use `whenever`. **Show that the robot gets there**: a reaction to something it drives up to holds for a
+  robot that never moves (it never sees the thing), so such a test also checks where the robot gets to: `ends_in` an
+  area just before the thing for a stop ("A wall ahead"), `reaches` for getting past it. The Lab sends back a test
+  whose robot sees nothing at the start and that checks a reaction to an obstacle without `reaches` or `ends_in`.
 - **"It doesn't …"**: check what it does instead: `does` `stands_still` (it doesn't move), or `drives_forward`. Never
   two checks that can't both hold, such as `does` `turns_left` and `does` `turns_right`: the Lab refuses them.
 - A check with nothing to decide (the condition never held, no event happened) is **not checked**: it is no evidence,
@@ -156,9 +162,11 @@ The answer around the worlds:
   (the line tracker is 5 cm ahead of the start). A start "beside the line" (only for a test of finding the line: see
   "A line beside the start"): 5 to 10 cm off it, facing along it.
 - **An obstacle on the line**: a box of 10 × 10 cm centred on one of the line's points, at least 40 cm along the line
-  from the start.
+  from the start. For a stop before it, a goal area of 15 × 20 cm just before it, across the line (from 15 cm before
+  the box to the box; the robot stops 2 to 3 cm before it), and `ends_in` it.
 - **Starts** must be on the floor, with the whole robot (8 × 7.5 cm, from 1.8 cm behind to 6.2 cm in front of the
-  start) clear of obstacles and walls, and not touching a goal or fail area.
+  start) clear of obstacles and walls (the Lab sends back a start whose robot touches one: in a tunnel, start on its
+  middle line where it runs straight, 25 cm or more from a bend), and not touching a goal or fail area.
 - **Go through the program from the start first.** For each test, follow what the program does from the start until
   the scenario's moment: which decisions it takes on the way, and what it then does with the motors. The world must
   make those go as planned, and list them in `planned_branch_ids`. **A program that reads the line tracker gets a
@@ -181,12 +189,15 @@ The answer around the worlds:
     drives straight on**, it drives past a line beside it: a start beside the line isn't a situation of its own for
     this program; defer the class with that reason. The start is then not on the line.
   - **A wall ahead** (all three obstacle sensors see it): a `rect` with its left edge at x + 8 (seen at once) or at
-    x + 30 or further (the robot drives up to it), `y` = y − 6, `w` 2, `h` 12. **A wall ahead always spans the robot's
+    x + 30 or further (the robot drives up to it), `y` = y − 6, `w` 2, `h` 12. **A wall it drives up to gets a goal
+    area just before it**, where a robot that stops there stands: for the wall at x + 30, `x` + 15, `y` − 10, `w` 15,
+    `h` 20 (15 cm before the wall's left edge to it), and the test of stopping checks `ends_in` it (without `until`:
+    the run would end as the robot touches the area, before it stops). **A wall ahead always spans the robot's
     whole front**, whichever obstacle sensor the program reads: a right program may read another one. Only if the
     learner says the thing is on the left or the right, it is "Something on its left or right". **If the program reads
     the line tracker**, each such test gets its own line and its own wall: the `line` `points` [[x − 10, y], [x + 40, y]], and the wall
-    across it at x + 8 (seen at once) or x + 30 (it drives up to it). The next test starts 30 cm lower (y + 30), with
-    its own line and wall by the same numbers.
+    across it at x + 8 (seen at once) or x + 30 (it drives up to it, with the area before it). The next test starts
+    30 cm lower (y + 30), with its own line, wall and area by the same numbers.
   - **Something on its left or right** (the learner says "a wall on the left", or the robot should turn away from
     walls): the sensors look
     forward, so it is something in front of the robot's left half, **inside the robot's width**: the robot drives into
@@ -205,7 +216,7 @@ The answer around the worlds:
     the robot follows it for 40 cm first, so it faces along the tunnel when the light falls. (A program that doesn't
     read the line tracker needs no line: the same tunnel, the start 15 cm before its opening.) **The goal of
     getting through the dark is inside the tunnel**, where it is dark, from 15 cm after the opening to 15 cm before
-    the exit: `x` + 110, `y` − 5, `w` 10, `h` 10. **No goal after the exit**, even if the learner says the robot
+    the exit: `x` + 110, `y` − 5, `w` 10, `h` 10. **No goal after the exit** (the Lab sends it back), even if the learner says the robot
     follows the line again after the tunnel: without a line there, a line follower circles; with one, it finds it
     only if it comes out of the dark on the side it turns to (see "Light under a tunnel's roof"), so the test fails on
     right programs too. Test getting through the dark (the goal inside the tunnel), and following the line in the
@@ -218,6 +229,11 @@ The answer around the worlds:
     front of the robot's left half (LEFT). A bend to the left: y − 30, y − 70 and y − 115 (RIGHT). **The goal inside
     the tunnel, after the bend** and 15 cm or more before the exit: `x` + 150, `y` + 85, `w` 10, `h` 10 (bend to the
     left: `y` − 95). With the start at y 50 (bend to the right) or y 150 (bend to the left), it fits on the floor.
+    **Each bend in a world of its own**: both recipes take the same part of the floor, and in one world their
+    tunnels cross (the Lab sends back tunnels that overlap). Start where the recipe does, before the tunnel, or on a
+    straight part of it 25 cm or more from a bend, never in or just before a bend: there the robot meets the wall at
+    once, or straight ahead, where a right program may stop (the Lab sends such a start back). From a straight
+    approach, right programs get through bends of up to 90°.
     Checks: `never_bumps` the tunnel, and `reaches` the goal: a robot that turns away from the walls gets through the
     bend, one that doesn't bumps into them. A straight tunnel is the class "nothing on either side". **No wall across
     a tunnel** unless the learner says what the robot should do at a wall in the dark: a program that checks the

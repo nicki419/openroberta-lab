@@ -385,6 +385,7 @@ function resolveWorld(w: any, name: string, ctx: Context, problem: (message: str
     }
     world.starts.length || problem('the world has no start');
     tunnelProblems(world).forEach((m) => problem('items: ' + m));
+    startProblems(world).forEach((m) => problem('starts: ' + m));
     return { name: name, existing: false, data: dataOf(world), tests: [] };
 }
 
@@ -430,6 +431,226 @@ export function tunnelProblems(world: SIM.SimWorld): string[] {
                             ' cm wide and bumps into it. Nothing goes inside a tunnel but a line on the floor, or a wall across the whole tunnel for a stop in dim light. For walls on its left or right in dim light, bend the tunnel: its own walls are those walls ("Dim light: walls on its left or right" in "Tests")'
                     );
                 }
+            });
+        });
+    // 2026-11-07 (phase 5, round 4): two tunnels that overlap (round 3: the recipes of a bend to the right and to the left drawn into one world
+    // cross, and every right program bumped into the other one). No limit on bends: every right program got through a corner of 90° too
+    // (check_round4.py bends)
+    tunnels.forEach((t, i) => {
+        tunnels.slice(i + 1).forEach((o) => {
+            const [a, b] = [SIM.tunnelGeometry(t), SIM.tunnelGeometry(o)];
+            polylineDistance(a.center, b.center) < a.outer + b.outer &&
+                out.push(
+                    'the tunnels "' +
+                        t.id +
+                        '" and "' +
+                        o.id +
+                        '" overlap: the robot bumps into the other one. Draw each tunnel in a world of its own (the recipes of the bends to the right and to the left take the same floor)'
+                );
+        });
+    });
+    return out;
+}
+
+/** do the segments ab and cd cross (or touch)? */
+function segmentsCross(a: number[], b: number[], c: number[], d: number[]): boolean {
+    const side = (p: number[], q: number[], r: number[]) => Math.sign((q[0] - p[0]) * (r[1] - p[1]) - (q[1] - p[1]) * (r[0] - p[0]));
+    const [d1, d2, d3, d4] = [side(c, d, a), side(c, d, b), side(a, b, c), side(a, b, d)];
+    if (d1 * d2 < 0 && d3 * d4 < 0) {
+        return true;
+    }
+    const on = (p: number[], q: number[], r: number[]) => SIM.distanceToSegment(r[0], r[1], p, q) < 1e-9;
+    return on(c, d, a) || on(c, d, b) || on(a, b, c) || on(a, b, d);
+}
+
+/** the shortest distance between two polylines (cm) */
+function polylineDistance(p: number[][], q: number[][]): number {
+    let best = Infinity;
+    for (let i = 1; i < p.length; i++) {
+        for (let j = 1; j < q.length; j++) {
+            const [a, b, c, d] = [p[i - 1], p[i], q[j - 1], q[j]];
+            if (segmentsCross(a, b, c, d)) {
+                return 0;
+            }
+            best = Math.min(best, SIM.distanceToSegment(a[0], a[1], c, d), SIM.distanceToSegment(b[0], b[1], c, d), SIM.distanceToSegment(c[0], c[1], a, b), SIM.distanceToSegment(d[0], d[1], a, b));
+        }
+    }
+    return best;
+}
+
+/** is a point inside a polygon (cm)? */
+function inPolygon(p: number[], poly: number[][]): boolean {
+    let inside = false;
+    for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+        const [xi, yi] = poly[i];
+        const [xj, yj] = poly[j];
+        yi > p[1] !== yj > p[1] && p[0] < ((xj - xi) * (p[1] - yi)) / (yj - yi) + xi && (inside = !inside);
+    }
+    return inside;
+}
+
+/** does the polygon touch the other polygon, or a circle [x, y, r]? */
+function polygonsTouch(a: number[][], b: number[][]): boolean {
+    for (let i = 0; i < a.length; i++) {
+        for (let j = 0; j < b.length; j++) {
+            if (segmentsCross(a[i], a[(i + 1) % a.length], b[j], b[(j + 1) % b.length])) {
+                return true;
+            }
+        }
+    }
+    return inPolygon(a[0], b) || inPolygon(b[0], a);
+}
+
+function circleTouches(poly: number[][], c: number[]): boolean {
+    return inPolygon([c[0], c[1]], poly) || poly.some((p, i) => SIM.distanceToSegment(c[0], c[1], p, poly[(i + 1) % poly.length]) <= c[2]);
+}
+
+/** an obstacle as polygons and circles (cm), as the simulator has it */
+function obstacleShapes(item: SIM.SimItem): { polygons: number[][][]; circles: number[][] } {
+    if (SIM.isLineObstacle(item)) {
+        return (item.points || []).length >= 2 ? SIM.wallPieces(item) : { polygons: [], circles: [] };
+    }
+    if (item.kind === 'rect') {
+        const [x, y, w, h] = [item.x, item.y, item.w, item.h];
+        return {
+            polygons: [
+                [
+                    [x, y],
+                    [x + w, y],
+                    [x + w, y + h],
+                    [x, y + h],
+                ],
+            ],
+            circles: [],
+        };
+    }
+    if (item.kind === 'circle') {
+        return { polygons: [], circles: [[item.x, item.y, item.r]] };
+    }
+    return { polygons: Array.isArray(item.points) && item.points.length === 3 ? [item.points] : [], circles: [] };
+}
+
+const BEND_NEAR_CM = 25; // a start inside a tunnel: how far along it (to each side) the tunnel must run straight
+const BEND_DEG = 15; // … turning by no more than this
+
+/** how much a tunnel's line turns within BEND_NEAR_CM along it of a point inside it (degrees) */
+function bendNear(t: SIM.SimItem, x: number, y: number): number {
+    const g = SIM.tunnelGeometry(t);
+    const c = g.center;
+    let best = Infinity;
+    let along = 0;
+    for (let i = 1; i < c.length; i++) {
+        const d = SIM.distanceToSegment(x, y, c[i - 1], c[i]);
+        if (d < best) {
+            best = d;
+            const len = g.at[i] - g.at[i - 1] || 1;
+            const t0 = Math.max(0, Math.min(1, ((x - c[i - 1][0]) * (c[i][0] - c[i - 1][0]) + (y - c[i - 1][1]) * (c[i][1] - c[i - 1][1])) / (len * len)));
+            along = g.at[i - 1] + t0 * len;
+        }
+    }
+    const heads: number[] = [];
+    for (let i = 1; i < c.length; i++) {
+        g.at[i] >= along - BEND_NEAR_CM && g.at[i - 1] <= along + BEND_NEAR_CM && heads.push(Math.atan2(c[i][1] - c[i - 1][1], c[i][0] - c[i - 1][0]));
+    }
+    let most = 0;
+    heads.forEach((a) => heads.forEach((b) => (most = Math.max(most, Math.abs(Math.atan2(Math.sin(a - b), Math.cos(a - b)))))));
+    return Math.round((most * 180) / Math.PI);
+}
+
+/**
+ * 2026-11-07 (phase 5, round 4): the starts whose robot touches an obstacle, a wall or a tunnel's wall, and the starts inside a tunnel near a
+ * bend (round 3: two starts in or 5 cm before a tunnel's bend, by the model's own numbers; the robot bumped into the wall at once, or met it
+ * straight ahead and stopped, on right programs; from a straight approach every right program got through every bend, check_round4.py)
+ */
+export function startProblems(world: SIM.SimWorld): string[] {
+    const out: string[] = [];
+    const obstacles = (world.items || []).filter((i) => i.role === 'obstacle');
+    (world.starts || []).forEach((s) => {
+        const robot = SIM.footprint(s.x, s.y, s.heading || 0);
+        obstacles.forEach((item) => {
+            const shapes = obstacleShapes(item);
+            (shapes.polygons.some((p) => polygonsTouch(robot, p)) || shapes.circles.some((c) => circleTouches(robot, c))) &&
+                out.push(
+                    'start "' +
+                        s.id +
+                        '": the robot there touches "' +
+                        item.id +
+                        '". The whole robot (8 × 7.5 cm, from 1.8 cm behind to 6.2 cm in front of the start) must be clear of obstacles and walls; in a tunnel, start on its middle line where it runs straight'
+                );
+            if (SIM.isTunnel(item) && (item.points || []).length >= 2 && SIM.hits(item, s.x, s.y, 0)) {
+                const bend = bendNear(item, s.x, s.y);
+                bend > BEND_DEG &&
+                    out.push(
+                        'start "' +
+                            s.id +
+                            '" is inside the tunnel "' +
+                            item.id +
+                            '", where it bends (by ' +
+                            bend +
+                            '° within ' +
+                            BEND_NEAR_CM +
+                            ' cm): the robot meets its wall at once, or straight ahead. Start before the tunnel, as the recipes do ("Dim light: walls on its left or right" in "Tests"), or on a straight part of it, ' +
+                            BEND_NEAR_CM +
+                            ' cm or more from a bend'
+                    );
+            }
+        });
+    });
+    return out;
+}
+
+/**
+ * 2026-11-07 (phase 5, round 4): a goal the robot gets to only after a tunnel's exit, from a start before the tunnel or inside it (tests.md
+ * "Driving through a tunnel": no goal after the exit; round 3 still drew one, and both right programs bumped into the tunnel at its exit)
+ */
+export function exitProblems(world: SIM.SimWorld, test: AiTest): string[] {
+    const out: string[] = [];
+    const start = (world.starts || []).filter((s) => s.id === test.start)[0];
+    if (!start) {
+        return out;
+    }
+    const ids = test.checks.filter((c) => (c.check === 'reaches' || c.check === 'ends_in') && c.item).map((c) => c.item);
+    test.until && ids.push(test.until);
+    const goals = (world.items || []).filter((i) => ids.indexOf(i.id) >= 0 && SIM.isArea(i));
+    (world.items || [])
+        .filter((t) => SIM.isTunnel(t) && (t.points || []).length >= 2)
+        .forEach((t) => {
+            const g = SIM.tunnelGeometry(t);
+            const c = g.center;
+            if (c.length < 2) {
+                return;
+            }
+            const unit = (p: number[], q: number[]) => {
+                const l = Math.hypot(p[0] - q[0], p[1] - q[1]) || 1;
+                return [(p[0] - q[0]) / l, (p[1] - q[1]) / l];
+            };
+            const ends = [
+                { p: c[0], u: unit(c[0], c[1]) },
+                { p: c[c.length - 1], u: unit(c[c.length - 1], c[c.length - 2]) },
+            ];
+            // beyond an end, near the tunnel's axis there
+            const beyond = (x: number, y: number, e: { p: number[]; u: number[] }) => {
+                const [dx, dy] = [x - e.p[0], y - e.p[1]];
+                return dx * e.u[0] + dy * e.u[1] > 0 && Math.abs(dx * e.u[1] - dy * e.u[0]) < g.outer + 10;
+            };
+            const inside = SIM.hits(t, start.x, start.y, 0);
+            goals.forEach((goal) => {
+                const o = outlineOf(goal);
+                const [gx, gy] = [o.reduce((s, p) => s + p[0], 0) / o.length, o.reduce((s, p) => s + p[1], 0) / o.length];
+                [0, 1].forEach((k) => {
+                    const before = beyond(start.x, start.y, ends[1 - k]);
+                    (inside || before) &&
+                        !beyond(start.x, start.y, ends[k]) &&
+                        beyond(gx, gy, ends[k]) &&
+                        !SIM.hits(t, gx, gy, 0) &&
+                        out.push(
+                            'goal "' +
+                                goal.id +
+                                '" is after the exit of the tunnel "' +
+                                t.id +
+                                '": a right program may come out of the dark beside the line and miss it. The goal of getting through the dark is inside the tunnel, 15 cm or more before the exit ("Driving through a tunnel" in "Tests"); defer what it does after the tunnel'
+                        );
+                });
             });
         });
     return out;
@@ -602,6 +823,7 @@ function checkTest(raw: any, world: SIM.SimWorld, ctx: Context, generated: boole
         const check = checkCheck(c, items, isGoal, test, ctx, problem);
         check && test.checks.push(check);
     }
+    generated && exitProblems(world, test).forEach((m) => problem(m));
     if (generated) {
         STRATEGY_FIELDS.forEach((k) => raw[k] !== undefined && ((test as any)[k] = JSON.parse(JSON.stringify(raw[k]))));
     }

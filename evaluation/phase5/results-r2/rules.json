@@ -1,0 +1,2861 @@
+{
+ "results": [
+  {
+   "id": "avoidWalls__A-no-handover__precise__r1__full",
+   "worlds": [
+    {
+     "name": "A dark tunnel that bends right",
+     "world": [],
+     "tests": [
+      {
+       "name": "Turns right away from the wall in the bend",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A dark tunnel that bends left",
+     "world": [],
+     "tests": [
+      {
+       "name": "Turns left away from the wall in the bend",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A straight dark tunnel",
+     "world": [],
+     "tests": [
+      {
+       "name": "Nothing close on either side in the dark",
+       "problems": []
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "avoidWalls__A-no-handover__precise__r2__full",
+   "worlds": []
+  },
+  {
+   "id": "avoidWalls__A-no-handover__vague__r1__full",
+   "worlds": [
+    {
+     "name": "A straight dark tunnel",
+     "world": [],
+     "tests": [
+      {
+       "name": "Drives on through the dark tunnel",
+       "problems": []
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "avoidWalls__A-no-handover__vague__r2__full",
+   "worlds": [
+    {
+     "name": "A tunnel bending left",
+     "world": [
+      "start \"A\" is inside the tunnel \"t2\", where it bends (by 35\u00b0 within 25 cm): the robot meets its wall at once, or straight ahead. Start before the tunnel, as the recipes do (\"Dim light: walls on its left or right\" in \"Tests\"), or on a straight part of it, 25 cm or more from a bend"
+     ],
+     "tests": [
+      {
+       "name": "Turns away from a wall on its right",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A straight tunnel in dim light",
+     "world": [],
+     "tests": [
+      {
+       "name": "Stays still with no wall beside it",
+       "problems": []
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "avoidWalls__A-swapped__precise__r1__full",
+   "worlds": [
+    {
+     "name": "A dark tunnel that bends right",
+     "world": [],
+     "tests": [
+      {
+       "name": "Turns right away from the left wall in the dark tunnel",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A tunnel that bends to the left",
+     "world": [],
+     "tests": [
+      {
+       "name": "Turns away from a wall on its right in a dark tunnel",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A straight dark tunnel",
+     "world": [],
+     "tests": [
+      {
+       "name": "Drives on in the dark with no walls close",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A line with a box",
+     "world": [],
+     "tests": [
+      {
+       "name": "Follows the line and stops at the box",
+       "problems": [
+        "it checks what the robot does when it sees something (\"obstacle_ahead\"), which holds for a robot that never gets there: it sees nothing at the start. Show that it gets there: a goal area just before the thing, and ends_in it (\"A wall ahead\" in \"Tests\"), or reaches"
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "avoidWalls__A-swapped__precise__r2__full",
+   "worlds": [
+    {
+     "name": "A tunnel that bends right",
+     "world": [],
+     "tests": [
+      {
+       "name": "Turns right when the wall is on its left",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A tunnel that bends left",
+     "world": [],
+     "tests": [
+      {
+       "name": "Turns left when the wall is on its right",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A straight dark tunnel",
+     "world": [],
+     "tests": [
+      {
+       "name": "Drives forward in the dark tunnel",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A line to a wall in bright light",
+     "world": [],
+     "tests": [
+      {
+       "name": "In bright light it follows the line and stops at the wall",
+       "problems": [
+        "it checks what the robot does when it sees something (\"obstacle_ahead\"), which holds for a robot that never gets there: it sees nothing at the start. Show that it gets there: a goal area just before the thing, and ends_in it (\"A wall ahead\" in \"Tests\"), or reaches"
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "avoidWalls__A-swapped__vague__r1__full",
+   "worlds": [
+    {
+     "name": "A tunnel that bends to the right",
+     "world": [],
+     "tests": [
+      {
+       "name": "Gets through a bend to the right",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A tunnel that bends to the left",
+     "world": [],
+     "tests": [
+      {
+       "name": "Gets through a bend to the left",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A line in bright light",
+     "world": [],
+     "tests": [
+      {
+       "name": "In bright light, on the line, it follows it to the goal",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A wall across the line",
+     "world": [],
+     "tests": [
+      {
+       "name": "Stops right away at the wall in front",
+       "problems": []
+      },
+      {
+       "name": "Follows the line and stops at the wall",
+       "problems": []
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "avoidWalls__A-swapped__vague__r2__full",
+   "worlds": [
+    {
+     "name": "A straight tunnel",
+     "world": [],
+     "tests": [
+      {
+       "name": "Drives straight through the tunnel",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A tunnel that bends to the right",
+     "world": [],
+     "tests": [
+      {
+       "name": "Gets through the bend without hitting the walls",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A wall in the light",
+     "world": [],
+     "tests": [
+      {
+       "name": "Stops right before the wall in the light",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A line to a goal",
+     "world": [],
+     "tests": [
+      {
+       "name": "On the line, it follows it to the goal",
+       "problems": []
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "avoidWalls__B-front-sensor__precise__r1__full",
+   "worlds": [
+    {
+     "name": "A tunnel in the dark",
+     "world": [],
+     "tests": [
+      {
+       "name": "Drives on in the dark tunnel",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A tunnel bending right",
+     "world": [],
+     "tests": [
+      {
+       "name": "Turns right when the left wall comes close",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A tunnel bending left",
+     "world": [],
+     "tests": [
+      {
+       "name": "Turns left when the right wall comes close",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A line in bright light",
+     "world": [],
+     "tests": [
+      {
+       "name": "In bright light, it follows the line to its end",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A wall across the line",
+     "world": [],
+     "tests": [
+      {
+       "name": "In bright light, it stops before a wall on the line",
+       "problems": [
+        "it checks what the robot does when it sees something (\"obstacle_ahead\"), which holds for a robot that never gets there: it sees nothing at the start. Show that it gets there: a goal area just before the thing, and ends_in it (\"A wall ahead\" in \"Tests\"), or reaches"
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "avoidWalls__B-front-sensor__precise__r2__full",
+   "worlds": [
+    {
+     "name": "A dark tunnel bending right",
+     "world": [],
+     "tests": [
+      {
+       "name": "Turns right at the left wall in the tunnel",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A tunnel that bends left in the dark",
+     "world": [],
+     "tests": [
+      {
+       "name": "Turns left from a wall on the right in the dark",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A line to a wall in bright light",
+     "world": [],
+     "tests": [
+      {
+       "name": "Follows the line and stops before the wall",
+       "problems": [
+        "it checks what the robot does when it sees something (\"after obstacle\"), which holds for a robot that never gets there: it sees nothing at the start. Show that it gets there: a goal area just before the thing, and ends_in it (\"A wall ahead\" in \"Tests\"), or reaches"
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "avoidWalls__B-front-sensor__vague__r1__full",
+   "worlds": [
+    {
+     "name": "A tunnel that bends right",
+     "world": [],
+     "tests": [
+      {
+       "name": "Gets through the bend to the right",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A tunnel that bends left",
+     "world": [],
+     "tests": [
+      {
+       "name": "Gets through the bend to the left",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A wall across the line",
+     "world": [],
+     "tests": [
+      {
+       "name": "Follows the line and stops at the wall",
+       "problems": []
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "avoidWalls__B-front-sensor__vague__r2__full",
+   "worlds": [
+    {
+     "name": "A tunnel that bends to the right",
+     "world": [],
+     "tests": [
+      {
+       "name": "Turns away from the left wall in a right bend",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A tunnel with a sharp bend",
+     "world": [],
+     "tests": [
+      {
+       "name": "Turns away when the wall is right in front",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A line to a goal",
+     "world": [],
+     "tests": [
+      {
+       "name": "On the line, it follows it to the goal",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A line to a wall",
+     "world": [],
+     "tests": [
+      {
+       "name": "Follows the line and stops at the wall",
+       "problems": []
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "avoidWalls__C-never-dark__precise__r1__full",
+   "worlds": [
+    {
+     "name": "A tunnel that bends right",
+     "world": [],
+     "tests": [
+      {
+       "name": "Turns away from the left wall in the tunnel",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A tunnel that bends left",
+     "world": [],
+     "tests": [
+      {
+       "name": "Turns away from the right wall in the tunnel",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A line in bright light",
+     "world": [],
+     "tests": [
+      {
+       "name": "On the line, it follows it to the goal",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A wall in front on the line",
+     "world": [],
+     "tests": [
+      {
+       "name": "Stops in front of a wall ahead",
+       "problems": []
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "avoidWalls__C-never-dark__precise__r2__full",
+   "worlds": [
+    {
+     "name": "A line to a goal",
+     "world": [],
+     "tests": [
+      {
+       "name": "On the line, it follows it to the goal",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A wall across the line",
+     "world": [],
+     "tests": [
+      {
+       "name": "Stops at the wall in the light",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "Dim light in a tunnel",
+     "world": [],
+     "tests": [
+      {
+       "name": "In the dim light it drives on",
+       "problems": []
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "avoidWalls__C-never-dark__vague__r1__full",
+   "worlds": [
+    {
+     "name": "A line to a goal",
+     "world": [],
+     "tests": [
+      {
+       "name": "On the line, it follows it to the goal",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A wall on the line in the light",
+     "world": [],
+     "tests": [
+      {
+       "name": "Stops in front of the wall in bright light",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A straight tunnel",
+     "world": [],
+     "tests": [
+      {
+       "name": "Gets through a straight tunnel in the dark",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A tunnel that bends to the right",
+     "world": [],
+     "tests": [
+      {
+       "name": "Gets through a tunnel that bends to the right",
+       "problems": []
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "avoidWalls__C-never-dark__vague__r2__full",
+   "worlds": [
+    {
+     "name": "A line to a goal",
+     "world": [],
+     "tests": [
+      {
+       "name": "On the line, it follows it to the goal",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A tunnel that bends to the right",
+     "world": [],
+     "tests": [
+      {
+       "name": "Gets through the bend to the right",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A tunnel that bends to the left",
+     "world": [],
+     "tests": [
+      {
+       "name": "Gets through the bend to the left",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A wall across the line",
+     "world": [],
+     "tests": [
+      {
+       "name": "Stops at the wall across the line",
+       "problems": [
+        "it checks what the robot does when it sees something (\"obstacle_ahead\"), which holds for a robot that never gets there: it sees nothing at the start. Show that it gets there: a goal area just before the thing, and ends_in it (\"A wall ahead\" in \"Tests\"), or reaches"
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "driveInTheDark__A-curves__precise__r1__full",
+   "worlds": [
+    {
+     "name": "A line in bright light",
+     "world": [],
+     "tests": [
+      {
+       "name": "In bright light, it follows the line to its end",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A line into a dark tunnel",
+     "world": [],
+     "tests": [
+      {
+       "name": "Through the dark tunnel to the goal",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A box on the line",
+     "world": [],
+     "tests": [
+      {
+       "name": "Stops at the box on the line",
+       "problems": [
+        "it checks what the robot does when it sees something (\"obstacle_ahead\"), which holds for a robot that never gets there: it sees nothing at the start. Show that it gets there: a goal area just before the thing, and ends_in it (\"A wall ahead\" in \"Tests\"), or reaches"
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "driveInTheDark__A-curves__precise__r2__full",
+   "worlds": [
+    {
+     "name": "A curved line to a goal",
+     "world": [],
+     "tests": [
+      {
+       "name": "Follows the line to the goal",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A wall across the line",
+     "world": [],
+     "tests": [
+      {
+       "name": "Stops at the wall on the line",
+       "problems": [
+        "it checks what the robot does when it sees something (\"obstacle_ahead\"), which holds for a robot that never gets there: it sees nothing at the start. Show that it gets there: a goal area just before the thing, and ends_in it (\"A wall ahead\" in \"Tests\"), or reaches"
+       ]
+      }
+     ]
+    },
+    {
+     "name": "A line into a dark tunnel",
+     "world": [],
+     "tests": [
+      {
+       "name": "Through the dark tunnel to the goal inside it",
+       "problems": []
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "driveInTheDark__A-curves__vague__r1__full",
+   "worlds": [
+    {
+     "name": "A line to a goal",
+     "world": [],
+     "tests": [
+      {
+       "name": "On the line, it follows it to the goal",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A wall right in front",
+     "world": [],
+     "tests": [
+      {
+       "name": "Stops at a wall right in front",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A line into a tunnel",
+     "world": [],
+     "tests": [
+      {
+       "name": "Gets through the dark tunnel",
+       "problems": []
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "driveInTheDark__A-curves__vague__r2__full",
+   "worlds": [
+    {
+     "name": "A straight tunnel on the line",
+     "world": [],
+     "tests": [
+      {
+       "name": "Gets through the tunnel",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A wall in front on the line",
+     "world": [],
+     "tests": [
+      {
+       "name": "In bright light it stops at the wall",
+       "problems": []
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "driveInTheDark__A-never-dark__precise__r1__full",
+   "worlds": [
+    {
+     "name": "A line that bends to a goal",
+     "world": [],
+     "tests": [
+      {
+       "name": "On the line, it follows it to the goal",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A wall across the line",
+     "world": [],
+     "tests": [
+      {
+       "name": "Stops at a wall it sees at once",
+       "problems": []
+      },
+      {
+       "name": "Drives up to the wall and stops",
+       "problems": [
+        "it checks what the robot does when it sees something (\"obstacle_ahead\"), which holds for a robot that never gets there: it sees nothing at the start. Show that it gets there: a goal area just before the thing, and ends_in it (\"A wall ahead\" in \"Tests\"), or reaches"
+       ]
+      }
+     ]
+    },
+    {
+     "name": "A line into a dark tunnel",
+     "world": [],
+     "tests": [
+      {
+       "name": "Straight through the dark tunnel to the goal",
+       "problems": []
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "driveInTheDark__A-never-dark__precise__r2__full",
+   "worlds": [
+    {
+     "name": "A line to a goal",
+     "world": [],
+     "tests": [
+      {
+       "name": "On the line, it follows it to the goal",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A tunnel on the line",
+     "world": [],
+     "tests": [
+      {
+       "name": "Through the dark tunnel to the goal",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A wall across the line",
+     "world": [],
+     "tests": [
+      {
+       "name": "Stops at the wall on the line",
+       "problems": [
+        "it checks what the robot does when it sees something (\"obstacle_ahead\"), which holds for a robot that never gets there: it sees nothing at the start. Show that it gets there: a goal area just before the thing, and ends_in it (\"A wall ahead\" in \"Tests\"), or reaches"
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "driveInTheDark__A-never-dark__vague__r1__full",
+   "worlds": [
+    {
+     "name": "A line into a tunnel",
+     "world": [],
+     "tests": [
+      {
+       "name": "Follows the line into the tunnel and gets through it",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A wall across the line",
+     "world": [],
+     "tests": [
+      {
+       "name": "Stops before the wall on the line",
+       "problems": []
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "driveInTheDark__A-never-dark__vague__r2__full",
+   "worlds": [
+    {
+     "name": "A line into a tunnel",
+     "world": [],
+     "tests": [
+      {
+       "name": "Drives straight on through the tunnel in the dark",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A wall in front of the robot",
+     "world": [],
+     "tests": [
+      {
+       "name": "Stops in front of a wall",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A wavy line to a goal",
+     "world": [],
+     "tests": [
+      {
+       "name": "In the light, it follows the line to the goal",
+       "problems": []
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "driveInTheDark__B-floor-sensor__precise__r1__full",
+   "worlds": [
+    {
+     "name": "A straight line to a goal",
+     "world": [],
+     "tests": [
+      {
+       "name": "On the black line, it follows it to the goal",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A tunnel with no line",
+     "world": [],
+     "tests": [
+      {
+       "name": "Drives straight through the tunnel without a line",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A wall past the end of the line",
+     "world": [],
+     "tests": [
+      {
+       "name": "Stops in front of the wall",
+       "problems": []
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "driveInTheDark__B-floor-sensor__precise__r2__full",
+   "worlds": [
+    {
+     "name": "A line that bends to a goal",
+     "world": [],
+     "tests": [
+      {
+       "name": "It follows the line round its bend to Goal 1",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A tunnel with no line",
+     "world": [],
+     "tests": [
+      {
+       "name": "Straight through the tunnel",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A wall in front, off the line",
+     "world": [],
+     "tests": [
+      {
+       "name": "Off the line, it stops at the wall",
+       "problems": []
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "driveInTheDark__B-floor-sensor__vague__r1__full",
+   "worlds": [
+    {
+     "name": "A straight tunnel",
+     "world": [],
+     "tests": [
+      {
+       "name": "Gets through the tunnel",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A wall beside the line",
+     "world": [],
+     "tests": [
+      {
+       "name": "Stops at the wall ahead",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A line to a goal",
+     "world": [],
+     "tests": [
+      {
+       "name": "On the line, it follows it to the goal",
+       "problems": []
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "driveInTheDark__B-floor-sensor__vague__r2__full",
+   "worlds": [
+    {
+     "name": "A line through a tunnel",
+     "world": [],
+     "tests": [
+      {
+       "name": "On the black line, it drives straight through the tunnel",
+       "problems": [
+        "goal \"t3\" is after the exit of the tunnel \"t2\": a right program may come out of the dark beside the line and miss it. The goal of getting through the dark is inside the tunnel, 15 cm or more before the exit (\"Driving through a tunnel\" in \"Tests\"); defer what it does after the tunnel"
+       ]
+      }
+     ]
+    },
+    {
+     "name": "A wall close ahead",
+     "world": [],
+     "tests": [
+      {
+       "name": "Stops before the wall close ahead",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A line that bends right",
+     "world": [],
+     "tests": [
+      {
+       "name": "Follows the line around the right bend",
+       "problems": []
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "driveInTheDark__C-negated__precise__r1__full",
+   "worlds": [
+    {
+     "name": "A line that bends to a goal",
+     "world": [],
+     "tests": [
+      {
+       "name": "On the line, it follows it to the goal",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A dark tunnel",
+     "world": [],
+     "tests": [
+      {
+       "name": "Drives straight through the dark tunnel",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A line through a dark tunnel",
+     "world": [],
+     "tests": [
+      {
+       "name": "Follows the line inside the dark tunnel",
+       "problems": []
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "driveInTheDark__C-negated__precise__r2__full",
+   "worlds": [
+    {
+     "name": "A line to follow",
+     "world": [],
+     "tests": [
+      {
+       "name": "On the line, it follows it to the goal",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A dark tunnel with no line",
+     "world": [],
+     "tests": [
+      {
+       "name": "Through the dark tunnel without touching the walls",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A line through a dark tunnel",
+     "world": [],
+     "tests": [
+      {
+       "name": "Follows the line through the dark tunnel",
+       "problems": []
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "driveInTheDark__C-negated__vague__r1__full",
+   "worlds": [
+    {
+     "name": "A line through a tunnel",
+     "world": [],
+     "tests": [
+      {
+       "name": "Follows the line through the tunnel",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A wall in the dark",
+     "world": [],
+     "tests": [
+      {
+       "name": "Stops at the wall in the dark",
+       "problems": []
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "driveInTheDark__C-negated__vague__r2__full",
+   "worlds": [
+    {
+     "name": "A line through a tunnel",
+     "world": [],
+     "tests": [
+      {
+       "name": "Follows the line through the dark tunnel",
+       "problems": []
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "followInTheDark__A-peach-is-black__precise__r1__full",
+   "worlds": [
+    {
+     "name": "A line in a dark tunnel",
+     "world": [],
+     "tests": [
+      {
+       "name": "In the dark, it follows the line to the goal",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A dark tunnel with no line",
+     "world": [],
+     "tests": [
+      {
+       "name": "In the dark without a line, it drives straight to Goal 1",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A line in the light",
+     "world": [],
+     "tests": [
+      {
+       "name": "In the light, it follows the line to the goal",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A wall across the line in the light",
+     "world": [],
+     "tests": [
+      {
+       "name": "In the light, it stops at the wall",
+       "problems": [
+        "it checks what the robot does when it sees something (\"after obstacle\"), which holds for a robot that never gets there: it sees nothing at the start. Show that it gets there: a goal area just before the thing, and ends_in it (\"A wall ahead\" in \"Tests\"), or reaches"
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "followInTheDark__A-peach-is-black__precise__r2__full",
+   "worlds": [
+    {
+     "name": "A line in the light",
+     "world": [],
+     "tests": [
+      {
+       "name": "In the light, it follows the line to the goal",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A line in a dim tunnel",
+     "world": [],
+     "tests": [
+      {
+       "name": "Follows the black line in the dim tunnel",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A line that ends in a dark tunnel",
+     "world": [],
+     "tests": [
+      {
+       "name": "In the dark, it drives straight with no line",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A wall across the line",
+     "world": [],
+     "tests": [
+      {
+       "name": "Stops before the wall in the light",
+       "problems": [
+        "it checks what the robot does when it sees something (\"obstacle_ahead\"), which holds for a robot that never gets there: it sees nothing at the start. Show that it gets there: a goal area just before the thing, and ends_in it (\"A wall ahead\" in \"Tests\"), or reaches"
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "followInTheDark__A-peach-is-black__vague__r1__full",
+   "worlds": [
+    {
+     "name": "A line to a goal in the light",
+     "world": [],
+     "tests": [
+      {
+       "name": "In the light, it follows the line to the goal",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A line through a dark tunnel",
+     "world": [],
+     "tests": [
+      {
+       "name": "Keeps following the line in the dark tunnel",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A wall across the line",
+     "world": [],
+     "tests": [
+      {
+       "name": "Stops at the wall across the line",
+       "problems": [
+        "it checks what the robot does when it sees something (\"obstacle_ahead\"), which holds for a robot that never gets there: it sees nothing at the start. Show that it gets there: a goal area just before the thing, and ends_in it (\"A wall ahead\" in \"Tests\"), or reaches"
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "followInTheDark__A-peach-is-black__vague__r2__full",
+   "worlds": [
+    {
+     "name": "A line to a goal in the light",
+     "world": [],
+     "tests": [
+      {
+       "name": "On the line, it follows it to the goal",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A line into a tunnel",
+     "world": [],
+     "tests": [
+      {
+       "name": "Follows the line into the tunnel",
+       "problems": []
+      },
+      {
+       "name": "Follows the line starting in the dark",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A wall across the line",
+     "world": [],
+     "tests": [
+      {
+       "name": "Stops before the wall on the line",
+       "problems": [
+        "it checks what the robot does when it sees something (\"obstacle_ahead\"), which holds for a robot that never gets there: it sees nothing at the start. Show that it gets there: a goal area just before the thing, and ends_in it (\"A wall ahead\" in \"Tests\"), or reaches"
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "followInTheDark__B-light-above__precise__r1__full",
+   "worlds": [
+    {
+     "name": "A line to a goal in the light",
+     "world": [],
+     "tests": [
+      {
+       "name": "On the line, it follows it to the goal",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A wall across the line",
+     "world": [],
+     "tests": [
+      {
+       "name": "In the light, it stops at the wall on the line",
+       "problems": [
+        "it checks what the robot does when it sees something (\"obstacle_ahead\"), which holds for a robot that never gets there: it sees nothing at the start. Show that it gets there: a goal area just before the thing, and ends_in it (\"A wall ahead\" in \"Tests\"), or reaches"
+       ]
+      }
+     ]
+    },
+    {
+     "name": "A line through a tunnel",
+     "world": [],
+     "tests": [
+      {
+       "name": "Follows the line through the dark tunnel",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A tunnel that bends in the dark",
+     "world": [],
+     "tests": [
+      {
+       "name": "Gets around the dark bend",
+       "problems": []
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "followInTheDark__B-light-above__precise__r2__full",
+   "worlds": [
+    {
+     "name": "A line to a goal in the light",
+     "world": [],
+     "tests": [
+      {
+       "name": "In the light, it follows the line to the goal",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A wall across the line",
+     "world": [],
+     "tests": [
+      {
+       "name": "Stops before a wall across the line",
+       "problems": [
+        "it checks what the robot does when it sees something (\"obstacle_ahead\"), which holds for a robot that never gets there: it sees nothing at the start. Show that it gets there: a goal area just before the thing, and ends_in it (\"A wall ahead\" in \"Tests\"), or reaches"
+       ]
+      }
+     ]
+    },
+    {
+     "name": "Dim light on the line in a tunnel",
+     "world": [],
+     "tests": [
+      {
+       "name": "In the dim light, it follows the line on into the dark",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "The darkest part of a tunnel",
+     "world": [],
+     "tests": [
+      {
+       "name": "In the darkest part, it keeps to the line",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A tunnel bending to the right",
+     "world": [],
+     "tests": [
+      {
+       "name": "Gets through the bend to the right",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A tunnel bending to the left",
+     "world": [],
+     "tests": [
+      {
+       "name": "Gets through the bend to the left",
+       "problems": []
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "followInTheDark__B-light-above__vague__r1__full",
+   "worlds": [
+    {
+     "name": "A line to a goal in bright light",
+     "world": [],
+     "tests": [
+      {
+       "name": "On the line, it follows it to the goal",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A wall right in front of the line",
+     "world": [],
+     "tests": [
+      {
+       "name": "Stops before the wall on the line",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A line into a dark tunnel",
+     "world": [],
+     "tests": [
+      {
+       "name": "Follows the line through the dark tunnel",
+       "problems": []
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "followInTheDark__B-light-above__vague__r2__full",
+   "worlds": [
+    {
+     "name": "A line to follow in the light",
+     "world": [],
+     "tests": [
+      {
+       "name": "In the light, it follows the line to Goal 1",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A straight tunnel",
+     "world": [],
+     "tests": [
+      {
+       "name": "Follows the line through a straight tunnel",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A tunnel that bends right",
+     "world": [],
+     "tests": [
+      {
+       "name": "Turns away from the left wall in a bend",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A wall on the line",
+     "world": [],
+     "tests": [
+      {
+       "name": "Stops at the wall on the line",
+       "problems": [
+        "it checks what the robot does when it sees something (\"after obstacle\"), which holds for a robot that never gets there: it sees nothing at the start. Show that it gets there: a goal area just before the thing, and ends_in it (\"A wall ahead\" in \"Tests\"), or reaches"
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "followInTheDark__B-peach-is-black__precise__r1__full",
+   "worlds": [
+    {
+     "name": "A line to a wall in the light",
+     "world": [],
+     "tests": [
+      {
+       "name": "In the light, it follows the line and stops at the wall",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A line in a dark tunnel",
+     "world": [],
+     "tests": [
+      {
+       "name": "In the dark, it follows the line",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A line that ends in the dark",
+     "world": [],
+     "tests": [
+      {
+       "name": "In the dark with no line, it drives straight",
+       "problems": []
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "followInTheDark__B-peach-is-black__precise__r2__full",
+   "worlds": [
+    {
+     "name": "A line to a goal",
+     "world": [],
+     "tests": [
+      {
+       "name": "On the line, it follows it to the goal",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A line in the dark tunnel",
+     "world": [],
+     "tests": [
+      {
+       "name": "Follows the line in the dark",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A dark tunnel where the line ends",
+     "world": [],
+     "tests": [
+      {
+       "name": "In the dark with no line, it drives straight",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A wall on the line",
+     "world": [],
+     "tests": [
+      {
+       "name": "Stops in front of the wall on the line",
+       "problems": [
+        "it checks what the robot does when it sees something (\"obstacle_ahead\"), which holds for a robot that never gets there: it sees nothing at the start. Show that it gets there: a goal area just before the thing, and ends_in it (\"A wall ahead\" in \"Tests\"), or reaches"
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "followInTheDark__B-peach-is-black__vague__r1__full",
+   "worlds": [
+    {
+     "name": "A line in bright light",
+     "world": [],
+     "tests": [
+      {
+       "name": "On the line in bright light, it follows it to the goal",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A line through a tunnel",
+     "world": [],
+     "tests": [
+      {
+       "name": "Follows the line in the dark through the tunnel",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A wall across the line",
+     "world": [],
+     "tests": [
+      {
+       "name": "Stops at the wall on the line",
+       "problems": [
+        "it checks what the robot does when it sees something (\"obstacle_ahead\"), which holds for a robot that never gets there: it sees nothing at the start. Show that it gets there: a goal area just before the thing, and ends_in it (\"A wall ahead\" in \"Tests\"), or reaches"
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "followInTheDark__B-peach-is-black__vague__r2__full",
+   "worlds": [
+    {
+     "name": "A line in the light",
+     "world": [],
+     "tests": [
+      {
+       "name": "Follows the line in the light to its end",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A line into a tunnel",
+     "world": [],
+     "tests": [
+      {
+       "name": "Follows the line into the dark tunnel",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A wall across the line",
+     "world": [],
+     "tests": [
+      {
+       "name": "Stops at the wall in the light",
+       "problems": [
+        "it checks what the robot does when it sees something (\"obstacle_ahead\"), which holds for a robot that never gets there: it sees nothing at the start. Show that it gets there: a goal area just before the thing, and ends_in it (\"A wall ahead\" in \"Tests\"), or reaches"
+       ]
+      }
+     ]
+    },
+    {
+     "name": "A tunnel that bends right",
+     "world": [],
+     "tests": [
+      {
+       "name": "Turns away from the wall in the dark",
+       "problems": []
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "followInTheDark__C-no-handover__precise__r1__full",
+   "worlds": [
+    {
+     "name": "A line through a dark tunnel",
+     "world": [],
+     "tests": [
+      {
+       "name": "In the dark, it follows the line from its black core",
+       "problems": []
+      },
+      {
+       "name": "In the dark, it follows the line from the white band",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A dark tunnel without a line",
+     "world": [],
+     "tests": [
+      {
+       "name": "Drives straight through the dark tunnel",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A line in bright light",
+     "world": [],
+     "tests": [
+      {
+       "name": "In the light, it follows the line to the goal",
+       "problems": []
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "followInTheDark__C-no-handover__precise__r2__full",
+   "worlds": [
+    {
+     "name": "A line in a dark tunnel",
+     "world": [],
+     "tests": [
+      {
+       "name": "Follows the line in the dark tunnel",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A dark tunnel with no line",
+     "world": [],
+     "tests": [
+      {
+       "name": "In the dark with no line, it drives straight",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "The white band in a dark tunnel",
+     "world": [],
+     "tests": [
+      {
+       "name": "On the white band in the dark, it drives straight",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A line in bright light",
+     "world": [],
+     "tests": [
+      {
+       "name": "In the light, it follows the line to the goal",
+       "problems": []
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "followInTheDark__C-no-handover__vague__r1__full",
+   "worlds": [
+    {
+     "name": "A line in a tunnel",
+     "world": [],
+     "tests": [
+      {
+       "name": "In the dark, it follows the line to the goal",
+       "problems": []
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "followInTheDark__C-no-handover__vague__r2__full",
+   "worlds": [
+    {
+     "name": "A line in a dark tunnel",
+     "world": [],
+     "tests": [
+      {
+       "name": "On the line in the dark, it follows it to the goal",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A line in the light",
+     "world": [],
+     "tests": [
+      {
+       "name": "On the line in bright light, it follows it",
+       "problems": []
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "followLine__A-light-above__precise__r1__full",
+   "worlds": [
+    {
+     "name": "A curved line to the goal",
+     "world": [],
+     "tests": [
+      {
+       "name": "Follows the black line to the goal",
+       "problems": []
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "followLine__A-light-above__precise__r2__full",
+   "worlds": [
+    {
+     "name": "A line to the green goal",
+     "world": [],
+     "tests": [
+      {
+       "name": "On the line, it should follow it to the goal",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A dim tunnel",
+     "world": [],
+     "tests": [
+      {
+       "name": "Curves left in dim light",
+       "problems": []
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "followLine__A-light-above__vague__r1__full",
+   "worlds": [
+    {
+     "name": "A plain floor in bright light",
+     "world": [],
+     "tests": [
+      {
+       "name": "In bright light it keeps curving right",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A tunnel in dim light",
+     "world": [],
+     "tests": [
+      {
+       "name": "In the dark tunnel, it curves left",
+       "problems": []
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "followLine__A-light-above__vague__r2__full",
+   "worlds": [
+    {
+     "name": "A line in bright light",
+     "world": [],
+     "tests": [
+      {
+       "name": "On the line in bright light, it follows to the goal",
+       "problems": []
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "followLine__A-straight-off__precise__r1__full",
+   "worlds": [
+    {
+     "name": "A line with bends to a goal",
+     "world": [],
+     "tests": [
+      {
+       "name": "On the line, it follows it through the bends to the goal",
+       "problems": []
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "followLine__A-straight-off__precise__r2__full",
+   "worlds": [
+    {
+     "name": "A line with bends to the goal",
+     "world": [],
+     "tests": [
+      {
+       "name": "On the line, it follows it to the goal",
+       "problems": []
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "followLine__A-straight-off__vague__r1__full",
+   "worlds": [
+    {
+     "name": "A line to a goal",
+     "world": [],
+     "tests": [
+      {
+       "name": "On the line, it follows it to the goal",
+       "problems": []
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "followLine__A-straight-off__vague__r2__full",
+   "worlds": [
+    {
+     "name": "A curved line to a goal",
+     "world": [],
+     "tests": [
+      {
+       "name": "On the line, it follows it to the goal",
+       "problems": []
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "followLine__B-one-turn__precise__r1__full",
+   "worlds": [
+    {
+     "name": "A curved line to a goal",
+     "world": [],
+     "tests": [
+      {
+       "name": "Follows the curved line to the goal",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A straight line to a goal",
+     "world": [],
+     "tests": [
+      {
+       "name": "Follows the straight line to the goal",
+       "problems": []
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "followLine__B-one-turn__precise__r2__full",
+   "worlds": [
+    {
+     "name": "A line with a bend to the goal",
+     "world": [],
+     "tests": [
+      {
+       "name": "On the line, it follows it through the bend to the goal",
+       "problems": []
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "followLine__B-one-turn__vague__r1__full",
+   "worlds": [
+    {
+     "name": "A line to a goal",
+     "world": [],
+     "tests": [
+      {
+       "name": "On the line, it follows it to the goal",
+       "problems": []
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "followLine__B-one-turn__vague__r2__full",
+   "worlds": [
+    {
+     "name": "A curved line to a goal",
+     "world": [],
+     "tests": [
+      {
+       "name": "On the line, it follows it to the goal",
+       "problems": []
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "followLine__C-too-slow__precise__r1__full",
+   "worlds": [
+    {
+     "name": "A curved line to the goal",
+     "world": [],
+     "tests": [
+      {
+       "name": "On the line, it follows it through the curves to Goal 1",
+       "problems": []
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "followLine__C-too-slow__precise__r2__full",
+   "worlds": [
+    {
+     "name": "A curved line to the goal",
+     "world": [],
+     "tests": [
+      {
+       "name": "On the line, it follows it to the goal",
+       "problems": []
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "followLine__C-too-slow__vague__r1__full",
+   "worlds": [
+    {
+     "name": "A line to a goal",
+     "world": [],
+     "tests": [
+      {
+       "name": "On the line, it follows it to the end",
+       "problems": []
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "followLine__C-too-slow__vague__r2__full",
+   "worlds": [
+    {
+     "name": "A line to a goal",
+     "world": [],
+     "tests": [
+      {
+       "name": "On the line, it follows it to the goal",
+       "problems": []
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "stopAtWall__A-negated__precise__r1__full",
+   "worlds": [
+    {
+     "name": "A line to a goal",
+     "world": [],
+     "tests": [
+      {
+       "name": "On the line, it follows it to the goal",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A wall in front on the line",
+     "world": [],
+     "tests": [
+      {
+       "name": "Stops before the wall right in front",
+       "problems": []
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "stopAtWall__A-negated__precise__r2__full",
+   "worlds": [
+    {
+     "name": "A line to a goal",
+     "world": [],
+     "tests": [
+      {
+       "name": "On the line, it follows it to the goal",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A wall in front on the line",
+     "world": [],
+     "tests": [
+      {
+       "name": "On the line, it stops before the wall in front",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A wall in front beside the line",
+     "world": [],
+     "tests": [
+      {
+       "name": "Beside the line, it stops before the wall in front",
+       "problems": []
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "stopAtWall__A-negated__vague__r1__full",
+   "worlds": [
+    {
+     "name": "A wall on the line",
+     "world": [],
+     "tests": [
+      {
+       "name": "Stops before the wall on the line",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A line with nothing ahead",
+     "world": [],
+     "tests": [
+      {
+       "name": "With nothing ahead, it stands still",
+       "problems": []
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "stopAtWall__A-negated__vague__r2__full",
+   "worlds": [
+    {
+     "name": "A line to a wall",
+     "world": [],
+     "tests": [
+      {
+       "name": "Drives on when nothing is in front",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A wall in front on the line",
+     "world": [],
+     "tests": [
+      {
+       "name": "Stops before the wall on the line",
+       "problems": []
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "stopAtWall__A-slows__precise__r1__full",
+   "worlds": [
+    {
+     "name": "A line to a goal",
+     "world": [],
+     "tests": [
+      {
+       "name": "On the line, it follows it to the goal",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A wall across the line",
+     "world": [],
+     "tests": [
+      {
+       "name": "Stops before the wall on the line",
+       "problems": [
+        "it checks what the robot does when it sees something (\"obstacle_ahead\"), which holds for a robot that never gets there: it sees nothing at the start. Show that it gets there: a goal area just before the thing, and ends_in it (\"A wall ahead\" in \"Tests\"), or reaches"
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "stopAtWall__A-slows__precise__r2__full",
+   "worlds": [
+    {
+     "name": "A line to a goal",
+     "world": [],
+     "tests": [
+      {
+       "name": "On the line, it follows it to Goal 1",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A wall across the line",
+     "world": [],
+     "tests": [
+      {
+       "name": "Stops before the wall on the line",
+       "problems": [
+        "it checks what the robot does when it sees something (\"obstacle_ahead\"), which holds for a robot that never gets there: it sees nothing at the start. Show that it gets there: a goal area just before the thing, and ends_in it (\"A wall ahead\" in \"Tests\"), or reaches"
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "stopAtWall__A-slows__vague__r1__full",
+   "worlds": [
+    {
+     "name": "A wall ahead on the line",
+     "world": [],
+     "tests": [
+      {
+       "name": "Stops before the wall ahead",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A line to a goal",
+     "world": [],
+     "tests": [
+      {
+       "name": "On the line, it follows it to the goal",
+       "problems": []
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "stopAtWall__A-slows__vague__r2__full",
+   "worlds": [
+    {
+     "name": "A line to a goal",
+     "world": [],
+     "tests": [
+      {
+       "name": "On the line, it follows it to the goal",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A wall across the line",
+     "world": [],
+     "tests": [
+      {
+       "name": "Stops before the wall on the line",
+       "problems": [
+        "it checks what the robot does when it sees something (\"obstacle_ahead\"), which holds for a robot that never gets there: it sees nothing at the start. Show that it gets there: a goal area just before the thing, and ends_in it (\"A wall ahead\" in \"Tests\"), or reaches"
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "stopAtWall__B-no-handover__precise__r1__full",
+   "worlds": [
+    {
+     "name": "A line to a goal",
+     "world": [],
+     "tests": [
+      {
+       "name": "On the line, it follows it to the goal",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A wall right in front",
+     "world": [],
+     "tests": [
+      {
+       "name": "Stands still in front of the wall",
+       "problems": []
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "stopAtWall__B-no-handover__precise__r2__full",
+   "worlds": [
+    {
+     "name": "A line to a goal",
+     "world": [],
+     "tests": [
+      {
+       "name": "It follows the line to the goal",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A wall right in front on the line",
+     "world": [],
+     "tests": [
+      {
+       "name": "Stops before the wall and stays there",
+       "problems": []
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "stopAtWall__B-no-handover__vague__r1__full",
+   "worlds": [
+    {
+     "name": "A wall in front of the robot",
+     "world": [],
+     "tests": [
+      {
+       "name": "Stays in front of the wall",
+       "problems": []
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "stopAtWall__B-no-handover__vague__r2__full",
+   "worlds": [
+    {
+     "name": "A wall ahead",
+     "world": [],
+     "tests": [
+      {
+       "name": "Drives up to the wall and stops",
+       "problems": []
+      },
+      {
+       "name": "The wall right in front: it stays put",
+       "problems": []
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "stopAtWall__C-turns__precise__r1__full",
+   "worlds": [
+    {
+     "name": "A line to a goal",
+     "world": [],
+     "tests": [
+      {
+       "name": "On the line, it follows it to the goal",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A wall on the line",
+     "world": [],
+     "tests": [
+      {
+       "name": "Stops before the wall on the line",
+       "problems": [
+        "it checks what the robot does when it sees something (\"obstacle_ahead\"), which holds for a robot that never gets there: it sees nothing at the start. Show that it gets there: a goal area just before the thing, and ends_in it (\"A wall ahead\" in \"Tests\"), or reaches"
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "stopAtWall__C-turns__precise__r2__full",
+   "worlds": [
+    {
+     "name": "A line to a goal",
+     "world": [],
+     "tests": [
+      {
+       "name": "On the line, it follows it to the goal",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A wall across the line",
+     "world": [],
+     "tests": [
+      {
+       "name": "Stops before the wall across the line",
+       "problems": [
+        "it checks what the robot does when it sees something (\"obstacle_ahead\"), which holds for a robot that never gets there: it sees nothing at the start. Show that it gets there: a goal area just before the thing, and ends_in it (\"A wall ahead\" in \"Tests\"), or reaches"
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "stopAtWall__C-turns__vague__r1__full",
+   "worlds": [
+    {
+     "name": "A curving line to a goal",
+     "world": [],
+     "tests": [
+      {
+       "name": "On the line, it follows it to the goal",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A wall right in front on the right",
+     "world": [],
+     "tests": [
+      {
+       "name": "Stands still with a wall on its right",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A wall along the line on the right",
+     "world": [],
+     "tests": [
+      {
+       "name": "Stops when a wall comes up on its right",
+       "problems": [
+        "it checks what the robot does when it sees something (\"after obstacle\"), which holds for a robot that never gets there: it sees nothing at the start. Show that it gets there: a goal area just before the thing, and ends_in it (\"A wall ahead\" in \"Tests\"), or reaches"
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "stopAtWall__C-turns__vague__r2__full",
+   "worlds": [
+    {
+     "name": "A line to a goal",
+     "world": [],
+     "tests": [
+      {
+       "name": "On the line, it follows it to the goal",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A line to a wall",
+     "world": [],
+     "tests": [
+      {
+       "name": "Stops at the wall on the line",
+       "problems": [
+        "it checks what the robot does when it sees something (\"obstacle_right\"), which holds for a robot that never gets there: it sees nothing at the start. Show that it gets there: a goal area just before the thing, and ends_in it (\"A wall ahead\" in \"Tests\"), or reaches"
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "example 1-follow-the-line.md #1",
+   "worlds": [
+    {
+     "name": "A line to a goal",
+     "world": [],
+     "tests": [
+      {
+       "name": "On the line, it follows it to the goal",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A box on the line",
+     "world": [],
+     "tests": [
+      {
+       "name": "Stops before the box on the line",
+       "problems": []
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "example 2-nothing-new-to-test.md #0",
+   "worlds": [
+    {
+     "name": "Around the block",
+     "world": [],
+     "tests": [
+      {
+       "name": "Gets around the red block",
+       "problems": []
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "example 3-park-in-the-box.md #1",
+   "worlds": [
+    {
+     "name": "Park in a box",
+     "world": [],
+     "tests": [
+      {
+       "name": "After PLAY, it parks in the box",
+       "problems": []
+      },
+      {
+       "name": "Without PLAY, it waits",
+       "problems": []
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "example 4-fix-failed-tests.md #1",
+   "worlds": [
+    {
+     "name": "A line to a goal",
+     "world": [],
+     "tests": [
+      {
+       "name": "On the line, it follows it to the goal",
+       "problems": []
+      }
+     ]
+    },
+    {
+     "name": "A box on the line",
+     "world": [],
+     "tests": [
+      {
+       "name": "Stops before the box on the line",
+       "problems": []
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "check_round4 Wall seen at once",
+   "worlds": [
+    {
+     "name": "Wall seen at once",
+     "world": [],
+     "tests": [
+      {
+       "name": "Stops at once",
+       "problems": []
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "check_round4 Wall ahead, round 3",
+   "worlds": [
+    {
+     "name": "Wall ahead, round 3",
+     "world": [],
+     "tests": [
+      {
+       "name": "Stops at the wall",
+       "problems": [
+        "it checks what the robot does when it sees something (\"obstacle_ahead\"), which holds for a robot that never gets there: it sees nothing at the start. Show that it gets there: a goal area just before the thing, and ends_in it (\"A wall ahead\" in \"Tests\"), or reaches"
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "check_round4 Wall ahead, round 4",
+   "worlds": [
+    {
+     "name": "Wall ahead, round 4",
+     "world": [],
+     "tests": [
+      {
+       "name": "Stops at the wall",
+       "problems": []
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "check_round4 Wall ahead, round 4, stays",
+   "worlds": [
+    {
+     "name": "Wall ahead, round 4, stays",
+     "world": [],
+     "tests": [
+      {
+       "name": "Stops at the wall",
+       "problems": []
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "check_round4 Box on a long line, round 4",
+   "worlds": [
+    {
+     "name": "Box on a long line, round 4",
+     "world": [],
+     "tests": [
+      {
+       "name": "Stops before the box",
+       "problems": []
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "check_round4 Bend right, 30 deg every 20 cm (44 deg over 20 cm)",
+   "worlds": [
+    {
+     "name": "Bend right, 30 deg every 20 cm (44 deg over 20 cm)",
+     "world": [],
+     "tests": [
+      {
+       "name": "Gets through the bend",
+       "problems": []
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "check_round4 Bend left, 30 deg every 20 cm (44 deg over 20 cm)",
+   "worlds": [
+    {
+     "name": "Bend left, 30 deg every 20 cm (44 deg over 20 cm)",
+     "world": [],
+     "tests": [
+      {
+       "name": "Gets through the bend",
+       "problems": []
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "check_round4 Bend right, 30 deg every 30 cm (27 deg over 20 cm)",
+   "worlds": [
+    {
+     "name": "Bend right, 30 deg every 30 cm (27 deg over 20 cm)",
+     "world": [],
+     "tests": [
+      {
+       "name": "Gets through the bend",
+       "problems": []
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "check_round4 Bend left, 30 deg every 30 cm (27 deg over 20 cm)",
+   "worlds": [
+    {
+     "name": "Bend left, 30 deg every 30 cm (27 deg over 20 cm)",
+     "world": [],
+     "tests": [
+      {
+       "name": "Gets through the bend",
+       "problems": []
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "check_round4 Bend right, 30 deg every 40 cm (16 deg over 20 cm)",
+   "worlds": [
+    {
+     "name": "Bend right, 30 deg every 40 cm (16 deg over 20 cm)",
+     "world": [],
+     "tests": [
+      {
+       "name": "Gets through the bend",
+       "problems": []
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "check_round4 Bend left, 30 deg every 40 cm (16 deg over 20 cm)",
+   "worlds": [
+    {
+     "name": "Bend left, 30 deg every 40 cm (16 deg over 20 cm)",
+     "world": [],
+     "tests": [
+      {
+       "name": "Gets through the bend",
+       "problems": []
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "check_round4 Bend right, 45 deg every 20 cm (65 deg over 20 cm)",
+   "worlds": [
+    {
+     "name": "Bend right, 45 deg every 20 cm (65 deg over 20 cm)",
+     "world": [],
+     "tests": [
+      {
+       "name": "Gets through the bend",
+       "problems": []
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "check_round4 Bend left, 45 deg every 20 cm (65 deg over 20 cm)",
+   "worlds": [
+    {
+     "name": "Bend left, 45 deg every 20 cm (65 deg over 20 cm)",
+     "world": [],
+     "tests": [
+      {
+       "name": "Gets through the bend",
+       "problems": []
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "check_round4 Bend right, 45 deg every 30 cm (39 deg over 20 cm)",
+   "worlds": [
+    {
+     "name": "Bend right, 45 deg every 30 cm (39 deg over 20 cm)",
+     "world": [],
+     "tests": [
+      {
+       "name": "Gets through the bend",
+       "problems": []
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "check_round4 Bend left, 45 deg every 30 cm (39 deg over 20 cm)",
+   "worlds": [
+    {
+     "name": "Bend left, 45 deg every 30 cm (39 deg over 20 cm)",
+     "world": [],
+     "tests": [
+      {
+       "name": "Gets through the bend",
+       "problems": []
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "check_round4 Bend right, 45 deg every 40 cm (24 deg over 20 cm)",
+   "worlds": [
+    {
+     "name": "Bend right, 45 deg every 40 cm (24 deg over 20 cm)",
+     "world": [],
+     "tests": [
+      {
+       "name": "Gets through the bend",
+       "problems": []
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "check_round4 Bend left, 45 deg every 40 cm (24 deg over 20 cm)",
+   "worlds": [
+    {
+     "name": "Bend left, 45 deg every 40 cm (24 deg over 20 cm)",
+     "world": [],
+     "tests": [
+      {
+       "name": "Gets through the bend",
+       "problems": []
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "check_round4 Bend right, 90 deg every 60 cm (69 deg over 20 cm)",
+   "worlds": [
+    {
+     "name": "Bend right, 90 deg every 60 cm (69 deg over 20 cm)",
+     "world": [],
+     "tests": [
+      {
+       "name": "Gets through the bend",
+       "problems": []
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "check_round4 Bend left, 90 deg every 60 cm (69 deg over 20 cm)",
+   "worlds": [
+    {
+     "name": "Bend left, 90 deg every 60 cm (69 deg over 20 cm)",
+     "world": [],
+     "tests": [
+      {
+       "name": "Gets through the bend",
+       "problems": []
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "errs": []
+}

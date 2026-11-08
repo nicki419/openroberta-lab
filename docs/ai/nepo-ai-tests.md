@@ -303,6 +303,27 @@ by the model and checked by code:
   across a tunnel unless the learner says what the robot should do at a wall in the dark: a program that checks the
   light first never gets to its wall-stop there. `line_end` is not for line followers (they leave the black core all
   the time). Before, these made 37 of the 39 false alarms of phase 5's first measurement.
+- **Where the robot gets to, and the world drawn for it** (2026-11-07, phase 5, round 4,
+  `nepo-ai-technique-compliance.md`; measured in `evaluation/phase5/check_round4.py`, checked on earlier rounds'
+  tests with `check_rules.py`):
+  - **A stop at something the robot drives up to shows that it got there**: a `whenever` `obstacle_*` or an `after`
+    `obstacle` holds for a robot that never moves, so a test with one, whose robot sees nothing at the start
+    (`SIM.infrared`), needs `reaches` or `ends_in` (`nepoTest.aiStrategy` `arrivalProblems`). `tests.md` draws a goal
+    area of 15 × 20 cm just before the wall or box, which the robot ends in. Measured: every correct version passes it,
+    all 12 broken versions of `stopAtWall` fail it (without it, only the 3 that slow down failed). Round 3's "Stop at
+    the wall." tests had only the `whenever` and `never_bumps`, and the broken versions that never move passed.
+  - **Tunnels that overlap** go back (`nepoTest.aiFormat` `tunnelProblems`): the recipes of the bends to the right and
+    to the left take the same floor, and drawn into one world they cross; each bend gets a world of its own.
+  - **A start whose robot touches an obstacle, a wall or a tunnel's wall, or that is inside a tunnel within 25 cm of
+    a bend** (its line turns by more than 15° there) goes back (`startProblems`): two starts in a bend, by the model's
+    own numbers, met the wall at once or straight ahead, where a right program stops. From a straight approach, every
+    right program got through every bend up to a corner of 90°, so there is no limit on bends.
+  - **A goal after a tunnel's exit** (from a start before the tunnel or inside it) goes back (`exitProblems`): the
+    rule of "Driving through a tunnel" since round 2, which the model still broke.
+  - Measured on the same 80 requests (`evaluation/phase5/results-r4/`): broken versions caught 76 % → 81 %, good
+    sets 41 % → 48 % (`stopAtWall` 12 % → 44 %), sets with a false alarm 4 % → 6 % (none of the paired changes
+    significant). The model drew its worlds by the new rules from the prompt alone: none of the four checks had to
+    send an answer back.
 - **Two checks are looser than TGA §8:** a planned outcome must be an outcome of the program, not necessarily of the
   test's paths (a run takes outcomes on its way: a wall test drives with nothing ahead before it sees the wall). A
   class must be one of the analysis' (`whole`), not necessarily of the test's paths. Both had left out

@@ -10,9 +10,10 @@ The two questions (2026-11-06):
    (harnesses?).*
 2. *How can we know for certain that DeepSeek is using the testing techniques that we tell it to use?*
 
-Status: **phase 5: tuned, then the oracle rules changed, measured each time** (rounds 1 to 3, see "Phase 5" at the end): since round 3
-the expected behaviour comes only from the learner's words; false alarms are rare, and vague sentences get fewer tests.
-Last updated: 2026-11-07.
+Status: **phase 5: tuned, then the oracle rules changed, then the worlds, measured each time** (rounds 1 to 4, see "Phase 5" at the
+end): since round 3 the expected behaviour comes only from the learner's words; since round 4 a stop test shows that the robot got there,
+and the Lab sends back worlds that right programs can't get through. False alarms are rare, and vague sentences get fewer tests.
+Last updated: 2026-11-08.
 
 ## The short answer
 
@@ -56,6 +57,11 @@ the context pack (rounds 1 and 2):
 the model followed them from the prompt alone (in 229 calls no expectation taken from the program; the new checks of the Lab never had to
 send anything back), and the same 80 requests got false alarms in 4 % of the sets instead of 14 % (significant), at a price: 76 % of the
 broken versions caught instead of 82 % (significant), mostly with vague sentences, which now get fewer tests.
+
+**After round 4 (2026-11-08)**, a stop test shows that the robot got there, and the Lab sends back four kinds of worlds (see "Round 4"):
+the model again followed the new rules from the prompt alone (none of the four checks had to send an answer back), and the same 80
+requests caught 81 % of the broken versions (round 3: 76 %), with 48 % good sets (41 %) and false alarms in 6 % of the sets (4 %); none
+of these changes is significant on its own. The stop tests gained most: `stopAtWall` good sets 12 % → 44 %.
 
 ## What the Lab enforces, measures, or only asks for
 
@@ -403,12 +409,73 @@ pipeline only (`evaluation/phase5/results-r3/`: `report.md`, `compare.md`, `audi
   drew bends of their own (90° within 20 cm, the start inside the tunnel just before the bend) instead of the recipe, which every right
   program bumps into; and 1 test has a goal after a tunnel's exit (vague sentence), as in round 2.
 
+### Round 4: where the robot gets to, and the world drawn for it (2026-11-07/08)
+
+Round 3's losses came from stop tests that hold for a robot that never moves, and its false alarms from worlds that right programs can't
+get through. Each rule was measured before it was built (`evaluation/phase5/check_round4.py`, `results-round4.json`), and replayed on the
+tests of rounds 2 and 3 (`check_rules.py`, `results-r2/rules.json`, `results-r3/rules.json`):
+
+1. **A stop at something the robot drives up to shows that it got there** (`tests.md`, examples 1 and 4, `nepoTest.aiStrategy`
+   `arrivalProblems`): a test with `whenever` `obstacle_*` or `after` `obstacle`, whose robot sees nothing at the start, needs `reaches` or
+   `ends_in`; the recipe is a goal area of 15 × 20 cm just before the wall, which the robot ends in. Measured: every correct version of
+   `stopAtWall` and of every later function passes it, all 12 broken versions of `stopAtWall` fail it; round 3's form caught 3 of them
+   (those that slow down). Checking that the robot stays there as well caught nothing more.
+2. **Tunnels that overlap** go back (`nepoTest.aiFormat` `tunnelProblems`); the recipes of the bends each get a world of their own.
+3. **A start whose robot touches something, or that is inside a tunnel within 25 cm of a bend of more than 15°**, goes back
+   (`startProblems`). A limit on bends was measured and dropped: from a straight approach, every correct version of `avoidWalls` and
+   `followInTheDark` got through every bend up to a corner of 90°, to the right and to the left; what failed in round 3 was the start in
+   the bend.
+4. **A goal after a tunnel's exit** goes back (`exitProblems`): the rule of "Driving through a tunnel" since round 2, which the model
+   still broke.
+
+Replayed: the four checks flag all 5 false alarms of round 3 (and 5 of round 2's); among the valid tests they flag 11 of round 3, 10 of
+them stop tests without arrival, which the repair makes stronger. The context pack's examples pass them.
+
+Measured on the same 80 requests (`versions-rounds-1-2.json`), the full pipeline only (`evaluation/phase5/results-r4/`: `report.md`,
+`compare.md`, `audit/`):
+
+| full pipeline | round 3 | round 4 |
+|---|---|---|
+| requests without a test | 2 | 3 |
+| tests per request (mean) | 1.9 | 1.9 |
+| **sets with a false alarm** | 4 % | **6 %** |
+| false alarms among the tests | 3 % | 4 % |
+| **broken versions caught** | 76 % | **81 %** |
+| the broken version the assistant got, caught | 71 % | 76 % |
+| **good sets** (the user's rule) | 41 % | **48 %** |
+| precise sentence: false alarms / caught / good sets | 5 % / 86 % / 58 % | 10 % / 90 % / 62 % |
+| vague sentence: false alarms / caught / good sets | 2 % / 65 % / 25 % | 2 % / 72 % / 32 % |
+| `stopAtWall`: caught / good sets | 68 % / 12 % | 84 % / 44 % |
+| time per request: median (max) | 113 s (395 s) | 108 s (293 s) |
+
+- **More catches, not significant on their own.** Paired by version, sentence and repeat: more broken versions caught in 19 pairs, fewer
+  in 9 (sign test p = 0.09); fewer false alarms in 2, more in 4 (p = 0.69). Round 4 is level with round 2 on catches (82 %) and good sets
+  (48 %), with round 3's low false alarms kept close (6 % against 14 % in round 2).
+- **The stop tests gained most**, as measured beforehand: 9 of 17 tests of a reaction to an obstacle now end in an area before it (round
+  3: 1 of 22), the other 8 see the obstacle at the start. `stopAtWall`'s broken versions: `turns` 33 % → 69 % caught, `negated` 81 % →
+  100 %, `no-handover` 56 % → 69 %.
+- **The model followed the new rules from the prompt alone**: in 148 generate calls none of the four checks sent an answer back, and
+  replayed on round 4's tests they flag none. 3 of 80 first analyses (4 %) and 17 of 124 first generate answers (14 %: equivalence classes
+  11, the world 10) were sent back, as in round 3.
+- **The false alarms left** (6 tests in 5 sets) are none of round 4's kinds. Each was run again with one thing changed, on the correct
+  versions (a probe, not kept):
+  - 2 run on past their goal inside a tunnel (no `until`, up to 45 s): the robot leaves the tunnel and, searching for a line in the light,
+    bumps into it from outside. With `until` the goal, every correct version passes.
+  - 1 starts inside a straight tunnel facing across it (heading 90° in a tunnel along x); two right programs bump. Facing along the
+    tunnel, all pass.
+  - 1 "Stop at the wall." (vague) draws no line: the broken program it got (`no-handover`) never follows one, so the Lab's rule of a line
+    wherever the robot follows one didn't apply, but every right program does, and circles on the plain floor. With a line up to the
+    wall, all pass.
+  - 2 read the sentence beyond its words: "inside a dark tunnel, where there is no line, drive straight" tested as "where the line ends in
+    the light, drive straight on", and "without touching its walls" as "stop before a wall across the dark tunnel" (right programs drive
+    straight in the dark, as the sentence says, and bump wherever the wall is).
+
 ### Next (open)
 
-- **Round 4, if wanted** (about 1.5 h): a test of stopping at something shows that the robot got there (it ends in an area before the
-  wall, and stands still), so it fails for a robot that never moves, without taking anything from the program; the recipes of the bent
-  tunnels each in a world of its own (their numbers make them cross in one world), and the Lab sending back a tunnel that bends more
-  tightly than the recipe or a start that touches a tunnel's wall.
+- **Round 5, if wanted** (about 1.5 h, from round 4's false alarms): a test of a tunnel with its goal inside runs `until` the goal (the
+  Lab could send back a `never_bumps` of a tunnel without it); a start inside a tunnel faces along it; the recipe "A wall ahead" always
+  draws a line up to the wall (a program that doesn't read the line tracker ignores it). The two misreadings of the sentence are not a
+  matter of the world, and no check of the Lab decides them.
 - The user's review of the corpus as the study's starter code (`evaluation/phase5/corpus/CORPUS.md`).
 - **The source of truth for later comparisons** (2026-11-07, at the user's request): `evaluation/truth/` fixes the corpus per level: the
   function, its correct and broken versions as NEPO XML (alone, to inject, and as the level's whole program), and **reference tests written
@@ -437,3 +504,5 @@ pipeline only (`evaluation/phase5/results-r3/`: `report.md`, `compare.md`, `audi
   injection.
 - 2026-11-07: phase 5, round 3: the oracle rules (expected behaviour only from the learner's words, lines, walls, margins) and their
   measurement.
+- 2026-11-08: phase 5, round 4: stop tests show arrival, the Lab's checks of the world (overlapping tunnels, starts, goals after the
+  exit), the measurements behind them, their replay on rounds 2 and 3, and round 4's results and false alarms.

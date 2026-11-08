@@ -749,6 +749,7 @@ export function checkTests(
                             ': give the robot 200 ms or more (a right program may see it a few frames later with another sensor, and needs a frame to stop)'
                     )
                 );
+            w.data && w.data.world && arrivalProblems(t, w.data.world).forEach((m) => add(m));
             if (index.lineTracker && w.data && w.data.world) {
                 const beside = arrayOf(t.input_selection && t.input_selection.equivalence_partitions)
                     .map((e: any) => e && e.class)
@@ -802,6 +803,28 @@ export function checkTests(
     none && count && add('generation_status is no_valid_scenarios, but the answer has tests');
     !none && !count && add('the answer has no tests: write them, or say generation_status no_valid_scenarios');
     return problems;
+}
+
+/**
+ * 2026-11-07 (phase 5, round 4): a reaction to something the robot drives up to ("whenever obstacle_ahead, stands_still", "after obstacle") holds
+ * for a robot that never gets there: a test with one, whose robot sees nothing at the start, also checks where it gets to (reaches, ends_in).
+ * Round 3: "Stop at the wall." was tested by that `whenever` and never_bumps only, and the broken versions that don't move passed; with an area
+ * before the wall that the robot ends in, every right version passes and every broken one fails (check_round4.py).
+ */
+export function arrivalProblems(t: FORMAT.AiTest, world: SIM.SimWorld): string[] {
+    const reacts = t.checks.filter((c: any) => c && ((c.check === 'whenever' && /^obstacle_/.test(String(c.when || ''))) || (c.check === 'after' && c.event === 'obstacle')));
+    const start = (world.starts || []).filter((s) => s.id === t.start)[0];
+    if (!reacts.length || !start || t.checks.some((c: any) => c.check === 'reaches' || c.check === 'ends_in')) {
+        return [];
+    }
+    if (SIM.infrared(world, start.x, start.y, start.heading || 0).seen.some(Boolean)) {
+        return []; // it sees the thing at the start: the reaction is decided at once
+    }
+    return [
+        'it checks what the robot does when it sees something ("' +
+            (reacts[0].when || 'after ' + reacts[0].event) +
+            '"), which holds for a robot that never gets there: it sees nothing at the start. Show that it gets there: a goal area just before the thing, and ends_in it ("A wall ahead" in "Tests"), or reaches',
+    ];
 }
 
 /** what the robot can't do in the same frame: turning left and right, standing still and moving, an LED on and off, playing and silent */

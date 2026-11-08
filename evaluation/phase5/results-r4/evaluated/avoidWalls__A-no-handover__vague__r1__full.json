@@ -1,0 +1,106 @@
+{
+ "id": "avoidWalls__A-no-handover__vague__r1__full",
+ "job": {
+  "id": "avoidWalls__A-no-handover__vague__r1__full",
+  "function": "avoidWalls",
+  "version": "avoidWalls/A-no-handover",
+  "sentenceKind": "vague",
+  "sentence": "Don't hit the tunnel walls.",
+  "repeat": 1,
+  "pipeline": "full",
+  "name": "p5_avoidWalls_A_no_handover"
+ },
+ "versions": [
+  {
+   "id": "avoidWalls/A",
+   "kind": "correct",
+   "fault": null,
+   "of": null
+  },
+  {
+   "id": "avoidWalls/A-swapped",
+   "kind": "broken",
+   "fault": "swapped",
+   "of": "avoidWalls/A"
+  },
+  {
+   "id": "avoidWalls/A-front-sensor",
+   "kind": "broken",
+   "fault": "front-sensor",
+   "of": "avoidWalls/A"
+  },
+  {
+   "id": "avoidWalls/A-never-dark",
+   "kind": "broken",
+   "fault": "never-dark",
+   "of": "avoidWalls/A"
+  },
+  {
+   "id": "avoidWalls/A-no-handover",
+   "kind": "broken",
+   "fault": "no-handover",
+   "of": "avoidWalls/A"
+  },
+  {
+   "id": "avoidWalls/B",
+   "kind": "correct",
+   "fault": null,
+   "of": null
+  },
+  {
+   "id": "avoidWalls/B-swapped",
+   "kind": "broken",
+   "fault": "swapped",
+   "of": "avoidWalls/B"
+  },
+  {
+   "id": "avoidWalls/B-front-sensor",
+   "kind": "broken",
+   "fault": "front-sensor",
+   "of": "avoidWalls/B"
+  },
+  {
+   "id": "avoidWalls/B-never-dark",
+   "kind": "broken",
+   "fault": "never-dark",
+   "of": "avoidWalls/B"
+  },
+  {
+   "id": "avoidWalls/B-no-handover",
+   "kind": "broken",
+   "fault": "no-handover",
+   "of": "avoidWalls/B"
+  },
+  {
+   "id": "avoidWalls/C",
+   "kind": "correct",
+   "fault": null,
+   "of": null
+  },
+  {
+   "id": "avoidWalls/C-swapped",
+   "kind": "broken",
+   "fault": "swapped",
+   "of": "avoidWalls/C"
+  },
+  {
+   "id": "avoidWalls/C-front-sensor",
+   "kind": "broken",
+   "fault": "front-sensor",
+   "of": "avoidWalls/C"
+  },
+  {
+   "id": "avoidWalls/C-never-dark",
+   "kind": "broken",
+   "fault": "never-dark",
+   "of": "avoidWalls/C"
+  },
+  {
+   "id": "avoidWalls/C-no-handover",
+   "kind": "broken",
+   "fault": "no-handover",
+   "of": "avoidWalls/C"
+  }
+ ],
+ "runs": {}
+}

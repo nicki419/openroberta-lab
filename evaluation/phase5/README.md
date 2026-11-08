@@ -23,6 +23,8 @@ broken version of that level's function. A good set of tests passes on every cor
 | `report.py` | the measures (`results/report.json`, tables) |
 | `compare.py` | two rounds compared, per pipeline, for the versions the tuning looked at and the kept-out ones, with sign tests (`results-r2/compare.md`) |
 | `check_recipes.py` | the tunnel recipes of the context pack (`tests.md`), drawn by their numbers, on every version of the tunnel functions (`results-recipes.json`): every correct version must pass them |
+| `check_round4.py` | round 4's measurements (`results-round4.json`): a stop at a wall the robot drives up to, with and without an area before the wall it ends in, on every version; tunnels that bend by 30° to 90° in steps 20 to 60 cm apart, on the functions that turn away from walls in the dark |
+| `check_rules.py`, `browser/check_rules.js` | the Lab's checks of round 4 (tunnels that overlap, a start that touches a wall or is in a tunnel's bend, a goal after a tunnel's exit, a reaction to an obstacle without arrival) on an earlier round's tests, the context pack's examples and the measured worlds: which tests they send back, false alarms or valid (`<results>/rules.json`) |
 | `try_follow.py`, `try_levels.py`, `pseudo.py` | first tries of the functions; NEPO as pseudocode |
 
 ## Running it
@@ -37,8 +39,10 @@ broken version of that level's function. A good set of tests passes on every cor
 4. **Another round** (after a change of the context pack): `PHASE5_RESULTS=results-r2` for every step writes and reads that folder instead of
    `results/`. Round 1 (`results/`) is the context pack before the tuning of 2026-11-07, round 2 (`results-r2/`) after it, round 3
    (`results-r3/`, full pipeline only) after the change of the oracle rules (expectations only from the learner's words, a line wherever
-   the robot follows one, a wall ahead across the robot's whole front, margins on stop checks). `PHASE5_VERSIONS=versions-rounds-1-2.json`
-   makes `generate.py`, `baseline.py` and `evaluate.py` use the corpus as it was decided for rounds 1 and 2 (round 3 did, so its requests
+   the robot follows one, a wall ahead across the robot's whole front, margins on stop checks), round 4 (`results-r4/`, full pipeline
+   only) after the checks of where the robot gets to and of the world (an area before a wall it should stop at, tunnels that don't
+   overlap, no start in a tunnel's bend, no goal after a tunnel's exit). `PHASE5_VERSIONS=versions-rounds-1-2.json`
+   makes `generate.py`, `baseline.py` and `evaluate.py` use the corpus as it was decided for rounds 1 and 2 (rounds 3 and 4 did, so their requests
    pair with theirs); without it they use `versions.json`, decided on the levels loosened on 2026-11-07.
 
 Python 3 with the standard library, Node (the CDP driver), Chrome. On Windows, the scripts call Git Bash explicitly

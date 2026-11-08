@@ -1,0 +1,6670 @@
+{
+ "stops": {
+  "followLine/A-light-above": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Wall seen at once",
+     "test": "Stops at once",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 0.1 s",
+      "an obstacle was ahead, but the robot did not stand still: it turned left on the spot, 3 times, 0.1 s in total; the first from 0.2 to 0.27 s"
+     ]
+    },
+    {
+     "world": "Wall ahead, round 3",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "at the end (after 20 s), the robot was not completely in \"Goal t3\""
+     ]
+    },
+    {
+     "world": "Wall ahead, round 4, stays",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "at the end (after 20 s), the robot was not completely in \"Goal t3\"",
+      "the robot did not stand still: it drove forward, turning right (8.63 cm/s, 86\u00b0/s), from 12 to 20 s"
+     ]
+    },
+    {
+     "world": "Box on a long line, round 4",
+     "test": "Stops before the box",
+     "outcome": "failed",
+     "failed": [
+      "at the end (after 40 s), the robot was not completely in \"Goal t3\""
+     ]
+    }
+   ],
+   "error": null
+  },
+  "followLine/A-one-turn": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Wall seen at once",
+     "test": "Stops at once",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 0.1 s",
+      "an obstacle was ahead, but the robot did not stand still: it turned right on the spot, 3 times, 0.1 s in total; the first from 0.2 to 0.27 s"
+     ]
+    },
+    {
+     "world": "Wall ahead, round 3",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "at the end (after 20 s), the robot was not completely in \"Goal t3\""
+     ]
+    },
+    {
+     "world": "Wall ahead, round 4, stays",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "at the end (after 20 s), the robot was not completely in \"Goal t3\"",
+      "the robot did not stand still: it drove forward, turning left (8.63 cm/s, 86\u00b0/s), from 12 to 20 s"
+     ]
+    },
+    {
+     "world": "Box on a long line, round 4",
+     "test": "Stops before the box",
+     "outcome": "failed",
+     "failed": [
+      "at the end (after 40 s), the robot was not completely in \"Goal t3\""
+     ]
+    }
+   ],
+   "error": null
+  },
+  "followLine/A": {
+   "kind": "correct",
+   "tests": [
+    {
+     "world": "Wall seen at once",
+     "test": "Stops at once",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 0.2 s",
+      "an obstacle was ahead, but the robot did not stand still: it turned left on the spot, 292 times, 4.88 s in total; the first from 0.25 to 0.27 s"
+     ]
+    },
+    {
+     "world": "Wall ahead, round 3",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 2.7 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove forward, straight (5.32 cm/s), 503 times, 8.48 s in total; the first from 2.62 to 2.72 s"
+     ]
+    },
+    {
+     "world": "Wall ahead, round 4",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 2.7 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove forward, straight (5.32 cm/s), 503 times, 8.48 s in total; the first from 2.62 to 2.72 s"
+     ]
+    },
+    {
+     "world": "Wall ahead, round 4, stays",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 2.7 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove forward, straight (5.32 cm/s), 503 times, 8.48 s in total; the first from 2.62 to 2.72 s",
+      "the robot did not stand still: it turned left on the spot, 240 times, 4.02 s in total; the first from 12 to 12.02 s"
+     ]
+    },
+    {
+     "world": "Box on a long line, round 4",
+     "test": "Stops before the box",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 13 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove forward, straight (5.32 cm/s), 790 times, 13.25 s in total; the first from 12.95 to 13.05 s"
+     ]
+    }
+   ],
+   "error": null
+  },
+  "followLine/A-straight-off": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Wall seen at once",
+     "test": "Stops at once",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 0.1 s",
+      "an obstacle was ahead, but the robot did not stand still: it turned right on the spot, 5 times, 0.23 s in total; the first from 1.17 to 1.33 s"
+     ]
+    },
+    {
+     "world": "Wall ahead, round 3",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 1.7 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove backward, turning right (2.32 cm/s, 38\u00b0/s), 2 times, 0.03 s in total; the first from 1.77 to 1.78 s"
+     ]
+    },
+    {
+     "world": "Wall ahead, round 4",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 1.7 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove backward, turning right (2.32 cm/s, 38\u00b0/s), 2 times, 0.03 s in total; the first from 1.77 to 1.78 s"
+     ]
+    },
+    {
+     "world": "Wall ahead, round 4, stays",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 1.7 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove backward, turning right (2.32 cm/s, 38\u00b0/s), 2 times, 0.03 s in total; the first from 1.77 to 1.78 s",
+      "the robot did not stand still: it drove backward, straight (13.92 cm/s), from 19.98 to 20 s"
+     ]
+    },
+    {
+     "world": "Box on a long line, round 4",
+     "test": "Stops before the box",
+     "outcome": "failed",
+     "failed": [
+      "an obstacle was ahead, but the robot did not stand still: it drove forward, turning right (3.1 cm/s, 51\u00b0/s), 2 times, 0.07 s in total; the first from 19.1 to 19.15 s",
+      "at the end (after 40 s), the robot was not completely in \"Goal t3\""
+     ]
+    }
+   ],
+   "error": null
+  },
+  "followLine/A-too-slow": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Wall seen at once",
+     "test": "Stops at once",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 0.3 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove forward, straight (3.34 cm/s), 273 times, 4.72 s in total; the first from 0.2 to 0.37 s"
+     ]
+    },
+    {
+     "world": "Wall ahead, round 3",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 5.4 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove forward, straight (4.08 cm/s), 438 times, 7.63 s in total; the first from 5.03 to 5.38 s"
+     ]
+    },
+    {
+     "world": "Wall ahead, round 4",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 5.4 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove forward, straight (4.08 cm/s), 438 times, 7.63 s in total; the first from 5.03 to 5.38 s"
+     ]
+    },
+    {
+     "world": "Wall ahead, round 4, stays",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 5.4 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove forward, straight (4.08 cm/s), 438 times, 7.63 s in total; the first from 5.03 to 5.38 s",
+      "the robot did not stand still: it turned left on the spot, 239 times, 3.98 s in total; the first from 12.02 to 12.03 s"
+     ]
+    },
+    {
+     "world": "Box on a long line, round 4",
+     "test": "Stops before the box",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 26 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove forward, straight (3.9 cm/s), 386 times, 6.78 s in total; the first from 25.68 to 26.05 s"
+     ]
+    }
+   ],
+   "error": null
+  },
+  "followLine/B": {
+   "kind": "correct",
+   "tests": [
+    {
+     "world": "Wall seen at once",
+     "test": "Stops at once",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 0.1 s",
+      "an obstacle was ahead, but the robot did not stand still: it turned left on the spot, 277 times, 4.63 s in total; the first from 0.75 to 0.77 s"
+     ]
+    },
+    {
+     "world": "Wall ahead, round 3",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 1.9 s",
+      "an obstacle was ahead, but the robot did not stand still: it turned left on the spot, 531 times, 8.87 s in total; the first from 1.93 to 1.95 s"
+     ]
+    },
+    {
+     "world": "Wall ahead, round 4",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 1.9 s",
+      "an obstacle was ahead, but the robot did not stand still: it turned left on the spot, 531 times, 8.87 s in total; the first from 1.93 to 1.95 s"
+     ]
+    },
+    {
+     "world": "Wall ahead, round 4, stays",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 1.9 s",
+      "an obstacle was ahead, but the robot did not stand still: it turned left on the spot, 531 times, 8.87 s in total; the first from 1.93 to 1.95 s",
+      "the robot did not stand still: it turned left on the spot, 240 times, 4.02 s in total; the first from 12 to 12.02 s"
+     ]
+    },
+    {
+     "world": "Box on a long line, round 4",
+     "test": "Stops before the box",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 9.3 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove forward, straight (4.07 cm/s), 921 times, 15.37 s in total; the first from 9.3 to 9.32 s"
+     ]
+    }
+   ],
+   "error": null
+  },
+  "followLine/B-one-turn": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Wall seen at once",
+     "test": "Stops at once",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 0.1 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove backward, turning right (12.16 cm/s, 85\u00b0/s), from 10 to 10.02 s"
+     ]
+    },
+    {
+     "world": "Wall ahead, round 3",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "at the end (after 20 s), the robot was not completely in \"Goal t3\""
+     ]
+    },
+    {
+     "world": "Wall ahead, round 4, stays",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "at the end (after 20 s), the robot was not completely in \"Goal t3\"",
+      "the robot did not stand still: it drove forward, turning left (12.08 cm/s, 86\u00b0/s), from 12 to 20 s"
+     ]
+    },
+    {
+     "world": "Box on a long line, round 4",
+     "test": "Stops before the box",
+     "outcome": "failed",
+     "failed": [
+      "at the end (after 40 s), the robot was not completely in \"Goal t3\""
+     ]
+    }
+   ],
+   "error": null
+  },
+  "followLine/B-light-above": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Wall seen at once",
+     "test": "Stops at once",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 0.1 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove backward, turning left (12.16 cm/s, 85\u00b0/s), from 10 to 10.02 s"
+     ]
+    },
+    {
+     "world": "Wall ahead, round 3",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "at the end (after 20 s), the robot was not completely in \"Goal t3\""
+     ]
+    },
+    {
+     "world": "Wall ahead, round 4, stays",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "at the end (after 20 s), the robot was not completely in \"Goal t3\"",
+      "the robot did not stand still: it drove forward, turning right (12.08 cm/s, 86\u00b0/s), from 12 to 20 s"
+     ]
+    },
+    {
+     "world": "Box on a long line, round 4",
+     "test": "Stops before the box",
+     "outcome": "failed",
+     "failed": [
+      "at the end (after 40 s), the robot was not completely in \"Goal t3\""
+     ]
+    }
+   ],
+   "error": null
+  },
+  "followLine/B-straight-off": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Wall seen at once",
+     "test": "Stops at once",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 0.1 s",
+      "an obstacle was ahead, but the robot did not stand still: it turned left on the spot, 2 times, 0.13 s in total; the first from 0.85 to 0.97 s"
+     ]
+    },
+    {
+     "world": "Wall ahead, round 3",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 1.7 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove forward, straight (13.92 cm/s), from 19.98 to 20 s"
+     ]
+    },
+    {
+     "world": "Wall ahead, round 4",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 1.7 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove forward, straight (13.92 cm/s), from 19.98 to 20 s"
+     ]
+    },
+    {
+     "world": "Wall ahead, round 4, stays",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 1.7 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove forward, straight (13.92 cm/s), from 19.98 to 20 s",
+      "the robot did not stand still: it drove forward, straight (13.92 cm/s), from 19.98 to 20 s"
+     ]
+    },
+    {
+     "world": "Box on a long line, round 4",
+     "test": "Stops before the box",
+     "outcome": "failed",
+     "failed": [
+      "an obstacle was ahead, but the robot did not stand still: it drove forward, turning right (3.1 cm/s, 51\u00b0/s), 2 times, 0.07 s in total; the first from 19.08 to 19.13 s",
+      "at the end (after 40 s), the robot was not completely in \"Goal t3\""
+     ]
+    }
+   ],
+   "error": null
+  },
+  "followLine/C": {
+   "kind": "correct",
+   "tests": [
+    {
+     "world": "Wall seen at once",
+     "test": "Stops at once",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 0.1 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove forward, turning left (1.99 cm/s, 16\u00b0/s), 3 times, 0.15 s in total; the first from 1.45 to 1.57 s"
+     ]
+    },
+    {
+     "world": "Wall ahead, round 3",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 1.7 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove backward, straight (13.92 cm/s), from 19.98 to 20 s"
+     ]
+    },
+    {
+     "world": "Wall ahead, round 4",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 1.7 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove backward, straight (13.92 cm/s), from 19.98 to 20 s"
+     ]
+    },
+    {
+     "world": "Wall ahead, round 4, stays",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 1.7 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove backward, straight (13.92 cm/s), from 19.98 to 20 s",
+      "the robot did not stand still: it drove backward, straight (13.92 cm/s), from 19.98 to 20 s"
+     ]
+    },
+    {
+     "world": "Box on a long line, round 4",
+     "test": "Stops before the box",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 8.2 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove forward, straight (13.92 cm/s), from 40 to 40.02 s"
+     ]
+    }
+   ],
+   "error": null
+  },
+  "followLine/C-light-above": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Wall seen at once",
+     "test": "Stops at once",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 0.1 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove backward, straight (13.92 cm/s), from 10 to 10.02 s"
+     ]
+    },
+    {
+     "world": "Wall ahead, round 3",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 1.7 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove backward, straight (13.92 cm/s), from 19.98 to 20 s"
+     ]
+    },
+    {
+     "world": "Wall ahead, round 4",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 1.7 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove backward, straight (13.92 cm/s), from 19.98 to 20 s"
+     ]
+    },
+    {
+     "world": "Wall ahead, round 4, stays",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 1.7 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove backward, straight (13.92 cm/s), from 19.98 to 20 s",
+      "the robot did not stand still: it drove backward, straight (13.92 cm/s), from 19.98 to 20 s"
+     ]
+    },
+    {
+     "world": "Box on a long line, round 4",
+     "test": "Stops before the box",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 8.1 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove backward, straight (13.92 cm/s), from 40 to 40.02 s"
+     ]
+    }
+   ],
+   "error": null
+  },
+  "followLine/C-one-turn": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Wall seen at once",
+     "test": "Stops at once",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 0.1 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove forward, turning left (1.99 cm/s, 16\u00b0/s), 3 times, 0.15 s in total; the first from 1.45 to 1.57 s"
+     ]
+    },
+    {
+     "world": "Wall ahead, round 3",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 5.9 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove backward, straight (13.92 cm/s), from 19.98 to 20 s"
+     ]
+    },
+    {
+     "world": "Wall ahead, round 4",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 5.9 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove backward, straight (13.92 cm/s), from 19.98 to 20 s"
+     ]
+    },
+    {
+     "world": "Wall ahead, round 4, stays",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 5.9 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove backward, straight (13.92 cm/s), from 19.98 to 20 s",
+      "the robot did not stand still: it drove backward, straight (13.92 cm/s), from 19.98 to 20 s"
+     ]
+    },
+    {
+     "world": "Box on a long line, round 4",
+     "test": "Stops before the box",
+     "outcome": "failed",
+     "failed": [
+      "at the end (after 40 s), the robot was not completely in \"Goal t3\""
+     ]
+    }
+   ],
+   "error": null
+  },
+  "stopAtWall/A": {
+   "kind": "correct",
+   "tests": [
+    {
+     "world": "Wall seen at once",
+     "test": "Stops at once",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 3",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4, stays",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Box on a long line, round 4",
+     "test": "Stops before the box",
+     "outcome": "passed",
+     "failed": []
+    }
+   ],
+   "error": null
+  },
+  "followLine/C-too-slow": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Wall seen at once",
+     "test": "Stops at once",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 0.3 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove forward, turning right (3.21 cm/s, 15\u00b0/s), 5 times, 0.28 s in total; the first from 0.2 to 0.3 s"
+     ]
+    },
+    {
+     "world": "Wall ahead, round 3",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 3.5 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove forward, straight (5.94 cm/s), 2 times, 0.17 s in total; the first from 3.32 to 3.47 s"
+     ]
+    },
+    {
+     "world": "Wall ahead, round 4",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 3.5 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove forward, straight (5.94 cm/s), 2 times, 0.17 s in total; the first from 3.32 to 3.47 s"
+     ]
+    },
+    {
+     "world": "Wall ahead, round 4, stays",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 3.5 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove forward, straight (5.94 cm/s), 2 times, 0.17 s in total; the first from 3.32 to 3.47 s",
+      "the robot did not stand still: it drove backward, straight (6.96 cm/s), from 19.98 to 20 s"
+     ]
+    },
+    {
+     "world": "Box on a long line, round 4",
+     "test": "Stops before the box",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 16.4 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove forward, straight (6.05 cm/s), 2 times, 0.18 s in total; the first from 16.22 to 16.38 s"
+     ]
+    }
+   ],
+   "error": null
+  },
+  "followLine/C-straight-off": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Wall seen at once",
+     "test": "Stops at once",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 0.1 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove forward, turning left (1.99 cm/s, 16\u00b0/s), 3 times, 0.15 s in total; the first from 1.45 to 1.57 s"
+     ]
+    },
+    {
+     "world": "Wall ahead, round 3",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 1.7 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove backward, turning right (2.32 cm/s, 38\u00b0/s), 2 times, 0.03 s in total; the first from 1.75 to 1.77 s"
+     ]
+    },
+    {
+     "world": "Wall ahead, round 4",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 1.7 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove backward, turning right (2.32 cm/s, 38\u00b0/s), 2 times, 0.03 s in total; the first from 1.75 to 1.77 s"
+     ]
+    },
+    {
+     "world": "Wall ahead, round 4, stays",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 1.7 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove backward, turning right (2.32 cm/s, 38\u00b0/s), 2 times, 0.03 s in total; the first from 1.75 to 1.77 s",
+      "the robot did not stand still: it drove forward, straight (13.92 cm/s), from 19.98 to 20 s"
+     ]
+    },
+    {
+     "world": "Box on a long line, round 4",
+     "test": "Stops before the box",
+     "outcome": "failed",
+     "failed": [
+      "an obstacle was ahead, but the robot did not stand still: it drove forward, turning right (3.1 cm/s, 51\u00b0/s), 2 times, 0.07 s in total; the first from 19.08 to 19.13 s",
+      "at the end (after 40 s), the robot was not completely in \"Goal t3\""
+     ]
+    }
+   ],
+   "error": null
+  },
+  "stopAtWall/A-negated": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Wall seen at once",
+     "test": "Stops at once",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 0.2 s",
+      "an obstacle was ahead, but the robot did not stand still: it turned left on the spot, 292 times, 4.88 s in total; the first from 0.25 to 0.27 s"
+     ]
+    },
+    {
+     "world": "Wall ahead, round 3",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "at the end (after 20 s), the robot was not completely in \"Goal t3\""
+     ]
+    },
+    {
+     "world": "Wall ahead, round 4, stays",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "at the end (after 20 s), the robot was not completely in \"Goal t3\""
+     ]
+    },
+    {
+     "world": "Box on a long line, round 4",
+     "test": "Stops before the box",
+     "outcome": "failed",
+     "failed": [
+      "at the end (after 40 s), the robot was not completely in \"Goal t3\""
+     ]
+    }
+   ],
+   "error": null
+  },
+  "stopAtWall/A-turns": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Wall seen at once",
+     "test": "Stops at once",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 3",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "at the end (after 20 s), the robot was not completely in \"Goal t3\""
+     ]
+    },
+    {
+     "world": "Wall ahead, round 4, stays",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "at the end (after 20 s), the robot was not completely in \"Goal t3\"",
+      "the robot did not stand still: it drove forward, turning right (8.67 cm/s, 86\u00b0/s), 2 times, 7.98 s in total; the first from 12 to 16.77 s"
+     ]
+    },
+    {
+     "world": "Box on a long line, round 4",
+     "test": "Stops before the box",
+     "outcome": "failed",
+     "failed": [
+      "at the end (after 40 s), the robot was not completely in \"Goal t3\""
+     ]
+    }
+   ],
+   "error": null
+  },
+  "stopAtWall/B": {
+   "kind": "correct",
+   "tests": [
+    {
+     "world": "Wall seen at once",
+     "test": "Stops at once",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 3",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4, stays",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Box on a long line, round 4",
+     "test": "Stops before the box",
+     "outcome": "passed",
+     "failed": []
+    }
+   ],
+   "error": null
+  },
+  "stopAtWall/A-slows": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Wall seen at once",
+     "test": "Stops at once",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 0.4 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove forward, straight (3.13 cm/s), 2 times, 0.23 s in total; the first from 0.2 to 0.42 s"
+     ]
+    },
+    {
+     "world": "Wall ahead, round 3",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 3.1 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove forward, straight (3.33 cm/s), 2 times, 0.52 s in total; the first from 2.62 to 3.12 s"
+     ]
+    },
+    {
+     "world": "Wall ahead, round 4",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 3.1 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove forward, straight (3.33 cm/s), 2 times, 0.52 s in total; the first from 2.62 to 3.12 s"
+     ]
+    },
+    {
+     "world": "Wall ahead, round 4, stays",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 3.1 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove forward, straight (3.33 cm/s), 2 times, 0.52 s in total; the first from 2.62 to 3.12 s",
+      "the robot did not stand still: it drove forward, straight (3.48 cm/s), from 19.98 to 20 s"
+     ]
+    },
+    {
+     "world": "Box on a long line, round 4",
+     "test": "Stops before the box",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 13.4 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove forward, straight (3.32 cm/s), 2 times, 0.48 s in total; the first from 12.95 to 13.42 s"
+     ]
+    }
+   ],
+   "error": null
+  },
+  "stopAtWall/B-negated": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Wall seen at once",
+     "test": "Stops at once",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 0.2 s",
+      "an obstacle was ahead, but the robot did not stand still: it turned left on the spot, 292 times, 4.88 s in total; the first from 0.25 to 0.27 s"
+     ]
+    },
+    {
+     "world": "Wall ahead, round 3",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "at the end (after 20 s), the robot was not completely in \"Goal t3\""
+     ]
+    },
+    {
+     "world": "Wall ahead, round 4, stays",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "at the end (after 20 s), the robot was not completely in \"Goal t3\""
+     ]
+    },
+    {
+     "world": "Box on a long line, round 4",
+     "test": "Stops before the box",
+     "outcome": "failed",
+     "failed": [
+      "at the end (after 40 s), the robot was not completely in \"Goal t3\""
+     ]
+    }
+   ],
+   "error": null
+  },
+  "stopAtWall/B-turns": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Wall seen at once",
+     "test": "Stops at once",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 3",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "at the end (after 20 s), the robot was not completely in \"Goal t3\""
+     ]
+    },
+    {
+     "world": "Wall ahead, round 4, stays",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "at the end (after 20 s), the robot was not completely in \"Goal t3\"",
+      "the robot did not stand still: it drove forward, turning right (8.67 cm/s, 86\u00b0/s), 2 times, 7.98 s in total; the first from 12 to 16.77 s"
+     ]
+    },
+    {
+     "world": "Box on a long line, round 4",
+     "test": "Stops before the box",
+     "outcome": "failed",
+     "failed": [
+      "at the end (after 40 s), the robot was not completely in \"Goal t3\""
+     ]
+    }
+   ],
+   "error": null
+  },
+  "stopAtWall/B-slows": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Wall seen at once",
+     "test": "Stops at once",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 0.4 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove forward, straight (3.13 cm/s), 2 times, 0.23 s in total; the first from 0.2 to 0.42 s"
+     ]
+    },
+    {
+     "world": "Wall ahead, round 3",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 3.1 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove forward, straight (3.33 cm/s), 2 times, 0.52 s in total; the first from 2.62 to 3.12 s"
+     ]
+    },
+    {
+     "world": "Wall ahead, round 4",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 3.1 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove forward, straight (3.33 cm/s), 2 times, 0.52 s in total; the first from 2.62 to 3.12 s"
+     ]
+    },
+    {
+     "world": "Wall ahead, round 4, stays",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 3.1 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove forward, straight (3.33 cm/s), 2 times, 0.52 s in total; the first from 2.62 to 3.12 s",
+      "the robot did not stand still: it drove forward, straight (3.48 cm/s), from 19.98 to 20 s"
+     ]
+    },
+    {
+     "world": "Box on a long line, round 4",
+     "test": "Stops before the box",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 13.4 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove forward, straight (3.32 cm/s), 2 times, 0.48 s in total; the first from 12.95 to 13.42 s"
+     ]
+    }
+   ],
+   "error": null
+  },
+  "stopAtWall/C": {
+   "kind": "correct",
+   "tests": [
+    {
+     "world": "Wall seen at once",
+     "test": "Stops at once",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 3",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4, stays",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Box on a long line, round 4",
+     "test": "Stops before the box",
+     "outcome": "passed",
+     "failed": []
+    }
+   ],
+   "error": null
+  },
+  "stopAtWall/C-negated": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Wall seen at once",
+     "test": "Stops at once",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 0.2 s",
+      "an obstacle was ahead, but the robot did not stand still: it turned left on the spot, 292 times, 4.88 s in total; the first from 0.25 to 0.27 s"
+     ]
+    },
+    {
+     "world": "Wall ahead, round 3",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "at the end (after 20 s), the robot was not completely in \"Goal t3\""
+     ]
+    },
+    {
+     "world": "Wall ahead, round 4, stays",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "at the end (after 20 s), the robot was not completely in \"Goal t3\""
+     ]
+    },
+    {
+     "world": "Box on a long line, round 4",
+     "test": "Stops before the box",
+     "outcome": "failed",
+     "failed": [
+      "at the end (after 40 s), the robot was not completely in \"Goal t3\""
+     ]
+    }
+   ],
+   "error": null
+  },
+  "stopAtWall/A-no-handover": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Wall seen at once",
+     "test": "Stops at once",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 3",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "at the end (after 20 s), the robot was not completely in \"Goal t3\""
+     ]
+    },
+    {
+     "world": "Wall ahead, round 4, stays",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "at the end (after 20 s), the robot was not completely in \"Goal t3\""
+     ]
+    },
+    {
+     "world": "Box on a long line, round 4",
+     "test": "Stops before the box",
+     "outcome": "failed",
+     "failed": [
+      "at the end (after 40 s), the robot was not completely in \"Goal t3\""
+     ]
+    }
+   ],
+   "error": null
+  },
+  "stopAtWall/C-turns": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Wall seen at once",
+     "test": "Stops at once",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 4.6 s",
+      "an obstacle was ahead, but the robot did not stand still: it turned right on the spot, from 4.65 to 4.73 s"
+     ]
+    },
+    {
+     "world": "Wall ahead, round 3",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "at the end (after 20 s), the robot was not completely in \"Goal t3\""
+     ]
+    },
+    {
+     "world": "Wall ahead, round 4, stays",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "at the end (after 20 s), the robot was not completely in \"Goal t3\"",
+      "the robot did not stand still: it drove forward, turning right (8.7 cm/s, 86\u00b0/s), 2 times, 7.98 s in total; the first from 12 to 16.92 s"
+     ]
+    },
+    {
+     "world": "Box on a long line, round 4",
+     "test": "Stops before the box",
+     "outcome": "failed",
+     "failed": [
+      "at the end (after 40 s), the robot was not completely in \"Goal t3\""
+     ]
+    }
+   ],
+   "error": null
+  },
+  "stopAtWall/C-slows": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Wall seen at once",
+     "test": "Stops at once",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 0.4 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove forward, straight (3.13 cm/s), 2 times, 0.23 s in total; the first from 0.2 to 0.42 s"
+     ]
+    },
+    {
+     "world": "Wall ahead, round 3",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 3 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove forward, straight (3.3 cm/s), 2 times, 0.43 s in total; the first from 2.62 to 3.03 s"
+     ]
+    },
+    {
+     "world": "Wall ahead, round 4",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 3 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove forward, straight (3.3 cm/s), 2 times, 0.43 s in total; the first from 2.62 to 3.03 s"
+     ]
+    },
+    {
+     "world": "Wall ahead, round 4, stays",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 3 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove forward, straight (3.3 cm/s), 2 times, 0.43 s in total; the first from 2.62 to 3.03 s",
+      "the robot did not stand still: it drove backward, straight (3.48 cm/s), from 19.98 to 20 s"
+     ]
+    },
+    {
+     "world": "Box on a long line, round 4",
+     "test": "Stops before the box",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 13.3 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove forward, straight (3.3 cm/s), 2 times, 0.43 s in total; the first from 12.95 to 13.37 s"
+     ]
+    }
+   ],
+   "error": null
+  },
+  "stopAtWall/B-no-handover": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Wall seen at once",
+     "test": "Stops at once",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 3",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "at the end (after 20 s), the robot was not completely in \"Goal t3\""
+     ]
+    },
+    {
+     "world": "Wall ahead, round 4, stays",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "at the end (after 20 s), the robot was not completely in \"Goal t3\""
+     ]
+    },
+    {
+     "world": "Box on a long line, round 4",
+     "test": "Stops before the box",
+     "outcome": "failed",
+     "failed": [
+      "at the end (after 40 s), the robot was not completely in \"Goal t3\""
+     ]
+    }
+   ],
+   "error": null
+  },
+  "driveInTheDark/A": {
+   "kind": "correct",
+   "tests": [
+    {
+     "world": "Wall seen at once",
+     "test": "Stops at once",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 3",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4, stays",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Box on a long line, round 4",
+     "test": "Stops before the box",
+     "outcome": "passed",
+     "failed": []
+    }
+   ],
+   "error": null
+  },
+  "driveInTheDark/A-never-dark": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Wall seen at once",
+     "test": "Stops at once",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 3",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4, stays",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Box on a long line, round 4",
+     "test": "Stops before the box",
+     "outcome": "passed",
+     "failed": []
+    }
+   ],
+   "error": null
+  },
+  "driveInTheDark/A-floor-sensor": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Wall seen at once",
+     "test": "Stops at once",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 0.1 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove backward, straight (10.44 cm/s), from 10 to 10.02 s"
+     ]
+    },
+    {
+     "world": "Wall ahead, round 3",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 2.2 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove forward, straight (3.49 cm/s), 2 times, 0.05 s in total; the first from 2.22 to 2.25 s"
+     ]
+    },
+    {
+     "world": "Wall ahead, round 4",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 2.2 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove forward, straight (3.49 cm/s), 2 times, 0.05 s in total; the first from 2.22 to 2.25 s"
+     ]
+    },
+    {
+     "world": "Wall ahead, round 4, stays",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 2.2 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove forward, straight (3.49 cm/s), 2 times, 0.05 s in total; the first from 2.22 to 2.25 s",
+      "the robot did not stand still: it drove forward, straight (10.44 cm/s), from 19.98 to 20 s"
+     ]
+    },
+    {
+     "world": "Box on a long line, round 4",
+     "test": "Stops before the box",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 10.8 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove forward, straight (5.82 cm/s), 2 times, 0.07 s in total; the first from 10.82 to 10.87 s"
+     ]
+    }
+   ],
+   "error": null
+  },
+  "driveInTheDark/A-negated": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Wall seen at once",
+     "test": "Stops at once",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 0.1 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove backward, straight (10.44 cm/s), from 10 to 10.02 s"
+     ]
+    },
+    {
+     "world": "Wall ahead, round 3",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 2.2 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove forward, straight (3.49 cm/s), 2 times, 0.05 s in total; the first from 2.22 to 2.25 s"
+     ]
+    },
+    {
+     "world": "Wall ahead, round 4",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 2.2 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove forward, straight (3.49 cm/s), 2 times, 0.05 s in total; the first from 2.22 to 2.25 s"
+     ]
+    },
+    {
+     "world": "Wall ahead, round 4, stays",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 2.2 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove forward, straight (3.49 cm/s), 2 times, 0.05 s in total; the first from 2.22 to 2.25 s",
+      "the robot did not stand still: it drove forward, straight (10.44 cm/s), from 19.98 to 20 s"
+     ]
+    },
+    {
+     "world": "Box on a long line, round 4",
+     "test": "Stops before the box",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 10.8 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove forward, straight (5.82 cm/s), 2 times, 0.07 s in total; the first from 10.82 to 10.87 s"
+     ]
+    }
+   ],
+   "error": null
+  },
+  "driveInTheDark/A-curves": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Wall seen at once",
+     "test": "Stops at once",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 3",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4, stays",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Box on a long line, round 4",
+     "test": "Stops before the box",
+     "outcome": "passed",
+     "failed": []
+    }
+   ],
+   "error": null
+  },
+  "stopAtWall/C-no-handover": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Wall seen at once",
+     "test": "Stops at once",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 3",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "at the end (after 20 s), the robot was not completely in \"Goal t3\""
+     ]
+    },
+    {
+     "world": "Wall ahead, round 4, stays",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "at the end (after 20 s), the robot was not completely in \"Goal t3\""
+     ]
+    },
+    {
+     "world": "Box on a long line, round 4",
+     "test": "Stops before the box",
+     "outcome": "failed",
+     "failed": [
+      "at the end (after 40 s), the robot was not completely in \"Goal t3\""
+     ]
+    }
+   ],
+   "error": null
+  },
+  "driveInTheDark/B": {
+   "kind": "correct",
+   "tests": [
+    {
+     "world": "Wall seen at once",
+     "test": "Stops at once",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 3",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4, stays",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Box on a long line, round 4",
+     "test": "Stops before the box",
+     "outcome": "passed",
+     "failed": []
+    }
+   ],
+   "error": null
+  },
+  "driveInTheDark/B-never-dark": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Wall seen at once",
+     "test": "Stops at once",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 3",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4, stays",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Box on a long line, round 4",
+     "test": "Stops before the box",
+     "outcome": "passed",
+     "failed": []
+    }
+   ],
+   "error": null
+  },
+  "driveInTheDark/B-floor-sensor": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Wall seen at once",
+     "test": "Stops at once",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 0.1 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove backward, straight (13.92 cm/s), from 10 to 10.02 s"
+     ]
+    },
+    {
+     "world": "Wall ahead, round 3",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 1.7 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove backward, straight (13.92 cm/s), from 19.98 to 20 s"
+     ]
+    },
+    {
+     "world": "Wall ahead, round 4",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 1.7 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove backward, straight (13.92 cm/s), from 19.98 to 20 s"
+     ]
+    },
+    {
+     "world": "Wall ahead, round 4, stays",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 1.7 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove backward, straight (13.92 cm/s), from 19.98 to 20 s",
+      "the robot did not stand still: it drove backward, straight (13.92 cm/s), from 19.98 to 20 s"
+     ]
+    },
+    {
+     "world": "Box on a long line, round 4",
+     "test": "Stops before the box",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 8.1 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove backward, straight (13.92 cm/s), from 40 to 40.02 s"
+     ]
+    }
+   ],
+   "error": null
+  },
+  "driveInTheDark/B-negated": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Wall seen at once",
+     "test": "Stops at once",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 0.1 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove backward, straight (13.92 cm/s), from 10 to 10.02 s"
+     ]
+    },
+    {
+     "world": "Wall ahead, round 3",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 1.7 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove backward, straight (13.92 cm/s), from 19.98 to 20 s"
+     ]
+    },
+    {
+     "world": "Wall ahead, round 4",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 1.7 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove backward, straight (13.92 cm/s), from 19.98 to 20 s"
+     ]
+    },
+    {
+     "world": "Wall ahead, round 4, stays",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 1.7 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove backward, straight (13.92 cm/s), from 19.98 to 20 s",
+      "the robot did not stand still: it drove backward, straight (13.92 cm/s), from 19.98 to 20 s"
+     ]
+    },
+    {
+     "world": "Box on a long line, round 4",
+     "test": "Stops before the box",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 8.1 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove backward, straight (13.92 cm/s), from 40 to 40.02 s"
+     ]
+    }
+   ],
+   "error": null
+  },
+  "driveInTheDark/B-curves": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Wall seen at once",
+     "test": "Stops at once",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 3",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4, stays",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Box on a long line, round 4",
+     "test": "Stops before the box",
+     "outcome": "passed",
+     "failed": []
+    }
+   ],
+   "error": null
+  },
+  "driveInTheDark/C": {
+   "kind": "correct",
+   "tests": [
+    {
+     "world": "Wall seen at once",
+     "test": "Stops at once",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 3",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4, stays",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Box on a long line, round 4",
+     "test": "Stops before the box",
+     "outcome": "passed",
+     "failed": []
+    }
+   ],
+   "error": null
+  },
+  "driveInTheDark/C-never-dark": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Wall seen at once",
+     "test": "Stops at once",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 3",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4, stays",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Box on a long line, round 4",
+     "test": "Stops before the box",
+     "outcome": "passed",
+     "failed": []
+    }
+   ],
+   "error": null
+  },
+  "driveInTheDark/C-floor-sensor": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Wall seen at once",
+     "test": "Stops at once",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 0.1 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove backward, straight (10.44 cm/s), from 10 to 10.02 s"
+     ]
+    },
+    {
+     "world": "Wall ahead, round 3",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 2.2 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove forward, straight (3.49 cm/s), 2 times, 0.05 s in total; the first from 2.22 to 2.25 s"
+     ]
+    },
+    {
+     "world": "Wall ahead, round 4",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 2.2 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove forward, straight (3.49 cm/s), 2 times, 0.05 s in total; the first from 2.22 to 2.25 s"
+     ]
+    },
+    {
+     "world": "Wall ahead, round 4, stays",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 2.2 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove forward, straight (3.49 cm/s), 2 times, 0.05 s in total; the first from 2.22 to 2.25 s",
+      "the robot did not stand still: it drove forward, straight (10.44 cm/s), from 19.98 to 20 s"
+     ]
+    },
+    {
+     "world": "Box on a long line, round 4",
+     "test": "Stops before the box",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 10.8 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove forward, straight (5.82 cm/s), 2 times, 0.07 s in total; the first from 10.82 to 10.87 s"
+     ]
+    }
+   ],
+   "error": null
+  },
+  "driveInTheDark/C-negated": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Wall seen at once",
+     "test": "Stops at once",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 0.1 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove backward, straight (10.44 cm/s), from 10 to 10.02 s"
+     ]
+    },
+    {
+     "world": "Wall ahead, round 3",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 2.2 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove forward, straight (3.49 cm/s), 2 times, 0.05 s in total; the first from 2.22 to 2.25 s"
+     ]
+    },
+    {
+     "world": "Wall ahead, round 4",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 2.2 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove forward, straight (3.49 cm/s), 2 times, 0.05 s in total; the first from 2.22 to 2.25 s"
+     ]
+    },
+    {
+     "world": "Wall ahead, round 4, stays",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 2.2 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove forward, straight (3.49 cm/s), 2 times, 0.05 s in total; the first from 2.22 to 2.25 s",
+      "the robot did not stand still: it drove forward, straight (10.44 cm/s), from 19.98 to 20 s"
+     ]
+    },
+    {
+     "world": "Box on a long line, round 4",
+     "test": "Stops before the box",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Wall\" after 10.8 s",
+      "an obstacle was ahead, but the robot did not stand still: it drove forward, straight (5.82 cm/s), 2 times, 0.07 s in total; the first from 10.82 to 10.87 s"
+     ]
+    }
+   ],
+   "error": null
+  },
+  "driveInTheDark/C-curves": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Wall seen at once",
+     "test": "Stops at once",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 3",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4, stays",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Box on a long line, round 4",
+     "test": "Stops before the box",
+     "outcome": "passed",
+     "failed": []
+    }
+   ],
+   "error": null
+  },
+  "driveInTheDark/A-no-handover": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Wall seen at once",
+     "test": "Stops at once",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 3",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "at the end (after 20 s), the robot was not completely in \"Goal t3\""
+     ]
+    },
+    {
+     "world": "Wall ahead, round 4, stays",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "at the end (after 20 s), the robot was not completely in \"Goal t3\""
+     ]
+    },
+    {
+     "world": "Box on a long line, round 4",
+     "test": "Stops before the box",
+     "outcome": "failed",
+     "failed": [
+      "at the end (after 40 s), the robot was not completely in \"Goal t3\""
+     ]
+    }
+   ],
+   "error": null
+  },
+  "avoidWalls/A": {
+   "kind": "correct",
+   "tests": [
+    {
+     "world": "Wall seen at once",
+     "test": "Stops at once",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 3",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4, stays",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Box on a long line, round 4",
+     "test": "Stops before the box",
+     "outcome": "passed",
+     "failed": []
+    }
+   ],
+   "error": null
+  },
+  "driveInTheDark/B-no-handover": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Wall seen at once",
+     "test": "Stops at once",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 3",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "at the end (after 20 s), the robot was not completely in \"Goal t3\""
+     ]
+    },
+    {
+     "world": "Wall ahead, round 4, stays",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "at the end (after 20 s), the robot was not completely in \"Goal t3\""
+     ]
+    },
+    {
+     "world": "Box on a long line, round 4",
+     "test": "Stops before the box",
+     "outcome": "failed",
+     "failed": [
+      "at the end (after 40 s), the robot was not completely in \"Goal t3\""
+     ]
+    }
+   ],
+   "error": null
+  },
+  "avoidWalls/A-swapped": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Wall seen at once",
+     "test": "Stops at once",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 3",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4, stays",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Box on a long line, round 4",
+     "test": "Stops before the box",
+     "outcome": "passed",
+     "failed": []
+    }
+   ],
+   "error": null
+  },
+  "avoidWalls/A-front-sensor": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Wall seen at once",
+     "test": "Stops at once",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 3",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4, stays",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Box on a long line, round 4",
+     "test": "Stops before the box",
+     "outcome": "passed",
+     "failed": []
+    }
+   ],
+   "error": null
+  },
+  "avoidWalls/A-never-dark": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Wall seen at once",
+     "test": "Stops at once",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 3",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4, stays",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Box on a long line, round 4",
+     "test": "Stops before the box",
+     "outcome": "passed",
+     "failed": []
+    }
+   ],
+   "error": null
+  },
+  "avoidWalls/B": {
+   "kind": "correct",
+   "tests": [
+    {
+     "world": "Wall seen at once",
+     "test": "Stops at once",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 3",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4, stays",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Box on a long line, round 4",
+     "test": "Stops before the box",
+     "outcome": "passed",
+     "failed": []
+    }
+   ],
+   "error": null
+  },
+  "avoidWalls/B-swapped": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Wall seen at once",
+     "test": "Stops at once",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 3",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4, stays",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Box on a long line, round 4",
+     "test": "Stops before the box",
+     "outcome": "passed",
+     "failed": []
+    }
+   ],
+   "error": null
+  },
+  "avoidWalls/B-front-sensor": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Wall seen at once",
+     "test": "Stops at once",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 3",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4, stays",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Box on a long line, round 4",
+     "test": "Stops before the box",
+     "outcome": "passed",
+     "failed": []
+    }
+   ],
+   "error": null
+  },
+  "avoidWalls/B-never-dark": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Wall seen at once",
+     "test": "Stops at once",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 3",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4, stays",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Box on a long line, round 4",
+     "test": "Stops before the box",
+     "outcome": "passed",
+     "failed": []
+    }
+   ],
+   "error": null
+  },
+  "driveInTheDark/C-no-handover": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Wall seen at once",
+     "test": "Stops at once",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 3",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "at the end (after 20 s), the robot was not completely in \"Goal t3\""
+     ]
+    },
+    {
+     "world": "Wall ahead, round 4, stays",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "at the end (after 20 s), the robot was not completely in \"Goal t3\""
+     ]
+    },
+    {
+     "world": "Box on a long line, round 4",
+     "test": "Stops before the box",
+     "outcome": "failed",
+     "failed": [
+      "at the end (after 40 s), the robot was not completely in \"Goal t3\""
+     ]
+    }
+   ],
+   "error": null
+  },
+  "avoidWalls/C": {
+   "kind": "correct",
+   "tests": [
+    {
+     "world": "Wall seen at once",
+     "test": "Stops at once",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 3",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4, stays",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Box on a long line, round 4",
+     "test": "Stops before the box",
+     "outcome": "passed",
+     "failed": []
+    }
+   ],
+   "error": null
+  },
+  "avoidWalls/C-swapped": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Wall seen at once",
+     "test": "Stops at once",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 3",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4, stays",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Box on a long line, round 4",
+     "test": "Stops before the box",
+     "outcome": "passed",
+     "failed": []
+    }
+   ],
+   "error": null
+  },
+  "avoidWalls/C-front-sensor": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Wall seen at once",
+     "test": "Stops at once",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 3",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4, stays",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Box on a long line, round 4",
+     "test": "Stops before the box",
+     "outcome": "passed",
+     "failed": []
+    }
+   ],
+   "error": null
+  },
+  "avoidWalls/C-never-dark": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Wall seen at once",
+     "test": "Stops at once",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 3",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4, stays",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Box on a long line, round 4",
+     "test": "Stops before the box",
+     "outcome": "passed",
+     "failed": []
+    }
+   ],
+   "error": null
+  },
+  "avoidWalls/A-no-handover": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Wall seen at once",
+     "test": "Stops at once",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 3",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "at the end (after 20 s), the robot was not completely in \"Goal t3\""
+     ]
+    },
+    {
+     "world": "Wall ahead, round 4, stays",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "at the end (after 20 s), the robot was not completely in \"Goal t3\""
+     ]
+    },
+    {
+     "world": "Box on a long line, round 4",
+     "test": "Stops before the box",
+     "outcome": "failed",
+     "failed": [
+      "at the end (after 40 s), the robot was not completely in \"Goal t3\""
+     ]
+    }
+   ],
+   "error": null
+  },
+  "followInTheDark/A": {
+   "kind": "correct",
+   "tests": [
+    {
+     "world": "Wall seen at once",
+     "test": "Stops at once",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 3",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4, stays",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Box on a long line, round 4",
+     "test": "Stops before the box",
+     "outcome": "passed",
+     "failed": []
+    }
+   ],
+   "error": null
+  },
+  "followInTheDark/A-swapped": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Wall seen at once",
+     "test": "Stops at once",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 3",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4, stays",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Box on a long line, round 4",
+     "test": "Stops before the box",
+     "outcome": "passed",
+     "failed": []
+    }
+   ],
+   "error": null
+  },
+  "followInTheDark/A-peach-is-black": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Wall seen at once",
+     "test": "Stops at once",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 3",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4, stays",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Box on a long line, round 4",
+     "test": "Stops before the box",
+     "outcome": "passed",
+     "failed": []
+    }
+   ],
+   "error": null
+  },
+  "followInTheDark/A-light-above": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Wall seen at once",
+     "test": "Stops at once",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 3",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4, stays",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Box on a long line, round 4",
+     "test": "Stops before the box",
+     "outcome": "passed",
+     "failed": []
+    }
+   ],
+   "error": null
+  },
+  "avoidWalls/B-no-handover": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Wall seen at once",
+     "test": "Stops at once",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 3",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "at the end (after 20 s), the robot was not completely in \"Goal t3\""
+     ]
+    },
+    {
+     "world": "Wall ahead, round 4, stays",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "at the end (after 20 s), the robot was not completely in \"Goal t3\""
+     ]
+    },
+    {
+     "world": "Box on a long line, round 4",
+     "test": "Stops before the box",
+     "outcome": "failed",
+     "failed": [
+      "at the end (after 40 s), the robot was not completely in \"Goal t3\""
+     ]
+    }
+   ],
+   "error": null
+  },
+  "followInTheDark/B": {
+   "kind": "correct",
+   "tests": [
+    {
+     "world": "Wall seen at once",
+     "test": "Stops at once",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 3",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4, stays",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Box on a long line, round 4",
+     "test": "Stops before the box",
+     "outcome": "passed",
+     "failed": []
+    }
+   ],
+   "error": null
+  },
+  "followInTheDark/B-swapped": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Wall seen at once",
+     "test": "Stops at once",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 3",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4, stays",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Box on a long line, round 4",
+     "test": "Stops before the box",
+     "outcome": "passed",
+     "failed": []
+    }
+   ],
+   "error": null
+  },
+  "followInTheDark/B-peach-is-black": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Wall seen at once",
+     "test": "Stops at once",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 3",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4, stays",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Box on a long line, round 4",
+     "test": "Stops before the box",
+     "outcome": "passed",
+     "failed": []
+    }
+   ],
+   "error": null
+  },
+  "followInTheDark/B-light-above": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Wall seen at once",
+     "test": "Stops at once",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 3",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4, stays",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Box on a long line, round 4",
+     "test": "Stops before the box",
+     "outcome": "passed",
+     "failed": []
+    }
+   ],
+   "error": null
+  },
+  "avoidWalls/C-no-handover": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Wall seen at once",
+     "test": "Stops at once",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 3",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "at the end (after 20 s), the robot was not completely in \"Goal t3\""
+     ]
+    },
+    {
+     "world": "Wall ahead, round 4, stays",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "at the end (after 20 s), the robot was not completely in \"Goal t3\""
+     ]
+    },
+    {
+     "world": "Box on a long line, round 4",
+     "test": "Stops before the box",
+     "outcome": "failed",
+     "failed": [
+      "at the end (after 40 s), the robot was not completely in \"Goal t3\""
+     ]
+    }
+   ],
+   "error": null
+  },
+  "followInTheDark/C": {
+   "kind": "correct",
+   "tests": [
+    {
+     "world": "Wall seen at once",
+     "test": "Stops at once",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 3",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4, stays",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Box on a long line, round 4",
+     "test": "Stops before the box",
+     "outcome": "passed",
+     "failed": []
+    }
+   ],
+   "error": null
+  },
+  "followInTheDark/C-swapped": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Wall seen at once",
+     "test": "Stops at once",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 3",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4, stays",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Box on a long line, round 4",
+     "test": "Stops before the box",
+     "outcome": "passed",
+     "failed": []
+    }
+   ],
+   "error": null
+  },
+  "followInTheDark/C-peach-is-black": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Wall seen at once",
+     "test": "Stops at once",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 3",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4, stays",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Box on a long line, round 4",
+     "test": "Stops before the box",
+     "outcome": "passed",
+     "failed": []
+    }
+   ],
+   "error": null
+  },
+  "followInTheDark/C-light-above": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Wall seen at once",
+     "test": "Stops at once",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 3",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4, stays",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Box on a long line, round 4",
+     "test": "Stops before the box",
+     "outcome": "passed",
+     "failed": []
+    }
+   ],
+   "error": null
+  },
+  "followInTheDark/A-no-handover": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Wall seen at once",
+     "test": "Stops at once",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 3",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "at the end (after 20 s), the robot was not completely in \"Goal t3\""
+     ]
+    },
+    {
+     "world": "Wall ahead, round 4, stays",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "at the end (after 20 s), the robot was not completely in \"Goal t3\""
+     ]
+    },
+    {
+     "world": "Box on a long line, round 4",
+     "test": "Stops before the box",
+     "outcome": "failed",
+     "failed": [
+      "at the end (after 40 s), the robot was not completely in \"Goal t3\""
+     ]
+    }
+   ],
+   "error": null
+  },
+  "followInTheDark/B-no-handover": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Wall seen at once",
+     "test": "Stops at once",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 3",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "at the end (after 20 s), the robot was not completely in \"Goal t3\""
+     ]
+    },
+    {
+     "world": "Wall ahead, round 4, stays",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "at the end (after 20 s), the robot was not completely in \"Goal t3\""
+     ]
+    },
+    {
+     "world": "Box on a long line, round 4",
+     "test": "Stops before the box",
+     "outcome": "failed",
+     "failed": [
+      "at the end (after 40 s), the robot was not completely in \"Goal t3\""
+     ]
+    }
+   ],
+   "error": null
+  },
+  "followInTheDark/C-no-handover": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Wall seen at once",
+     "test": "Stops at once",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 3",
+     "test": "Stops at the wall",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Wall ahead, round 4",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "at the end (after 20 s), the robot was not completely in \"Goal t3\""
+     ]
+    },
+    {
+     "world": "Wall ahead, round 4, stays",
+     "test": "Stops at the wall",
+     "outcome": "failed",
+     "failed": [
+      "at the end (after 20 s), the robot was not completely in \"Goal t3\""
+     ]
+    },
+    {
+     "world": "Box on a long line, round 4",
+     "test": "Stops before the box",
+     "outcome": "failed",
+     "failed": [
+      "at the end (after 40 s), the robot was not completely in \"Goal t3\""
+     ]
+    }
+   ],
+   "error": null
+  }
+ },
+ "bends": {
+  "avoidWalls/A": {
+   "kind": "correct",
+   "tests": [
+    {
+     "world": "Bend right, 30 deg every 20 cm (44 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend left, 30 deg every 20 cm (44 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend right, 30 deg every 30 cm (27 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend left, 30 deg every 30 cm (27 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend right, 30 deg every 40 cm (16 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend left, 30 deg every 40 cm (16 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend right, 45 deg every 20 cm (65 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend left, 45 deg every 20 cm (65 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend right, 45 deg every 30 cm (39 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend left, 45 deg every 30 cm (39 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend right, 45 deg every 40 cm (24 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend left, 45 deg every 40 cm (24 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend right, 90 deg every 60 cm (69 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend left, 90 deg every 60 cm (69 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    }
+   ],
+   "error": null
+  },
+  "avoidWalls/A-front-sensor": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Bend right, 30 deg every 20 cm (44 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Tunnel\" after 11 s"
+     ]
+    },
+    {
+     "world": "Bend left, 30 deg every 20 cm (44 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend right, 30 deg every 30 cm (27 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Tunnel\" after 10.9 s"
+     ]
+    },
+    {
+     "world": "Bend left, 30 deg every 30 cm (27 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend right, 30 deg every 40 cm (16 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Tunnel\" after 10.9 s"
+     ]
+    },
+    {
+     "world": "Bend left, 30 deg every 40 cm (16 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend right, 45 deg every 20 cm (65 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Tunnel\" after 10.9 s"
+     ]
+    },
+    {
+     "world": "Bend left, 45 deg every 20 cm (65 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend right, 45 deg every 30 cm (39 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Tunnel\" after 10.7 s"
+     ]
+    },
+    {
+     "world": "Bend left, 45 deg every 30 cm (39 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend right, 45 deg every 40 cm (24 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Tunnel\" after 10.7 s"
+     ]
+    },
+    {
+     "world": "Bend left, 45 deg every 40 cm (24 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend right, 90 deg every 60 cm (69 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Tunnel\" after 10.6 s"
+     ]
+    },
+    {
+     "world": "Bend left, 90 deg every 60 cm (69 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Tunnel\" after 7.3 s"
+     ]
+    }
+   ],
+   "error": null
+  },
+  "avoidWalls/A-swapped": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Bend right, 30 deg every 20 cm (44 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 11.2 s"
+     ]
+    },
+    {
+     "world": "Bend left, 30 deg every 20 cm (44 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 11 s"
+     ]
+    },
+    {
+     "world": "Bend right, 30 deg every 30 cm (27 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 11.1 s"
+     ]
+    },
+    {
+     "world": "Bend left, 30 deg every 30 cm (27 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 10.9 s"
+     ]
+    },
+    {
+     "world": "Bend right, 30 deg every 40 cm (16 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 11.1 s"
+     ]
+    },
+    {
+     "world": "Bend left, 30 deg every 40 cm (16 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 10.9 s"
+     ]
+    },
+    {
+     "world": "Bend right, 45 deg every 20 cm (65 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 11 s"
+     ]
+    },
+    {
+     "world": "Bend left, 45 deg every 20 cm (65 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 10.9 s"
+     ]
+    },
+    {
+     "world": "Bend right, 45 deg every 30 cm (39 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 10.9 s"
+     ]
+    },
+    {
+     "world": "Bend left, 45 deg every 30 cm (39 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 10.8 s"
+     ]
+    },
+    {
+     "world": "Bend right, 45 deg every 40 cm (24 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 10.9 s"
+     ]
+    },
+    {
+     "world": "Bend left, 45 deg every 40 cm (24 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 10.7 s"
+     ]
+    },
+    {
+     "world": "Bend right, 90 deg every 60 cm (69 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 10.7 s"
+     ]
+    },
+    {
+     "world": "Bend left, 90 deg every 60 cm (69 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 7.3 s"
+     ]
+    }
+   ],
+   "error": null
+  },
+  "avoidWalls/B": {
+   "kind": "correct",
+   "tests": [
+    {
+     "world": "Bend right, 30 deg every 20 cm (44 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend left, 30 deg every 20 cm (44 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend right, 30 deg every 30 cm (27 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend left, 30 deg every 30 cm (27 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend right, 30 deg every 40 cm (16 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend left, 30 deg every 40 cm (16 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend right, 45 deg every 20 cm (65 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend left, 45 deg every 20 cm (65 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend right, 45 deg every 30 cm (39 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend left, 45 deg every 30 cm (39 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend right, 45 deg every 40 cm (24 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend left, 45 deg every 40 cm (24 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend right, 90 deg every 60 cm (69 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend left, 90 deg every 60 cm (69 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    }
+   ],
+   "error": null
+  },
+  "avoidWalls/A-never-dark": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Bend right, 30 deg every 20 cm (44 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 11 s"
+     ]
+    },
+    {
+     "world": "Bend left, 30 deg every 20 cm (44 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 10.9 s"
+     ]
+    },
+    {
+     "world": "Bend right, 30 deg every 30 cm (27 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 10.9 s"
+     ]
+    },
+    {
+     "world": "Bend left, 30 deg every 30 cm (27 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 10.8 s"
+     ]
+    },
+    {
+     "world": "Bend right, 30 deg every 40 cm (16 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 10.9 s"
+     ]
+    },
+    {
+     "world": "Bend left, 30 deg every 40 cm (16 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 10.8 s"
+     ]
+    },
+    {
+     "world": "Bend right, 45 deg every 20 cm (65 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 10.9 s"
+     ]
+    },
+    {
+     "world": "Bend left, 45 deg every 20 cm (65 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 10.8 s"
+     ]
+    },
+    {
+     "world": "Bend right, 45 deg every 30 cm (39 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 10.7 s"
+     ]
+    },
+    {
+     "world": "Bend left, 45 deg every 30 cm (39 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 10.7 s"
+     ]
+    },
+    {
+     "world": "Bend right, 45 deg every 40 cm (24 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 10.7 s"
+     ]
+    },
+    {
+     "world": "Bend left, 45 deg every 40 cm (24 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 10.6 s"
+     ]
+    },
+    {
+     "world": "Bend right, 90 deg every 60 cm (69 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 10.2 s"
+     ]
+    },
+    {
+     "world": "Bend left, 90 deg every 60 cm (69 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 7.3 s"
+     ]
+    }
+   ],
+   "error": null
+  },
+  "avoidWalls/B-front-sensor": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Bend right, 30 deg every 20 cm (44 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend left, 30 deg every 20 cm (44 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Tunnel\" after 10.9 s"
+     ]
+    },
+    {
+     "world": "Bend right, 30 deg every 30 cm (27 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend left, 30 deg every 30 cm (27 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Tunnel\" after 10.8 s"
+     ]
+    },
+    {
+     "world": "Bend right, 30 deg every 40 cm (16 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend left, 30 deg every 40 cm (16 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Tunnel\" after 10.8 s"
+     ]
+    },
+    {
+     "world": "Bend right, 45 deg every 20 cm (65 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend left, 45 deg every 20 cm (65 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Tunnel\" after 10.8 s"
+     ]
+    },
+    {
+     "world": "Bend right, 45 deg every 30 cm (39 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend left, 45 deg every 30 cm (39 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Tunnel\" after 10.7 s"
+     ]
+    },
+    {
+     "world": "Bend right, 45 deg every 40 cm (24 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend left, 45 deg every 40 cm (24 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Tunnel\" after 10.6 s"
+     ]
+    },
+    {
+     "world": "Bend right, 90 deg every 60 cm (69 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend left, 90 deg every 60 cm (69 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Tunnel\" after 9.2 s"
+     ]
+    }
+   ],
+   "error": null
+  },
+  "avoidWalls/B-swapped": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Bend right, 30 deg every 20 cm (44 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 11 s"
+     ]
+    },
+    {
+     "world": "Bend left, 30 deg every 20 cm (44 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 11 s"
+     ]
+    },
+    {
+     "world": "Bend right, 30 deg every 30 cm (27 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 11 s"
+     ]
+    },
+    {
+     "world": "Bend left, 30 deg every 30 cm (27 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 11 s"
+     ]
+    },
+    {
+     "world": "Bend right, 30 deg every 40 cm (16 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 10.9 s"
+     ]
+    },
+    {
+     "world": "Bend left, 30 deg every 40 cm (16 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 10.9 s"
+     ]
+    },
+    {
+     "world": "Bend right, 45 deg every 20 cm (65 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 10.9 s"
+     ]
+    },
+    {
+     "world": "Bend left, 45 deg every 20 cm (65 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 10.9 s"
+     ]
+    },
+    {
+     "world": "Bend right, 45 deg every 30 cm (39 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 10.8 s"
+     ]
+    },
+    {
+     "world": "Bend left, 45 deg every 30 cm (39 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 10.8 s"
+     ]
+    },
+    {
+     "world": "Bend right, 45 deg every 40 cm (24 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 10.7 s"
+     ]
+    },
+    {
+     "world": "Bend left, 45 deg every 40 cm (24 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 10.8 s"
+     ]
+    },
+    {
+     "world": "Bend right, 90 deg every 60 cm (69 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 10.3 s"
+     ]
+    },
+    {
+     "world": "Bend left, 90 deg every 60 cm (69 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 7.3 s"
+     ]
+    }
+   ],
+   "error": null
+  },
+  "avoidWalls/B-never-dark": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Bend right, 30 deg every 20 cm (44 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 11 s"
+     ]
+    },
+    {
+     "world": "Bend left, 30 deg every 20 cm (44 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 10.9 s"
+     ]
+    },
+    {
+     "world": "Bend right, 30 deg every 30 cm (27 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 10.9 s"
+     ]
+    },
+    {
+     "world": "Bend left, 30 deg every 30 cm (27 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 10.8 s"
+     ]
+    },
+    {
+     "world": "Bend right, 30 deg every 40 cm (16 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 10.9 s"
+     ]
+    },
+    {
+     "world": "Bend left, 30 deg every 40 cm (16 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 10.8 s"
+     ]
+    },
+    {
+     "world": "Bend right, 45 deg every 20 cm (65 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 10.9 s"
+     ]
+    },
+    {
+     "world": "Bend left, 45 deg every 20 cm (65 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 10.8 s"
+     ]
+    },
+    {
+     "world": "Bend right, 45 deg every 30 cm (39 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 10.7 s"
+     ]
+    },
+    {
+     "world": "Bend left, 45 deg every 30 cm (39 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 10.7 s"
+     ]
+    },
+    {
+     "world": "Bend right, 45 deg every 40 cm (24 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 10.7 s"
+     ]
+    },
+    {
+     "world": "Bend left, 45 deg every 40 cm (24 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 10.6 s"
+     ]
+    },
+    {
+     "world": "Bend right, 90 deg every 60 cm (69 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 10.2 s"
+     ]
+    },
+    {
+     "world": "Bend left, 90 deg every 60 cm (69 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 7.3 s"
+     ]
+    }
+   ],
+   "error": null
+  },
+  "avoidWalls/C": {
+   "kind": "correct",
+   "tests": [
+    {
+     "world": "Bend right, 30 deg every 20 cm (44 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend left, 30 deg every 20 cm (44 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend right, 30 deg every 30 cm (27 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend left, 30 deg every 30 cm (27 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend right, 30 deg every 40 cm (16 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend left, 30 deg every 40 cm (16 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend right, 45 deg every 20 cm (65 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend left, 45 deg every 20 cm (65 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend right, 45 deg every 30 cm (39 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend left, 45 deg every 30 cm (39 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend right, 45 deg every 40 cm (24 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend left, 45 deg every 40 cm (24 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend right, 90 deg every 60 cm (69 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend left, 90 deg every 60 cm (69 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    }
+   ],
+   "error": null
+  },
+  "avoidWalls/C-swapped": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Bend right, 30 deg every 20 cm (44 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 11.2 s"
+     ]
+    },
+    {
+     "world": "Bend left, 30 deg every 20 cm (44 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 11 s"
+     ]
+    },
+    {
+     "world": "Bend right, 30 deg every 30 cm (27 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 11.1 s"
+     ]
+    },
+    {
+     "world": "Bend left, 30 deg every 30 cm (27 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 11 s"
+     ]
+    },
+    {
+     "world": "Bend right, 30 deg every 40 cm (16 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 11.1 s"
+     ]
+    },
+    {
+     "world": "Bend left, 30 deg every 40 cm (16 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 10.9 s"
+     ]
+    },
+    {
+     "world": "Bend right, 45 deg every 20 cm (65 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 11 s"
+     ]
+    },
+    {
+     "world": "Bend left, 45 deg every 20 cm (65 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 10.9 s"
+     ]
+    },
+    {
+     "world": "Bend right, 45 deg every 30 cm (39 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 10.9 s"
+     ]
+    },
+    {
+     "world": "Bend left, 45 deg every 30 cm (39 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 10.8 s"
+     ]
+    },
+    {
+     "world": "Bend right, 45 deg every 40 cm (24 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 10.8 s"
+     ]
+    },
+    {
+     "world": "Bend left, 45 deg every 40 cm (24 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 10.7 s"
+     ]
+    },
+    {
+     "world": "Bend right, 90 deg every 60 cm (69 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 10.5 s"
+     ]
+    },
+    {
+     "world": "Bend left, 90 deg every 60 cm (69 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 7.4 s"
+     ]
+    }
+   ],
+   "error": null
+  },
+  "avoidWalls/C-front-sensor": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Bend right, 30 deg every 20 cm (44 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 11 s"
+     ]
+    },
+    {
+     "world": "Bend left, 30 deg every 20 cm (44 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend right, 30 deg every 30 cm (27 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 10.9 s"
+     ]
+    },
+    {
+     "world": "Bend left, 30 deg every 30 cm (27 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend right, 30 deg every 40 cm (16 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 10.9 s"
+     ]
+    },
+    {
+     "world": "Bend left, 30 deg every 40 cm (16 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend right, 45 deg every 20 cm (65 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 10.9 s"
+     ]
+    },
+    {
+     "world": "Bend left, 45 deg every 20 cm (65 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend right, 45 deg every 30 cm (39 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 10.7 s"
+     ]
+    },
+    {
+     "world": "Bend left, 45 deg every 30 cm (39 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend right, 45 deg every 40 cm (24 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 10.7 s"
+     ]
+    },
+    {
+     "world": "Bend left, 45 deg every 40 cm (24 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend right, 90 deg every 60 cm (69 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 10.3 s"
+     ]
+    },
+    {
+     "world": "Bend left, 90 deg every 60 cm (69 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 7.3 s"
+     ]
+    }
+   ],
+   "error": null
+  },
+  "avoidWalls/C-never-dark": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Bend right, 30 deg every 20 cm (44 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 11 s"
+     ]
+    },
+    {
+     "world": "Bend left, 30 deg every 20 cm (44 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 10.9 s"
+     ]
+    },
+    {
+     "world": "Bend right, 30 deg every 30 cm (27 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 10.9 s"
+     ]
+    },
+    {
+     "world": "Bend left, 30 deg every 30 cm (27 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 10.8 s"
+     ]
+    },
+    {
+     "world": "Bend right, 30 deg every 40 cm (16 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 10.9 s"
+     ]
+    },
+    {
+     "world": "Bend left, 30 deg every 40 cm (16 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 10.8 s"
+     ]
+    },
+    {
+     "world": "Bend right, 45 deg every 20 cm (65 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 10.9 s"
+     ]
+    },
+    {
+     "world": "Bend left, 45 deg every 20 cm (65 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 10.8 s"
+     ]
+    },
+    {
+     "world": "Bend right, 45 deg every 30 cm (39 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 10.7 s"
+     ]
+    },
+    {
+     "world": "Bend left, 45 deg every 30 cm (39 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 10.7 s"
+     ]
+    },
+    {
+     "world": "Bend right, 45 deg every 40 cm (24 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 10.7 s"
+     ]
+    },
+    {
+     "world": "Bend left, 45 deg every 40 cm (24 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 10.6 s"
+     ]
+    },
+    {
+     "world": "Bend right, 90 deg every 60 cm (69 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 10.2 s"
+     ]
+    },
+    {
+     "world": "Bend left, 90 deg every 60 cm (69 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 7.3 s"
+     ]
+    }
+   ],
+   "error": null
+  },
+  "avoidWalls/A-no-handover": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Bend right, 30 deg every 20 cm (44 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s"
+     ]
+    },
+    {
+     "world": "Bend left, 30 deg every 20 cm (44 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s"
+     ]
+    },
+    {
+     "world": "Bend right, 30 deg every 30 cm (27 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s"
+     ]
+    },
+    {
+     "world": "Bend left, 30 deg every 30 cm (27 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s"
+     ]
+    },
+    {
+     "world": "Bend right, 30 deg every 40 cm (16 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s"
+     ]
+    },
+    {
+     "world": "Bend left, 30 deg every 40 cm (16 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s"
+     ]
+    },
+    {
+     "world": "Bend right, 45 deg every 20 cm (65 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s"
+     ]
+    },
+    {
+     "world": "Bend left, 45 deg every 20 cm (65 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s"
+     ]
+    },
+    {
+     "world": "Bend right, 45 deg every 30 cm (39 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s"
+     ]
+    },
+    {
+     "world": "Bend left, 45 deg every 30 cm (39 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s"
+     ]
+    },
+    {
+     "world": "Bend right, 45 deg every 40 cm (24 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s"
+     ]
+    },
+    {
+     "world": "Bend left, 45 deg every 40 cm (24 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s"
+     ]
+    },
+    {
+     "world": "Bend right, 90 deg every 60 cm (69 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s"
+     ]
+    },
+    {
+     "world": "Bend left, 90 deg every 60 cm (69 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s"
+     ]
+    }
+   ],
+   "error": null
+  },
+  "followInTheDark/A": {
+   "kind": "correct",
+   "tests": [
+    {
+     "world": "Bend right, 30 deg every 20 cm (44 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend left, 30 deg every 20 cm (44 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend right, 30 deg every 30 cm (27 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend left, 30 deg every 30 cm (27 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend right, 30 deg every 40 cm (16 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend left, 30 deg every 40 cm (16 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend right, 45 deg every 20 cm (65 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend left, 45 deg every 20 cm (65 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend right, 45 deg every 30 cm (39 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend left, 45 deg every 30 cm (39 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend right, 45 deg every 40 cm (24 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend left, 45 deg every 40 cm (24 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend right, 90 deg every 60 cm (69 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend left, 90 deg every 60 cm (69 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    }
+   ],
+   "error": null
+  },
+  "followInTheDark/A-swapped": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Bend right, 30 deg every 20 cm (44 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend left, 30 deg every 20 cm (44 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend right, 30 deg every 30 cm (27 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend left, 30 deg every 30 cm (27 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend right, 30 deg every 40 cm (16 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend left, 30 deg every 40 cm (16 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend right, 45 deg every 20 cm (65 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend left, 45 deg every 20 cm (65 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend right, 45 deg every 30 cm (39 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend left, 45 deg every 30 cm (39 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend right, 45 deg every 40 cm (24 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend left, 45 deg every 40 cm (24 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend right, 90 deg every 60 cm (69 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend left, 90 deg every 60 cm (69 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    }
+   ],
+   "error": null
+  },
+  "followInTheDark/A-peach-is-black": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Bend right, 30 deg every 20 cm (44 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 6.5 s"
+     ]
+    },
+    {
+     "world": "Bend left, 30 deg every 20 cm (44 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 6.3 s"
+     ]
+    },
+    {
+     "world": "Bend right, 30 deg every 30 cm (27 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 6.5 s"
+     ]
+    },
+    {
+     "world": "Bend left, 30 deg every 30 cm (27 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 6.3 s"
+     ]
+    },
+    {
+     "world": "Bend right, 30 deg every 40 cm (16 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 6.5 s"
+     ]
+    },
+    {
+     "world": "Bend left, 30 deg every 40 cm (16 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 6.3 s"
+     ]
+    },
+    {
+     "world": "Bend right, 45 deg every 20 cm (65 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 6.5 s"
+     ]
+    },
+    {
+     "world": "Bend left, 45 deg every 20 cm (65 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 6.3 s"
+     ]
+    },
+    {
+     "world": "Bend right, 45 deg every 30 cm (39 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 6.5 s"
+     ]
+    },
+    {
+     "world": "Bend left, 45 deg every 30 cm (39 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 6.3 s"
+     ]
+    },
+    {
+     "world": "Bend right, 45 deg every 40 cm (24 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 6.5 s"
+     ]
+    },
+    {
+     "world": "Bend left, 45 deg every 40 cm (24 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 6.2 s"
+     ]
+    },
+    {
+     "world": "Bend right, 90 deg every 60 cm (69 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 6.6 s"
+     ]
+    },
+    {
+     "world": "Bend left, 90 deg every 60 cm (69 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 6.2 s"
+     ]
+    }
+   ],
+   "error": null
+  },
+  "avoidWalls/B-no-handover": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Bend right, 30 deg every 20 cm (44 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s"
+     ]
+    },
+    {
+     "world": "Bend left, 30 deg every 20 cm (44 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s"
+     ]
+    },
+    {
+     "world": "Bend right, 30 deg every 30 cm (27 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s"
+     ]
+    },
+    {
+     "world": "Bend left, 30 deg every 30 cm (27 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s"
+     ]
+    },
+    {
+     "world": "Bend right, 30 deg every 40 cm (16 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s"
+     ]
+    },
+    {
+     "world": "Bend left, 30 deg every 40 cm (16 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s"
+     ]
+    },
+    {
+     "world": "Bend right, 45 deg every 20 cm (65 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s"
+     ]
+    },
+    {
+     "world": "Bend left, 45 deg every 20 cm (65 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s"
+     ]
+    },
+    {
+     "world": "Bend right, 45 deg every 30 cm (39 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s"
+     ]
+    },
+    {
+     "world": "Bend left, 45 deg every 30 cm (39 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s"
+     ]
+    },
+    {
+     "world": "Bend right, 45 deg every 40 cm (24 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s"
+     ]
+    },
+    {
+     "world": "Bend left, 45 deg every 40 cm (24 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s"
+     ]
+    },
+    {
+     "world": "Bend right, 90 deg every 60 cm (69 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s"
+     ]
+    },
+    {
+     "world": "Bend left, 90 deg every 60 cm (69 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s"
+     ]
+    }
+   ],
+   "error": null
+  },
+  "followInTheDark/A-light-above": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Bend right, 30 deg every 20 cm (44 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 5.9 s"
+     ]
+    },
+    {
+     "world": "Bend left, 30 deg every 20 cm (44 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 5.9 s"
+     ]
+    },
+    {
+     "world": "Bend right, 30 deg every 30 cm (27 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 6 s"
+     ]
+    },
+    {
+     "world": "Bend left, 30 deg every 30 cm (27 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 5.9 s"
+     ]
+    },
+    {
+     "world": "Bend right, 30 deg every 40 cm (16 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 6 s"
+     ]
+    },
+    {
+     "world": "Bend left, 30 deg every 40 cm (16 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 5.9 s"
+     ]
+    },
+    {
+     "world": "Bend right, 45 deg every 20 cm (65 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 6 s"
+     ]
+    },
+    {
+     "world": "Bend left, 45 deg every 20 cm (65 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 5.9 s"
+     ]
+    },
+    {
+     "world": "Bend right, 45 deg every 30 cm (39 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 6 s"
+     ]
+    },
+    {
+     "world": "Bend left, 45 deg every 30 cm (39 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 5.8 s"
+     ]
+    },
+    {
+     "world": "Bend right, 45 deg every 40 cm (24 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 6 s"
+     ]
+    },
+    {
+     "world": "Bend left, 45 deg every 40 cm (24 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 5.8 s"
+     ]
+    },
+    {
+     "world": "Bend right, 90 deg every 60 cm (69 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 6 s"
+     ]
+    },
+    {
+     "world": "Bend left, 90 deg every 60 cm (69 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 5.8 s"
+     ]
+    }
+   ],
+   "error": null
+  },
+  "followInTheDark/B": {
+   "kind": "correct",
+   "tests": [
+    {
+     "world": "Bend right, 30 deg every 20 cm (44 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend left, 30 deg every 20 cm (44 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend right, 30 deg every 30 cm (27 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend left, 30 deg every 30 cm (27 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend right, 30 deg every 40 cm (16 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend left, 30 deg every 40 cm (16 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend right, 45 deg every 20 cm (65 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend left, 45 deg every 20 cm (65 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend right, 45 deg every 30 cm (39 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend left, 45 deg every 30 cm (39 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend right, 45 deg every 40 cm (24 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend left, 45 deg every 40 cm (24 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend right, 90 deg every 60 cm (69 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend left, 90 deg every 60 cm (69 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    }
+   ],
+   "error": null
+  },
+  "followInTheDark/B-swapped": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Bend right, 30 deg every 20 cm (44 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend left, 30 deg every 20 cm (44 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend right, 30 deg every 30 cm (27 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend left, 30 deg every 30 cm (27 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend right, 30 deg every 40 cm (16 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend left, 30 deg every 40 cm (16 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend right, 45 deg every 20 cm (65 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend left, 45 deg every 20 cm (65 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend right, 45 deg every 30 cm (39 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend left, 45 deg every 30 cm (39 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend right, 45 deg every 40 cm (24 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend left, 45 deg every 40 cm (24 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend right, 90 deg every 60 cm (69 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend left, 90 deg every 60 cm (69 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    }
+   ],
+   "error": null
+  },
+  "followInTheDark/B-peach-is-black": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Bend right, 30 deg every 20 cm (44 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 6 s"
+     ]
+    },
+    {
+     "world": "Bend left, 30 deg every 20 cm (44 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 5.9 s"
+     ]
+    },
+    {
+     "world": "Bend right, 30 deg every 30 cm (27 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 6 s"
+     ]
+    },
+    {
+     "world": "Bend left, 30 deg every 30 cm (27 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 5.9 s"
+     ]
+    },
+    {
+     "world": "Bend right, 30 deg every 40 cm (16 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 6.1 s"
+     ]
+    },
+    {
+     "world": "Bend left, 30 deg every 40 cm (16 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 5.9 s"
+     ]
+    },
+    {
+     "world": "Bend right, 45 deg every 20 cm (65 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 6 s"
+     ]
+    },
+    {
+     "world": "Bend left, 45 deg every 20 cm (65 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 5.9 s"
+     ]
+    },
+    {
+     "world": "Bend right, 45 deg every 30 cm (39 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 6.1 s"
+     ]
+    },
+    {
+     "world": "Bend left, 45 deg every 30 cm (39 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 5.8 s"
+     ]
+    },
+    {
+     "world": "Bend right, 45 deg every 40 cm (24 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 6.1 s"
+     ]
+    },
+    {
+     "world": "Bend left, 45 deg every 40 cm (24 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 5.8 s"
+     ]
+    },
+    {
+     "world": "Bend right, 90 deg every 60 cm (69 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 6.2 s"
+     ]
+    },
+    {
+     "world": "Bend left, 90 deg every 60 cm (69 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 5.8 s"
+     ]
+    }
+   ],
+   "error": null
+  },
+  "avoidWalls/C-no-handover": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Bend right, 30 deg every 20 cm (44 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s"
+     ]
+    },
+    {
+     "world": "Bend left, 30 deg every 20 cm (44 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s"
+     ]
+    },
+    {
+     "world": "Bend right, 30 deg every 30 cm (27 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s"
+     ]
+    },
+    {
+     "world": "Bend left, 30 deg every 30 cm (27 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s"
+     ]
+    },
+    {
+     "world": "Bend right, 30 deg every 40 cm (16 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s"
+     ]
+    },
+    {
+     "world": "Bend left, 30 deg every 40 cm (16 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s"
+     ]
+    },
+    {
+     "world": "Bend right, 45 deg every 20 cm (65 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s"
+     ]
+    },
+    {
+     "world": "Bend left, 45 deg every 20 cm (65 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s"
+     ]
+    },
+    {
+     "world": "Bend right, 45 deg every 30 cm (39 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s"
+     ]
+    },
+    {
+     "world": "Bend left, 45 deg every 30 cm (39 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s"
+     ]
+    },
+    {
+     "world": "Bend right, 45 deg every 40 cm (24 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s"
+     ]
+    },
+    {
+     "world": "Bend left, 45 deg every 40 cm (24 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s"
+     ]
+    },
+    {
+     "world": "Bend right, 90 deg every 60 cm (69 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s"
+     ]
+    },
+    {
+     "world": "Bend left, 90 deg every 60 cm (69 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s"
+     ]
+    }
+   ],
+   "error": null
+  },
+  "followInTheDark/B-light-above": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Bend right, 30 deg every 20 cm (44 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 5.9 s"
+     ]
+    },
+    {
+     "world": "Bend left, 30 deg every 20 cm (44 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 5.9 s"
+     ]
+    },
+    {
+     "world": "Bend right, 30 deg every 30 cm (27 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 5.9 s"
+     ]
+    },
+    {
+     "world": "Bend left, 30 deg every 30 cm (27 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 5.9 s"
+     ]
+    },
+    {
+     "world": "Bend right, 30 deg every 40 cm (16 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 6 s"
+     ]
+    },
+    {
+     "world": "Bend left, 30 deg every 40 cm (16 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 5.8 s"
+     ]
+    },
+    {
+     "world": "Bend right, 45 deg every 20 cm (65 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 5.9 s"
+     ]
+    },
+    {
+     "world": "Bend left, 45 deg every 20 cm (65 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 5.9 s"
+     ]
+    },
+    {
+     "world": "Bend right, 45 deg every 30 cm (39 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 6 s"
+     ]
+    },
+    {
+     "world": "Bend left, 45 deg every 30 cm (39 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 5.8 s"
+     ]
+    },
+    {
+     "world": "Bend right, 45 deg every 40 cm (24 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 6 s"
+     ]
+    },
+    {
+     "world": "Bend left, 45 deg every 40 cm (24 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 5.8 s"
+     ]
+    },
+    {
+     "world": "Bend right, 90 deg every 60 cm (69 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 6 s"
+     ]
+    },
+    {
+     "world": "Bend left, 90 deg every 60 cm (69 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 5.7 s"
+     ]
+    }
+   ],
+   "error": null
+  },
+  "followInTheDark/C": {
+   "kind": "correct",
+   "tests": [
+    {
+     "world": "Bend right, 30 deg every 20 cm (44 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend left, 30 deg every 20 cm (44 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend right, 30 deg every 30 cm (27 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend left, 30 deg every 30 cm (27 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend right, 30 deg every 40 cm (16 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend left, 30 deg every 40 cm (16 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend right, 45 deg every 20 cm (65 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend left, 45 deg every 20 cm (65 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend right, 45 deg every 30 cm (39 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend left, 45 deg every 30 cm (39 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend right, 45 deg every 40 cm (24 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend left, 45 deg every 40 cm (24 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend right, 90 deg every 60 cm (69 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend left, 90 deg every 60 cm (69 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    }
+   ],
+   "error": null
+  },
+  "followInTheDark/C-swapped": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Bend right, 30 deg every 20 cm (44 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend left, 30 deg every 20 cm (44 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend right, 30 deg every 30 cm (27 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend left, 30 deg every 30 cm (27 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend right, 30 deg every 40 cm (16 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend left, 30 deg every 40 cm (16 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend right, 45 deg every 20 cm (65 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend left, 45 deg every 20 cm (65 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend right, 45 deg every 30 cm (39 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend left, 45 deg every 30 cm (39 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend right, 45 deg every 40 cm (24 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend left, 45 deg every 40 cm (24 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend right, 90 deg every 60 cm (69 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Bend left, 90 deg every 60 cm (69 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "passed",
+     "failed": []
+    }
+   ],
+   "error": null
+  },
+  "followInTheDark/C-peach-is-black": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Bend right, 30 deg every 20 cm (44 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 7 s"
+     ]
+    },
+    {
+     "world": "Bend left, 30 deg every 20 cm (44 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 7 s"
+     ]
+    },
+    {
+     "world": "Bend right, 30 deg every 30 cm (27 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 7 s"
+     ]
+    },
+    {
+     "world": "Bend left, 30 deg every 30 cm (27 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 6.9 s"
+     ]
+    },
+    {
+     "world": "Bend right, 30 deg every 40 cm (16 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 7 s"
+     ]
+    },
+    {
+     "world": "Bend left, 30 deg every 40 cm (16 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 6.9 s"
+     ]
+    },
+    {
+     "world": "Bend right, 45 deg every 20 cm (65 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 7 s"
+     ]
+    },
+    {
+     "world": "Bend left, 45 deg every 20 cm (65 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 6.9 s"
+     ]
+    },
+    {
+     "world": "Bend right, 45 deg every 30 cm (39 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 7.1 s"
+     ]
+    },
+    {
+     "world": "Bend left, 45 deg every 30 cm (39 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 6.9 s"
+     ]
+    },
+    {
+     "world": "Bend right, 45 deg every 40 cm (24 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 7.1 s"
+     ]
+    },
+    {
+     "world": "Bend left, 45 deg every 40 cm (24 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 6.9 s"
+     ]
+    },
+    {
+     "world": "Bend right, 90 deg every 60 cm (69 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 7.1 s"
+     ]
+    },
+    {
+     "world": "Bend left, 90 deg every 60 cm (69 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 6.8 s"
+     ]
+    }
+   ],
+   "error": null
+  },
+  "followInTheDark/C-light-above": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Bend right, 30 deg every 20 cm (44 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 6 s"
+     ]
+    },
+    {
+     "world": "Bend left, 30 deg every 20 cm (44 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 6 s"
+     ]
+    },
+    {
+     "world": "Bend right, 30 deg every 30 cm (27 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 6 s"
+     ]
+    },
+    {
+     "world": "Bend left, 30 deg every 30 cm (27 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 5.9 s"
+     ]
+    },
+    {
+     "world": "Bend right, 30 deg every 40 cm (16 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 6 s"
+     ]
+    },
+    {
+     "world": "Bend left, 30 deg every 40 cm (16 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 5.9 s"
+     ]
+    },
+    {
+     "world": "Bend right, 45 deg every 20 cm (65 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 6 s"
+     ]
+    },
+    {
+     "world": "Bend left, 45 deg every 20 cm (65 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 6 s"
+     ]
+    },
+    {
+     "world": "Bend right, 45 deg every 30 cm (39 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 6 s"
+     ]
+    },
+    {
+     "world": "Bend left, 45 deg every 30 cm (39 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 5.9 s"
+     ]
+    },
+    {
+     "world": "Bend right, 45 deg every 40 cm (24 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 6 s"
+     ]
+    },
+    {
+     "world": "Bend left, 45 deg every 40 cm (24 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 5.9 s"
+     ]
+    },
+    {
+     "world": "Bend right, 90 deg every 60 cm (69 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 6 s"
+     ]
+    },
+    {
+     "world": "Bend left, 90 deg every 60 cm (69 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 5.9 s"
+     ]
+    }
+   ],
+   "error": null
+  },
+  "followInTheDark/A-no-handover": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Bend right, 30 deg every 20 cm (44 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s"
+     ]
+    },
+    {
+     "world": "Bend left, 30 deg every 20 cm (44 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s"
+     ]
+    },
+    {
+     "world": "Bend right, 30 deg every 30 cm (27 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s"
+     ]
+    },
+    {
+     "world": "Bend left, 30 deg every 30 cm (27 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s"
+     ]
+    },
+    {
+     "world": "Bend right, 30 deg every 40 cm (16 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s"
+     ]
+    },
+    {
+     "world": "Bend left, 30 deg every 40 cm (16 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s"
+     ]
+    },
+    {
+     "world": "Bend right, 45 deg every 20 cm (65 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s"
+     ]
+    },
+    {
+     "world": "Bend left, 45 deg every 20 cm (65 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s"
+     ]
+    },
+    {
+     "world": "Bend right, 45 deg every 30 cm (39 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s"
+     ]
+    },
+    {
+     "world": "Bend left, 45 deg every 30 cm (39 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s"
+     ]
+    },
+    {
+     "world": "Bend right, 45 deg every 40 cm (24 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s"
+     ]
+    },
+    {
+     "world": "Bend left, 45 deg every 40 cm (24 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s"
+     ]
+    },
+    {
+     "world": "Bend right, 90 deg every 60 cm (69 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s"
+     ]
+    },
+    {
+     "world": "Bend left, 90 deg every 60 cm (69 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s"
+     ]
+    }
+   ],
+   "error": null
+  },
+  "followInTheDark/B-no-handover": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Bend right, 30 deg every 20 cm (44 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s"
+     ]
+    },
+    {
+     "world": "Bend left, 30 deg every 20 cm (44 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s"
+     ]
+    },
+    {
+     "world": "Bend right, 30 deg every 30 cm (27 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s"
+     ]
+    },
+    {
+     "world": "Bend left, 30 deg every 30 cm (27 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s"
+     ]
+    },
+    {
+     "world": "Bend right, 30 deg every 40 cm (16 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s"
+     ]
+    },
+    {
+     "world": "Bend left, 30 deg every 40 cm (16 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s"
+     ]
+    },
+    {
+     "world": "Bend right, 45 deg every 20 cm (65 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s"
+     ]
+    },
+    {
+     "world": "Bend left, 45 deg every 20 cm (65 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s"
+     ]
+    },
+    {
+     "world": "Bend right, 45 deg every 30 cm (39 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s"
+     ]
+    },
+    {
+     "world": "Bend left, 45 deg every 30 cm (39 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s"
+     ]
+    },
+    {
+     "world": "Bend right, 45 deg every 40 cm (24 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s"
+     ]
+    },
+    {
+     "world": "Bend left, 45 deg every 40 cm (24 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s"
+     ]
+    },
+    {
+     "world": "Bend right, 90 deg every 60 cm (69 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s"
+     ]
+    },
+    {
+     "world": "Bend left, 90 deg every 60 cm (69 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s"
+     ]
+    }
+   ],
+   "error": null
+  },
+  "followInTheDark/C-no-handover": {
+   "kind": "broken",
+   "tests": [
+    {
+     "world": "Bend right, 30 deg every 20 cm (44 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s"
+     ]
+    },
+    {
+     "world": "Bend left, 30 deg every 20 cm (44 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s"
+     ]
+    },
+    {
+     "world": "Bend right, 30 deg every 30 cm (27 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s"
+     ]
+    },
+    {
+     "world": "Bend left, 30 deg every 30 cm (27 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s"
+     ]
+    },
+    {
+     "world": "Bend right, 30 deg every 40 cm (16 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s"
+     ]
+    },
+    {
+     "world": "Bend left, 30 deg every 40 cm (16 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s"
+     ]
+    },
+    {
+     "world": "Bend right, 45 deg every 20 cm (65 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s"
+     ]
+    },
+    {
+     "world": "Bend left, 45 deg every 20 cm (65 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s"
+     ]
+    },
+    {
+     "world": "Bend right, 45 deg every 30 cm (39 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s"
+     ]
+    },
+    {
+     "world": "Bend left, 45 deg every 30 cm (39 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s"
+     ]
+    },
+    {
+     "world": "Bend right, 45 deg every 40 cm (24 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s"
+     ]
+    },
+    {
+     "world": "Bend left, 45 deg every 40 cm (24 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s"
+     ]
+    },
+    {
+     "world": "Bend right, 90 deg every 60 cm (69 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s"
+     ]
+    },
+    {
+     "world": "Bend left, 90 deg every 60 cm (69 deg over 20 cm)",
+     "test": "Gets through the bend",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal t3\" within 60 s"
+     ]
+    }
+   ],
+   "error": null
+  }
+ }
+}
