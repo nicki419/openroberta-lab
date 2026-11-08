@@ -94,6 +94,34 @@
    "kind": "broken",
    "fault": "straight-off",
    "of": "followLine/C"
+  },
+  {
+   "id": "followLine/A-swapped",
+   "kind": "equivalent",
+   "fault": "swapped",
+   "of": "followLine/A",
+   "added": "2026-11-08"
+  },
+  {
+   "id": "followLine/B-swapped",
+   "kind": "equivalent",
+   "fault": "swapped",
+   "of": "followLine/B",
+   "added": "2026-11-08"
+  },
+  {
+   "id": "followLine/B-too-slow",
+   "kind": "equivalent",
+   "fault": "too-slow",
+   "of": "followLine/B",
+   "added": "2026-11-08"
+  },
+  {
+   "id": "followLine/C-swapped",
+   "kind": "equivalent",
+   "fault": "swapped",
+   "of": "followLine/C",
+   "added": "2026-11-08"
   }
  ],
  "runs": {
@@ -572,6 +600,126 @@
      "failed": [
       "the robot did not reach \"Goal\" within 30 s"
      ]
+    }
+   ]
+  },
+  "followLine/A-swapped": {
+   "key": "followLine/A-swapped",
+   "tests": [
+    {
+     "world": "A straight line to the goal",
+     "test": "Reaches the goal on a straight line",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A bend to the right",
+     "test": "Goes round the right bend to the goal",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A bend to the left",
+     "test": "Goes round the left bend to the goal",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Two bends in the line",
+     "test": "Follows both bends to the goal",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "followLine/B-swapped": {
+   "key": "followLine/B-swapped",
+   "tests": [
+    {
+     "world": "A straight line to the goal",
+     "test": "Reaches the goal on a straight line",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A bend to the right",
+     "test": "Goes round the right bend to the goal",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A bend to the left",
+     "test": "Goes round the left bend to the goal",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Two bends in the line",
+     "test": "Follows both bends to the goal",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "followLine/B-too-slow": {
+   "key": "followLine/B-too-slow",
+   "tests": [
+    {
+     "world": "A straight line to the goal",
+     "test": "Reaches the goal on a straight line",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal\" within 30 s"
+     ]
+    },
+    {
+     "world": "A bend to the right",
+     "test": "Goes round the right bend to the goal",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A bend to the left",
+     "test": "Goes round the left bend to the goal",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Two bends in the line",
+     "test": "Follows both bends to the goal",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal\" within 30 s"
+     ]
+    }
+   ]
+  },
+  "followLine/C-swapped": {
+   "key": "followLine/C-swapped",
+   "tests": [
+    {
+     "world": "A straight line to the goal",
+     "test": "Reaches the goal on a straight line",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A bend to the right",
+     "test": "Goes round the right bend to the goal",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A bend to the left",
+     "test": "Goes round the left bend to the goal",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Two bends in the line",
+     "test": "Follows both bends to the goal",
+     "outcome": "passed",
+     "failed": []
     }
    ]
   }

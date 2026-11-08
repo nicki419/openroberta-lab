@@ -106,8 +106,6 @@
         "start": {"type": "string"},
         "until": {"type": ["string", "null"]},
         "max_time_ms": {"type": "integer", "minimum": 100, "maximum": 120000, "multipleOf": 100},
-        "world": {"type": "array", "items": {"$ref": "#/$defs/event"}},
-        "globals": {"type": "object", "additionalProperties": {"$ref": "#/$defs/value"}},
         "checks": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/check"}},
         "scenario_id": {"type": "string", "pattern": "^S[0-9]+$"},
         "path_ids": {"type": "array", "minItems": 1, "items": {"type": "string"}},
@@ -168,9 +166,7 @@
       "minProperties": 1,
       "properties": {
         "start": {"type": "string"},
-        "items": {"type": "array", "items": {"type": "string"}},
-        "events": {"type": "array", "items": {"type": "integer", "minimum": 0}},
-        "globals": {"type": "array", "items": {"type": "string"}}
+        "items": {"type": "array", "items": {"type": "string"}}
       }
     },
     "coverage_plan": {
@@ -199,22 +195,6 @@
           }
         }
       }
-    },
-    "event": {
-      "oneOf": [
-        {
-          "type": "object",
-          "required": ["event", "at"],
-          "additionalProperties": false,
-          "properties": {"event": {"const": "clap"}, "at": {"type": "integer", "minimum": 0}}
-        },
-        {
-          "type": "object",
-          "required": ["event", "port", "at"],
-          "additionalProperties": false,
-          "properties": {"event": {"const": "key"}, "port": {"enum": ["PLAY", "REC"]}, "at": {"type": "integer", "minimum": 0}}
-        }
-      ]
     },
     "value": {"oneOf": [{"type": "integer"}, {"type": "boolean"}, {"type": "array", "items": {"type": "integer"}}]},
     "does": {
@@ -278,10 +258,7 @@
                 "left_light_below",
                 "left_light_above",
                 "right_light_below",
-                "right_light_above",
-                "sound",
-                "play_key",
-                "rec_key"
+                "right_light_above"
               ]
             },
             "percent": {"type": "integer", "minimum": 0, "maximum": 100},
@@ -295,7 +272,7 @@
           "additionalProperties": false,
           "properties": {
             "check": {"const": "after"},
-            "event": {"enum": ["clap", "key", "line_start", "line_end", "obstacle"]},
+            "event": {"enum": ["line_start", "line_end", "obstacle"]},
             "within_ms": {"type": "integer", "minimum": 1},
             "does": {"$ref": "#/$defs/does"}
           }

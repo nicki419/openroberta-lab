@@ -82,6 +82,27 @@
    "kind": "broken",
    "fault": "no-handover",
    "of": "followInTheDark/C"
+  },
+  {
+   "id": "followInTheDark/A-swapped",
+   "kind": "broken",
+   "fault": "swapped",
+   "of": "followInTheDark/A",
+   "added": "2026-11-08"
+  },
+  {
+   "id": "followInTheDark/B-swapped",
+   "kind": "broken",
+   "fault": "swapped",
+   "of": "followInTheDark/B",
+   "added": "2026-11-08"
+  },
+  {
+   "id": "followInTheDark/C-swapped",
+   "kind": "broken",
+   "fault": "swapped",
+   "of": "followInTheDark/C",
+   "added": "2026-11-08"
   }
  ],
  "runs": {
@@ -370,6 +391,75 @@
      "failed": [
       "the robot did not reach \"Goal 1\" within 60 s"
      ]
+    },
+    {
+     "world": "A black line deep in a tunnel",
+     "test": "Deep in the dark, it follows the black line",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "The black line beside it near the tunnel opening",
+     "test": "Near the opening, it steers onto the black line",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "followInTheDark/A-swapped": {
+   "key": "followInTheDark/A-swapped",
+   "tests": [
+    {
+     "world": "A line to its end in the light",
+     "test": "In the light, it follows the line to its end",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A black line deep in a tunnel",
+     "test": "Deep in the dark, it follows the black line",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "The black line beside it near the tunnel opening",
+     "test": "Near the opening, it steers onto the black line",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "followInTheDark/B-swapped": {
+   "key": "followInTheDark/B-swapped",
+   "tests": [
+    {
+     "world": "A line to its end in the light",
+     "test": "In the light, it follows the line to its end",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A black line deep in a tunnel",
+     "test": "Deep in the dark, it follows the black line",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "The black line beside it near the tunnel opening",
+     "test": "Near the opening, it steers onto the black line",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "followInTheDark/C-swapped": {
+   "key": "followInTheDark/C-swapped",
+   "tests": [
+    {
+     "world": "A line to its end in the light",
+     "test": "In the light, it follows the line to its end",
+     "outcome": "passed",
+     "failed": []
     },
     {
      "world": "A black line deep in a tunnel",

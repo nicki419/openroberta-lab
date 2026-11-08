@@ -11,6 +11,14 @@ the project goal in `CLAUDE.md`, on top of the NepoTest framework (`nepo-unit-te
 > unchanged: suites that have such tests still load, run and save (verified: the line follower's "stops at the wall"
 > passed), and `BDD_TESTS = true` offers them again. The sections below still describe them.
 
+> **No set-up blocks (2026-11-08, the pilot study):** the *Set up* category (clap, key press, variable) is switched
+> off too (`SET_UP_BLOCKS = false` in `nepoTest.blocks.ts`). A test of a world has no input for them any more (its
+> statement input `SETUP` is hidden while it is empty): it only says where the robot starts. The checks no longer offer
+> what only a set-up makes happen (*whenever* it hears a sound or a key is pressed, *after* each clap or key press);
+> a block that has one keeps it. A test of an older suite that has set-up blocks shows them, runs them and saves
+> them; `blocks.py` still translates them. The AI assistant writes no set-up (`nepo-ai-tests.md`).
+> A new test runs **for at most 60 s** (5 s until 2026-11-08: too short for the levels' tracks).
+
 > **No start block, no "run test" (2026-11-04, GitHub issue #8):** **Run tests** runs every test: each test of each
 > simulation world whose box is ticked, and each test of given / when / then that isn't disabled, in their order on the
 > workspace. Until then, the red start block *test suite: run these tests* (`nepoTest_suite`) with *run test* blocks
@@ -64,8 +72,9 @@ before (*the robot stays on its recorded path ± cm*, `nepoTest_check_path`, and
 suite is loaded, such checks are dropped with a notice (`dropPathChecks` in `tests.controller.ts`); the translator
 leaves a leftover one out with a warning. The status entries below still mention them.
 
-Each test of a world reads: **set up** (where the robot starts, and what happened before: claps, keys, variables),
-**run** (the whole program, for some seconds, or until the robot touches an area), **check** (any number of checks).
+Each test of a world reads: **set up** (where the robot starts, and, until 2026-11-08, what happened before: claps,
+keys, variables), **run** (the whole program, for some seconds, or until the robot touches an area), **check** (any
+number of checks).
 It passes only if every check holds; a run never stops at the first failed check. The labels *set up:* and *check:*
 are drawn in the colours of the toolbox categories whose blocks go there (*Set up*: olive, *Checks*: cyan). A world
 had **rules for every test** (checks) until 2026-10-30: when a suite is loaded, they become checks of each of its
@@ -257,16 +266,16 @@ sync:** the field and input names below are the contract between them.
 | `nepoTest_run` | (until 2026-11-04) *run test* [name ▾]; no longer defined in the Lab | `NAME` (a test, a world, or a test of a world) | (in a file that still has it) selects a test; a world: all its tests |
 | `nepoTest_test` | *test* [name] *given / when / then*, *this test should* [pass ▾ / fail] | `NAME`, `SHOULD` (`pass`, `fail`); statements `GIVEN`, `WHEN`, `THEN` | one test (`name`, `block_id`, `origin: "blocks"`; `should: "fail"`) |
 | `nepoTest_world` | *simulation world* [name], a picture of its world, *tests* | `NAME`; statement `TESTS` (`nepoTest_simcase`; until 2026-10-30 also `RULES`, see above); **the world is the block's `data`** (JSON, §5); the picture is a `FieldImage` without a value, drawn asynchronously (a PNG of the floor, the objects and the robot at its starts) | nothing itself: its tests (`simulation.world_block_id`, `world_name`, `world`); the rules of an older file are copied into each test's `checks` with `"rule": true` |
-| `nepoTest_simcase` | ☑ *test* [name] / *set up:* (olive) *the robot starts at* [A ▾] / (set-up blocks) / *run: the program* [for ▾ / until the robot touches] [area ▾] *, at most* [5] *s* / *check:* (cyan) (checks) | `ACTIVE` (checkbox, `TRUE`/`FALSE`), `NAME`, `START` (a start's id), `MODE` (`for`, `until`), `UNTIL` (an area's id; shown only for `until`), `SECONDS` (one decimal, at least 0.1); statements `SETUP` (clap, key, variable only: the simulator has no IR remote and no IR messages), `CHECKS` | a test of the world (`simulation` with `start`, `until`, `checks`; `max_time_ms`, `globals`, `world` events; `skip: true` when unticked; no `should`: every test of a world should pass, and a saved `SHOULD` is ignored) |
+| `nepoTest_simcase` | ☑ *test* [name] / *set up:* (olive) *the robot starts at* [A ▾] / (set-up blocks: hidden while empty, since 2026-11-08) / *run: the program* [for ▾ / until the robot touches] [area ▾] *, at most* [60] *s* / *check:* (cyan) (checks) | `ACTIVE` (checkbox, `TRUE`/`FALSE`), `NAME`, `START` (a start's id), `MODE` (`for`, `until`), `UNTIL` (an area's id; shown only for `until`), `SECONDS` (one decimal, at least 0.1); statements `SETUP` (clap, key, variable only: the simulator has no IR remote and no IR messages), `CHECKS` | a test of the world (`simulation` with `start`, `until`, `checks`; `max_time_ms`, `globals`, `world` events; `skip: true` when unticked; no `should`: every test of a world should pass, and a saved `SHOULD` is ignored) |
 | `nepoTest_check_reaches` | *the robot reaches* [area ▾] | `AREA` (a goal area's id, or `ANY`: any goal area; the menu offers goal areas only, as do *ends in* and *until*) | `{"check": "reaches", "item"}` |
 | `nepoTest_check_never_touches` | *the robot never touches a fail area* | none: fail areas have no names, the check is about all of them | `{"check": "never_touches"}` |
 | `nepoTest_check_ends_in` | *at the end, the robot is completely in* [area ▾] | `AREA` | `{"check": "ends_in", "item"}` |
 | `nepoTest_check_never_bumps` | *the robot never bumps into* [obstacle ▾] | `OBSTACLE` (the id of an obstacle or a wall drawn in the world, or `ANY`: anything, the floor's border too) | `{"check": "never_bumps", "item"}` |
 | `nepoTest_check_does` | *from* [100] *ms on, the robot always* [turns left ▾] | `AFTER` (ms), `DOES`: `drives_forward`, `drives_backward`, `turns_left`, `turns_right`, `stands_still`, `left_led_on`, `left_led_off`, `right_led_on`, `right_led_off`, `leds_on`, `leds_off` (both), `plays_sound`, `silent` | `{"check": "does", "does", "after_ms"}` |
-| `nepoTest_check_whenever` | *whenever* [it sees the line ▾] *,* / *the robot* [turns left ▾] *, after* [0] *ms* | `WHEN`: `line`, `no_line`, `obstacle_ahead`, `obstacle_left`, `obstacle_right`, `no_obstacle`, `left_light_below`, `left_light_above`, `right_light_below`, `right_light_above` (with `PERCENT`, shown only for them), `sound`, `play_key`, `rec_key`; `DOES`, `AFTER` (ms) | `{"check": "whenever", "when", "percent", "does", "after_ms"}` |
-| `nepoTest_check_after` | *within* [500] *ms after* [each clap ▾] *,* / *the robot* [drives forward ▾] | `WITHIN` (ms, at least 1), `EVENT`: `clap`, `key` (of the set-up), `line_start`, `line_end`, `obstacle` (appears); `DOES` | `{"check": "after", "event", "within_ms", "does"}` (a clap or key without one in the set-up: a warning) |
+| `nepoTest_check_whenever` | *whenever* [it sees the line ▾] *,* / *the robot* [turns left ▾] *, after* [0] *ms* | `WHEN`: `line`, `no_line`, `obstacle_ahead`, `obstacle_left`, `obstacle_right`, `no_obstacle`, `left_light_below`, `left_light_above`, `right_light_below`, `right_light_above` (with `PERCENT`, shown only for them), `sound`, `play_key`, `rec_key` (offered only with set-up blocks, or when the block has one); `DOES`, `AFTER` (ms) | `{"check": "whenever", "when", "percent", "does", "after_ms"}` |
+| `nepoTest_check_after` | *within* [500] *ms after* [each clap ▾] *,* / *the robot* [drives forward ▾] | `WITHIN` (ms, at least 1), `EVENT`: `clap`, `key` (of the set-up; offered only with set-up blocks, or when the block has one), `line_start`, `line_end`, `obstacle` (appears); `DOES` | `{"check": "after", "event", "within_ms", "does"}` (a clap or key without one in the set-up: a warning) |
 | `nepoTest_check_variable` | *at the end, variable* [claps ▾] [= ▾] (value) | `VAR`, `OP` (`EQ` … `GTE`); input `VALUE` (a number, true/false, a list of numbers) | `{"check": "variable", "variable", "op", "value"}` |
-| `nepoTest_given_clap` | *at* [1000] *ms: a clap* | `AT` | world `clap` |
+| `nepoTest_given_clap` | *at* [1000] *ms: a clap* (not offered since 2026-11-08: `SET_UP_BLOCKS`, as *key* and *variable*) | `AT` | world `clap` |
 | `nepoTest_given_key` | *at … ms: key* [▶ PLAY ▾] *is pressed* | `AT`, `PORT` (PLAY/REC) | world `key` |
 | `nepoTest_given_obstacle` | *from … ms for … ms: an obstacle* [FRONT ▾] | `FROM`, `DURATION` (0 = until the end), `PORT` | world `obstacle` |
 | `nepoTest_given_light` | *from … ms: light sensor* [LLIGHT ▾] *reads* [50] % | `AT`, `PORT`, `VALUE` | world `light` |

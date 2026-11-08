@@ -11,5 +11,4 @@ schemas/generate.schema.json
 schemas/fix.schema.json
 examples/1-follow-the-line.md
 examples/2-nothing-new-to-test.md
-examples/3-park-in-the-box.md
-examples/4-fix-failed-tests.md
+examples/3-fix-failed-tests.md

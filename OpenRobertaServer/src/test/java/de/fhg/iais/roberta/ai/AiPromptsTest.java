@@ -151,7 +151,7 @@ public class AiPromptsTest {
                 AiPrompts.checkGenerate(answers.group(2));
             }
         }
-        Assert.assertEquals("[analyze, generate, analyze, analyze, generate, fix]", kinds.toString());
+        Assert.assertEquals("[analyze, generate, analyze, fix]", kinds.toString()); // examples 1 to 3 (the key wait was example 3 until 2026-11-08)
         Assert.assertEquals(1, testedBy); // example 2: the learner's test already tests it
     }
 

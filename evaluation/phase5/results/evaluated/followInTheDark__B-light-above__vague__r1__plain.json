@@ -82,6 +82,27 @@
    "kind": "broken",
    "fault": "no-handover",
    "of": "followInTheDark/C"
+  },
+  {
+   "id": "followInTheDark/A-swapped",
+   "kind": "broken",
+   "fault": "swapped",
+   "of": "followInTheDark/A",
+   "added": "2026-11-08"
+  },
+  {
+   "id": "followInTheDark/B-swapped",
+   "kind": "broken",
+   "fault": "swapped",
+   "of": "followInTheDark/B",
+   "added": "2026-11-08"
+  },
+  {
+   "id": "followInTheDark/C-swapped",
+   "kind": "broken",
+   "fault": "swapped",
+   "of": "followInTheDark/C",
+   "added": "2026-11-08"
   }
  ],
  "runs": {
@@ -483,6 +504,124 @@
      "failed": [
       "the robot did not reach \"Goal 1\" within 60 s",
       "the robot bumped into \"Tunnel\" after 17.5 s"
+     ]
+    }
+   ]
+  },
+  "followInTheDark/A-swapped": {
+   "key": "followInTheDark/A-swapped",
+   "tests": [
+    {
+     "world": "A short dark tunnel",
+     "test": "Follows a straight line through a short dark tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 30 s"
+     ]
+    },
+    {
+     "world": "A long dark tunnel",
+     "test": "Follows a straight line through a long dark tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 14.6 s"
+     ]
+    },
+    {
+     "world": "A curved line in a dark tunnel",
+     "test": "Follows a curved line in a dark tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 14.8 s"
+     ]
+    },
+    {
+     "world": "Deep inside a dark tunnel",
+     "test": "Follows a straight line from deep inside a dark tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 8.7 s"
+     ]
+    }
+   ]
+  },
+  "followInTheDark/B-swapped": {
+   "key": "followInTheDark/B-swapped",
+   "tests": [
+    {
+     "world": "A short dark tunnel",
+     "test": "Follows a straight line through a short dark tunnel",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A long dark tunnel",
+     "test": "Follows a straight line through a long dark tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 14.5 s"
+     ]
+    },
+    {
+     "world": "A curved line in a dark tunnel",
+     "test": "Follows a curved line in a dark tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 14.6 s"
+     ]
+    },
+    {
+     "world": "Deep inside a dark tunnel",
+     "test": "Follows a straight line from deep inside a dark tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 8.6 s"
+     ]
+    }
+   ]
+  },
+  "followInTheDark/C-swapped": {
+   "key": "followInTheDark/C-swapped",
+   "tests": [
+    {
+     "world": "A short dark tunnel",
+     "test": "Follows a straight line through a short dark tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 30 s"
+     ]
+    },
+    {
+     "world": "A long dark tunnel",
+     "test": "Follows a straight line through a long dark tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 14.6 s"
+     ]
+    },
+    {
+     "world": "A curved line in a dark tunnel",
+     "test": "Follows a curved line in a dark tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 14.9 s"
+     ]
+    },
+    {
+     "world": "Deep inside a dark tunnel",
+     "test": "Follows a straight line from deep inside a dark tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 60 s",
+      "the robot bumped into \"Tunnel\" after 8.7 s"
      ]
     }
    ]

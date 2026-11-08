@@ -82,6 +82,27 @@
    "kind": "broken",
    "fault": "no-handover",
    "of": "followInTheDark/C"
+  },
+  {
+   "id": "followInTheDark/A-swapped",
+   "kind": "broken",
+   "fault": "swapped",
+   "of": "followInTheDark/A",
+   "added": "2026-11-08"
+  },
+  {
+   "id": "followInTheDark/B-swapped",
+   "kind": "broken",
+   "fault": "swapped",
+   "of": "followInTheDark/B",
+   "added": "2026-11-08"
+  },
+  {
+   "id": "followInTheDark/C-swapped",
+   "kind": "broken",
+   "fault": "swapped",
+   "of": "followInTheDark/C",
+   "added": "2026-11-08"
   }
  ],
  "runs": {
@@ -467,6 +488,111 @@
      "test": "Turns away from the left wall in the dark tunnel",
      "outcome": "failed",
      "failed": [
+      "the robot did not reach \"Goal 1\" within 60 s"
+     ]
+    }
+   ]
+  },
+  "followInTheDark/A-swapped": {
+   "key": "followInTheDark/A-swapped",
+   "tests": [
+    {
+     "world": "A line to a goal in the light",
+     "test": "In the light, it follows the line to the goal",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A dark tunnel with a black line",
+     "test": "In the dark, it follows the black line",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 40 s",
+      "the robot bumped into \"Tunnel\" after 7.1 s"
+     ]
+    },
+    {
+     "world": "A wall on the line in the light",
+     "test": "Stops at the wall on the line in the light",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A dark tunnel that bends",
+     "test": "Turns away from the left wall in the dark tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Tunnel\" after 16.3 s",
+      "the robot did not reach \"Goal 1\" within 60 s"
+     ]
+    }
+   ]
+  },
+  "followInTheDark/B-swapped": {
+   "key": "followInTheDark/B-swapped",
+   "tests": [
+    {
+     "world": "A line to a goal in the light",
+     "test": "In the light, it follows the line to the goal",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A dark tunnel with a black line",
+     "test": "In the dark, it follows the black line",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 40 s",
+      "the robot bumped into \"Tunnel\" after 7 s"
+     ]
+    },
+    {
+     "world": "A wall on the line in the light",
+     "test": "Stops at the wall on the line in the light",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A dark tunnel that bends",
+     "test": "Turns away from the left wall in the dark tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Tunnel\" after 15.8 s",
+      "the robot did not reach \"Goal 1\" within 60 s"
+     ]
+    }
+   ]
+  },
+  "followInTheDark/C-swapped": {
+   "key": "followInTheDark/C-swapped",
+   "tests": [
+    {
+     "world": "A line to a goal in the light",
+     "test": "In the light, it follows the line to the goal",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A dark tunnel with a black line",
+     "test": "In the dark, it follows the black line",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 40 s",
+      "the robot bumped into \"Tunnel\" after 7.1 s"
+     ]
+    },
+    {
+     "world": "A wall on the line in the light",
+     "test": "Stops at the wall on the line in the light",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A dark tunnel that bends",
+     "test": "Turns away from the left wall in the dark tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot bumped into \"Tunnel\" after 16.5 s",
       "the robot did not reach \"Goal 1\" within 60 s"
      ]
     }

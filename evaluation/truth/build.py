@@ -25,15 +25,20 @@ import corpus  # noqa: E402
 from corpus_doc import own_function  # noqa: E402
 from nepo import export  # noqa: E402
 
+import rejudge  # noqa: E402
 from reference_tests import reference_tests, IDS  # noqa: E402
 
+
+def corpus_versions_reference(fn):
+    return fn + '/A'
+
 FUNCTIONS = corpus.CHAIN
-MADE = '2026-11-07'
+MADE = '2026-11-08'  # first made 2026-11-07 on seven levels; made again for the five the study plays since the pilot study
+# (2026-11-08, the pilot study: L1 and L5 taken out. L2 brings followLine; L6 brings driveInTheDark as it is, its reference version, before its
+# own avoidWalls: corpus.GIVEN)
 LEVELS = [
-    ('l1', 'l1-straight-line.json', 'followLine'),
     ('l2', 'l2-curves.json', 'followLine'),
     ('l4', 'l4-beware-the-wall.json', 'stopAtWall'),
-    ('l5', 'l5-tunnel-vision.json', 'driveInTheDark'),
     ('l6', 'l6-tunnel-vision-reloaded.json', 'avoidWalls'),
     ('l7', 'l7-well-ill-be-forked.json', 'followInTheDark'),
     ('l8', 'l8-climax.json', 'followInTheDark'),
@@ -47,7 +52,7 @@ STARTERS = {
     # not A-one-turn: fixing the other of its two equal turns gives followLine/A-swapped, which beats L1 to L7 but can't finish L8
     'followLine': {'1': 'followLine/A-light-above', '2': 'followLine/B-straight-off'},
     'stopAtWall': {'1': 'stopAtWall/A-turns', '2': 'stopAtWall/C-slows'},
-    'driveInTheDark': {'1': 'driveInTheDark/A-negated', '2': 'driveInTheDark/B-never-dark'},
+    # driveInTheDark: until 2026-11-08 'driveInTheDark/A-negated' and 'B-never-dark' at L5; now L6 gives it correct (corpus.GIVEN)
     'avoidWalls': {'1': 'avoidWalls/A-swapped', '2': 'avoidWalls/B-front-sensor'},
     'followInTheDark': {'1': 'followInTheDark/A-light-above', '2': 'followInTheDark/B-peach-is-black'},
 }
@@ -90,19 +95,24 @@ def main():
     suite = suites(tests)
 
     levels = []
+    before = None  # the function the main loop called at the level before
     for lv, file, fn in LEVELS:
         d = json.load(open(os.path.join(HERE, '..', '..', LEVEL_DIR, file), encoding='utf-8'))
         have = corpus.CHAIN[:corpus.CHAIN.index(fn) + 1]
         new = fn if lv == corpus.LEVELS_OF[fn][0] else None
+        given = [g for g in have if corpus.GIVEN.get(g) == lv]  # functions this level brings as they are (their reference version)
         levels.append({'level': lv, 'file': LEVEL_DIR + '/' + file, 'title': d['title'], 'time_limit_s': d.get('timeLimit'), 'function': fn,
                        'new_function': new, 'functions': list(reversed(have)), 'main_calls': fn,
-                       'inject': ({'function': fn, 'main_call_before': have[-2] if len(have) > 1 else None, 'main_call_after': fn} if new else None),
+                       'inject': ({'function': fn, 'main_call_before': before if before != fn else None, 'main_call_after': fn,
+                                   'given': [{'function': g, 'version': corpus_versions_reference(g)} for g in given]} if new else None),
                        'starter': dict(STARTERS[fn]) if new else None})
+        before = fn
 
     functions = []
     for fn in FUNCTIONS:
         i = FUNCTIONS.index(fn)
-        functions.append({'name': fn, 'levels': corpus.LEVELS_OF[fn], 'hands_over_to': FUNCTIONS[i - 1] if i else None, 'reference_version': fn + '/A',
+        functions.append({'name': fn, 'levels': corpus.LEVELS_OF[fn], 'given_in': corpus.GIVEN.get(fn), 'hands_over_to': FUNCTIONS[i - 1] if i else None,
+                          'reference_version': fn + '/A',
                           'faults': [{'fault': f, 'why': why} for f, why, _ in corpus.FAULTS[fn]],
                           'tests': [t['ref'] for w in tests[fn] for t in w['tests']]})
 
@@ -119,8 +129,10 @@ def main():
         if passed is not None:
             failed = [x for x, ok in passed.items() if not ok]
             verdict = ('ok' if not failed else 'false alarm') if k in ('correct', 'equivalent') else ('caught' if failed else 'missed')
-        own = {lv: run['outcome'] for lv, run in v['runs'].items() if not lv.startswith('later ')}
-        later = {lv[6:]: run['outcome'] for lv, run in v['runs'].items() if lv.startswith('later ')}
+        # the levels it is judged on, and the later levels the study plays (the runs of L1 and L5, taken out, don't count: corpus.REMOVED_LEVELS)
+        judged = rejudge.levels_up_to(fn) if v['kind'] == 'correct' else corpus.LEVELS_OF[fn]
+        own = {lv: run['outcome'] for lv, run in v['runs'].items() if lv in judged and (lv in corpus.STUDY_LEVELS or lv in corpus.LEVELS_OF[fn])}
+        later = {lv[6:]: run['outcome'] for lv, run in v['runs'].items() if lv.startswith('later ') and lv[6:] in corpus.STUDY_LEVELS}
         versions.append({
             'id': v['id'], 'function': fn, 'variant': v['id'].split('/')[1], 'kind': k, 'of': v['of'], 'fault': v['fault'], 'why': v['why'],
             'pseudocode': own_function(prog, fn), 'levels': own, 'later_levels': later or None,
@@ -205,9 +217,15 @@ def markdown(t):
           '| level | title | function | new code | the main loop calls |', '|---|---|---|---|---|']
     first = {f['name']: f['levels'][0] for f in t['functions']}
     for lv in t['levels']:
+        given = ', '.join('`%s` (`%s`, as it is)' % (g['function'], g['version']) for g in ((lv['inject'] or {}).get('given') or []))
         md.append('| %s | %s | `%s` | %s | `%s()` |' % (lv['level'].upper(), lv['title'], lv['function'],
-                                                      'yes' if lv['new_function'] else 'no (the function of %s)' % first[lv['function']].upper(),
+                                                      ('yes' + (', with ' + given if given else '')) if lv['new_function']
+                                                      else 'no (the function of %s)' % first[lv['function']].upper(),
                                                       lv['main_calls']))
+    md += ['', '**Since the pilot study (2026-11-08)** the study plays five levels: L1 (the same code as L2) and L5 (a straight tunnel; L6 has a '
+               'bent one) were taken out. L2 brings `followLine`. L6 brings `driveInTheDark` as it is, correct, before its own `avoidWalls`, '
+               'so the learner never fixes `driveInTheDark`: its versions are not study code, and they keep their judgement on L5. Without the time '
+               'limit of L1, the slow line followers beat L2: they are equivalent now, and the reference test of that time limit is gone.']
     md += ['', '### The starter code', '',
            "The broken version a learner gets where a function is new, in each version of the study's code (one per run, chosen per program in the "
            "Lab's Edit menu; `write_level_code.py` puts them into the level files):", '',
@@ -237,7 +255,11 @@ def markdown(t):
     for f in t['functions']:
         fn = f['name']
         vs = [v for v in t['versions'] if v['function'] == fn]
-        md += ['## %s (%s)' % (fn, ', '.join(l.upper() for l in f['levels'])), '']
+        if f.get('given_in'):
+            md += ['## %s (judged on %s, which the study no longer plays; %s brings its reference version)' % (
+                fn, ', '.join(l.upper() for l in f['levels']), f['given_in'].upper()), '']
+        else:
+            md += ['## %s (%s)' % (fn, ', '.join(l.upper() for l in f['levels'])), '']
         md += ['Hands over to `%s`.' % f['hands_over_to'] if f['hands_over_to'] else 'The first function: it hands over to nothing.', '']
         md += ['### Reference tests', '']
         worlds = t['tests'][fn]

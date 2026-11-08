@@ -1,9 +1,9 @@
 # Tests
 
 A **simulation world** is a floor with things on it and starts. It holds tests. A **test** starts the robot at one of
-the world's starts, sets up what happened before (key presses, claps, variables), runs the whole program on the
-simulator for at most a time (or until the robot touches an area), and checks what the robot did. A test passes only
-if every one of its checks holds. A run never stops at a failed check.
+the world's starts, runs the whole program on the simulator for at most a time (or until the robot touches an area),
+and checks what the robot did. A test passes only if every one of its checks holds. A run never stops at a failed
+check. A test can't clap, press a key or set a variable before the run: only the world and the start make situations.
 
 ## The test JSON
 
@@ -25,8 +25,6 @@ and path of the analysis it tests, its inputs, what it expects and where that ex
       "start": "A",
       "until": null,
       "max_time_ms": 30000,
-      "world": [],
-      "globals": {},
       "checks": [{"check": "never_bumps", "item": "t1"},
                  {"check": "whenever", "when": "obstacle_ahead", "after_ms": 200, "does": "stands_still"},
                  {"check": "ends_in", "item": "t2"}],
@@ -69,8 +67,6 @@ A test, what it runs:
 | `start` | the id of a start of the world |
 | `until` | optional, null if not used: the id of a goal area; the run ends when the robot touches it |
 | `max_time_ms` | the run ends then at the latest: whole tenths of a second, 100 to 120000 |
-| `world` | events of the set-up: `{"event": "clap", "at": ms}`, `{"event": "key", "port": "PLAY" or "REC", "at": ms}` (a key is held for 0.2 s); ms after the program starts |
-| `globals` | the start values of the program's global variables, by their NEPO name: a whole number, true/false, or a list of whole numbers |
 | `checks` | at least one check, below |
 
 The run also ends when the program ends.
@@ -82,7 +78,7 @@ A test, what it is for (the learner sees none of it as JSON; the Lab checks it a
 | `scenario_id` | the analysis' scenario it tests (`S1`, …) |
 | `path_ids` | the paths of that scenario it follows (`P1`, …) |
 | `planned_branch_ids` | the outcomes of the program's decisions its run should take (`D1.1`, `D2.else`, …), all on those paths. Planned, not proven: the run shows what was taken |
-| `input_selection` | which input classes its inputs stand for: `equivalence_partitions` [{`dimension`, `class`, `selected_realization`, `realized_by`}]. `dimension` and `class` word for word as in the analysis' `input_dimensions`; `selected_realization`: where the test realizes it, in words; `realized_by`: what of the test realizes it: `start` (its start's id), `items` (ids of the world's things), `events` (positions in `world`, from 0), `globals` (variable names in `globals`) |
+| `input_selection` | which input classes its inputs stand for: `equivalence_partitions` [{`dimension`, `class`, `selected_realization`, `realized_by`}]. `dimension` and `class` word for word as in the analysis' `input_dimensions`; `selected_realization`: where the test realizes it, in words; `realized_by`: what of the test realizes it: `start` (its start's id), `items` (ids of the world's things) |
 | `expected_results` | at least one: what the robot should observably do in this scenario |
 | `postconditions` | what holds when the run has ended, each with the `check_indices` (positions in `checks`, from 0) of the checks that decide it. A check like `never_bumps` holds for the whole run: say so ("During the whole run …"), it is not where the robot ended |
 | `oracle` | where the expectation comes from: `basis` (`learner_description`, `inferred_from_program` or `applicable_safety`), `confidence` (`low`, `medium`, `high`), `assumptions` (what the test takes for granted that nobody said), `review_required` |
@@ -118,9 +114,8 @@ The answer around the worlds:
   `right_led_on`, `right_led_off`, `leds_on`, `leds_off` (both LEDs), `plays_sound`, `silent`.
 - `when` (what the sensors measure, whether or not the program reads them): `line`, `no_line` (the line tracker sees
   black, or not), `obstacle_ahead`, `obstacle_left`, `obstacle_right`, `no_obstacle`, `left_light_below`,
-  `left_light_above`, `right_light_below`, `right_light_above` (with `percent`, 0 to 100), `sound`, `play_key`,
-  `rec_key`.
-- `event`: `clap`, `key` (from `world`), `line_start`, `line_end` (the line tracker begins or stops seeing black),
+  `left_light_above`, `right_light_below`, `right_light_above` (with `percent`, 0 to 100).
+- `event`: `line_start`, `line_end` (the line tracker begins or stops seeing black),
   `obstacle` (an obstacle sensor begins to see something). A line follower that steers along the line's edge leaves
   the black core and finds it again many times a second, so for it `line_start` and `line_end` happen all the time:
   where a line ends, test what it does by a goal area there (`reaches`, `ends_in`), not by `after` `line_end`.
@@ -255,20 +250,18 @@ both "sees black" and "doesn't"); drawing two triggers into one world doesn't ma
 without decisions has one straight path: test its scenarios.
 
 **2. Inputs (equivalence partitioning).** For each path, take the analysis' `input_dimensions`:
-- **Classes**: one test per class that behaves differently (on the line, beside it; no obstacle, an obstacle ahead;
-  PLAY pressed, never pressed; fewer claps than it counts to, enough). A test stands for one class of each dimension
-  it varies; a second test of the same class with other numbers adds nothing. A class that can't be drawn or set up
-  is deferred (`deferred_inputs`) with the reason.
+- **Classes**: one test per class that behaves differently (on the line, beside it; no obstacle, an obstacle ahead).
+  A test stands for one class of each dimension it varies; a second test of the same class with other numbers adds
+  nothing. A class that can't be drawn is deferred (`deferred_inputs`) with the reason.
 - **A typical case of each class, not a borderline one**: put a test's inputs well inside its class, clear of where
   the readings change (see "Where readings change" in "The simulator"): a start on the line's middle or clearly beside
-  it, a wall seen at once or one the robot drives up to (the numbers above), a clap or key well after the program
-  reaches its wait, a count clearly below its limit or at it. **No boundary tests**: no test just below, at or above a
+  it, a wall seen at once or one the robot drives up to (the numbers above), a count clearly below its limit or at it. **No boundary tests**: no test just below, at or above a
   threshold, no test of the line's edge or of the edge of the sensors' range.
-- `realized_by` says which start, things, events or variables of the test make the class happen.
-- **Defer only what can't be set up or decided**: a set-up the world, the start, `world` and `globals` can't express,
-  or a check the simulator can't decide; and a start beside the line when the learner didn't say the robot should
-  find the line (see "A line beside the start"). **Never defer because the program would fail the test**: two claps can be set
-  up even if the program then counts them as three, and a test that the program fails is the help.
+- `realized_by` says which start or things of the test make the class happen.
+- **Defer only what can't be drawn or decided**: a situation the world and the start can't make (a clap, a key press,
+  a variable's start value), or a check the simulator can't decide; and a start beside the line when the learner
+  didn't say the robot should find the line (see "A line beside the start"). **Never defer because the program would
+  fail the test**: a test that the program fails is the help.
 
 **3. A complete test = path + inputs + expected results + postconditions.**
 - `expected_results` and `postconditions` say what the checks decide; every postcondition names its checks.
@@ -310,8 +303,7 @@ merged in `consolidation_notes`. **At most as many tests as the task allows**
   there (the line the robot comes in on is part of getting there: see "Driving through a tunnel"). Share a world
   only between tests of the same scenario (or of scenarios that are the same situation). Unrelated things in one world
   change what the program does: a tunnel darkens the light sensors, a wall at the side triggers the side sensors.
-- **Each test its own start, placed for its situation.** Two tests of one world never start at the same pose unless
-  the set-up differs. Place what the scenario is about where the robot meets it: on its way from the start, in the
+- **Each test its own start, placed for its situation.** Two tests of one world never start at the same pose. Place what the scenario is about where the robot meets it: on its way from the start, in the
   direction of its heading (heading 0 points right, towards larger x; see "The floor and its coordinates"). Check
   every coordinate before you answer. For heading 0, a `rect` ahead has its left edge `x` beyond the start's x and
   spans the start's y (`y` ≤ the start's y ≤ `y` + `h`; `y` is its top edge); a wall on the left (heading 0) lies at

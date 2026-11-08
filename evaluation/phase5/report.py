@@ -5,6 +5,8 @@ The user's rule for a good set of tests (2026-11-06): every correct version pass
 - a test is valid if it passes on every correct version; a test that fails on one is a false alarm;
 - a broken version is caught if a valid test fails on it (a false alarm catches nothing: it fails on right programs too);
 - a set is good if it has tests, no false alarm, and catches every broken version.
+An equivalent version (broken by a fault, but it beats its levels) counts as correct: every test should pass it, as in the source of truth
+(evaluation/truth). Since 2026-11-08; before, evaluate.py didn't run the equivalent versions, so the reports of rounds 1 to 4 don't have them.
 """
 import collections
 import glob
@@ -24,7 +26,7 @@ def failed(outcome):
 
 def measure(ev):
     vs = ev['versions']
-    correct = [v['id'] for v in vs if v['kind'] == 'correct']
+    correct = [v['id'] for v in vs if v['kind'] in ('correct', 'equivalent')]
     broken = [v['id'] for v in vs if v['kind'] == 'broken']
     runs = ev['runs']
     names = []

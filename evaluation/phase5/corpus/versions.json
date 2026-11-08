@@ -61,7 +61,10 @@
    }
   },
   "ok": true,
-  "later_ok": true
+  "later_ok": true,
+  "judged_on": [
+   "l2"
+  ]
  },
  {
   "id": "followLine/A-swapped",
@@ -100,7 +103,10 @@
    }
   },
   "ok": false,
-  "equivalent": true
+  "equivalent": true,
+  "judged_on": [
+   "l2"
+  ]
  },
  {
   "id": "followLine/A-light-above",
@@ -141,7 +147,10 @@
    }
   },
   "ok": true,
-  "equivalent": false
+  "equivalent": false,
+  "judged_on": [
+   "l2"
+  ]
  },
  {
   "id": "followLine/A-one-turn",
@@ -180,7 +189,10 @@
    }
   },
   "ok": true,
-  "equivalent": false
+  "equivalent": false,
+  "judged_on": [
+   "l2"
+  ]
  },
  {
   "id": "followLine/A-too-slow",
@@ -218,8 +230,11 @@
     "error": null
    }
   },
-  "ok": true,
-  "equivalent": false
+  "ok": false,
+  "equivalent": true,
+  "judged_on": [
+   "l2"
+  ]
  },
  {
   "id": "followLine/A-straight-off",
@@ -257,7 +272,10 @@
    }
   },
   "ok": true,
-  "equivalent": false
+  "equivalent": false,
+  "judged_on": [
+   "l2"
+  ]
  },
  {
   "id": "followLine/B",
@@ -323,7 +341,10 @@
    }
   },
   "ok": true,
-  "later_ok": true
+  "later_ok": true,
+  "judged_on": [
+   "l2"
+  ]
  },
  {
   "id": "followLine/B-swapped",
@@ -364,7 +385,10 @@
    }
   },
   "ok": false,
-  "equivalent": true
+  "equivalent": true,
+  "judged_on": [
+   "l2"
+  ]
  },
  {
   "id": "followLine/B-light-above",
@@ -405,7 +429,10 @@
    }
   },
   "ok": true,
-  "equivalent": false
+  "equivalent": false,
+  "judged_on": [
+   "l2"
+  ]
  },
  {
   "id": "followLine/B-one-turn",
@@ -446,7 +473,10 @@
    }
   },
   "ok": true,
-  "equivalent": false
+  "equivalent": false,
+  "judged_on": [
+   "l2"
+  ]
  },
  {
   "id": "followLine/B-too-slow",
@@ -487,7 +517,10 @@
    }
   },
   "ok": false,
-  "equivalent": true
+  "equivalent": true,
+  "judged_on": [
+   "l2"
+  ]
  },
  {
   "id": "followLine/B-straight-off",
@@ -527,7 +560,10 @@
    }
   },
   "ok": true,
-  "equivalent": false
+  "equivalent": false,
+  "judged_on": [
+   "l2"
+  ]
  },
  {
   "id": "followLine/C",
@@ -602,7 +638,10 @@
    }
   },
   "ok": true,
-  "later_ok": true
+  "later_ok": true,
+  "judged_on": [
+   "l2"
+  ]
  },
  {
   "id": "followLine/C-swapped",
@@ -652,7 +691,10 @@
    }
   },
   "ok": false,
-  "equivalent": true
+  "equivalent": true,
+  "judged_on": [
+   "l2"
+  ]
  },
  {
   "id": "followLine/C-light-above",
@@ -702,7 +744,10 @@
    }
   },
   "ok": true,
-  "equivalent": false
+  "equivalent": false,
+  "judged_on": [
+   "l2"
+  ]
  },
  {
   "id": "followLine/C-one-turn",
@@ -752,7 +797,10 @@
    }
   },
   "ok": true,
-  "equivalent": false
+  "equivalent": false,
+  "judged_on": [
+   "l2"
+  ]
  },
  {
   "id": "followLine/C-too-slow",
@@ -801,8 +849,11 @@
     "error": null
    }
   },
-  "ok": true,
-  "equivalent": false
+  "ok": false,
+  "equivalent": true,
+  "judged_on": [
+   "l2"
+  ]
  },
  {
   "id": "followLine/C-straight-off",
@@ -851,7 +902,10 @@
    }
   },
   "ok": true,
-  "equivalent": false
+  "equivalent": false,
+  "judged_on": [
+   "l2"
+  ]
  },
  {
   "id": "stopAtWall/A",
@@ -908,7 +962,11 @@
    }
   },
   "ok": true,
-  "later_ok": true
+  "later_ok": true,
+  "judged_on": [
+   "l2",
+   "l4"
+  ]
  },
  {
   "id": "stopAtWall/A-negated",
@@ -936,7 +994,10 @@
    }
   },
   "ok": true,
-  "equivalent": false
+  "equivalent": false,
+  "judged_on": [
+   "l4"
+  ]
  },
  {
   "id": "stopAtWall/A-no-handover",
@@ -964,7 +1025,10 @@
    }
   },
   "ok": true,
-  "equivalent": false
+  "equivalent": false,
+  "judged_on": [
+   "l4"
+  ]
  },
  {
   "id": "stopAtWall/A-turns",
@@ -994,7 +1058,10 @@
    }
   },
   "ok": true,
-  "equivalent": false
+  "equivalent": false,
+  "judged_on": [
+   "l4"
+  ]
  },
  {
   "id": "stopAtWall/A-slows",
@@ -1022,7 +1089,10 @@
    }
   },
   "ok": true,
-  "equivalent": false
+  "equivalent": false,
+  "judged_on": [
+   "l4"
+  ]
  },
  {
   "id": "stopAtWall/B",
@@ -1080,7 +1150,11 @@
    }
   },
   "ok": true,
-  "later_ok": true
+  "later_ok": true,
+  "judged_on": [
+   "l2",
+   "l4"
+  ]
  },
  {
   "id": "stopAtWall/B-negated",
@@ -1109,7 +1183,10 @@
    }
   },
   "ok": true,
-  "equivalent": false
+  "equivalent": false,
+  "judged_on": [
+   "l4"
+  ]
  },
  {
   "id": "stopAtWall/B-no-handover",
@@ -1138,7 +1215,10 @@
    }
   },
   "ok": true,
-  "equivalent": false
+  "equivalent": false,
+  "judged_on": [
+   "l4"
+  ]
  },
  {
   "id": "stopAtWall/B-turns",
@@ -1168,7 +1248,10 @@
    }
   },
   "ok": true,
-  "equivalent": false
+  "equivalent": false,
+  "judged_on": [
+   "l4"
+  ]
  },
  {
   "id": "stopAtWall/B-slows",
@@ -1196,7 +1279,10 @@
    }
   },
   "ok": true,
-  "equivalent": false
+  "equivalent": false,
+  "judged_on": [
+   "l4"
+  ]
  },
  {
   "id": "stopAtWall/C",
@@ -1253,7 +1339,11 @@
    }
   },
   "ok": true,
-  "later_ok": true
+  "later_ok": true,
+  "judged_on": [
+   "l2",
+   "l4"
+  ]
  },
  {
   "id": "stopAtWall/C-negated",
@@ -1281,7 +1371,10 @@
    }
   },
   "ok": true,
-  "equivalent": false
+  "equivalent": false,
+  "judged_on": [
+   "l4"
+  ]
  },
  {
   "id": "stopAtWall/C-no-handover",
@@ -1309,7 +1402,10 @@
    }
   },
   "ok": true,
-  "equivalent": false
+  "equivalent": false,
+  "judged_on": [
+   "l4"
+  ]
  },
  {
   "id": "stopAtWall/C-turns",
@@ -1339,7 +1435,10 @@
    }
   },
   "ok": true,
-  "equivalent": false
+  "equivalent": false,
+  "judged_on": [
+   "l4"
+  ]
  },
  {
   "id": "stopAtWall/C-slows",
@@ -1367,7 +1466,10 @@
    }
   },
   "ok": true,
-  "equivalent": false
+  "equivalent": false,
+  "judged_on": [
+   "l4"
+  ]
  },
  {
   "id": "driveInTheDark/A",
@@ -1426,7 +1528,12 @@
    }
   },
   "ok": true,
-  "later_ok": true
+  "later_ok": true,
+  "judged_on": [
+   "l2",
+   "l4",
+   "l5"
+  ]
  },
  {
   "id": "driveInTheDark/A-never-dark",
@@ -1455,7 +1562,10 @@
    }
   },
   "ok": true,
-  "equivalent": false
+  "equivalent": false,
+  "judged_on": [
+   "l5"
+  ]
  },
  {
   "id": "driveInTheDark/A-floor-sensor",
@@ -1484,7 +1594,10 @@
    }
   },
   "ok": true,
-  "equivalent": false
+  "equivalent": false,
+  "judged_on": [
+   "l5"
+  ]
  },
  {
   "id": "driveInTheDark/A-negated",
@@ -1513,7 +1626,10 @@
    }
   },
   "ok": true,
-  "equivalent": false
+  "equivalent": false,
+  "judged_on": [
+   "l5"
+  ]
  },
  {
   "id": "driveInTheDark/A-curves",
@@ -1543,7 +1659,10 @@
    }
   },
   "ok": true,
-  "equivalent": false
+  "equivalent": false,
+  "judged_on": [
+   "l5"
+  ]
  },
  {
   "id": "driveInTheDark/A-no-handover",
@@ -1573,7 +1692,10 @@
    }
   },
   "ok": true,
-  "equivalent": false
+  "equivalent": false,
+  "judged_on": [
+   "l5"
+  ]
  },
  {
   "id": "driveInTheDark/B",
@@ -1632,7 +1754,12 @@
    }
   },
   "ok": true,
-  "later_ok": true
+  "later_ok": true,
+  "judged_on": [
+   "l2",
+   "l4",
+   "l5"
+  ]
  },
  {
   "id": "driveInTheDark/B-never-dark",
@@ -1661,7 +1788,10 @@
    }
   },
   "ok": true,
-  "equivalent": false
+  "equivalent": false,
+  "judged_on": [
+   "l5"
+  ]
  },
  {
   "id": "driveInTheDark/B-floor-sensor",
@@ -1690,7 +1820,10 @@
    }
   },
   "ok": true,
-  "equivalent": false
+  "equivalent": false,
+  "judged_on": [
+   "l5"
+  ]
  },
  {
   "id": "driveInTheDark/B-negated",
@@ -1719,7 +1852,10 @@
    }
   },
   "ok": true,
-  "equivalent": false
+  "equivalent": false,
+  "judged_on": [
+   "l5"
+  ]
  },
  {
   "id": "driveInTheDark/B-curves",
@@ -1749,7 +1885,10 @@
    }
   },
   "ok": true,
-  "equivalent": false
+  "equivalent": false,
+  "judged_on": [
+   "l5"
+  ]
  },
  {
   "id": "driveInTheDark/B-no-handover",
@@ -1779,7 +1918,10 @@
    }
   },
   "ok": true,
-  "equivalent": false
+  "equivalent": false,
+  "judged_on": [
+   "l5"
+  ]
  },
  {
   "id": "driveInTheDark/C",
@@ -1838,7 +1980,12 @@
    }
   },
   "ok": true,
-  "later_ok": true
+  "later_ok": true,
+  "judged_on": [
+   "l2",
+   "l4",
+   "l5"
+  ]
  },
  {
   "id": "driveInTheDark/C-never-dark",
@@ -1867,7 +2014,10 @@
    }
   },
   "ok": true,
-  "equivalent": false
+  "equivalent": false,
+  "judged_on": [
+   "l5"
+  ]
  },
  {
   "id": "driveInTheDark/C-floor-sensor",
@@ -1896,7 +2046,10 @@
    }
   },
   "ok": true,
-  "equivalent": false
+  "equivalent": false,
+  "judged_on": [
+   "l5"
+  ]
  },
  {
   "id": "driveInTheDark/C-negated",
@@ -1925,7 +2078,10 @@
    }
   },
   "ok": true,
-  "equivalent": false
+  "equivalent": false,
+  "judged_on": [
+   "l5"
+  ]
  },
  {
   "id": "driveInTheDark/C-curves",
@@ -1955,7 +2111,10 @@
    }
   },
   "ok": true,
-  "equivalent": false
+  "equivalent": false,
+  "judged_on": [
+   "l5"
+  ]
  },
  {
   "id": "driveInTheDark/C-no-handover",
@@ -1985,7 +2144,10 @@
    }
   },
   "ok": true,
-  "equivalent": false
+  "equivalent": false,
+  "judged_on": [
+   "l5"
+  ]
  },
  {
   "id": "avoidWalls/A",
@@ -2060,7 +2222,13 @@
    }
   },
   "ok": true,
-  "later_ok": true
+  "later_ok": true,
+  "judged_on": [
+   "l2",
+   "l4",
+   "l5",
+   "l6"
+  ]
  },
  {
   "id": "avoidWalls/A-swapped",
@@ -2105,7 +2273,10 @@
    }
   },
   "ok": true,
-  "equivalent": false
+  "equivalent": false,
+  "judged_on": [
+   "l6"
+  ]
  },
  {
   "id": "avoidWalls/A-front-sensor",
@@ -2150,7 +2321,10 @@
    }
   },
   "ok": true,
-  "equivalent": false
+  "equivalent": false,
+  "judged_on": [
+   "l6"
+  ]
  },
  {
   "id": "avoidWalls/A-never-dark",
@@ -2195,7 +2369,10 @@
    }
   },
   "ok": true,
-  "equivalent": false
+  "equivalent": false,
+  "judged_on": [
+   "l6"
+  ]
  },
  {
   "id": "avoidWalls/A-no-handover",
@@ -2241,7 +2418,10 @@
    }
   },
   "ok": true,
-  "equivalent": false
+  "equivalent": false,
+  "judged_on": [
+   "l6"
+  ]
  },
  {
   "id": "avoidWalls/B",
@@ -2316,7 +2496,13 @@
    }
   },
   "ok": true,
-  "later_ok": true
+  "later_ok": true,
+  "judged_on": [
+   "l2",
+   "l4",
+   "l5",
+   "l6"
+  ]
  },
  {
   "id": "avoidWalls/B-swapped",
@@ -2361,7 +2547,10 @@
    }
   },
   "ok": true,
-  "equivalent": false
+  "equivalent": false,
+  "judged_on": [
+   "l6"
+  ]
  },
  {
   "id": "avoidWalls/B-front-sensor",
@@ -2406,7 +2595,10 @@
    }
   },
   "ok": true,
-  "equivalent": false
+  "equivalent": false,
+  "judged_on": [
+   "l6"
+  ]
  },
  {
   "id": "avoidWalls/B-never-dark",
@@ -2451,7 +2643,10 @@
    }
   },
   "ok": true,
-  "equivalent": false
+  "equivalent": false,
+  "judged_on": [
+   "l6"
+  ]
  },
  {
   "id": "avoidWalls/B-no-handover",
@@ -2497,7 +2692,10 @@
    }
   },
   "ok": true,
-  "equivalent": false
+  "equivalent": false,
+  "judged_on": [
+   "l6"
+  ]
  },
  {
   "id": "avoidWalls/C",
@@ -2570,7 +2768,13 @@
    }
   },
   "ok": true,
-  "later_ok": true
+  "later_ok": true,
+  "judged_on": [
+   "l2",
+   "l4",
+   "l5",
+   "l6"
+  ]
  },
  {
   "id": "avoidWalls/C-swapped",
@@ -2613,7 +2817,10 @@
    }
   },
   "ok": true,
-  "equivalent": false
+  "equivalent": false,
+  "judged_on": [
+   "l6"
+  ]
  },
  {
   "id": "avoidWalls/C-front-sensor",
@@ -2656,7 +2863,10 @@
    }
   },
   "ok": true,
-  "equivalent": false
+  "equivalent": false,
+  "judged_on": [
+   "l6"
+  ]
  },
  {
   "id": "avoidWalls/C-never-dark",
@@ -2699,7 +2909,10 @@
    }
   },
   "ok": true,
-  "equivalent": false
+  "equivalent": false,
+  "judged_on": [
+   "l6"
+  ]
  },
  {
   "id": "avoidWalls/C-no-handover",
@@ -2743,7 +2956,10 @@
    }
   },
   "ok": true,
-  "equivalent": false
+  "equivalent": false,
+  "judged_on": [
+   "l6"
+  ]
  },
  {
   "id": "followInTheDark/A",
@@ -2818,7 +3034,15 @@
    }
   },
   "ok": true,
-  "later_ok": true
+  "later_ok": true,
+  "judged_on": [
+   "l2",
+   "l4",
+   "l5",
+   "l6",
+   "l7",
+   "l8"
+  ]
  },
  {
   "id": "followInTheDark/A-swapped",
@@ -2868,7 +3092,11 @@
    }
   },
   "ok": true,
-  "equivalent": false
+  "equivalent": false,
+  "judged_on": [
+   "l7",
+   "l8"
+  ]
  },
  {
   "id": "followInTheDark/A-peach-is-black",
@@ -2918,7 +3146,11 @@
    }
   },
   "ok": true,
-  "equivalent": false
+  "equivalent": false,
+  "judged_on": [
+   "l7",
+   "l8"
+  ]
  },
  {
   "id": "followInTheDark/A-light-above",
@@ -2968,7 +3200,11 @@
    }
   },
   "ok": true,
-  "equivalent": false
+  "equivalent": false,
+  "judged_on": [
+   "l7",
+   "l8"
+  ]
  },
  {
   "id": "followInTheDark/A-no-handover",
@@ -3019,7 +3255,11 @@
    }
   },
   "ok": true,
-  "equivalent": false
+  "equivalent": false,
+  "judged_on": [
+   "l7",
+   "l8"
+  ]
  },
  {
   "id": "followInTheDark/B",
@@ -3094,7 +3334,15 @@
    }
   },
   "ok": true,
-  "later_ok": true
+  "later_ok": true,
+  "judged_on": [
+   "l2",
+   "l4",
+   "l5",
+   "l6",
+   "l7",
+   "l8"
+  ]
  },
  {
   "id": "followInTheDark/B-swapped",
@@ -3144,7 +3392,11 @@
    }
   },
   "ok": true,
-  "equivalent": false
+  "equivalent": false,
+  "judged_on": [
+   "l7",
+   "l8"
+  ]
  },
  {
   "id": "followInTheDark/B-peach-is-black",
@@ -3194,7 +3446,11 @@
    }
   },
   "ok": true,
-  "equivalent": false
+  "equivalent": false,
+  "judged_on": [
+   "l7",
+   "l8"
+  ]
  },
  {
   "id": "followInTheDark/B-light-above",
@@ -3244,7 +3500,11 @@
    }
   },
   "ok": true,
-  "equivalent": false
+  "equivalent": false,
+  "judged_on": [
+   "l7",
+   "l8"
+  ]
  },
  {
   "id": "followInTheDark/B-no-handover",
@@ -3295,7 +3555,11 @@
    }
   },
   "ok": true,
-  "equivalent": false
+  "equivalent": false,
+  "judged_on": [
+   "l7",
+   "l8"
+  ]
  },
  {
   "id": "followInTheDark/C",
@@ -3370,7 +3634,15 @@
    }
   },
   "ok": true,
-  "later_ok": true
+  "later_ok": true,
+  "judged_on": [
+   "l2",
+   "l4",
+   "l5",
+   "l6",
+   "l7",
+   "l8"
+  ]
  },
  {
   "id": "followInTheDark/C-swapped",
@@ -3420,7 +3692,11 @@
    }
   },
   "ok": true,
-  "equivalent": false
+  "equivalent": false,
+  "judged_on": [
+   "l7",
+   "l8"
+  ]
  },
  {
   "id": "followInTheDark/C-peach-is-black",
@@ -3470,7 +3746,11 @@
    }
   },
   "ok": true,
-  "equivalent": false
+  "equivalent": false,
+  "judged_on": [
+   "l7",
+   "l8"
+  ]
  },
  {
   "id": "followInTheDark/C-light-above",
@@ -3520,7 +3800,11 @@
    }
   },
   "ok": true,
-  "equivalent": false
+  "equivalent": false,
+  "judged_on": [
+   "l7",
+   "l8"
+  ]
  },
  {
   "id": "followInTheDark/C-no-handover",
@@ -3571,6 +3855,10 @@
    }
   },
   "ok": true,
-  "equivalent": false
+  "equivalent": false,
+  "judged_on": [
+   "l7",
+   "l8"
+  ]
  }
 ]

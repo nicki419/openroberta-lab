@@ -1,5 +1,5 @@
 """Decides the corpus on the levels (judge.py): a correct version must beat its levels and every level before (the other functions in their
-reference version); a broken version must lose one of its levels (else its fault is equivalent there, and it is left out). Each correct version
+reference version); a broken version must lose one of its levels (else its fault is equivalent there: every test should pass it, since 2026-11-08). Each correct version
 is also played on the later levels, with the later functions in their reference version: is a learner's correct fix still right once the later
 code calls it? Writes corpus/versions.json (with each program) and the programs as Lab exports in corpus/programs/."""
 import json

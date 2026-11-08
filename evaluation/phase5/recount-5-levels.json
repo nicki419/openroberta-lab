@@ -1,0 +1,439 @@
+{
+ "no_longer_broken": [
+  "followLine/A-too-slow",
+  "followLine/C-too-slow"
+ ],
+ "equivalent": [
+  "followLine/A-swapped",
+  "followLine/A-too-slow",
+  "followLine/B-swapped",
+  "followLine/B-too-slow",
+  "followLine/C-swapped",
+  "followLine/C-too-slow"
+ ],
+ "given": [
+  "driveInTheDark"
+ ],
+ "rounds": {
+  "round 1, full": {
+   "7 levels (as reported)": {
+    "requests": 80,
+    "broken versions caught": 66,
+    "good sets": 14,
+    "sets with a false alarm": 40,
+    "the seen fault caught": 55
+   },
+   "5 levels, equivalent versions left out (first count)": {
+    "requests": 60,
+    "broken versions caught": 73,
+    "good sets": 23,
+    "sets with a false alarm": 32,
+    "the seen fault caught": 65
+   },
+   "... equivalent versions must pass, the swapped followInTheDark left out": {
+    "requests": 60,
+    "broken versions caught": 72,
+    "good sets": 23,
+    "sets with a false alarm": 32,
+    "the seen fault caught": 65
+   },
+   "5 levels, equivalent versions must pass": {
+    "requests": 60,
+    "broken versions caught": 72,
+    "good sets": 22,
+    "sets with a false alarm": 32,
+    "the seen fault caught": 65
+   },
+   "driveInTheDark (not study code now)": {
+    "requests": 16,
+    "broken versions caught": 55,
+    "good sets": 0,
+    "sets with a false alarm": 81,
+    "the seen fault caught": 31
+   },
+   "dropped as no longer broken": 4,
+   "sets that fail an equivalent version": 4,
+   "followInTheDark sets that catch every swapped version": "10 of 16",
+   "by function, 5 levels": {
+    "followLine": {
+     "requests": 12,
+     "broken versions caught": 78,
+     "good sets": 25,
+     "sets with a false alarm": 33,
+     "the seen fault caught": 83
+    },
+    "stopAtWall": {
+     "requests": 16,
+     "broken versions caught": 86,
+     "good sets": 44,
+     "sets with a false alarm": 0,
+     "the seen fault caught": 81
+    },
+    "avoidWalls": {
+     "requests": 16,
+     "broken versions caught": 54,
+     "good sets": 6,
+     "sets with a false alarm": 62,
+     "the seen fault caught": 44
+    },
+    "followInTheDark": {
+     "requests": 16,
+     "broken versions caught": 72,
+     "good sets": 12,
+     "sets with a false alarm": 31,
+     "the seen fault caught": 56
+    }
+   }
+  },
+  "round 1, plain": {
+   "7 levels (as reported)": {
+    "requests": 80,
+    "broken versions caught": 60,
+    "good sets": 9,
+    "sets with a false alarm": 48,
+    "the seen fault caught": 40
+   },
+   "5 levels, equivalent versions left out (first count)": {
+    "requests": 60,
+    "broken versions caught": 66,
+    "good sets": 27,
+    "sets with a false alarm": 43,
+    "the seen fault caught": 47
+   },
+   "... equivalent versions must pass, the swapped followInTheDark left out": {
+    "requests": 60,
+    "broken versions caught": 63,
+    "good sets": 12,
+    "sets with a false alarm": 58,
+    "the seen fault caught": 40
+   },
+   "5 levels, equivalent versions must pass": {
+    "requests": 60,
+    "broken versions caught": 63,
+    "good sets": 10,
+    "sets with a false alarm": 58,
+    "the seen fault caught": 40
+   },
+   "driveInTheDark (not study code now)": {
+    "requests": 16,
+    "broken versions caught": 42,
+    "good sets": 0,
+    "sets with a false alarm": 75,
+    "the seen fault caught": 25
+   },
+   "dropped as no longer broken": 4,
+   "sets that fail an equivalent version": 9,
+   "followInTheDark sets that catch every swapped version": "10 of 16",
+   "by function, 5 levels": {
+    "followLine": {
+     "requests": 12,
+     "broken versions caught": 78,
+     "good sets": 25,
+     "sets with a false alarm": 75,
+     "the seen fault caught": 67
+    },
+    "stopAtWall": {
+     "requests": 16,
+     "broken versions caught": 81,
+     "good sets": 19,
+     "sets with a false alarm": 56,
+     "the seen fault caught": 69
+    },
+    "avoidWalls": {
+     "requests": 16,
+     "broken versions caught": 35,
+     "good sets": 0,
+     "sets with a false alarm": 81,
+     "the seen fault caught": 0
+    },
+    "followInTheDark": {
+     "requests": 16,
+     "broken versions caught": 65,
+     "good sets": 0,
+     "sets with a false alarm": 25,
+     "the seen fault caught": 31
+    }
+   }
+  },
+  "round 2, full": {
+   "7 levels (as reported)": {
+    "requests": 80,
+    "broken versions caught": 82,
+    "good sets": 48,
+    "sets with a false alarm": 14,
+    "the seen fault caught": 72
+   },
+   "5 levels, equivalent versions left out (first count)": {
+    "requests": 60,
+    "broken versions caught": 83,
+    "good sets": 55,
+    "sets with a false alarm": 13,
+    "the seen fault caught": 75
+   },
+   "... equivalent versions must pass, the swapped followInTheDark left out": {
+    "requests": 60,
+    "broken versions caught": 82,
+    "good sets": 55,
+    "sets with a false alarm": 13,
+    "the seen fault caught": 75
+   },
+   "5 levels, equivalent versions must pass": {
+    "requests": 60,
+    "broken versions caught": 76,
+    "good sets": 37,
+    "sets with a false alarm": 13,
+    "the seen fault caught": 75
+   },
+   "driveInTheDark (not study code now)": {
+    "requests": 16,
+    "broken versions caught": 88,
+    "good sets": 75,
+    "sets with a false alarm": 19,
+    "the seen fault caught": 81
+   },
+   "dropped as no longer broken": 4,
+   "sets that fail an equivalent version": 2,
+   "followInTheDark sets that catch every swapped version": "0 of 16",
+   "by function, 5 levels": {
+    "followLine": {
+     "requests": 12,
+     "broken versions caught": 87,
+     "good sets": 58,
+     "sets with a false alarm": 17,
+     "the seen fault caught": 92
+    },
+    "stopAtWall": {
+     "requests": 16,
+     "broken versions caught": 80,
+     "good sets": 38,
+     "sets with a false alarm": 31,
+     "the seen fault caught": 62
+    },
+    "avoidWalls": {
+     "requests": 16,
+     "broken versions caught": 77,
+     "good sets": 56,
+     "sets with a false alarm": 6,
+     "the seen fault caught": 75
+    },
+    "followInTheDark": {
+     "requests": 16,
+     "broken versions caught": 66,
+     "good sets": 0,
+     "sets with a false alarm": 0,
+     "the seen fault caught": 75
+    }
+   }
+  },
+  "round 2, plain": {
+   "7 levels (as reported)": {
+    "requests": 80,
+    "broken versions caught": 82,
+    "good sets": 44,
+    "sets with a false alarm": 20,
+    "the seen fault caught": 70
+   },
+   "5 levels, equivalent versions left out (first count)": {
+    "requests": 60,
+    "broken versions caught": 89,
+    "good sets": 62,
+    "sets with a false alarm": 13,
+    "the seen fault caught": 78
+   },
+   "... equivalent versions must pass, the swapped followInTheDark left out": {
+    "requests": 60,
+    "broken versions caught": 85,
+    "good sets": 50,
+    "sets with a false alarm": 25,
+    "the seen fault caught": 73
+   },
+   "5 levels, equivalent versions must pass": {
+    "requests": 60,
+    "broken versions caught": 79,
+    "good sets": 37,
+    "sets with a false alarm": 25,
+    "the seen fault caught": 73
+   },
+   "driveInTheDark (not study code now)": {
+    "requests": 16,
+    "broken versions caught": 66,
+    "good sets": 38,
+    "sets with a false alarm": 50,
+    "the seen fault caught": 56
+   },
+   "dropped as no longer broken": 4,
+   "sets that fail an equivalent version": 7,
+   "followInTheDark sets that catch every swapped version": "0 of 16",
+   "by function, 5 levels": {
+    "followLine": {
+     "requests": 12,
+     "broken versions caught": 66,
+     "good sets": 25,
+     "sets with a false alarm": 58,
+     "the seen fault caught": 67
+    },
+    "stopAtWall": {
+     "requests": 16,
+     "broken versions caught": 94,
+     "good sets": 44,
+     "sets with a false alarm": 44,
+     "the seen fault caught": 88
+    },
+    "avoidWalls": {
+     "requests": 16,
+     "broken versions caught": 90,
+     "good sets": 75,
+     "sets with a false alarm": 6,
+     "the seen fault caught": 75
+    },
+    "followInTheDark": {
+     "requests": 16,
+     "broken versions caught": 60,
+     "good sets": 0,
+     "sets with a false alarm": 0,
+     "the seen fault caught": 62
+    }
+   }
+  },
+  "round 3, full": {
+   "7 levels (as reported)": {
+    "requests": 80,
+    "broken versions caught": 76,
+    "good sets": 41,
+    "sets with a false alarm": 4,
+    "the seen fault caught": 71
+   },
+   "5 levels, equivalent versions left out (first count)": {
+    "requests": 60,
+    "broken versions caught": 76,
+    "good sets": 45,
+    "sets with a false alarm": 3,
+    "the seen fault caught": 75
+   },
+   "... equivalent versions must pass, the swapped followInTheDark left out": {
+    "requests": 60,
+    "broken versions caught": 76,
+    "good sets": 45,
+    "sets with a false alarm": 3,
+    "the seen fault caught": 75
+   },
+   "5 levels, equivalent versions must pass": {
+    "requests": 60,
+    "broken versions caught": 71,
+    "good sets": 32,
+    "sets with a false alarm": 3,
+    "the seen fault caught": 75
+   },
+   "driveInTheDark (not study code now)": {
+    "requests": 16,
+    "broken versions caught": 82,
+    "good sets": 75,
+    "sets with a false alarm": 6,
+    "the seen fault caught": 75
+   },
+   "dropped as no longer broken": 4,
+   "sets that fail an equivalent version": 0,
+   "followInTheDark sets that catch every swapped version": "0 of 16",
+   "by function, 5 levels": {
+    "followLine": {
+     "requests": 12,
+     "broken versions caught": 91,
+     "good sets": 50,
+     "sets with a false alarm": 0,
+     "the seen fault caught": 100
+    },
+    "stopAtWall": {
+     "requests": 16,
+     "broken versions caught": 68,
+     "good sets": 12,
+     "sets with a false alarm": 0,
+     "the seen fault caught": 75
+    },
+    "avoidWalls": {
+     "requests": 16,
+     "broken versions caught": 74,
+     "good sets": 69,
+     "sets with a false alarm": 12,
+     "the seen fault caught": 69
+    },
+    "followInTheDark": {
+     "requests": 16,
+     "broken versions caught": 59,
+     "good sets": 0,
+     "sets with a false alarm": 0,
+     "the seen fault caught": 62
+    }
+   }
+  },
+  "round 4, full": {
+   "7 levels (as reported)": {
+    "requests": 80,
+    "broken versions caught": 81,
+    "good sets": 48,
+    "sets with a false alarm": 6,
+    "the seen fault caught": 76
+   },
+   "5 levels, equivalent versions left out (first count)": {
+    "requests": 60,
+    "broken versions caught": 83,
+    "good sets": 58,
+    "sets with a false alarm": 5,
+    "the seen fault caught": 82
+   },
+   "... equivalent versions must pass, the swapped followInTheDark left out": {
+    "requests": 60,
+    "broken versions caught": 82,
+    "good sets": 55,
+    "sets with a false alarm": 8,
+    "the seen fault caught": 78
+   },
+   "5 levels, equivalent versions must pass": {
+    "requests": 60,
+    "broken versions caught": 76,
+    "good sets": 42,
+    "sets with a false alarm": 8,
+    "the seen fault caught": 78
+   },
+   "driveInTheDark (not study code now)": {
+    "requests": 16,
+    "broken versions caught": 82,
+    "good sets": 62,
+    "sets with a false alarm": 12,
+    "the seen fault caught": 75
+   },
+   "dropped as no longer broken": 4,
+   "sets that fail an equivalent version": 2,
+   "followInTheDark sets that catch every swapped version": "0 of 15",
+   "by function, 5 levels": {
+    "followLine": {
+     "requests": 12,
+     "broken versions caught": 81,
+     "good sets": 50,
+     "sets with a false alarm": 17,
+     "the seen fault caught": 83
+    },
+    "stopAtWall": {
+     "requests": 16,
+     "broken versions caught": 84,
+     "good sets": 44,
+     "sets with a false alarm": 6,
+     "the seen fault caught": 81
+    },
+    "avoidWalls": {
+     "requests": 16,
+     "broken versions caught": 81,
+     "good sets": 75,
+     "sets with a false alarm": 6,
+     "the seen fault caught": 81
+    },
+    "followInTheDark": {
+     "requests": 16,
+     "broken versions caught": 59,
+     "good sets": 0,
+     "sets with a false alarm": 6,
+     "the seen fault caught": 69
+    }
+   }
+  }
+ }
+}

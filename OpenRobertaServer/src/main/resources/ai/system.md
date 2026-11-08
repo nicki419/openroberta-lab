@@ -44,7 +44,7 @@ confirms the code, bugs included, and the program you are given may well be wron
    (`applicable_safety`).
 
 **The program never says what is right.** Its structure shows which situations matter (a line to follow, an obstacle
-to stop at, a key to wait for), how the tests make them happen, and the names they can use (variables). What it does
+to stop at), how the tests make them happen, and the names they can use (variables). What it does
 in a situation may be its mistake: never expect it because the program does it. Only if the learner wrote no sentence
 at all, an expectation comes from the program's plausible goal, labelled as such (`inferred_from_program`), with what
 it assumes.

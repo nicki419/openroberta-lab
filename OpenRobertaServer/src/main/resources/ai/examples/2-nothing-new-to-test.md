@@ -35,7 +35,7 @@ None: the program has no if, no wait until and no repeat while or until.
 ### The learner's tests
 
 ```json
-{"worlds":[{"name":"Around the block","world":{"background":"peach","starts":[{"id":"A","name":"A","x":40,"y":100,"heading":0}],"items":[{"id":"f1","kind":"rect","role":"fail","x":110,"y":70,"w":20,"h":60},{"id":"g1","kind":"rect","role":"goal","name":"Goal 1","x":200,"y":80,"w":40,"h":40}]},"tests":[{"name":"Gets around the red block","start":"A","until":"g1","max_time_ms":30000,"world":[],"globals":{},"checks":[{"check":"never_touches"},{"check":"reaches","item":"g1"}]}]}]}
+{"worlds":[{"name":"Around the block","world":{"background":"peach","starts":[{"id":"A","name":"A","x":40,"y":100,"heading":0}],"items":[{"id":"f1","kind":"rect","role":"fail","x":110,"y":70,"w":20,"h":60},{"id":"g1","kind":"rect","role":"goal","name":"Goal 1","x":200,"y":80,"w":40,"h":40}]},"tests":[{"name":"Gets around the red block","start":"A","until":"g1","max_time_ms":30000,"checks":[{"check":"never_touches"},{"check":"reaches","item":"g1"}]}]}]}
 ```
 
 ### What the learner said before

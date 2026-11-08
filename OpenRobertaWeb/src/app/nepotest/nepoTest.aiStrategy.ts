@@ -618,7 +618,7 @@ function classesOf(analysis: any, unsupportedToo: boolean): { [dimension: string
 function realizationProblems(r: any, test: FORMAT.AiTest, world: FORMAT.Resolved): string[] {
     const out: string[] = [];
     if (!r || typeof r !== 'object' || !Object.keys(r).length) {
-        return ['realized_by needs what of the test realizes it: start, items, events or globals'];
+        return ['realized_by needs what of the test realizes it: its start or items'];
     }
     r.start !== undefined && r.start !== test.start && out.push('realized_by.start "' + r.start + '" is not the test\'s start ("' + test.start + '")');
     const items = world.data.world.items.map((i) => i.id);
@@ -963,7 +963,7 @@ export function plannedText(report: any, test: FORMAT.AiTest, index: Index): str
     return planned.map((b: string) => b + ' (' + index.outcome[b].outcome.outcome + '): ' + (seen[b] ? 'taken ' + seen[b] + '×' : 'never taken')).join('; ');
 }
 
-// what a fix may not change (tasks.md, "Task: fix"): all but the world, start, until, max_time_ms, set-up and the realizations
+// what a fix may not change (tasks.md, "Task: fix"): all but the world, start, until, max_time_ms and the realizations
 const FROZEN = ['scenario', 'scenario_id', 'path_ids', 'planned_branch_ids', 'expected_results', 'postconditions', 'oracle', 'source_block_ids', 'reason'];
 
 /** a value with sorted keys, for comparing */
@@ -1000,5 +1000,5 @@ export function frozenProblems(fixed: FORMAT.AiTest, fixedWorld: FORMAT.Resolved
     FROZEN.forEach((k) => canonical((fixed as any)[k]) !== canonical((original as any)[k]) && out.push(k));
     checksOf(fixed, fixedWorld) !== checksOf(original, originalWorld) && out.push('checks');
     selectionOf(fixed) !== selectionOf(original) && out.push('the classes of input_selection');
-    return out.length ? ['a fix may change only the world, start, until, max_time_ms, the set-up (world, globals) and the realizations of its inputs; it changed ' + out.join(', ') + ': keep them as they were'] : [];
+    return out.length ? ['a fix may change only the world, start, until, max_time_ms and the realizations of its inputs; it changed ' + out.join(', ') + ': keep them as they were'] : [];
 }

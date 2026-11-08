@@ -1,6 +1,6 @@
 {
- "about": "The source of truth of the study's levels: per level the function the learner fixes, its correct versions and the broken ones (made by fixed faults), and reference tests that tell them apart. Made 2026-11-07 from the phase 5 corpus (evaluation/phase5) and the hand-written tests of reference_tests.py; see README.md.",
- "made": "2026-11-07",
+ "about": "The source of truth of the study's levels: per level the function the learner fixes, its correct versions and the broken ones (made by fixed faults), and reference tests that tell them apart. Made 2026-11-08 from the phase 5 corpus (evaluation/phase5) and the hand-written tests of reference_tests.py; see README.md.",
+ "made": "2026-11-08",
  "rule": "Every correct version (and every equivalent one: broken by a fault, but the level still passes it) passes every reference test of its function; every broken version fails at least one.",
  "kinds": {
   "correct": "beats its levels and every level before (the other functions in their reference version A)",
@@ -10,10 +10,10 @@
  "program_shape": "main: forever: <the newest function>(); each function handles its situation or calls the function of the level before (a priority chain: the simulator runs one motor block per frame)",
  "levels": [
   {
-   "level": "l1",
-   "file": "levels/01-first-steps/l1-straight-line.json",
-   "title": "L1 - Straight Line",
-   "time_limit_s": 20,
+   "level": "l2",
+   "file": "levels/01-first-steps/l2-curves.json",
+   "title": "L2 - Curves",
+   "time_limit_s": null,
    "function": "followLine",
    "new_function": "followLine",
    "functions": [
@@ -23,26 +23,13 @@
    "inject": {
     "function": "followLine",
     "main_call_before": null,
-    "main_call_after": "followLine"
+    "main_call_after": "followLine",
+    "given": []
    },
    "starter": {
     "1": "followLine/A-light-above",
     "2": "followLine/B-straight-off"
    }
-  },
-  {
-   "level": "l2",
-   "file": "levels/01-first-steps/l2-curves.json",
-   "title": "L2 - Curves",
-   "time_limit_s": null,
-   "function": "followLine",
-   "new_function": null,
-   "functions": [
-    "followLine"
-   ],
-   "main_calls": "followLine",
-   "inject": null,
-   "starter": null
   },
   {
    "level": "l4",
@@ -59,34 +46,12 @@
    "inject": {
     "function": "stopAtWall",
     "main_call_before": "followLine",
-    "main_call_after": "stopAtWall"
+    "main_call_after": "stopAtWall",
+    "given": []
    },
    "starter": {
     "1": "stopAtWall/A-turns",
     "2": "stopAtWall/C-slows"
-   }
-  },
-  {
-   "level": "l5",
-   "file": "levels/01-first-steps/l5-tunnel-vision.json",
-   "title": "L5 - Tunnel Vision",
-   "time_limit_s": null,
-   "function": "driveInTheDark",
-   "new_function": "driveInTheDark",
-   "functions": [
-    "driveInTheDark",
-    "stopAtWall",
-    "followLine"
-   ],
-   "main_calls": "driveInTheDark",
-   "inject": {
-    "function": "driveInTheDark",
-    "main_call_before": "stopAtWall",
-    "main_call_after": "driveInTheDark"
-   },
-   "starter": {
-    "1": "driveInTheDark/A-negated",
-    "2": "driveInTheDark/B-never-dark"
    }
   },
   {
@@ -105,8 +70,14 @@
    "main_calls": "avoidWalls",
    "inject": {
     "function": "avoidWalls",
-    "main_call_before": "driveInTheDark",
-    "main_call_after": "avoidWalls"
+    "main_call_before": "stopAtWall",
+    "main_call_after": "avoidWalls",
+    "given": [
+     {
+      "function": "driveInTheDark",
+      "version": "driveInTheDark/A"
+     }
+    ]
    },
    "starter": {
     "1": "avoidWalls/A-swapped",
@@ -131,7 +102,8 @@
    "inject": {
     "function": "followInTheDark",
     "main_call_before": "avoidWalls",
-    "main_call_after": "followInTheDark"
+    "main_call_after": "followInTheDark",
+    "given": []
    },
    "starter": {
     "1": "followInTheDark/A-light-above",
@@ -161,9 +133,9 @@
   {
    "name": "followLine",
    "levels": [
-    "l1",
     "l2"
    ],
+   "given_in": null,
    "hands_over_to": null,
    "reference_version": "followLine/A",
    "faults": [
@@ -189,7 +161,6 @@
     }
    ],
    "tests": [
-    "followLine:straight-in-time",
     "followLine:bend-left",
     "followLine:bend-right"
    ]
@@ -199,6 +170,7 @@
    "levels": [
     "l4"
    ],
+   "given_in": null,
    "hands_over_to": "followLine",
    "reference_version": "stopAtWall/A",
    "faults": [
@@ -229,6 +201,7 @@
    "levels": [
     "l5"
    ],
+   "given_in": "l6",
    "hands_over_to": "stopAtWall",
    "reference_version": "driveInTheDark/A",
    "faults": [
@@ -264,6 +237,7 @@
    "levels": [
     "l6"
    ],
+   "given_in": null,
    "hands_over_to": "driveInTheDark",
    "reference_version": "avoidWalls/A",
    "faults": [
@@ -296,6 +270,7 @@
     "l7",
     "l8"
    ],
+   "given_in": null,
    "hands_over_to": "avoidWalls",
    "reference_version": "followInTheDark/A",
    "faults": [
@@ -326,86 +301,6 @@
  ],
  "tests": {
   "followLine": [
-   {
-    "name": "A straight line, in time",
-    "existing": false,
-    "data": {
-     "version": 3,
-     "world": {
-      "background": "peach",
-      "starts": [
-       {
-        "id": "A",
-        "name": "A",
-        "x": 12,
-        "y": 51.92,
-        "heading": 0
-       }
-      ],
-      "items": [
-       {
-        "id": "t1",
-        "name": "Line t1",
-        "kind": "line",
-        "points": [
-         [
-          16.74,
-          51.83
-         ],
-         [
-          132.26,
-          51.66
-         ]
-        ],
-        "smooth": false,
-        "width": 1.48
-       },
-       {
-        "id": "t2",
-        "name": "Goal t2",
-        "kind": "rect",
-        "role": "goal",
-        "x": 132.28,
-        "y": 40.33,
-        "w": 10.65,
-        "h": 21.18
-       }
-      ]
-     },
-     "view": {
-      "x": 150,
-      "y": 100,
-      "scale": 3
-     }
-    },
-    "tests": [
-     {
-      "name": "Follows a straight line to its end within 20 s",
-      "scenario": "Given the robot on a straight line of 115 cm, when the program runs, then it reaches the goal at the line's end within 20 s (the time limit of L1).",
-      "targets": [
-       "light-above",
-       "one-turn",
-       "too-slow",
-       "straight-off"
-      ],
-      "start": "A",
-      "until": "t2",
-      "max_time_ms": 20000,
-      "world": [],
-      "globals": {},
-      "checks": [
-       {
-        "check": "reaches",
-        "item": "t2"
-       },
-       {
-        "check": "never_bumps"
-       }
-      ],
-      "ref": "followLine:straight-in-time"
-     }
-    ]
-   },
    {
     "name": "A bend to the left",
     "existing": false,
@@ -477,7 +372,7 @@
       ],
       "start": "A",
       "until": "t2",
-      "max_time_ms": 40000,
+      "max_time_ms": 60000,
       "world": [],
       "globals": {},
       "checks": [
@@ -564,7 +459,7 @@
       ],
       "start": "A",
       "until": "t2",
-      "max_time_ms": 40000,
+      "max_time_ms": 60000,
       "world": [],
       "globals": {},
       "checks": [
@@ -1755,19 +1650,16 @@
     "    curve(40, 10)"
    ],
    "levels": {
-    "l1": "win",
     "l2": "win"
    },
    "later_levels": {
     "l4": "win_soft",
-    "l5": "win",
     "l6": "win",
     "l7": "win",
     "l8": "win_soft"
    },
    "later_levels_ok": true,
    "tests_passed": {
-    "followLine:straight-in-time": true,
     "followLine:bend-left": true,
     "followLine:bend-right": true
    },
@@ -1792,13 +1684,11 @@
     "    curve(10, 40)"
    ],
    "levels": {
-    "l1": "win",
     "l2": "win"
    },
    "later_levels": null,
    "later_levels_ok": null,
    "tests_passed": {
-    "followLine:straight-in-time": true,
     "followLine:bend-left": true,
     "followLine:bend-right": true
    },
@@ -1823,25 +1713,20 @@
     "    curve(40, 10)"
    ],
    "levels": {
-    "l1": "time_limit",
     "l2": "fail_area"
    },
    "later_levels": null,
    "later_levels_ok": null,
    "tests_passed": {
-    "followLine:straight-in-time": false,
     "followLine:bend-left": false,
     "followLine:bend-right": false
    },
    "tests_failed_why": {
-    "followLine:straight-in-time": [
-     "the robot did not reach \"Goal t2\" within 20 s"
-    ],
     "followLine:bend-left": [
-     "the robot did not reach \"Goal t2\" within 40 s"
+     "the robot did not reach \"Goal t2\" within 60 s"
     ],
     "followLine:bend-right": [
-     "the robot did not reach \"Goal t2\" within 40 s"
+     "the robot did not reach \"Goal t2\" within 60 s"
     ]
    },
    "verdict": "caught",
@@ -1864,25 +1749,20 @@
     "    curve(10, 40)"
    ],
    "levels": {
-    "l1": "time_limit",
     "l2": "fail_hit"
    },
    "later_levels": null,
    "later_levels_ok": null,
    "tests_passed": {
-    "followLine:straight-in-time": false,
     "followLine:bend-left": false,
     "followLine:bend-right": false
    },
    "tests_failed_why": {
-    "followLine:straight-in-time": [
-     "the robot did not reach \"Goal t2\" within 20 s"
-    ],
     "followLine:bend-left": [
-     "the robot did not reach \"Goal t2\" within 40 s"
+     "the robot did not reach \"Goal t2\" within 60 s"
     ],
     "followLine:bend-right": [
-     "the robot did not reach \"Goal t2\" within 40 s"
+     "the robot did not reach \"Goal t2\" within 60 s"
     ]
    },
    "verdict": "caught",
@@ -1893,7 +1773,7 @@
    "id": "followLine/A-too-slow",
    "function": "followLine",
    "variant": "A-too-slow",
-   "kind": "broken",
+   "kind": "equivalent",
    "of": "followLine/A",
    "fault": "too-slow",
    "why": "half the speed",
@@ -1905,28 +1785,16 @@
     "    curve(20, 5)"
    ],
    "levels": {
-    "l1": "time_limit",
     "l2": "win"
    },
    "later_levels": null,
    "later_levels_ok": null,
    "tests_passed": {
-    "followLine:straight-in-time": false,
-    "followLine:bend-left": false,
-    "followLine:bend-right": false
+    "followLine:bend-left": true,
+    "followLine:bend-right": true
    },
-   "tests_failed_why": {
-    "followLine:straight-in-time": [
-     "the robot did not reach \"Goal t2\" within 20 s"
-    ],
-    "followLine:bend-left": [
-     "the robot did not reach \"Goal t2\" within 40 s"
-    ],
-    "followLine:bend-right": [
-     "the robot did not reach \"Goal t2\" within 40 s"
-    ]
-   },
-   "verdict": "caught",
+   "tests_failed_why": {},
+   "verdict": "ok",
    "function_xml": "<block_set xmlns=\"http://de.fhg.iais.roberta.blockly\" robottype=\"edison\" xmlversion=\"3.1\" description=\"\" tags=\"\"><instance x=\"40\" y=\"40\"><block type=\"robProcedures_defnoreturn\" id=\"p5_198\" intask=\"true\"><mutation declare=\"false\"/><field name=\"NAME\">followLine</field><statement name=\"STACK\"><block type=\"robControls_ifElse\" id=\"p5_199\" intask=\"true\"><mutation else=\"1\"/><repetitions><value name=\"IF0\"><block type=\"robSensors_light_getSample\" id=\"p5_200\" intask=\"true\"><mutation mode=\"LINE\"/><field name=\"MODE\">LINE</field><field name=\"SENSORPORT\">LINETRACKER</field><field name=\"SLOT\"/></block></value><statement name=\"DO0\"><block type=\"robActions_motorDiff_curve\" id=\"p5_201\" intask=\"true\"><field name=\"DIRECTION\">FOREWARD</field><value name=\"POWER_LEFT\"><block type=\"math_integer\" id=\"p5_202\" intask=\"true\"><field name=\"NUM\">5</field></block></value><value name=\"POWER_RIGHT\"><block type=\"math_integer\" id=\"p5_203\" intask=\"true\"><field name=\"NUM\">20</field></block></value></block></statement><statement name=\"ELSE\"><block type=\"robActions_motorDiff_curve\" id=\"p5_204\" intask=\"true\"><field name=\"DIRECTION\">FOREWARD</field><value name=\"POWER_LEFT\"><block type=\"math_integer\" id=\"p5_205\" intask=\"true\"><field name=\"NUM\">20</field></block></value><value name=\"POWER_RIGHT\"><block type=\"math_integer\" id=\"p5_206\" intask=\"true\"><field name=\"NUM\">5</field></block></value></block></statement></repetitions></block></statement></block></instance></block_set>",
    "program": "<block_set xmlns=\"http://de.fhg.iais.roberta.blockly\" robottype=\"edison\" xmlversion=\"3.1\" description=\"\" tags=\"\"><instance x=\"40\" y=\"40\"><block type=\"robControls_start\" id=\"p5_195\" intask=\"true\" deletable=\"false\"><mutation declare=\"false\"/><field name=\"DEBUG\">FALSE</field></block><block type=\"robControls_loopForever\" id=\"p5_196\" intask=\"true\"><statement name=\"DO\"><block type=\"robProcedures_callnoreturn\" id=\"p5_197\" intask=\"true\"><mutation name=\"followLine\"/></block></statement></block></instance><instance x=\"420\" y=\"40\"><block type=\"robProcedures_defnoreturn\" id=\"p5_198\" intask=\"true\"><mutation declare=\"false\"/><field name=\"NAME\">followLine</field><statement name=\"STACK\"><block type=\"robControls_ifElse\" id=\"p5_199\" intask=\"true\"><mutation else=\"1\"/><repetitions><value name=\"IF0\"><block type=\"robSensors_light_getSample\" id=\"p5_200\" intask=\"true\"><mutation mode=\"LINE\"/><field name=\"MODE\">LINE</field><field name=\"SENSORPORT\">LINETRACKER</field><field name=\"SLOT\"/></block></value><statement name=\"DO0\"><block type=\"robActions_motorDiff_curve\" id=\"p5_201\" intask=\"true\"><field name=\"DIRECTION\">FOREWARD</field><value name=\"POWER_LEFT\"><block type=\"math_integer\" id=\"p5_202\" intask=\"true\"><field name=\"NUM\">5</field></block></value><value name=\"POWER_RIGHT\"><block type=\"math_integer\" id=\"p5_203\" intask=\"true\"><field name=\"NUM\">20</field></block></value></block></statement><statement name=\"ELSE\"><block type=\"robActions_motorDiff_curve\" id=\"p5_204\" intask=\"true\"><field name=\"DIRECTION\">FOREWARD</field><value name=\"POWER_LEFT\"><block type=\"math_integer\" id=\"p5_205\" intask=\"true\"><field name=\"NUM\">20</field></block></value><value name=\"POWER_RIGHT\"><block type=\"math_integer\" id=\"p5_206\" intask=\"true\"><field name=\"NUM\">5</field></block></value></block></statement></repetitions></block></statement></block></instance></block_set>"
   },
@@ -1946,27 +1814,21 @@
     "    drive(40)"
    ],
    "levels": {
-    "l1": "fail_hit",
     "l2": "fail_hit"
    },
    "later_levels": null,
    "later_levels_ok": null,
    "tests_passed": {
-    "followLine:straight-in-time": false,
     "followLine:bend-left": false,
     "followLine:bend-right": false
    },
    "tests_failed_why": {
-    "followLine:straight-in-time": [
-     "the robot did not reach \"Goal t2\" within 20 s",
-     "the robot bumped into the edge of the floor after 19.6 s"
-    ],
     "followLine:bend-left": [
-     "the robot did not reach \"Goal t2\" within 40 s",
+     "the robot did not reach \"Goal t2\" within 60 s",
      "the robot bumped into the edge of the floor after 10.5 s"
     ],
     "followLine:bend-right": [
-     "the robot did not reach \"Goal t2\" within 40 s",
+     "the robot did not reach \"Goal t2\" within 60 s",
      "the robot bumped into the edge of the floor after 19.8 s"
     ]
    },
@@ -1990,19 +1852,16 @@
     "    curve(50, 20)"
    ],
    "levels": {
-    "l1": "win",
     "l2": "win"
    },
    "later_levels": {
     "l4": "win_soft",
-    "l5": "win",
     "l6": "win",
     "l7": "win",
     "l8": "win_soft"
    },
    "later_levels_ok": true,
    "tests_passed": {
-    "followLine:straight-in-time": true,
     "followLine:bend-left": true,
     "followLine:bend-right": true
    },
@@ -2027,13 +1886,11 @@
     "    curve(20, 50)"
    ],
    "levels": {
-    "l1": "win",
     "l2": "win"
    },
    "later_levels": null,
    "later_levels_ok": null,
    "tests_passed": {
-    "followLine:straight-in-time": true,
     "followLine:bend-left": true,
     "followLine:bend-right": true
    },
@@ -2058,26 +1915,20 @@
     "    curve(50, 20)"
    ],
    "levels": {
-    "l1": "fail_hit",
     "l2": "fail_area"
    },
    "later_levels": null,
    "later_levels_ok": null,
    "tests_passed": {
-    "followLine:straight-in-time": false,
     "followLine:bend-left": false,
     "followLine:bend-right": false
    },
    "tests_failed_why": {
-    "followLine:straight-in-time": [
-     "the robot did not reach \"Goal t2\" within 20 s",
-     "the robot bumped into the edge of the floor after 2.5 s"
-    ],
     "followLine:bend-left": [
-     "the robot did not reach \"Goal t2\" within 40 s"
+     "the robot did not reach \"Goal t2\" within 60 s"
     ],
     "followLine:bend-right": [
-     "the robot did not reach \"Goal t2\" within 40 s"
+     "the robot did not reach \"Goal t2\" within 60 s"
     ]
    },
    "verdict": "caught",
@@ -2100,26 +1951,20 @@
     "    curve(20, 50)"
    ],
    "levels": {
-    "l1": "fail_hit",
     "l2": "fail_hit"
    },
    "later_levels": null,
    "later_levels_ok": null,
    "tests_passed": {
-    "followLine:straight-in-time": false,
     "followLine:bend-left": false,
     "followLine:bend-right": false
    },
    "tests_failed_why": {
-    "followLine:straight-in-time": [
-     "the robot did not reach \"Goal t2\" within 20 s",
-     "the robot bumped into the edge of the floor after 2.5 s"
-    ],
     "followLine:bend-left": [
-     "the robot did not reach \"Goal t2\" within 40 s"
+     "the robot did not reach \"Goal t2\" within 60 s"
     ],
     "followLine:bend-right": [
-     "the robot did not reach \"Goal t2\" within 40 s"
+     "the robot did not reach \"Goal t2\" within 60 s"
     ]
    },
    "verdict": "caught",
@@ -2142,13 +1987,11 @@
     "    curve(25, 10)"
    ],
    "levels": {
-    "l1": "win",
     "l2": "win"
    },
    "later_levels": null,
    "later_levels_ok": null,
    "tests_passed": {
-    "followLine:straight-in-time": true,
     "followLine:bend-left": true,
     "followLine:bend-right": true
    },
@@ -2173,27 +2016,21 @@
     "    drive(40)"
    ],
    "levels": {
-    "l1": "fail_hit",
     "l2": "fail_hit"
    },
    "later_levels": null,
    "later_levels_ok": null,
    "tests_passed": {
-    "followLine:straight-in-time": false,
     "followLine:bend-left": false,
     "followLine:bend-right": false
    },
    "tests_failed_why": {
-    "followLine:straight-in-time": [
-     "the robot did not reach \"Goal t2\" within 20 s",
-     "the robot bumped into the edge of the floor after 19.6 s"
-    ],
     "followLine:bend-left": [
-     "the robot did not reach \"Goal t2\" within 40 s",
+     "the robot did not reach \"Goal t2\" within 60 s",
      "the robot bumped into the edge of the floor after 10.3 s"
     ],
     "followLine:bend-right": [
-     "the robot did not reach \"Goal t2\" within 40 s",
+     "the robot did not reach \"Goal t2\" within 60 s",
      "the robot bumped into the edge of the floor after 19.8 s"
     ]
    },
@@ -2219,19 +2056,16 @@
     "    drive(40)"
    ],
    "levels": {
-    "l1": "win",
     "l2": "win"
    },
    "later_levels": {
     "l4": "win_soft",
-    "l5": "win",
     "l6": "win",
     "l7": "win",
     "l8": "win_soft"
    },
    "later_levels_ok": true,
    "tests_passed": {
-    "followLine:straight-in-time": true,
     "followLine:bend-left": true,
     "followLine:bend-right": true
    },
@@ -2258,13 +2092,11 @@
     "    drive(40)"
    ],
    "levels": {
-    "l1": "win",
     "l2": "win"
    },
    "later_levels": null,
    "later_levels_ok": null,
    "tests_passed": {
-    "followLine:straight-in-time": true,
     "followLine:bend-left": true,
     "followLine:bend-right": true
    },
@@ -2291,22 +2123,20 @@
     "    drive(40)"
    ],
    "levels": {
-    "l1": "win",
     "l2": "fail_area"
    },
    "later_levels": null,
    "later_levels_ok": null,
    "tests_passed": {
-    "followLine:straight-in-time": true,
     "followLine:bend-left": false,
     "followLine:bend-right": false
    },
    "tests_failed_why": {
     "followLine:bend-left": [
-     "the robot did not reach \"Goal t2\" within 40 s"
+     "the robot did not reach \"Goal t2\" within 60 s"
     ],
     "followLine:bend-right": [
-     "the robot did not reach \"Goal t2\" within 40 s"
+     "the robot did not reach \"Goal t2\" within 60 s"
     ]
    },
    "verdict": "caught",
@@ -2331,25 +2161,20 @@
     "    drive(40)"
    ],
    "levels": {
-    "l1": "time_limit",
     "l2": "fail_hit"
    },
    "later_levels": null,
    "later_levels_ok": null,
    "tests_passed": {
-    "followLine:straight-in-time": false,
     "followLine:bend-left": false,
     "followLine:bend-right": false
    },
    "tests_failed_why": {
-    "followLine:straight-in-time": [
-     "the robot did not reach \"Goal t2\" within 20 s"
-    ],
     "followLine:bend-left": [
-     "the robot did not reach \"Goal t2\" within 40 s"
+     "the robot did not reach \"Goal t2\" within 60 s"
     ],
     "followLine:bend-right": [
-     "the robot did not reach \"Goal t2\" within 40 s"
+     "the robot did not reach \"Goal t2\" within 60 s"
     ]
    },
    "verdict": "caught",
@@ -2360,7 +2185,7 @@
    "id": "followLine/C-too-slow",
    "function": "followLine",
    "variant": "C-too-slow",
-   "kind": "broken",
+   "kind": "equivalent",
    "of": "followLine/C",
    "fault": "too-slow",
    "why": "half the speed",
@@ -2374,22 +2199,16 @@
     "    drive(20)"
    ],
    "levels": {
-    "l1": "time_limit",
     "l2": "win"
    },
    "later_levels": null,
    "later_levels_ok": null,
    "tests_passed": {
-    "followLine:straight-in-time": false,
     "followLine:bend-left": true,
     "followLine:bend-right": true
    },
-   "tests_failed_why": {
-    "followLine:straight-in-time": [
-     "the robot did not reach \"Goal t2\" within 20 s"
-    ]
-   },
-   "verdict": "caught",
+   "tests_failed_why": {},
+   "verdict": "ok",
    "function_xml": "<block_set xmlns=\"http://de.fhg.iais.roberta.blockly\" robottype=\"edison\" xmlversion=\"3.1\" description=\"\" tags=\"\"><instance x=\"40\" y=\"40\"><block type=\"robProcedures_defnoreturn\" id=\"p5_704\" intask=\"true\"><mutation declare=\"false\"/><field name=\"NAME\">followLine</field><statement name=\"STACK\"><block type=\"robControls_ifElse\" id=\"p5_705\" intask=\"true\"><mutation elseif=\"1\" else=\"1\"/><repetitions><value name=\"IF0\"><block type=\"logic_compare\" id=\"p5_706\" intask=\"true\"><field name=\"OP\">LT</field><value name=\"A\"><block type=\"robSensors_light_getSample\" id=\"p5_707\" intask=\"true\"><mutation mode=\"LIGHT\"/><field name=\"MODE\">LIGHT</field><field name=\"SENSORPORT\">LINETRACKER</field><field name=\"SLOT\"/></block></value><value name=\"B\"><block type=\"math_integer\" id=\"p5_708\" intask=\"true\"><field name=\"NUM\">30</field></block></value></block></value><statement name=\"DO0\"><block type=\"robActions_motorDiff_curve\" id=\"p5_709\" intask=\"true\"><field name=\"DIRECTION\">FOREWARD</field><value name=\"POWER_LEFT\"><block type=\"math_integer\" id=\"p5_710\" intask=\"true\"><field name=\"NUM\">7</field></block></value><value name=\"POWER_RIGHT\"><block type=\"math_integer\" id=\"p5_711\" intask=\"true\"><field name=\"NUM\">22</field></block></value></block></statement><value name=\"IF1\"><block type=\"logic_compare\" id=\"p5_712\" intask=\"true\"><field name=\"OP\">GT</field><value name=\"A\"><block type=\"robSensors_light_getSample\" id=\"p5_713\" intask=\"true\"><mutation mode=\"LIGHT\"/><field name=\"MODE\">LIGHT</field><field name=\"SENSORPORT\">LINETRACKER</field><field name=\"SLOT\"/></block></value><value name=\"B\"><block type=\"math_integer\" id=\"p5_714\" intask=\"true\"><field name=\"NUM\">70</field></block></value></block></value><statement name=\"DO1\"><block type=\"robActions_motorDiff_curve\" id=\"p5_715\" intask=\"true\"><field name=\"DIRECTION\">FOREWARD</field><value name=\"POWER_LEFT\"><block type=\"math_integer\" id=\"p5_716\" intask=\"true\"><field name=\"NUM\">22</field></block></value><value name=\"POWER_RIGHT\"><block type=\"math_integer\" id=\"p5_717\" intask=\"true\"><field name=\"NUM\">7</field></block></value></block></statement><statement name=\"ELSE\"><block type=\"robActions_motorDiff_on\" id=\"p5_718\" intask=\"true\"><field name=\"DIRECTION\">FOREWARD</field><value name=\"POWER\"><block type=\"math_integer\" id=\"p5_719\" intask=\"true\"><field name=\"NUM\">20</field></block></value></block></statement></repetitions></block></statement></block></instance></block_set>",
    "program": "<block_set xmlns=\"http://de.fhg.iais.roberta.blockly\" robottype=\"edison\" xmlversion=\"3.1\" description=\"\" tags=\"\"><instance x=\"40\" y=\"40\"><block type=\"robControls_start\" id=\"p5_701\" intask=\"true\" deletable=\"false\"><mutation declare=\"false\"/><field name=\"DEBUG\">FALSE</field></block><block type=\"robControls_loopForever\" id=\"p5_702\" intask=\"true\"><statement name=\"DO\"><block type=\"robProcedures_callnoreturn\" id=\"p5_703\" intask=\"true\"><mutation name=\"followLine\"/></block></statement></block></instance><instance x=\"420\" y=\"40\"><block type=\"robProcedures_defnoreturn\" id=\"p5_704\" intask=\"true\"><mutation declare=\"false\"/><field name=\"NAME\">followLine</field><statement name=\"STACK\"><block type=\"robControls_ifElse\" id=\"p5_705\" intask=\"true\"><mutation elseif=\"1\" else=\"1\"/><repetitions><value name=\"IF0\"><block type=\"logic_compare\" id=\"p5_706\" intask=\"true\"><field name=\"OP\">LT</field><value name=\"A\"><block type=\"robSensors_light_getSample\" id=\"p5_707\" intask=\"true\"><mutation mode=\"LIGHT\"/><field name=\"MODE\">LIGHT</field><field name=\"SENSORPORT\">LINETRACKER</field><field name=\"SLOT\"/></block></value><value name=\"B\"><block type=\"math_integer\" id=\"p5_708\" intask=\"true\"><field name=\"NUM\">30</field></block></value></block></value><statement name=\"DO0\"><block type=\"robActions_motorDiff_curve\" id=\"p5_709\" intask=\"true\"><field name=\"DIRECTION\">FOREWARD</field><value name=\"POWER_LEFT\"><block type=\"math_integer\" id=\"p5_710\" intask=\"true\"><field name=\"NUM\">7</field></block></value><value name=\"POWER_RIGHT\"><block type=\"math_integer\" id=\"p5_711\" intask=\"true\"><field name=\"NUM\">22</field></block></value></block></statement><value name=\"IF1\"><block type=\"logic_compare\" id=\"p5_712\" intask=\"true\"><field name=\"OP\">GT</field><value name=\"A\"><block type=\"robSensors_light_getSample\" id=\"p5_713\" intask=\"true\"><mutation mode=\"LIGHT\"/><field name=\"MODE\">LIGHT</field><field name=\"SENSORPORT\">LINETRACKER</field><field name=\"SLOT\"/></block></value><value name=\"B\"><block type=\"math_integer\" id=\"p5_714\" intask=\"true\"><field name=\"NUM\">70</field></block></value></block></value><statement name=\"DO1\"><block type=\"robActions_motorDiff_curve\" id=\"p5_715\" intask=\"true\"><field name=\"DIRECTION\">FOREWARD</field><value name=\"POWER_LEFT\"><block type=\"math_integer\" id=\"p5_716\" intask=\"true\"><field name=\"NUM\">22</field></block></value><value name=\"POWER_RIGHT\"><block type=\"math_integer\" id=\"p5_717\" intask=\"true\"><field name=\"NUM\">7</field></block></value></block></statement><statement name=\"ELSE\"><block type=\"robActions_motorDiff_on\" id=\"p5_718\" intask=\"true\"><field name=\"DIRECTION\">FOREWARD</field><value name=\"POWER\"><block type=\"math_integer\" id=\"p5_719\" intask=\"true\"><field name=\"NUM\">20</field></block></value></block></statement></repetitions></block></statement></block></instance></block_set>"
   },
@@ -2411,23 +2230,21 @@
     "    drive(40)"
    ],
    "levels": {
-    "l1": "win",
     "l2": "fail_hit"
    },
    "later_levels": null,
    "later_levels_ok": null,
    "tests_passed": {
-    "followLine:straight-in-time": true,
     "followLine:bend-left": false,
     "followLine:bend-right": false
    },
    "tests_failed_why": {
     "followLine:bend-left": [
-     "the robot did not reach \"Goal t2\" within 40 s",
+     "the robot did not reach \"Goal t2\" within 60 s",
      "the robot bumped into the edge of the floor after 10.4 s"
     ],
     "followLine:bend-right": [
-     "the robot did not reach \"Goal t2\" within 40 s",
+     "the robot did not reach \"Goal t2\" within 60 s",
      "the robot bumped into the edge of the floor after 19.8 s"
     ]
    },
@@ -2451,12 +2268,10 @@
     "    followLine()"
    ],
    "levels": {
-    "l1": "win",
     "l2": "win",
     "l4": "win_soft"
    },
    "later_levels": {
-    "l5": "win",
     "l6": "win",
     "l7": "win",
     "l8": "win_soft"
@@ -2624,12 +2439,10 @@
     "    followLine()"
    ],
    "levels": {
-    "l1": "win",
     "l2": "win",
     "l4": "win_soft"
    },
    "later_levels": {
-    "l5": "win",
     "l6": "win",
     "l7": "win",
     "l8": "win_soft"
@@ -2797,12 +2610,10 @@
     "    followLine()"
    ],
    "levels": {
-    "l1": "win",
     "l2": "win",
     "l4": "win_soft"
    },
    "later_levels": {
-    "l5": "win",
     "l6": "win",
     "l7": "win",
     "l8": "win_soft"
@@ -2970,7 +2781,6 @@
     "    stopAtWall()"
    ],
    "levels": {
-    "l1": "win",
     "l2": "win",
     "l4": "win_soft",
     "l5": "win"
@@ -3205,7 +3015,6 @@
     "    stopAtWall()"
    ],
    "levels": {
-    "l1": "win",
     "l2": "win",
     "l4": "win_soft",
     "l5": "win"
@@ -3440,7 +3249,6 @@
     "    stopAtWall()"
    ],
    "levels": {
-    "l1": "win",
     "l2": "win",
     "l4": "win_soft",
     "l5": "win"
@@ -3680,10 +3488,8 @@
     "    driveInTheDark()"
    ],
    "levels": {
-    "l1": "win",
     "l2": "win",
     "l4": "win_soft",
-    "l5": "win",
     "l6": "win"
    },
    "later_levels": {
@@ -3890,10 +3696,8 @@
     "    driveInTheDark()"
    ],
    "levels": {
-    "l1": "win",
     "l2": "win",
     "l4": "win_soft",
-    "l5": "win",
     "l6": "win"
    },
    "later_levels": {
@@ -4100,10 +3904,8 @@
     "    driveInTheDark()"
    ],
    "levels": {
-    "l1": "win",
     "l2": "win",
     "l4": "win_soft",
-    "l5": "win",
     "l6": "win"
    },
    "later_levels": {
@@ -4311,10 +4113,8 @@
     "    avoidWalls()"
    ],
    "levels": {
-    "l1": "win",
     "l2": "win",
     "l4": "win_soft",
-    "l5": "win",
     "l6": "win",
     "l7": "win",
     "l8": "win_soft"
@@ -4530,10 +4330,8 @@
     "    avoidWalls()"
    ],
    "levels": {
-    "l1": "win",
     "l2": "win",
     "l4": "win_soft",
-    "l5": "win",
     "l6": "win",
     "l7": "win",
     "l8": "win_soft"
@@ -4749,10 +4547,8 @@
     "    avoidWalls()"
    ],
    "levels": {
-    "l1": "win",
     "l2": "win",
     "l4": "win_soft",
-    "l5": "win",
     "l6": "win",
     "l7": "win",
     "l8": "win_soft"
@@ -4950,53 +4746,39 @@
   }
  ],
  "level_check": {
-  "l1": {
-   "combinations": 3,
-   "combinations_won": 3,
-   "equivalents": 4,
-   "equivalents_won": 4,
-   "equivalents_lost": []
-  },
   "l2": {
    "combinations": 3,
    "combinations_won": 3,
-   "equivalents": 4,
-   "equivalents_won": 4,
+   "equivalents": 6,
+   "equivalents_won": 6,
    "equivalents_lost": []
   },
   "l4": {
    "combinations": 9,
    "combinations_won": 9,
-   "equivalents": 4,
-   "equivalents_won": 4,
-   "equivalents_lost": []
-  },
-  "l5": {
-   "combinations": 27,
-   "combinations_won": 27,
-   "equivalents": 4,
-   "equivalents_won": 4,
+   "equivalents": 6,
+   "equivalents_won": 6,
    "equivalents_lost": []
   },
   "l6": {
-   "combinations": 81,
-   "combinations_won": 81,
-   "equivalents": 4,
-   "equivalents_won": 4,
+   "combinations": 27,
+   "combinations_won": 27,
+   "equivalents": 6,
+   "equivalents_won": 6,
    "equivalents_lost": []
   },
   "l7": {
-   "combinations": 243,
-   "combinations_won": 243,
-   "equivalents": 4,
-   "equivalents_won": 4,
+   "combinations": 81,
+   "combinations_won": 81,
+   "equivalents": 6,
+   "equivalents_won": 6,
    "equivalents_lost": []
   },
   "l8": {
-   "combinations": 243,
-   "combinations_won": 243,
-   "equivalents": 4,
-   "equivalents_won": 1,
+   "combinations": 81,
+   "combinations_won": 81,
+   "equivalents": 6,
+   "equivalents_won": 3,
    "equivalents_lost": [
     "followLine/A-swapped",
     "followLine/B-swapped",

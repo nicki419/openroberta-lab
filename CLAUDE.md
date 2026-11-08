@@ -80,8 +80,8 @@ programs, which implements the project goal. It covers:
 - **simulation tests:** the robot drives through a **drawn world on the Lab's own simulator**: the program compiled
   for the simulator (`sourceSimulation`), run by the simulator's interpreter, Edison and objects, offscreen and in
   virtual time, in the Tests tab (`OpenRobertaWeb/src/app/nepotest/nepoTest.simRun.ts`). A **simulation world** (lines
-  to follow, obstacles, walls and tunnels, goal and fail areas, named starts) holds many tests: each is set up (a start, the past: claps,
-  keys, variables), runs the whole program (for N s, or until it touches an area) and checks where the robot goes
+  to follow, obstacles, walls and tunnels, goal and fail areas, named starts) holds many tests: each is set up (a start; until 2026-11-08 also the
+  past: claps, keys, variables), runs the whole program (for N s, or until it touches an area) and checks where the robot goes
   (reaches, never touches, ends in, never bumps into), what it does
   (`nepoTest.simBehaviour.ts`: from a time on it always turns left; whenever it sees the line, it turns left; within
   500 ms after each clap, its LED is on; measured in every frame from its real motion, LEDs and sound; driving forward or backward over half a
@@ -108,6 +108,9 @@ the block vocabulary (the contract between `nepoTest.blocks.ts` and `NepoTest/ne
 saved inside the program XML, and how results link back to blocks. Read it before changing the Tests tab or adding a test block.
 The given / when / then tests are switched off in the toolbox (`BDD_TESTS = false` in `nepoTest.blocks.ts`): it offers only
 the blocks of simulation worlds. Their code is kept, and suites that have such tests still load and run.
+The set-up blocks (claps, keys, variables before a test of a world) are switched off the same way since the pilot study
+(`SET_UP_BLOCKS = false`, 2026-11-08): a test only says where the robot starts, the AI writes no set-up, and older suites
+keep theirs. A new test runs for at most 60 s.
 
 **`docs/ai/edpy-test-engine.md`** documents the framework's engine (`NepoTest/nepotest/engine`). The engine runs
 generated EdPy under CPython with EdPy semantics: 16-bit ints, floor division, constant folding, a virtual clock, and
@@ -123,8 +126,10 @@ latched sensors from EdPy's library. The document also lists which behaviour is 
   appended to a `.jsonl` file per participant. Every event says whether the AI test assistant was on.
 - **The study's source of truth** (`evaluation/truth/`): per level, the function the learner fixes, its correct and broken
   versions, and reference tests that tell them apart. The files are committed and used as they are; `truth.json` is for analysis.
-- **The study's code per level** (`levels.code.ts`): a level's `code` (its broken function, in two versions) is added to the
-  learner's program when the level is played; the version is chosen per program in the Edit menu ("Level code: version 1/2").
+- **The study's code per level** (`levels.code.ts`): a level's `code` (its broken function, in two versions, and any functions it
+  brings correct, `given`) is added to the learner's program when the level is played; the version is chosen per program in the Edit
+  menu ("Level code: version 1/2"). Since the pilot study (2026-11-08) the set has five levels (L2, L4, L6, L7, L8): L1 and L5 were taken
+  out, and L6 brings `driveInTheDark` correct.
 
 Read it before changing the simulator's level hooks, the level format or the telemetry. `levels/README.md` is the
 designers' guide.

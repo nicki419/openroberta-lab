@@ -27,13 +27,15 @@ def kind(v):
 
 
 def versions():
-    """the versions with their programs: truth.json once built, else the phase 5 corpus"""
+    """the versions with their programs: truth.json once built, else the phase 5 corpus; their kinds always from the corpus (judged again on the
+    levels the study plays: phase 5's rejudge.py, 2026-11-08)"""
+    vs = json.load(open(os.path.join(HERE, '..', 'phase5', 'corpus', 'versions.json'), encoding='utf-8'))
+    kinds = {v['id']: kind(v) for v in vs}
     path = os.path.join(HERE, 'truth.json')
     if os.path.exists(path):
         t = json.load(open(path, encoding='utf-8'))
-        return [{'id': v['id'], 'function': v['function'], 'kind': v['kind'], 'xml': v['program']} for v in t['versions']]
-    vs = json.load(open(os.path.join(HERE, '..', 'phase5', 'corpus', 'versions.json'), encoding='utf-8'))
-    return [{'id': v['id'], 'function': v['function'], 'kind': kind(v), 'xml': v['xml']} for v in vs]
+        return [{'id': v['id'], 'function': v['function'], 'kind': kinds[v['id']], 'xml': v['program']} for v in t['versions']]
+    return [{'id': v['id'], 'function': v['function'], 'kind': kinds[v['id']], 'xml': v['xml']} for v in vs]
 
 
 def run(only):

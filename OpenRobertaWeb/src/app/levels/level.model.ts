@@ -10,9 +10,11 @@
  *    world: {background: 'peach', size, starts: [one start], items: [...]},   the world of the Tests tab (nepoTest.sim), with soft goal
  *                                    areas and obstacles, walls or tunnels with failOnHit; size: optional, the floor's {w, h} in cm (none: 300 x 200)
  *    view: {x, y, scale},            the designer's zoom
- *    code: {function, calls, versions: {<name>: <block_set>}}}   optional: the study's code of the level (levels.code): the function
- *                                    the learner fixes here, in versions (one is chosen per program), and the function the main loop called
- *                                    before (null: none, the first level with code); written from evaluation/truth (write_level_code.py)
+ *    code: {function, calls, versions: {<name>: <block_set>}, given: [{function, xml}]}}   optional: the study's code of the level
+ *                                    (levels.code): the function the learner fixes here, in versions (one is chosen per program), the function
+ *                                    the main loop called before (null: none, the first level with code), and optionally functions that come
+ *                                    with it as they are, correct, in every version (since 2026-11-08: L6 brings driveInTheDark, the code of L5,
+ *                                    which was taken out); written from evaluation/truth (write_level_code.py)
  */
 import * as SIM from 'nepoTest.sim';
 import * as SIMRUN from 'nepoTest.simRun';
@@ -37,6 +39,7 @@ export interface LevelCode {
     function: string; // its name
     calls: string; // the function the main loop called before this level (null: none)
     versions: { [name: string]: string }; // the version's name ("1", "2") → the block_set XML of the function's definition
+    given?: { function: string; xml: string }[]; // functions added with it, before it, the same in every version (correct: the learner doesn't fix them)
 }
 
 /** a level of a set: its id is "set folder/file name" (progress refers to it) */
@@ -100,7 +103,12 @@ function parseCode(raw: any): LevelCode {
     if (!Object.keys(versions).length) {
         return null;
     }
-    return { function: raw.function, calls: typeof raw.calls === 'string' && raw.calls ? raw.calls : null, versions: versions };
+    const code: LevelCode = { function: raw.function, calls: typeof raw.calls === 'string' && raw.calls ? raw.calls : null, versions: versions };
+    const given = (Array.isArray(raw.given) ? raw.given : []).filter(
+        (g: any) => g && typeof g.function === 'string' && g.function && typeof g.xml === 'string' && g.xml.indexOf('robProcedures_defnoreturn') >= 0
+    );
+    given.length && (code.given = given.map((g: any) => ({ function: g.function, xml: g.xml })));
+    return code;
 }
 
 function text(value: any): string {

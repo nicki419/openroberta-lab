@@ -82,6 +82,27 @@
    "kind": "broken",
    "fault": "no-handover",
    "of": "followInTheDark/C"
+  },
+  {
+   "id": "followInTheDark/A-swapped",
+   "kind": "broken",
+   "fault": "swapped",
+   "of": "followInTheDark/A",
+   "added": "2026-11-08"
+  },
+  {
+   "id": "followInTheDark/B-swapped",
+   "kind": "broken",
+   "fault": "swapped",
+   "of": "followInTheDark/B",
+   "added": "2026-11-08"
+  },
+  {
+   "id": "followInTheDark/C-swapped",
+   "kind": "broken",
+   "fault": "swapped",
+   "of": "followInTheDark/C",
+   "added": "2026-11-08"
   }
  ],
  "runs": {
@@ -544,6 +565,123 @@
       "the robot did not reach \"Goal 1\" within 30 s",
       "the robot bumped into \"Tunnel\" after 6 s"
      ]
+    },
+    {
+     "world": "A wall at the end of the line",
+     "test": "Stops at the wall on the line",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "followInTheDark/A-swapped": {
+   "key": "followInTheDark/A-swapped",
+   "tests": [
+    {
+     "world": "A line to a goal in the light",
+     "test": "On the line in the light, it follows it to the goal",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Beside the line in the light",
+     "test": "Started beside the line in the light, it finds it",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "On the line in a dark tunnel",
+     "test": "On the line in the dark, it follows it to the goal",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 30 s",
+      "the robot bumped into \"Tunnel\" after 3 s"
+     ]
+    },
+    {
+     "world": "Beside the line in a dark tunnel",
+     "test": "Beside the line in the dark, it finds it and follows it",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A wall at the end of the line",
+     "test": "Stops at the wall on the line",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "followInTheDark/B-swapped": {
+   "key": "followInTheDark/B-swapped",
+   "tests": [
+    {
+     "world": "A line to a goal in the light",
+     "test": "On the line in the light, it follows it to the goal",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Beside the line in the light",
+     "test": "Started beside the line in the light, it finds it",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "On the line in a dark tunnel",
+     "test": "On the line in the dark, it follows it to the goal",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 30 s",
+      "the robot bumped into \"Tunnel\" after 2.9 s"
+     ]
+    },
+    {
+     "world": "Beside the line in a dark tunnel",
+     "test": "Beside the line in the dark, it finds it and follows it",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 30 s",
+      "the robot bumped into \"Tunnel\" after 3.1 s"
+     ]
+    },
+    {
+     "world": "A wall at the end of the line",
+     "test": "Stops at the wall on the line",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "followInTheDark/C-swapped": {
+   "key": "followInTheDark/C-swapped",
+   "tests": [
+    {
+     "world": "A line to a goal in the light",
+     "test": "On the line in the light, it follows it to the goal",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Beside the line in the light",
+     "test": "Started beside the line in the light, it finds it",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "On the line in a dark tunnel",
+     "test": "On the line in the dark, it follows it to the goal",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 30 s",
+      "the robot bumped into \"Tunnel\" after 3 s"
+     ]
+    },
+    {
+     "world": "Beside the line in a dark tunnel",
+     "test": "Beside the line in the dark, it finds it and follows it",
+     "outcome": "passed",
+     "failed": []
     },
     {
      "world": "A wall at the end of the line",

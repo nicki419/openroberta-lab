@@ -94,6 +94,34 @@
    "kind": "broken",
    "fault": "straight-off",
    "of": "followLine/C"
+  },
+  {
+   "id": "followLine/A-swapped",
+   "kind": "equivalent",
+   "fault": "swapped",
+   "of": "followLine/A",
+   "added": "2026-11-08"
+  },
+  {
+   "id": "followLine/B-swapped",
+   "kind": "equivalent",
+   "fault": "swapped",
+   "of": "followLine/B",
+   "added": "2026-11-08"
+  },
+  {
+   "id": "followLine/B-too-slow",
+   "kind": "equivalent",
+   "fault": "too-slow",
+   "of": "followLine/B",
+   "added": "2026-11-08"
+  },
+  {
+   "id": "followLine/C-swapped",
+   "kind": "equivalent",
+   "fault": "swapped",
+   "of": "followLine/C",
+   "added": "2026-11-08"
   }
  ],
  "runs": {
@@ -360,6 +388,82 @@
      "failed": [
       "the robot did not turn left: it drove forward, straight (13.95 cm/s), from 0.5 to 5 s"
      ]
+    }
+   ]
+  },
+  "followLine/A-swapped": {
+   "key": "followLine/A-swapped",
+   "tests": [
+    {
+     "world": "A plain floor in bright light",
+     "test": "In bright light it keeps curving right",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not turn right: it drove forward, turning left (8.66 cm/s, 86\u00b0/s), from 1 to 8 s"
+     ]
+    },
+    {
+     "world": "A tunnel in dim light",
+     "test": "In the dark tunnel, it curves left",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "followLine/B-swapped": {
+   "key": "followLine/B-swapped",
+   "tests": [
+    {
+     "world": "A plain floor in bright light",
+     "test": "In bright light it keeps curving right",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not turn right: it drove forward, turning left (12.13 cm/s, 86\u00b0/s), from 1 to 8 s"
+     ]
+    },
+    {
+     "world": "A tunnel in dim light",
+     "test": "In the dark tunnel, it curves left",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "followLine/B-too-slow": {
+   "key": "followLine/B-too-slow",
+   "tests": [
+    {
+     "world": "A plain floor in bright light",
+     "test": "In bright light it keeps curving right",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A tunnel in dim light",
+     "test": "In the dark tunnel, it curves left",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not turn left: it drove forward, turning right (6.14 cm/s, 43\u00b0/s), from 0.5 to 5 s"
+     ]
+    }
+   ]
+  },
+  "followLine/C-swapped": {
+   "key": "followLine/C-swapped",
+   "tests": [
+    {
+     "world": "A plain floor in bright light",
+     "test": "In bright light it keeps curving right",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not turn right: it drove forward, turning left (10.39 cm/s, 86\u00b0/s), from 1 to 8 s"
+     ]
+    },
+    {
+     "world": "A tunnel in dim light",
+     "test": "In the dark tunnel, it curves left",
+     "outcome": "passed",
+     "failed": []
     }
    ]
   }

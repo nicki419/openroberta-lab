@@ -15,12 +15,14 @@ broken version of that level's function. A good set of tests passes on every cor
 | `browser.py`, `browser/` | the headless Chromes (`chrome.sh <port>`, `boot.sh`, the CDP driver `cdp.mjs`) and the page scripts |
 | `judge.py`, `browser/judge.js` | plays a program on a level, headless, and decides it as the level player does (win, soft win, fail area, bump, time) |
 | `verify.py` | decides the corpus on the levels: `corpus/versions.json`, the programs as Lab exports in `corpus/programs/`. Decided again on 2026-11-07 on the loosened levels (L8 added to `followInTheDark`: its swapped versions are broken now); rounds 1 and 2 used the corpus as it was, `corpus/versions-rounds-1-2.json` (`compare.py` reads that one) |
+| `rejudge.py` | decides the corpus again from the runs `verify.py` stored, on the levels in `corpus.py` (2026-11-08: the pilot study took L1 and L5 out; `followLine/A-too-slow` and `C-too-slow` lost only L1 and are equivalent now; `driveInTheDark` keeps its judgement on L5, as L6 brings it correct: `corpus.GIVEN`) |
+| `recount.py` | rounds 1 to 4 counted again on the five levels from their stored tests (`recount-5-levels.md`), held to the corpus as it is now: equivalent versions must pass, the requests from a version no longer broken left out, `driveInTheDark` counted apart |
 | `corpus_doc.py` | `corpus/CORPUS.md`: every version as pseudocode, with what the levels said |
 | `sentences.py` | the learner's sentence per function, precise and vague |
 | `generate.py`, `browser/gen.js` | the full pipeline: the assistant's analyze and generate through the running Lab, as `levels.aiAssistant` `write()` (`results/generated/`) |
 | `baseline.py`, `browser/check_plain.js` | the plain pipeline: one call, the same model, effort, facts, knowledge and format checks, no testing strategy (`results/plain/`) |
-| `evaluate.py`, `browser/eval.js` | every request's tests on every version of its function (`results/evaluated/`) |
-| `report.py` | the measures (`results/report.json`, tables) |
+| `evaluate.py`, `browser/eval.js` | every request's tests on every version of its function (`results/evaluated/`): the correct, broken and (since 2026-11-08) equivalent ones; `--missing` adds the runs an existing file lacks |
+| `report.py` | the measures (`results/report.json`, tables); an equivalent version counts as correct (every test should pass it), as in the source of truth, since 2026-11-08 |
 | `compare.py` | two rounds compared, per pipeline, for the versions the tuning looked at and the kept-out ones, with sign tests (`results-r2/compare.md`) |
 | `check_recipes.py` | the tunnel recipes of the context pack (`tests.md`), drawn by their numbers, on every version of the tunnel functions (`results-recipes.json`): every correct version must pass them |
 | `check_round4.py` | round 4's measurements (`results-round4.json`): a stop at a wall the robot drives up to, with and without an area before the wall it ends in, on every version; tunnels that bend by 30° to 90° in steps 20 to 60 cm apart, on the functions that turn away from walls in the dark |

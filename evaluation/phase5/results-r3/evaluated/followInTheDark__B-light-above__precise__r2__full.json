@@ -82,6 +82,27 @@
    "kind": "broken",
    "fault": "no-handover",
    "of": "followInTheDark/C"
+  },
+  {
+   "id": "followInTheDark/A-swapped",
+   "kind": "broken",
+   "fault": "swapped",
+   "of": "followInTheDark/A",
+   "added": "2026-11-08"
+  },
+  {
+   "id": "followInTheDark/B-swapped",
+   "kind": "broken",
+   "fault": "swapped",
+   "of": "followInTheDark/B",
+   "added": "2026-11-08"
+  },
+  {
+   "id": "followInTheDark/C-swapped",
+   "kind": "broken",
+   "fault": "swapped",
+   "of": "followInTheDark/C",
+   "added": "2026-11-08"
   }
  ],
  "runs": {
@@ -478,6 +499,93 @@
      "failed": [
       "the robot did not reach \"Goal 1\" within 15 s"
      ]
+    }
+   ]
+  },
+  "followInTheDark/A-swapped": {
+   "key": "followInTheDark/A-swapped",
+   "tests": [
+    {
+     "world": "A line to a goal in the light",
+     "test": "On the line in the light, it follows it to the goal",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Two dark tunnels with a line",
+     "test": "Deep in the dark, it follows the line",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Two dark tunnels with a line",
+     "test": "Dim light, it follows the line's white band",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A tunnel in the dark",
+     "test": "Drives straight on in the dim tunnel",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "followInTheDark/B-swapped": {
+   "key": "followInTheDark/B-swapped",
+   "tests": [
+    {
+     "world": "A line to a goal in the light",
+     "test": "On the line in the light, it follows it to the goal",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Two dark tunnels with a line",
+     "test": "Deep in the dark, it follows the line",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Two dark tunnels with a line",
+     "test": "Dim light, it follows the line's white band",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A tunnel in the dark",
+     "test": "Drives straight on in the dim tunnel",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "followInTheDark/C-swapped": {
+   "key": "followInTheDark/C-swapped",
+   "tests": [
+    {
+     "world": "A line to a goal in the light",
+     "test": "On the line in the light, it follows it to the goal",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Two dark tunnels with a line",
+     "test": "Deep in the dark, it follows the line",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Two dark tunnels with a line",
+     "test": "Dim light, it follows the line's white band",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A tunnel in the dark",
+     "test": "Drives straight on in the dim tunnel",
+     "outcome": "passed",
+     "failed": []
     }
    ]
   }

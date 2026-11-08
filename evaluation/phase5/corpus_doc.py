@@ -31,7 +31,7 @@ def main():
           'program is its function and the functions of the levels before, each handing over to the one before; the main loop calls the newest:',
           '', '```', 'main:', '  forever:', '    <the newest function>()', '```', '',
           'A **correct** version beats its levels and every level before (the other functions in their reference version A). A **broken** version '
-          'loses one of its levels; a fault that still beats its levels is **equivalent** and isn\'t used. "Later levels" plays a correct version with '
+          'loses one of its levels; a fault that still beats its levels is **equivalent**: every test should pass it, as a correct version (since 2026-11-08; before, phase 5 left it out). "Later levels" plays a correct version with '
           'the later functions in their reference version.', '']
     for fn in corpus.CHAIN:
         md += ['## %s (%s)' % (fn, ', '.join(l.upper() for l in corpus.LEVELS_OF[fn])), '']

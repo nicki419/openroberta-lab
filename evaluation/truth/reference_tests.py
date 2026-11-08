@@ -57,25 +57,20 @@ def never_bumps(item=None):
 
 # ------------------------------------------------------------------------------------------------ the worlds, shared by the levels
 
-def straight_line_in_time():
-    """L1's line and goal, with L1's time limit (20 s): the line follower must be fast enough"""
-    return world('A straight line, in time', [start('A', 12, 51.92)],
-                 [line('t1', [[16.74, 51.83], [132.26, 51.66]]), goal('t2', 132.28, 40.33, 10.65, 21.18)],
-                 [test('Follows a straight line to its end within 20 s', 'A', [reaches('t2'), never_bumps()],
-                       'Given the robot on a straight line of 115 cm, when the program runs, then it reaches the goal at the line\'s end within 20 s '
-                       '(the time limit of L1).',
-                       ['light-above', 'one-turn', 'too-slow', 'straight-off'], until='t2', max_ms=20000)])
+# (until 2026-11-08 also "a straight line in time": L1's line, goal and time limit of 20 s, for "too slow". The pilot study took L1 out, and L2
+# has no time limit: a slow line follower beats it, so it is equivalent, and no test may fail it.)
 
 
 def bend(direction, y):
-    """a line with a bend of 30 cm to the left (up) or to the right (down), the goal over its end; a robot that goes straight passes beside it"""
+    """a line with a bend of 30 cm to the left (up) or to the right (down), the goal over its end; a robot that goes straight passes beside it.
+    At most 60 s (40 s until 2026-11-08): the slowest equivalent line follower (followLine/A-too-slow) takes about 40 s."""
     s = -1 if direction == 'left' else 1
     return world('A bend to the %s' % direction, [start('A', 20, y)],
                  [line('t1', [[25, y], [90, y], [130, y + s * 30], [200, y + s * 30]], smooth=True), goal('t2', 192, y + s * 30 - 10, 12, 20)],
                  [test('Follows a bend to the %s' % direction, 'A', [reaches('t2'), never_bumps()],
                        'Given the robot on a line that bends to the %s, when the program runs, then it follows the line round the bend to the goal at '
                        'its end.' % direction,
-                       ['light-above', 'one-turn', 'straight-off'], until='t2', max_ms=40000)])
+                       ['light-above', 'one-turn', 'straight-off'], until='t2', max_ms=60000)])
 
 
 def wall_on_the_line():
@@ -155,7 +150,7 @@ def line_in_the_dark(direction, targets):
 
 # the tests' ids per function, in the order of their worlds (each world has one test): "<function>:<id>" names a test for good
 IDS = {
-    'followLine': ['straight-in-time', 'bend-left', 'bend-right'],
+    'followLine': ['bend-left', 'bend-right'],
     'stopAtWall': ['wall-ahead', 'no-wall'],
     'driveInTheDark': ['through-tunnel', 'start-in-dark', 'bend-in-light'],
     'avoidWalls': ['tunnel-bends-right', 'tunnel-bends-left', 'through-tunnel'],
@@ -175,7 +170,7 @@ def reference_tests():
 
 def _worlds():
     return {
-        'followLine': [straight_line_in_time(), bend('left', 60), bend('right', 140)],
+        'followLine': [bend('left', 60), bend('right', 140)],
         'stopAtWall': [wall_on_the_line(), line_without_wall()],
         'driveInTheDark': [through_the_tunnel(['never-dark', 'floor-sensor', 'negated', 'curves', 'no-handover']),
                            starts_in_the_dark(['never-dark', 'floor-sensor', 'negated', 'curves']),
@@ -213,4 +208,5 @@ def bend_in_the_light():
     t['scenario'] = ('Given the robot on a line in the light that bends to the left, when the program runs, then it follows the line round the bend '
                      'to the goal (it drives straight only in the dark).')
     t['targets'] = ['negated', 'no-handover']
+    t['max_time_ms'] = 40000  # as verified on 2026-11-07 (the bend of followLine has 60 s since 2026-11-08)
     return w

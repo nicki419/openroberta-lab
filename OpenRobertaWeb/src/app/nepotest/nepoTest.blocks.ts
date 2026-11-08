@@ -8,7 +8,9 @@
  * tests "nepoTest_simcase" (set up: a start and the past, the blocks of the category "Set up"; run: the whole program; check: "nepoTest_check_*"
  * blocks, of the category "Checks"; the labels "set up:" and "check:" have the colours of their categories). The tests and checks refer to the world's starts and items by their ids (fields START, UNTIL, AREA, OBSTACLE) and show their
  * names: refreshWorldLabels keeps the names up to date. The tests of given / when / then are switched off (BDD_TESTS): the toolbox offers only
- * the blocks of simulation worlds, but suites that have such tests still load and run.
+ * the blocks of simulation worlds, but suites that have such tests still load and run. The blocks of "Set up" (claps, keys, variables before a
+ * test of a world) are switched off too (SET_UP_BLOCKS, the pilot study, 2026-11-08): a test only starts the robot somewhere; a test of an older
+ * suite that has them still shows, runs and saves them.
  */
 // @ts-ignore (Blockly has no type declarations)
 import * as Blockly from 'blockly';
@@ -69,7 +71,7 @@ const MESSAGES: { [lang: string]: { [key: string]: string } } = {
         NEPOTEST_TESTS_IN_WORLD: 'tests',
         NEPOTEST_SIMCASE: 'test',
         NEPOTEST_SIMCASE_TOOLTIP:
-            'A test in this world. Set up: where the robot starts, and what happened before (claps, keys, variables: the blocks of "Set up"). Run: the whole program. Check: it passes only if every check holds (the blocks of "Checks"). Every ticked test runs when you press "Run tests": untick the box to skip it.',
+            'A test in this world. Set up: where the robot starts. Run: the whole program. Check: it passes only if every check holds (the blocks of "Checks"). Every ticked test runs when you press "Run tests": untick the box to skip it.',
         NEPOTEST_SET_UP: 'set up:',
         NEPOTEST_START_AT: 'the robot starts at',
         NEPOTEST_RUN_LABEL: 'run:',
@@ -100,7 +102,7 @@ const MESSAGES: { [lang: string]: { [key: string]: string } } = {
         NEPOTEST_CHECK_AFTER_MS: 'ms after',
         NEPOTEST_CHECK_AFTER_ROBOT: 'the robot',
         NEPOTEST_CHECK_AFTER_TOOLTIP:
-            'Holds if, after each such event, the robot does this at some moment within this time. Claps and key presses come from the set-up of the test. No such event: nothing is checked.',
+            'Holds if, after each such event, the robot does this at some moment within this time. No such event: nothing is checked.',
         NEPOTEST_CHECK_VARIABLE: 'at the end, variable',
         NEPOTEST_CHECK_VARIABLE_TOOLTIP: 'Holds if this global variable of the program has this value when the run ends.',
         NEPOTEST_DOES_LLED_ON: 'has its left LED on',
@@ -314,7 +316,7 @@ const MESSAGES: { [lang: string]: { [key: string]: string } } = {
         NEPOTEST_TESTS_IN_WORLD: 'Tests',
         NEPOTEST_SIMCASE: 'Test',
         NEPOTEST_SIMCASE_TOOLTIP:
-            'Ein Test in dieser Welt. Vorbereiten: wo der Roboter startet, und was vorher passiert ist (Klatschen, Tasten, Variablen: die Blöcke aus „Vorbereiten“). Ausführen: das ganze Programm. Prüfen: er besteht nur, wenn jede Prüfung stimmt (die Blöcke aus „Prüfungen“). Jeder Test mit Häkchen läuft, wenn du „Tests ausführen“ drückst: nimm das Häkchen weg, um ihn auszulassen.',
+            'Ein Test in dieser Welt. Vorbereiten: wo der Roboter startet. Ausführen: das ganze Programm. Prüfen: er besteht nur, wenn jede Prüfung stimmt (die Blöcke aus „Prüfungen“). Jeder Test mit Häkchen läuft, wenn du „Tests ausführen“ drückst: nimm das Häkchen weg, um ihn auszulassen.',
         NEPOTEST_SET_UP: 'vorbereiten:',
         NEPOTEST_START_AT: 'der Roboter startet bei',
         NEPOTEST_RUN_LABEL: 'ausführen:',
@@ -345,7 +347,7 @@ const MESSAGES: { [lang: string]: { [key: string]: string } } = {
         NEPOTEST_CHECK_AFTER_MS: 'ms nach',
         NEPOTEST_CHECK_AFTER_ROBOT: 'der Roboter',
         NEPOTEST_CHECK_AFTER_TOOLTIP:
-            'Stimmt, wenn der Roboter nach jedem solchen Ereignis irgendwann innerhalb dieser Zeit das tut. Klatschen und Tastendrücke kommen aus der Vorbereitung des Tests. Kein solches Ereignis: es wird nichts geprüft.',
+            'Stimmt, wenn der Roboter nach jedem solchen Ereignis irgendwann innerhalb dieser Zeit das tut. Kein solches Ereignis: es wird nichts geprüft.',
         NEPOTEST_CHECK_VARIABLE: 'am Ende: Variable',
         NEPOTEST_CHECK_VARIABLE_TOOLTIP: 'Stimmt, wenn diese globale Variable des Programms am Ende der Fahrt diesen Wert hat.',
         NEPOTEST_DOES_LLED_ON: 'hat die linke LED an',
@@ -828,6 +830,16 @@ const EVENT_OPTIONS = [
     ['NEPOTEST_EVENT_LINE_END', 'line_end'],
     ['NEPOTEST_EVENT_OBSTACLE', 'obstacle'],
 ];
+/** the conditions and events of checks that only a set-up makes happen (a clap, a key press): without SET_UP_BLOCKS, a test can't have them */
+const SET_UP_ONLY = ['sound', 'play_key', 'rec_key', 'clap', 'key'];
+
+/** a dropdown of these options, without those only a set-up makes happen (SET_UP_ONLY) unless SET_UP_BLOCKS, or the block of an older suite has one */
+function setUpDropdown(options: string[][], validator?: (value: string) => string): any {
+    return new Blockly.FieldDropdown(function (this: any) {
+        const current = this && this.getValue && this.getValue();
+        return options.filter((o) => SET_UP_BLOCKS || SET_UP_ONLY.indexOf(o[1]) < 0 || o[1] === current).map((o) => [msg(o[0]), o[1]]);
+    }, validator);
+}
 
 function functionNames(this: any): string[][] {
     const names = programInfo().functions.map((f) => f.name);
@@ -1023,6 +1035,7 @@ const DEFINITIONS: { [type: string]: any } = {
                 .appendField(colouredLabel(msg('NEPOTEST_SET_UP'), () => Blockly.CAT_SENSOR_RGB))
                 .appendField(msg('NEPOTEST_START_AT')).appendField(new Blockly.FieldDropdown(startMenu), 'START');
             this.appendStatementInput('SETUP').setCheck(GIVEN);
+            this.showSetUp_();
             this.appendDummyInput('RUN_ROW')
                 .appendField(msg('NEPOTEST_RUN_LABEL'))
                 .appendField(msg('NEPOTEST_THE_PROGRAM_RUNS'))
@@ -1041,7 +1054,7 @@ const DEFINITIONS: { [type: string]: any } = {
                 )
                 .appendField(new Blockly.FieldDropdown(goalMenu()), 'UNTIL')
                 .appendField(msg('NEPOTEST_AT_MOST_COMMA'), 'AT_MOST')
-                .appendField(decimal(5), 'SECONDS')
+                .appendField(decimal(60), 'SECONDS')
                 .appendField(msg('NEPOTEST_SECONDS'));
             this.appendStatementInput('CHECKS')
                 .setCheck(SIM_CHECK)
@@ -1055,8 +1068,19 @@ const DEFINITIONS: { [type: string]: any } = {
                 refreshWorldLabels(this);
             }
         },
+        /** the set-up's input: shown only with SET_UP_BLOCKS, or while it has blocks (a test of an older suite) */
+        showSetUp_: function () {
+            const input = this.getInput('SETUP');
+            const visible = SET_UP_BLOCKS || !!this.getInputTargetBlock('SETUP');
+            // a block that isn't rendered (no RenderedConnection) can't hide an input
+            if (input && input.isVisible() !== visible && input.connection && typeof input.connection.hideAll === 'function') {
+                input.setVisible(visible).forEach((b: any) => b.render());
+                this.rendered && this.render();
+            }
+        },
         onchange: function (event: any) {
             this.showMode_();
+            this.showSetUp_();
             followWorld(this, event);
         },
     },
@@ -1116,13 +1140,10 @@ const DEFINITIONS: { [type: string]: any } = {
             this.appendDummyInput()
                 .appendField(msg('NEPOTEST_CHECK_WHENEVER'))
                 .appendField(
-                    new Blockly.FieldDropdown(
-                        WHEN_OPTIONS.map((o) => [msg(o[0]), o[1]]),
-                        function (when: string) {
-                            block.showPercent_(when);
-                            return when;
-                        }
-                    ),
+                    setUpDropdown(WHEN_OPTIONS, function (when: string) {
+                        block.showPercent_(when);
+                        return when;
+                    }),
                     'WHEN'
                 )
                 .appendField(number(50), 'PERCENT')
@@ -1152,7 +1173,7 @@ const DEFINITIONS: { [type: string]: any } = {
                 .appendField(msg('NEPOTEST_CHECK_AFTER_WITHIN'))
                 .appendField(number(500), 'WITHIN')
                 .appendField(msg('NEPOTEST_CHECK_AFTER_MS'))
-                .appendField(dropdown(EVENT_OPTIONS), 'EVENT')
+                .appendField(setUpDropdown(EVENT_OPTIONS), 'EVENT')
                 .appendField(msg('NEPOTEST_CHECK_ROW_END'));
             this.appendDummyInput().appendField(msg('NEPOTEST_CHECK_AFTER_ROBOT')).appendField(dropdown(DOES_OPTIONS), 'DOES');
         },
@@ -1931,6 +1952,13 @@ function paramsOf(functionName: string): { name: string; type: string }[] {
  */
 export const BDD_TESTS = false;
 
+/**
+ * the blocks of "Set up" (a clap, a key press, a variable's value before a test of a world runs) are switched off (the pilot study, 2026-11-08):
+ * the toolbox doesn't offer them, a test of a world has no input for them, and the checks don't offer the claps, keys and sounds only they make
+ * happen. A test of an older suite that has them shows its set-up and runs it. true offers them again.
+ */
+export const SET_UP_BLOCKS = false;
+
 const CATEGORIES: { [name: string]: [string, string] } = {
     NEPOTEST_TESTS: ['CAT_PROCEDURE_RGB', 'flag-outline'],
     NEPOTEST_CHECKS: ['CAT_LOGIC_RGB', 'input-checked'],
@@ -1968,7 +1996,7 @@ export function toolbox(): string {
     const motor = b('nepoTest_state_motor', f('PORT', 'left') + f('IS', 'forward') + v('POWER', num(50)));
     const still = b('nepoTest_state_robot', f('MOVE', 'still'));
     const ledOn = b('nepoTest_state_led', f('PORT', 'left') + f('IS', 'on'));
-    const simTest = b(SIM_TEST, f('START', SIM.DEFAULT_START) + f('MODE', 'for') + f('SECONDS', '5'));
+    const simTest = b(SIM_TEST, f('START', SIM.DEFAULT_START) + f('MODE', 'for') + f('SECONDS', '60'));
     // the categories of given / when / then tests only (BDD_TESTS)
     const givenWhenThen =
         cat('NEPOTEST_WHEN', b('nepoTest_when_run') + b('nepoTest_when_call')) +
@@ -2036,16 +2064,18 @@ export function toolbox(): string {
                 b('nepoTest_check_never_bumps', f('OBSTACLE', ANY_ITEM)) +
                 b('nepoTest_check_does', f('DOES', 'turns_left')) +
                 b('nepoTest_check_whenever', f('WHEN', 'line') + f('DOES', 'turns_left')) +
-                b('nepoTest_check_after', f('EVENT', 'clap') + f('DOES', 'drives_forward')) +
+                b('nepoTest_check_after', f('EVENT', SET_UP_BLOCKS ? 'clap' : 'obstacle') + f('DOES', SET_UP_BLOCKS ? 'drives_forward' : 'stands_still')) +
                 b('nepoTest_check_variable', v('VALUE', num(0)))
         ) +
-        cat(
-            'NEPOTEST_GIVEN',
-            b('nepoTest_given_clap') +
-                b('nepoTest_given_key') +
-                bdd(b('nepoTest_given_obstacle') + b('nepoTest_given_light') + b('nepoTest_given_line') + b('nepoTest_given_remote') + b('nepoTest_given_ir')) +
-                b('nepoTest_given_variable', '<value name="VALUE">' + num(0) + '</value>')
-        ) +
+        (BDD_TESTS || SET_UP_BLOCKS
+            ? cat(
+                  'NEPOTEST_GIVEN',
+                  b('nepoTest_given_clap') +
+                      b('nepoTest_given_key') +
+                      bdd(b('nepoTest_given_obstacle') + b('nepoTest_given_light') + b('nepoTest_given_line') + b('nepoTest_given_remote') + b('nepoTest_given_ir')) +
+                      b('nepoTest_given_variable', '<value name="VALUE">' + num(0) + '</value>')
+              )
+            : '') +
         bdd(givenWhenThen) +
         cat('NEPOTEST_VALUES', num(0) + b('logic_boolean') + b('robLists_create_with', '<mutation items="3"></mutation>')) +
         '</toolbox_set>'

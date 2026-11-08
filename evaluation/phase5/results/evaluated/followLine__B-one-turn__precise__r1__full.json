@@ -94,6 +94,34 @@
    "kind": "broken",
    "fault": "straight-off",
    "of": "followLine/C"
+  },
+  {
+   "id": "followLine/A-swapped",
+   "kind": "equivalent",
+   "fault": "swapped",
+   "of": "followLine/A",
+   "added": "2026-11-08"
+  },
+  {
+   "id": "followLine/B-swapped",
+   "kind": "equivalent",
+   "fault": "swapped",
+   "of": "followLine/B",
+   "added": "2026-11-08"
+  },
+  {
+   "id": "followLine/B-too-slow",
+   "kind": "equivalent",
+   "fault": "too-slow",
+   "of": "followLine/B",
+   "added": "2026-11-08"
+  },
+  {
+   "id": "followLine/C-swapped",
+   "kind": "equivalent",
+   "fault": "swapped",
+   "of": "followLine/C",
+   "added": "2026-11-08"
   }
  ],
  "runs": {
@@ -576,6 +604,124 @@
       "the robot did not reach \"Goal 1\" within 40 s",
       "the robot bumped into the edge of the floor after 19.1 s"
      ]
+    }
+   ]
+  },
+  "followLine/A-swapped": {
+   "key": "followLine/A-swapped",
+   "tests": [
+    {
+     "world": "A straight line to the goal",
+     "test": "On the line, it follows it straight to the goal",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A straight line to the goal",
+     "test": "Started beside the line, it finds it",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A line that bends to the left",
+     "test": "On the line, it follows it through a left bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A line that bends to the right",
+     "test": "On the line, it follows it through a right bend",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "followLine/B-swapped": {
+   "key": "followLine/B-swapped",
+   "tests": [
+    {
+     "world": "A straight line to the goal",
+     "test": "On the line, it follows it straight to the goal",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A straight line to the goal",
+     "test": "Started beside the line, it finds it",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A line that bends to the left",
+     "test": "On the line, it follows it through a left bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A line that bends to the right",
+     "test": "On the line, it follows it through a right bend",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "followLine/B-too-slow": {
+   "key": "followLine/B-too-slow",
+   "tests": [
+    {
+     "world": "A straight line to the goal",
+     "test": "On the line, it follows it straight to the goal",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A straight line to the goal",
+     "test": "Started beside the line, it finds it",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 2\" within 40 s"
+     ]
+    },
+    {
+     "world": "A line that bends to the left",
+     "test": "On the line, it follows it through a left bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A line that bends to the right",
+     "test": "On the line, it follows it through a right bend",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "followLine/C-swapped": {
+   "key": "followLine/C-swapped",
+   "tests": [
+    {
+     "world": "A straight line to the goal",
+     "test": "On the line, it follows it straight to the goal",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A straight line to the goal",
+     "test": "Started beside the line, it finds it",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A line that bends to the left",
+     "test": "On the line, it follows it through a left bend",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A line that bends to the right",
+     "test": "On the line, it follows it through a right bend",
+     "outcome": "passed",
+     "failed": []
     }
    ]
   }

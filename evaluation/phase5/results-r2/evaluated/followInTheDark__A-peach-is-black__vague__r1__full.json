@@ -82,6 +82,27 @@
    "kind": "broken",
    "fault": "no-handover",
    "of": "followInTheDark/C"
+  },
+  {
+   "id": "followInTheDark/A-swapped",
+   "kind": "broken",
+   "fault": "swapped",
+   "of": "followInTheDark/A",
+   "added": "2026-11-08"
+  },
+  {
+   "id": "followInTheDark/B-swapped",
+   "kind": "broken",
+   "fault": "swapped",
+   "of": "followInTheDark/B",
+   "added": "2026-11-08"
+  },
+  {
+   "id": "followInTheDark/C-swapped",
+   "kind": "broken",
+   "fault": "swapped",
+   "of": "followInTheDark/C",
+   "added": "2026-11-08"
   }
  ],
  "runs": {
@@ -373,6 +394,75 @@
      "failed": [
       "the robot did not reach \"Goal 1\" within 60 s"
      ]
+    },
+    {
+     "world": "A wall across the line",
+     "test": "Stops at the wall across the line",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "followInTheDark/A-swapped": {
+   "key": "followInTheDark/A-swapped",
+   "tests": [
+    {
+     "world": "A line to a goal in the light",
+     "test": "In the light, it follows the line to the goal",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A line through a dark tunnel",
+     "test": "Keeps following the line in the dark tunnel",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A wall across the line",
+     "test": "Stops at the wall across the line",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "followInTheDark/B-swapped": {
+   "key": "followInTheDark/B-swapped",
+   "tests": [
+    {
+     "world": "A line to a goal in the light",
+     "test": "In the light, it follows the line to the goal",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A line through a dark tunnel",
+     "test": "Keeps following the line in the dark tunnel",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A wall across the line",
+     "test": "Stops at the wall across the line",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "followInTheDark/C-swapped": {
+   "key": "followInTheDark/C-swapped",
+   "tests": [
+    {
+     "world": "A line to a goal in the light",
+     "test": "In the light, it follows the line to the goal",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A line through a dark tunnel",
+     "test": "Keeps following the line in the dark tunnel",
+     "outcome": "passed",
+     "failed": []
     },
     {
      "world": "A wall across the line",

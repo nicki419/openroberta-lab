@@ -470,6 +470,57 @@ Measured on the same 80 requests (`versions-rounds-1-2.json`), the full pipeline
     the light, drive straight on", and "without touching its walls" as "stop before a wall across the dark tunnel" (right programs drive
     straight in the dark, as the sentence says, and bump wherever the wall is).
 
+### The pilot study's changes (2026-11-08)
+
+The pilot study asked for changes, three of which touch phase 5:
+
+- **No set-up blocks:** the Tests tab no longer offers a clap, a key press or a variable's value before a test (`SET_UP_BLOCKS` in
+  `nepoTest.blocks.ts`). The context pack lost the set-up (a test's `world` events and `globals`, the checks of a clap, a key or a sound),
+  its example 3 (wait for PLAY, then park), and a few sentences about them; the fix example is now example 3. A test that has a set-up
+  goes back to the model as a problem.
+  - **The set-up itself changes no result:** in rounds 2 to 4 (3 × 80 answers), no test had a set-up and no check was about a clap, a
+    key or a sound. None of the five functions reads them.
+  - **The prompt did change:** rounds 1 to 4 measured the pack before. The model takes the worked examples as models
+    (`nepo-ai-tests.md`), and example 3 was the only one with a wait, and with `ends_in` after the program ends. Whether its loss moves
+    the numbers is not measured. Running round 4's 80 requests again with the new pack (about 1.5 h with 3 Chromes) would measure it;
+    a round 5 would too.
+- **L1 and L5 taken out:** L1 had the same code as L2 (`followLine`). L5, the straight tunnel, went because L6 has a bent one. L6 now
+  brings L5's `driveInTheDark` as it is, correct, and the learner fixes only `avoidWalls` there (`docs/ai/nepo-levels.md`). For phase 5:
+  - **Two versions are no longer broken:** L1 judged `followLine` by its time limit (20 s), and `followLine/A-too-slow` and `C-too-slow`
+    lost only L1. On L2 they win, so they are equivalent (`rejudge.py`), and the 4 requests per round that start from `C-too-slow` drop out.
+  - **`driveInTheDark` is no longer study code:** the learner never fixes it, so its 16 requests per round are counted apart.
+- **Equivalent versions must pass** (the user, 2026-11-08: they stay part of the technique, even if it costs correctness). A version broken by
+  a fault that still beats its levels counts as correct: a test that fails it is a false alarm, as in the source of truth. Until now phase 5
+  left them out (`evaluate.py` didn't run them); since now it runs them, and `report.py` counts them as correct. The six equivalent versions
+  are all `followLine`'s: `A-swapped`, `B-swapped`, `C-swapped` (they follow the other edge of the line), `A-too-slow`, `B-too-slow`,
+  `C-too-slow`.
+- **Counted again on the five levels** (`evaluation/phase5/recount-5-levels.md`), from the stored tests: nothing generated again; the runs a
+  round lacked were added (`evaluate.py --missing`: 665 runs; 18 stored runs run again came out the same). Each set is held to the corpus as
+  it is now, and that brings in a second change: the rounds were evaluated on the corpus of rounds 1 and 2, where the swapped `followInTheDark`
+  versions were equivalent; since L8 belongs to `followInTheDark` (2026-11-07) they lose a level of theirs, so they are broken. Full pipeline,
+  step by step:
+
+  | round | as reported (7 levels) | 5 levels, equivalents left out | + equivalents must pass | + swapped `followInTheDark` broken |
+  |---|---|---|---|---|
+  | 1 | 66 % / 14 % / 40 % | 73 % / 23 % / 32 % | 72 % / 23 % / 32 % | 72 % / 22 % / 32 % |
+  | 2 | 82 % / 48 % / 14 % | 83 % / 55 % / 13 % | 82 % / 55 % / 13 % | 76 % / 37 % / 13 % |
+  | 3 | 76 % / 41 % / 4 % | 76 % / 45 % / 3 % | 76 % / 45 % / 3 % | 71 % / 32 % / 3 % |
+  | 4 | 81 % / 48 % / 6 % | 83 % / 58 % / 5 % | 82 % / 55 % / 8 % | 76 % / 42 % / 8 % |
+
+  (broken versions caught / good sets / sets with a false alarm; 80 requests as reported, 60 on the five levels)
+
+  - **Equivalent versions cost the full pipeline little:** 4, 2, 0 and 2 sets fail one (rounds 1 to 4); in round 4 two `followLine` sets
+    fail a too-slow version (good sets 58 → 55 %, sets with a false alarm 5 → 8 %). The plain pipeline loses more: good sets 27 → 12 %
+    (round 1) and 62 → 50 % (round 2), 9 and 7 sets fail an equivalent version.
+  - **The swapped `followInTheDark` versions cost the most:** from round 2 on, no `followInTheDark` set catches all three (round 1: 10 of
+    16), so none of them is good. They fail only where a line runs out of a dark tunnel into the light and the line follower of the light
+    takes over (L8, the reference test "out of the dark"); from round 2 on, no AI test catches it. This is the open problem of L8 (the
+    swapped followers lose it): whether a test that nobody's sentence asks for should be expected is a question for the study, not for the
+    rule.
+  - **The source of truth** follows (`evaluation/truth/README.md`): five levels, `followLine` with 2 reference tests (L1's time limit gone,
+    the bends allow 60 s), checked again: 9 of 9 broken versions caught, the 3 correct and 6 equivalent versions pass. Every combination of
+    correct fixes still beats the five levels; only the swapped line followers lose L8, as before.
+
 ### Next (open)
 
 - **Round 5, if wanted** (about 1.5 h, from round 4's false alarms): a test of a tunnel with its goal inside runs `until` the goal (the
@@ -482,6 +533,7 @@ Measured on the same 80 requests (`versions-rounds-1-2.json`), the full pipeline
   by hand** that meet the user's rule on every version:
   - 15 correct and 4 equivalent versions pass all 15 tests;
   - 62 of 62 broken versions fail at least one (the swapped `followInTheDark` versions count as broken since L8 belongs to that function).
+  - On the five levels (2026-11-08): 15 correct and 6 equivalent versions pass all 14 tests, 60 of 60 broken versions fail at least one.
 
   So the test language can tell every level's correct code from its broken code. A test set of the AI or of a learner can be measured
   against the same versions. Also there, since 2026-11-07: the starter code per level in two versions (one per run), added to the learner's
@@ -506,3 +558,6 @@ Measured on the same 80 requests (`versions-rounds-1-2.json`), the full pipeline
   measurement.
 - 2026-11-08: phase 5, round 4: stop tests show arrival, the Lab's checks of the world (overlapping tunnels, starts, goals after the
   exit), the measurements behind them, their replay on rounds 2 and 3, and round 4's results and false alarms.
+- 2026-11-08: the pilot study's changes: no set-up (the context pack without it and without example 3), L1 and L5 taken out (L6 brings
+  `driveInTheDark` correct), the source of truth on the five levels, and phase 5 counted again on them.
+- 2026-11-08: equivalent versions must pass in phase 5 too (the user); rounds 1 to 4 counted again against today's corpus, step by step.

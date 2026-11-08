@@ -82,6 +82,27 @@
    "kind": "broken",
    "fault": "no-handover",
    "of": "followInTheDark/C"
+  },
+  {
+   "id": "followInTheDark/A-swapped",
+   "kind": "broken",
+   "fault": "swapped",
+   "of": "followInTheDark/A",
+   "added": "2026-11-08"
+  },
+  {
+   "id": "followInTheDark/B-swapped",
+   "kind": "broken",
+   "fault": "swapped",
+   "of": "followInTheDark/B",
+   "added": "2026-11-08"
+  },
+  {
+   "id": "followInTheDark/C-swapped",
+   "kind": "broken",
+   "fault": "swapped",
+   "of": "followInTheDark/C",
+   "added": "2026-11-08"
   }
  ],
  "runs": {
@@ -646,6 +667,129 @@
      "failed": [
       "the robot did not reach \"Goal 1\" within 60 s"
      ]
+    }
+   ]
+  },
+  "followInTheDark/A-swapped": {
+   "key": "followInTheDark/A-swapped",
+   "tests": [
+    {
+     "world": "A line to a goal in the light",
+     "test": "In the light, it follows the line to the goal",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A wall across the line",
+     "test": "Stops before a wall across the line",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Dim light on the line in a tunnel",
+     "test": "In the dim light, it follows the line on into the dark",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "The darkest part of a tunnel",
+     "test": "In the darkest part, it keeps to the line",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A tunnel bending to the right",
+     "test": "Gets through the bend to the right",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A tunnel bending to the left",
+     "test": "Gets through the bend to the left",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "followInTheDark/B-swapped": {
+   "key": "followInTheDark/B-swapped",
+   "tests": [
+    {
+     "world": "A line to a goal in the light",
+     "test": "In the light, it follows the line to the goal",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A wall across the line",
+     "test": "Stops before a wall across the line",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Dim light on the line in a tunnel",
+     "test": "In the dim light, it follows the line on into the dark",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "The darkest part of a tunnel",
+     "test": "In the darkest part, it keeps to the line",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A tunnel bending to the right",
+     "test": "Gets through the bend to the right",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A tunnel bending to the left",
+     "test": "Gets through the bend to the left",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "followInTheDark/C-swapped": {
+   "key": "followInTheDark/C-swapped",
+   "tests": [
+    {
+     "world": "A line to a goal in the light",
+     "test": "In the light, it follows the line to the goal",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A wall across the line",
+     "test": "Stops before a wall across the line",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "Dim light on the line in a tunnel",
+     "test": "In the dim light, it follows the line on into the dark",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "The darkest part of a tunnel",
+     "test": "In the darkest part, it keeps to the line",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A tunnel bending to the right",
+     "test": "Gets through the bend to the right",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A tunnel bending to the left",
+     "test": "Gets through the bend to the left",
+     "outcome": "passed",
+     "failed": []
     }
    ]
   }

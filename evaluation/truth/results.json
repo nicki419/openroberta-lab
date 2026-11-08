@@ -1,558 +1,4 @@
 {
- "followLine/A": {
-  "function": "followLine",
-  "kind": "correct",
-  "tests": [
-   {
-    "world": "A straight line, in time",
-    "test": "Follows a straight line to its end within 20 s",
-    "passed": true,
-    "outcome": "passed",
-    "failed": []
-   },
-   {
-    "world": "A bend to the left",
-    "test": "Follows a bend to the left",
-    "passed": true,
-    "outcome": "passed",
-    "failed": []
-   },
-   {
-    "world": "A bend to the right",
-    "test": "Follows a bend to the right",
-    "passed": true,
-    "outcome": "passed",
-    "failed": []
-   }
-  ]
- },
- "followLine/A-swapped": {
-  "function": "followLine",
-  "kind": "equivalent",
-  "tests": [
-   {
-    "world": "A straight line, in time",
-    "test": "Follows a straight line to its end within 20 s",
-    "passed": true,
-    "outcome": "passed",
-    "failed": []
-   },
-   {
-    "world": "A bend to the left",
-    "test": "Follows a bend to the left",
-    "passed": true,
-    "outcome": "passed",
-    "failed": []
-   },
-   {
-    "world": "A bend to the right",
-    "test": "Follows a bend to the right",
-    "passed": true,
-    "outcome": "passed",
-    "failed": []
-   }
-  ]
- },
- "followLine/A-one-turn": {
-  "function": "followLine",
-  "kind": "broken",
-  "tests": [
-   {
-    "world": "A straight line, in time",
-    "test": "Follows a straight line to its end within 20 s",
-    "passed": false,
-    "outcome": "failed",
-    "failed": [
-     "the robot did not reach \"Goal t2\" within 20 s"
-    ]
-   },
-   {
-    "world": "A bend to the left",
-    "test": "Follows a bend to the left",
-    "passed": false,
-    "outcome": "failed",
-    "failed": [
-     "the robot did not reach \"Goal t2\" within 40 s"
-    ]
-   },
-   {
-    "world": "A bend to the right",
-    "test": "Follows a bend to the right",
-    "passed": false,
-    "outcome": "failed",
-    "failed": [
-     "the robot did not reach \"Goal t2\" within 40 s"
-    ]
-   }
-  ]
- },
- "followLine/A-light-above": {
-  "function": "followLine",
-  "kind": "broken",
-  "tests": [
-   {
-    "world": "A straight line, in time",
-    "test": "Follows a straight line to its end within 20 s",
-    "passed": false,
-    "outcome": "failed",
-    "failed": [
-     "the robot did not reach \"Goal t2\" within 20 s"
-    ]
-   },
-   {
-    "world": "A bend to the left",
-    "test": "Follows a bend to the left",
-    "passed": false,
-    "outcome": "failed",
-    "failed": [
-     "the robot did not reach \"Goal t2\" within 40 s"
-    ]
-   },
-   {
-    "world": "A bend to the right",
-    "test": "Follows a bend to the right",
-    "passed": false,
-    "outcome": "failed",
-    "failed": [
-     "the robot did not reach \"Goal t2\" within 40 s"
-    ]
-   }
-  ]
- },
- "followLine/A-too-slow": {
-  "function": "followLine",
-  "kind": "broken",
-  "tests": [
-   {
-    "world": "A straight line, in time",
-    "test": "Follows a straight line to its end within 20 s",
-    "passed": false,
-    "outcome": "failed",
-    "failed": [
-     "the robot did not reach \"Goal t2\" within 20 s"
-    ]
-   },
-   {
-    "world": "A bend to the left",
-    "test": "Follows a bend to the left",
-    "passed": false,
-    "outcome": "failed",
-    "failed": [
-     "the robot did not reach \"Goal t2\" within 40 s"
-    ]
-   },
-   {
-    "world": "A bend to the right",
-    "test": "Follows a bend to the right",
-    "passed": false,
-    "outcome": "failed",
-    "failed": [
-     "the robot did not reach \"Goal t2\" within 40 s"
-    ]
-   }
-  ]
- },
- "followLine/A-straight-off": {
-  "function": "followLine",
-  "kind": "broken",
-  "tests": [
-   {
-    "world": "A straight line, in time",
-    "test": "Follows a straight line to its end within 20 s",
-    "passed": false,
-    "outcome": "failed",
-    "failed": [
-     "the robot did not reach \"Goal t2\" within 20 s",
-     "the robot bumped into the edge of the floor after 19.6 s"
-    ]
-   },
-   {
-    "world": "A bend to the left",
-    "test": "Follows a bend to the left",
-    "passed": false,
-    "outcome": "failed",
-    "failed": [
-     "the robot did not reach \"Goal t2\" within 40 s",
-     "the robot bumped into the edge of the floor after 10.5 s"
-    ]
-   },
-   {
-    "world": "A bend to the right",
-    "test": "Follows a bend to the right",
-    "passed": false,
-    "outcome": "failed",
-    "failed": [
-     "the robot did not reach \"Goal t2\" within 40 s",
-     "the robot bumped into the edge of the floor after 19.8 s"
-    ]
-   }
-  ]
- },
- "followLine/B-swapped": {
-  "function": "followLine",
-  "kind": "equivalent",
-  "tests": [
-   {
-    "world": "A straight line, in time",
-    "test": "Follows a straight line to its end within 20 s",
-    "passed": true,
-    "outcome": "passed",
-    "failed": []
-   },
-   {
-    "world": "A bend to the left",
-    "test": "Follows a bend to the left",
-    "passed": true,
-    "outcome": "passed",
-    "failed": []
-   },
-   {
-    "world": "A bend to the right",
-    "test": "Follows a bend to the right",
-    "passed": true,
-    "outcome": "passed",
-    "failed": []
-   }
-  ]
- },
- "followLine/B": {
-  "function": "followLine",
-  "kind": "correct",
-  "tests": [
-   {
-    "world": "A straight line, in time",
-    "test": "Follows a straight line to its end within 20 s",
-    "passed": true,
-    "outcome": "passed",
-    "failed": []
-   },
-   {
-    "world": "A bend to the left",
-    "test": "Follows a bend to the left",
-    "passed": true,
-    "outcome": "passed",
-    "failed": []
-   },
-   {
-    "world": "A bend to the right",
-    "test": "Follows a bend to the right",
-    "passed": true,
-    "outcome": "passed",
-    "failed": []
-   }
-  ]
- },
- "followLine/B-one-turn": {
-  "function": "followLine",
-  "kind": "broken",
-  "tests": [
-   {
-    "world": "A straight line, in time",
-    "test": "Follows a straight line to its end within 20 s",
-    "passed": false,
-    "outcome": "failed",
-    "failed": [
-     "the robot did not reach \"Goal t2\" within 20 s",
-     "the robot bumped into the edge of the floor after 2.5 s"
-    ]
-   },
-   {
-    "world": "A bend to the left",
-    "test": "Follows a bend to the left",
-    "passed": false,
-    "outcome": "failed",
-    "failed": [
-     "the robot did not reach \"Goal t2\" within 40 s"
-    ]
-   },
-   {
-    "world": "A bend to the right",
-    "test": "Follows a bend to the right",
-    "passed": false,
-    "outcome": "failed",
-    "failed": [
-     "the robot did not reach \"Goal t2\" within 40 s"
-    ]
-   }
-  ]
- },
- "followLine/B-light-above": {
-  "function": "followLine",
-  "kind": "broken",
-  "tests": [
-   {
-    "world": "A straight line, in time",
-    "test": "Follows a straight line to its end within 20 s",
-    "passed": false,
-    "outcome": "failed",
-    "failed": [
-     "the robot did not reach \"Goal t2\" within 20 s",
-     "the robot bumped into the edge of the floor after 2.5 s"
-    ]
-   },
-   {
-    "world": "A bend to the left",
-    "test": "Follows a bend to the left",
-    "passed": false,
-    "outcome": "failed",
-    "failed": [
-     "the robot did not reach \"Goal t2\" within 40 s"
-    ]
-   },
-   {
-    "world": "A bend to the right",
-    "test": "Follows a bend to the right",
-    "passed": false,
-    "outcome": "failed",
-    "failed": [
-     "the robot did not reach \"Goal t2\" within 40 s"
-    ]
-   }
-  ]
- },
- "followLine/B-too-slow": {
-  "function": "followLine",
-  "kind": "equivalent",
-  "tests": [
-   {
-    "world": "A straight line, in time",
-    "test": "Follows a straight line to its end within 20 s",
-    "passed": true,
-    "outcome": "passed",
-    "failed": []
-   },
-   {
-    "world": "A bend to the left",
-    "test": "Follows a bend to the left",
-    "passed": true,
-    "outcome": "passed",
-    "failed": []
-   },
-   {
-    "world": "A bend to the right",
-    "test": "Follows a bend to the right",
-    "passed": true,
-    "outcome": "passed",
-    "failed": []
-   }
-  ]
- },
- "followLine/B-straight-off": {
-  "function": "followLine",
-  "kind": "broken",
-  "tests": [
-   {
-    "world": "A straight line, in time",
-    "test": "Follows a straight line to its end within 20 s",
-    "passed": false,
-    "outcome": "failed",
-    "failed": [
-     "the robot did not reach \"Goal t2\" within 20 s",
-     "the robot bumped into the edge of the floor after 19.6 s"
-    ]
-   },
-   {
-    "world": "A bend to the left",
-    "test": "Follows a bend to the left",
-    "passed": false,
-    "outcome": "failed",
-    "failed": [
-     "the robot did not reach \"Goal t2\" within 40 s",
-     "the robot bumped into the edge of the floor after 10.3 s"
-    ]
-   },
-   {
-    "world": "A bend to the right",
-    "test": "Follows a bend to the right",
-    "passed": false,
-    "outcome": "failed",
-    "failed": [
-     "the robot did not reach \"Goal t2\" within 40 s",
-     "the robot bumped into the edge of the floor after 19.8 s"
-    ]
-   }
-  ]
- },
- "followLine/C": {
-  "function": "followLine",
-  "kind": "correct",
-  "tests": [
-   {
-    "world": "A straight line, in time",
-    "test": "Follows a straight line to its end within 20 s",
-    "passed": true,
-    "outcome": "passed",
-    "failed": []
-   },
-   {
-    "world": "A bend to the left",
-    "test": "Follows a bend to the left",
-    "passed": true,
-    "outcome": "passed",
-    "failed": []
-   },
-   {
-    "world": "A bend to the right",
-    "test": "Follows a bend to the right",
-    "passed": true,
-    "outcome": "passed",
-    "failed": []
-   }
-  ]
- },
- "followLine/C-swapped": {
-  "function": "followLine",
-  "kind": "equivalent",
-  "tests": [
-   {
-    "world": "A straight line, in time",
-    "test": "Follows a straight line to its end within 20 s",
-    "passed": true,
-    "outcome": "passed",
-    "failed": []
-   },
-   {
-    "world": "A bend to the left",
-    "test": "Follows a bend to the left",
-    "passed": true,
-    "outcome": "passed",
-    "failed": []
-   },
-   {
-    "world": "A bend to the right",
-    "test": "Follows a bend to the right",
-    "passed": true,
-    "outcome": "passed",
-    "failed": []
-   }
-  ]
- },
- "followLine/C-light-above": {
-  "function": "followLine",
-  "kind": "broken",
-  "tests": [
-   {
-    "world": "A straight line, in time",
-    "test": "Follows a straight line to its end within 20 s",
-    "passed": true,
-    "outcome": "passed",
-    "failed": []
-   },
-   {
-    "world": "A bend to the left",
-    "test": "Follows a bend to the left",
-    "passed": false,
-    "outcome": "failed",
-    "failed": [
-     "the robot did not reach \"Goal t2\" within 40 s"
-    ]
-   },
-   {
-    "world": "A bend to the right",
-    "test": "Follows a bend to the right",
-    "passed": false,
-    "outcome": "failed",
-    "failed": [
-     "the robot did not reach \"Goal t2\" within 40 s"
-    ]
-   }
-  ]
- },
- "followLine/C-one-turn": {
-  "function": "followLine",
-  "kind": "broken",
-  "tests": [
-   {
-    "world": "A straight line, in time",
-    "test": "Follows a straight line to its end within 20 s",
-    "passed": false,
-    "outcome": "failed",
-    "failed": [
-     "the robot did not reach \"Goal t2\" within 20 s"
-    ]
-   },
-   {
-    "world": "A bend to the left",
-    "test": "Follows a bend to the left",
-    "passed": false,
-    "outcome": "failed",
-    "failed": [
-     "the robot did not reach \"Goal t2\" within 40 s"
-    ]
-   },
-   {
-    "world": "A bend to the right",
-    "test": "Follows a bend to the right",
-    "passed": false,
-    "outcome": "failed",
-    "failed": [
-     "the robot did not reach \"Goal t2\" within 40 s"
-    ]
-   }
-  ]
- },
- "followLine/C-too-slow": {
-  "function": "followLine",
-  "kind": "broken",
-  "tests": [
-   {
-    "world": "A straight line, in time",
-    "test": "Follows a straight line to its end within 20 s",
-    "passed": false,
-    "outcome": "failed",
-    "failed": [
-     "the robot did not reach \"Goal t2\" within 20 s"
-    ]
-   },
-   {
-    "world": "A bend to the left",
-    "test": "Follows a bend to the left",
-    "passed": true,
-    "outcome": "passed",
-    "failed": []
-   },
-   {
-    "world": "A bend to the right",
-    "test": "Follows a bend to the right",
-    "passed": true,
-    "outcome": "passed",
-    "failed": []
-   }
-  ]
- },
- "followLine/C-straight-off": {
-  "function": "followLine",
-  "kind": "broken",
-  "tests": [
-   {
-    "world": "A straight line, in time",
-    "test": "Follows a straight line to its end within 20 s",
-    "passed": true,
-    "outcome": "passed",
-    "failed": []
-   },
-   {
-    "world": "A bend to the left",
-    "test": "Follows a bend to the left",
-    "passed": false,
-    "outcome": "failed",
-    "failed": [
-     "the robot did not reach \"Goal t2\" within 40 s",
-     "the robot bumped into the edge of the floor after 10.4 s"
-    ]
-   },
-   {
-    "world": "A bend to the right",
-    "test": "Follows a bend to the right",
-    "passed": false,
-    "outcome": "failed",
-    "failed": [
-     "the robot did not reach \"Goal t2\" within 40 s",
-     "the robot bumped into the edge of the floor after 19.8 s"
-    ]
-   }
-  ]
- },
  "stopAtWall/A": {
   "function": "stopAtWall",
   "kind": "correct",
@@ -2513,6 +1959,408 @@
     "failed": [
      "the robot did not reach \"Goal t3\" within 60 s",
      "the robot bumped into \"Tunnel t1\" after 13.8 s"
+    ]
+   }
+  ]
+ },
+ "followLine/A": {
+  "function": "followLine",
+  "kind": "correct",
+  "tests": [
+   {
+    "world": "A bend to the left",
+    "test": "Follows a bend to the left",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "A bend to the right",
+    "test": "Follows a bend to the right",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   }
+  ]
+ },
+ "followLine/A-light-above": {
+  "function": "followLine",
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "A bend to the left",
+    "test": "Follows a bend to the left",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 60 s"
+    ]
+   },
+   {
+    "world": "A bend to the right",
+    "test": "Follows a bend to the right",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 60 s"
+    ]
+   }
+  ]
+ },
+ "followLine/A-one-turn": {
+  "function": "followLine",
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "A bend to the left",
+    "test": "Follows a bend to the left",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 60 s"
+    ]
+   },
+   {
+    "world": "A bend to the right",
+    "test": "Follows a bend to the right",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 60 s"
+    ]
+   }
+  ]
+ },
+ "followLine/A-too-slow": {
+  "function": "followLine",
+  "kind": "equivalent",
+  "tests": [
+   {
+    "world": "A bend to the left",
+    "test": "Follows a bend to the left",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "A bend to the right",
+    "test": "Follows a bend to the right",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   }
+  ]
+ },
+ "followLine/A-straight-off": {
+  "function": "followLine",
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "A bend to the left",
+    "test": "Follows a bend to the left",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 60 s",
+     "the robot bumped into the edge of the floor after 10.5 s"
+    ]
+   },
+   {
+    "world": "A bend to the right",
+    "test": "Follows a bend to the right",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 60 s",
+     "the robot bumped into the edge of the floor after 19.8 s"
+    ]
+   }
+  ]
+ },
+ "followLine/B": {
+  "function": "followLine",
+  "kind": "correct",
+  "tests": [
+   {
+    "world": "A bend to the left",
+    "test": "Follows a bend to the left",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "A bend to the right",
+    "test": "Follows a bend to the right",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   }
+  ]
+ },
+ "followLine/A-swapped": {
+  "function": "followLine",
+  "kind": "equivalent",
+  "tests": [
+   {
+    "world": "A bend to the left",
+    "test": "Follows a bend to the left",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "A bend to the right",
+    "test": "Follows a bend to the right",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   }
+  ]
+ },
+ "followLine/B-swapped": {
+  "function": "followLine",
+  "kind": "equivalent",
+  "tests": [
+   {
+    "world": "A bend to the left",
+    "test": "Follows a bend to the left",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "A bend to the right",
+    "test": "Follows a bend to the right",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   }
+  ]
+ },
+ "followLine/B-light-above": {
+  "function": "followLine",
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "A bend to the left",
+    "test": "Follows a bend to the left",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 60 s"
+    ]
+   },
+   {
+    "world": "A bend to the right",
+    "test": "Follows a bend to the right",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 60 s"
+    ]
+   }
+  ]
+ },
+ "followLine/B-one-turn": {
+  "function": "followLine",
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "A bend to the left",
+    "test": "Follows a bend to the left",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 60 s"
+    ]
+   },
+   {
+    "world": "A bend to the right",
+    "test": "Follows a bend to the right",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 60 s"
+    ]
+   }
+  ]
+ },
+ "followLine/B-too-slow": {
+  "function": "followLine",
+  "kind": "equivalent",
+  "tests": [
+   {
+    "world": "A bend to the left",
+    "test": "Follows a bend to the left",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "A bend to the right",
+    "test": "Follows a bend to the right",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   }
+  ]
+ },
+ "followLine/B-straight-off": {
+  "function": "followLine",
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "A bend to the left",
+    "test": "Follows a bend to the left",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 60 s",
+     "the robot bumped into the edge of the floor after 10.3 s"
+    ]
+   },
+   {
+    "world": "A bend to the right",
+    "test": "Follows a bend to the right",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 60 s",
+     "the robot bumped into the edge of the floor after 19.8 s"
+    ]
+   }
+  ]
+ },
+ "followLine/C": {
+  "function": "followLine",
+  "kind": "correct",
+  "tests": [
+   {
+    "world": "A bend to the left",
+    "test": "Follows a bend to the left",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "A bend to the right",
+    "test": "Follows a bend to the right",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   }
+  ]
+ },
+ "followLine/C-swapped": {
+  "function": "followLine",
+  "kind": "equivalent",
+  "tests": [
+   {
+    "world": "A bend to the left",
+    "test": "Follows a bend to the left",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "A bend to the right",
+    "test": "Follows a bend to the right",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   }
+  ]
+ },
+ "followLine/C-light-above": {
+  "function": "followLine",
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "A bend to the left",
+    "test": "Follows a bend to the left",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 60 s"
+    ]
+   },
+   {
+    "world": "A bend to the right",
+    "test": "Follows a bend to the right",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 60 s"
+    ]
+   }
+  ]
+ },
+ "followLine/C-one-turn": {
+  "function": "followLine",
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "A bend to the left",
+    "test": "Follows a bend to the left",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 60 s"
+    ]
+   },
+   {
+    "world": "A bend to the right",
+    "test": "Follows a bend to the right",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 60 s"
+    ]
+   }
+  ]
+ },
+ "followLine/C-too-slow": {
+  "function": "followLine",
+  "kind": "equivalent",
+  "tests": [
+   {
+    "world": "A bend to the left",
+    "test": "Follows a bend to the left",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   },
+   {
+    "world": "A bend to the right",
+    "test": "Follows a bend to the right",
+    "passed": true,
+    "outcome": "passed",
+    "failed": []
+   }
+  ]
+ },
+ "followLine/C-straight-off": {
+  "function": "followLine",
+  "kind": "broken",
+  "tests": [
+   {
+    "world": "A bend to the left",
+    "test": "Follows a bend to the left",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 60 s",
+     "the robot bumped into the edge of the floor after 10.4 s"
+    ]
+   },
+   {
+    "world": "A bend to the right",
+    "test": "Follows a bend to the right",
+    "passed": false,
+    "outcome": "failed",
+    "failed": [
+     "the robot did not reach \"Goal t2\" within 60 s",
+     "the robot bumped into the edge of the floor after 19.8 s"
     ]
    }
   ]

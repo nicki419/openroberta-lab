@@ -3,9 +3,12 @@
  * OpenRobertaServer/src/main/resources/ai/tests.md, its schema is ai/schemas/generate.schema.json:
  *
  *   {worlds: [{name, world: {background: 'peach', size, starts, items} | base: 'existing',
- *              tests: [{name, scenario, start, until, max_time_ms, world: [{event: 'clap' | 'key', port, at}], globals: {name: value}, checks: [...],
+ *              tests: [{name, scenario, start, until, max_time_ms, checks: [...],
  *                       and what the test is for: STRATEGY_FIELDS (scenario_id, path_ids, planned_branch_ids, input_selection, ...)}]}],
  *    generation_status, coverage_plan, consolidation_notes, deferred_scenarios, warnings}
+ *
+ * A test's set-up (world: [{event: 'clap' | 'key', port, at}], globals: {name: value}: the blocks of "Set up") is switched off (BLOCKS.SET_UP_BLOCKS,
+ * the pilot study, 2026-11-08): an answer whose test has one gets a problem; a test of the learner's (an older suite) keeps it, both ways.
  *
  * The fields of what a test is for are kept as the model wrote them and checked by nepoTest.aiStrategy (against the analysis); the blocks don't have
  * them (they are in the test's provenance: generated).
@@ -152,10 +155,17 @@ export function suiteToJson(workspace: any): AiTests {
     const worlds: AiWorld[] = [];
     for (const top of workspace.getTopBlocks(true)) {
         if (top.type === BLOCKS.WORLD && !top.disabled) {
-            worlds.push({ name: top.getFieldValue('NAME'), world: SIM.parseData(top.data).world, tests: BLOCKS.testsOf(top).map(testOfBlock) });
+            worlds.push({ name: top.getFieldValue('NAME'), world: SIM.parseData(top.data).world, tests: BLOCKS.testsOf(top).map(testOfBlock).map(withoutEmptySetUp) });
         }
     }
     return { worlds: worlds };
+}
+
+/** a test without an empty set-up (the model knows no set-up: BLOCKS.SET_UP_BLOCKS); a test of an older suite keeps the set-up it has */
+function withoutEmptySetUp(test: AiTest): AiTest {
+    test.world && !test.world.length && delete test.world;
+    test.globals && !Object.keys(test.globals).length && delete test.globals;
+    return test;
 }
 
 /** a test of a world (a nepoTest_simcase block) as JSON */
@@ -287,7 +297,7 @@ function whole(text: any): number {
 /** a run's length in s (one decimal, as the field holds it) in ms, as blocks.py reads it */
 function secondsToMs(text: any): number {
     const s = parseFloat(String(text).replace(',', '.'));
-    return isNaN(s) ? 5000 : Math.round(s * 10) * 100;
+    return isNaN(s) ? 60000 : Math.round(s * 10) * 100;
 }
 
 // ------------------------------------------------------------------------------------------------ checking an answer
@@ -795,6 +805,11 @@ function checkTest(raw: any, world: SIM.SimWorld, ctx: Context, generated: boole
     } else {
         test.max_time_ms = Math.round(raw.max_time_ms / 100) * 100;
     }
+    if (generated && !BLOCKS.SET_UP_BLOCKS && ((Array.isArray(raw.world) && raw.world.length) || (raw.globals && typeof raw.globals === 'object' && Object.keys(raw.globals).length))) {
+        problem(
+            'a test has no set-up: leave out "world" and "globals". A test can\'t clap, press a key or set a variable; a scenario that needs one can\'t be tested here: defer it'
+        );
+    }
     for (const e of Array.isArray(raw.world) ? raw.world : []) {
         if (!e || (e.event !== 'clap' && e.event !== 'key')) {
             problem('the set-up (world) has only claps and key presses: ' + JSON.stringify(e));
@@ -872,6 +887,9 @@ function checkCheck(
     } else {
         if (kind === 'whenever') {
             CONDITIONS.indexOf(c.when) >= 0 ? (check.when = c.when) : problem(where + 'when must be one of ' + CONDITIONS.join(', '));
+            if (['sound', 'play_key', 'rec_key'].indexOf(c.when) >= 0 && !test.world.length) {
+                problem(where + 'the test has no clap or key press, so the check checks nothing: a test can\'t clap or press a key');
+            }
             if (LIGHT.test(c.when)) {
                 const percent = c.percent === undefined ? 50 : c.percent;
                 isWhole(percent) && percent >= 0 && percent <= 100 ? (check.percent = percent) : problem(where + 'percent must be 0 to 100');
@@ -880,7 +898,7 @@ function checkCheck(
         if (kind === 'after') {
             EVENTS.indexOf(c.event) >= 0 ? (check.event = c.event) : problem(where + 'event must be one of ' + EVENTS.join(', '));
             if ((c.event === 'clap' || c.event === 'key') && !test.world.some((e) => e.event === c.event)) {
-                problem(where + 'the set-up (world) has no ' + (c.event === 'clap' ? 'clap' : 'key press') + ', so the check checks nothing');
+                problem(where + 'the test has no ' + (c.event === 'clap' ? 'clap' : 'key press') + ', so the check checks nothing: a test can\'t clap or press a key');
             }
             const within = c.within_ms === undefined ? 500 : c.within_ms;
             isWhole(within) && within >= 1 ? (check.within_ms = within) : problem(where + 'within_ms must be a whole number of at least 1');

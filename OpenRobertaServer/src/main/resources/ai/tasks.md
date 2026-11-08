@@ -13,7 +13,7 @@ working on.
 
 The learner asked for tests. Before any test is written, analyse the program (the answer:
 `schemas/analyze.schema.json`). Analyse the whole program, even if their sentence is about one part of it: generate
-leaves out what their tests already test. You don't write tests or worlds here: **don't choose checks, times, positions or set-ups**,
+leaves out what their tests already test. You don't write tests or worlds here: **don't choose checks, times or positions**,
 generate does that from your analysis. Where the simulator makes the program behave in a surprising way (a fast loop
 that hears one clap several times), say so in one line in `uncertainties`, and go on. Keep every text to one short
 sentence: the analysis is read by the Lab and by you, not by the learner.
@@ -34,16 +34,15 @@ sentence: the analysis is read by the Lab and by you, not by the learner.
 4. **Decisions and paths (branch coverage)**: `decision_points` lists **every** decision of "The program's
    decisions" with its id and **exactly** its outcome ids as `branches`: what the condition means (`condition`), each
    outcome in words, and whether the simulator can make it happen (`feasibility`: `supported`, `uncertain` or
-   `unsupported`, with a `reason` if not supported, for example "the IR remote never sends in the simulator").
+   `unsupported`, with a `reason` if not supported, for example "the IR remote never sends in the simulator", "a test can't clap or press a key").
    Then a small set of `scenario_paths`: each lists the outcomes one run can take (`branch_ids`, **each outcome once**,
    in the order they first happen: a loop's outcomes once, not once per round), and together they target every
    `supported` outcome. Don't list every combination; one path per scenario is usual. A program without decisions has
    one path with `branch_ids: []`.
-5. **Inputs of each path** (`input_dimensions`): what in the world or the set-up decides which outcomes the run
-   takes: where the robot starts relative to the line, what is ahead, when a key or clap comes, a variable's start
-   value, the light at a place. Give its `equivalence_classes`: the situations that the program tells apart and that
-   behave differently ("on the line", "beside the line"; "no obstacle", "an obstacle on the line"; "PLAY pressed",
-   "never pressed"). Classes only, **no boundaries**: the tests take a typical case of each class, not one close to
+5. **Inputs of each path** (`input_dimensions`): what in the world decides which outcomes the run takes: where the
+   robot starts relative to the line, what is ahead, the light at a place. Give its `equivalence_classes`: the
+   situations that the program tells apart and that behave differently ("on the line", "beside the line"; "no
+   obstacle", "an obstacle on the line"). Classes only, **no boundaries**: the tests take a typical case of each class, not one close to
    where it changes. No invented thresholds, sizes or coordinates.
 6. **Scenarios: few, and the learner's own words.** A scenario is a situation the learner would name, with what the
    robot should do there: "follows the line to its end", "stops at a wall", "turns away from a wall in the dark". It
@@ -74,7 +73,8 @@ sentence: the analysis is read by the Lab and by you, not by the learner.
    `tested_by`: the names of the learner's tests that already test the scenario: they make its situation happen and
    check what it expects (the same kind of world and start, numbers aside). [] if none does, or the learner has no
    tests. A scenario tested by one of theirs gets no new tests.
-7. `unsupported_features`: what the scenarios would need that the simulator can't do (the IR remote, IR messages).
+7. `unsupported_features`: what the scenarios would need that the simulator can't do (the IR remote, IR messages), or
+   a test can't make (a clap, a key press, a variable's start value).
    If there is nothing to test yet (only the start block, or no movement at all): `analysis_status`
    `insufficient_evidence`, with empty `scenario_paths` and `scenarios`, and the reason in `uncertainties`.
 
@@ -121,11 +121,11 @@ if a check had nothing to decide or a planned outcome never happened: its scenar
 
 A test fails for one of these reasons. Decide which, for each test:
 
-- **The test is wrong**: its world, start, set-up or timing don't make its scenario happen. For example: the start
+- **The test is wrong**: its world, start or timing don't make its scenario happen. For example: the start
   isn't on the line, the goal area doesn't cover the line's end, `max_time_ms` is too short for the program's speed,
   a thing is in the robot's way that the scenario doesn't mean, a planned outcome never happened, a check had nothing
   to decide. Then fix **only its inputs**: the world (draw it anew under another name, or keep it with `"base":
-  "existing"`), `start`, `until`, `max_time_ms`, the set-up (`world`, `globals`) and the `selected_realization` and
+  "existing"`), `start`, `until`, `max_time_ms` and the `selected_realization` and
   `realized_by` of its classes. Everything else stays exactly as it was: its name, `scenario`, `scenario_id`,
   `path_ids`, `planned_branch_ids`, the dimensions and classes of `input_selection`, `expected_results`, `postconditions`, `oracle`, `source_block_ids`, `reason` and **its checks**
   (with their times). A fixed test that expects less than before hides what it was written to find.

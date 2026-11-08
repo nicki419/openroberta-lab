@@ -33,13 +33,16 @@ Designers' guide: `levels/README.md`. Configuration: `.env.example`.
 ```json
 {"format": "nepo-level", "version": 1, "title": "...", "instructions": "...", "timeLimit": 15,
  "world": {"background": "peach", "size": {"w": 150, "h": 100}, "starts": [one start], "items": [...]}, "view": {...},
- "code": {"function": "stopAtWall", "calls": "followLine", "versions": {"1": "<block_set ...>", "2": "<block_set ...>"}}}
+ "code": {"function": "stopAtWall", "calls": "followLine", "versions": {"1": "<block_set ...>", "2": "<block_set ...>"},
+          "given": [{"function": "...", "xml": "<block_set ...>"}]}}
 ```
 
 - **`code`** (optional, since 2026-11-07): the study's code of the level (see "The study's code per level"): the function the learner
   fixes here, the function the main loop called before (`null` at the first level with code), and per version of the study's code the
-  function's definition (a `block_set` with one instance). `parseLevel` keeps it and `serialize` writes it, so the Level designer keeps it
-  when it saves a level again. It is written by `evaluation/truth/write_level_code.py`, not by hand.
+  function's definition (a `block_set` with one instance). Optional `given` (since 2026-11-08): functions the level brings as they are,
+  correct, the same in every version, added before its function without changing the main loop (L6 brings `driveInTheDark`). `parseLevel`
+  keeps it and `serialize` writes it, so the Level designer keeps it when it saves a level again. It is written by
+  `evaluation/truth/write_level_code.py`, not by hand.
 
 - **`world`:** the Tests tab's simulation world (`nepoTest.sim.ts`, data version 3): cm from the top left of the
   peach floor, angles counterclockwise.
@@ -143,7 +146,7 @@ The server adds `serverTime`, `userId`, `account` and `session`.
 | `attempt_ended` | `level`, `set`, `attempt`, `outcome`, `simTime` (s), `item` (the obstacle hit), `activeMs`, `tests`, `testsAdded` (how many), `aiTestsAdded`, and the AI tests' counts |
 | `level_beaten` | `level`, `set`, `attempts`, `winningAttempt`, `activeMs`, `wallMs` (since first opened), `testsAtStart`, `tests`, `testsAdded` ([{id, name, ai, copy, edited}]), `testRuns`, `aiTestRuns` (runs with AI tests), and the AI tests' counts |
 | `code_version_chosen` | `version` (the study's code: chosen in the Edit menu for this program) |
-| `code_added` | `level`, `version`, `function`, `definition` (`added`; `existing`: the program had a function of that name; `missing`: the level has no code in this version), `main` (`replaced`: the call of the function before; `created`: a main loop with the call; `appended`; `kept`: it called the function already) |
+| `code_added` | `level`, `version`, `function`, `definition` (`added`; `existing`: the program had a function of that name; `missing`: the level has no code in this version), `main` (`replaced`: the call of the function before; `created`: a main loop with the call; `appended`; `kept`: it called the function already), `given` (only if the level brings functions as they are: per function `added` or `existing`) |
 | `test_run` | `level`, `set`, `from` (runner or simulation), `passed`, `failed`, `error`, `skipped`, `tests`, `outcomes` ([{id, outcome, ai}]), `aiTestsRun`, `aiTestsEditedRun`, `aiPassed`, `aiFailed`, `aiError`, `aiSkipped`, and the AI tests' counts |
 | the AI test assistant's events | `ai_switched`, `ai_panel`, `ai_asked`, `ai_analyzed`, `ai_tests_generated`, `ai_tests_checked`, `ai_failed_answered`, `ai_tests_fixed`, `ai_stale`, `ai_tests_added`, and the server's `ai_call` (until 2026-11-06 also `ai_inferred`, `ai_offer_shown`, `ai_offer_answered`, `ai_ask_again`): `docs/ai/nepo-ai-tests.md` |
 
@@ -204,9 +207,22 @@ the main loop calls the newest one; each function handles its situation or calls
   hairpin. The line after the first tunnel runs through the tunnel's bend (the robot follows it in the dark) and on down the middle of the
   dark corridor of the wide tunnel into the last line, which runs up to the wall at the goal. The tunnels, walls, fail areas and the goal
   are as before. L8 now belongs to `followInTheDark`, as L2 to `followLine`: it has no new code.
-- **Still open:** a line follower with its turns swapped (it follows the other edge of the line) beats L1 to L7 but can't finish L8: where
+- **Still open:** a line follower with its turns swapped (it follows the other edge of the line) beats L2 to L7 but can't finish L8: where
   the robot comes out of the wide tunnel into the light, the line follower of the light takes over from the one of the dark, and if they
   follow different edges, it turns away into the wall. The starter code avoids starters whose obvious fix is such a follower.
+
+**L1 and L5 were taken out on 2026-11-08** (the pilot study). The set now has five levels: L2, L4, L6, L7, L8.
+- **L1** had the same code as L2 (`followLine`). L2 now brings that code (`calls: null`, the same starters), and L1's time limit (20 s) went
+  with it.
+- **L5**, the straight tunnel, went because L6 has a bent one. L5 brought `driveInTheDark`, which L6's `avoidWalls` calls in the dark (L6 has
+  no line inside its tunnel, so it can't be beaten without it). L6 now brings `driveInTheDark` **as it is, correct** (its reference version
+  `driveInTheDark/A`, the same in both versions of the study's code: `code.given`), added before its broken `avoidWalls`; the main loop's call
+  of `stopAtWall` becomes one of `avoidWalls`. So every level is still one function to fix, and the learner never fixes `driveInTheDark`.
+  Verified in headless Chrome: a program with the code of L2 and L4 that opens L6 gets `driveInTheDark` (`<` 70) and `avoidWalls`, its main
+  loop calls `avoidWalls`, and `code_added` records `given: {driveInTheDark: added}`.
+- **The source of truth and phase 5 follow** (`evaluation/truth/README.md`, `evaluation/phase5/recount-5-levels.md`): without L1,
+  `followLine/A-too-slow` and `C-too-slow` beat L2 and are equivalent; the reference test of L1's time limit is gone and the bend tests
+  allow 60 s; every combination of correct fixes still beats the five levels (only the swapped line followers lose L8, as before).
 
 ## Checking it
 

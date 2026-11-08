@@ -125,8 +125,8 @@ program as it is in the Program tab, each in its own world (`nepoTest.ai` `runTe
   about), and then it is worth keeping; the learner decides. The fix below stays in the code, for `FIX_TESTS = true`.
   - **Fix** (`FIX_TESTS` only): the model gets the tests as it wrote them, how each ran (and which planned outcomes it took), and the
     names of the tests that passed (the task fix, `/rest/ai/fix`). For each test it decides one of three things:
-    - **The test is wrong:** its world, start, set-up or timing don't make its scenario happen. It fixes **only the
-      test's inputs**: the world, start, `until`, `max_time_ms`, the set-up and the realizations of its classes.
+    - **The test is wrong:** its world, start or timing don't make its scenario happen. It fixes **only the
+      test's inputs**: the world, start, `until`, `max_time_ms` and the realizations of its classes.
     - **The program is wrong:** the test makes its scenario happen, and the program doesn't do what the learner said.
       It leaves the test as it is and says why, for the learner (`program_wrong`), because a test changed until a
       wrong program passes it would hide the mistake.
@@ -167,7 +167,7 @@ check of what the robot does: why (the verdict) and the facts of the second befo
 did; `nepoTest.simProgram` `factLines`). The program's blocks are written as their labels in brackets
 ("[steer forwards speed % left 40 speed % right 10]"). The facts aren't shown to learners (GitHub issue #9), but the
 model gets them. The context pack teaches the task in `tasks.md` ("Task: fix"), `schemas/fix.schema.json` and
-`examples/4-fix-failed-tests.md` (one test wrong: too little time; one finding a mistake: no obstacle stop), whose
+`examples/3-fix-failed-tests.md` (example 4 until 2026-11-08; one test wrong: too little time; one finding a mistake: no obstacle stop), whose
 run texts were written by the browser.
 
 ## The testing strategy (`docs/tests/*_v3.md`, 2026-11-04)
@@ -421,7 +421,7 @@ its world: start, set-up, checks, the world's things) differs from the one recor
                        "items": [{"id": "t1", "kind": "line", "points": [[20, 100], [260, 100]], "width": 1.48},
                                  {"id": "t2", "name": "Box", "kind": "rect", "role": "obstacle", "x": 150, "y": 95, "w": 10, "h": 10}]},
              "tests": [{"name": "Stops before the box", "scenario": "Given …, when …, then …", "start": "A", "until": null,
-                        "max_time_ms": 30000, "world": [], "globals": {},
+                        "max_time_ms": 30000,
                         "checks": [{"check": "never_bumps", "item": "t2"}]}]}]}
 ```
 
@@ -434,8 +434,15 @@ its world: start, set-up, checks, the world's things) differs from the one recor
   `nepoTest.aiStrategy`; the blocks don't have them, they are in the test's provenance).
 - The answer around the worlds: `generation_status`, `coverage_plan`, `consolidation_notes`, `deferred_scenarios`,
   `warnings` (`tests.md`, `schemas/generate.schema.json`). The analysis: `schemas/analyze.schema.json`.
-- The learner's tests go to the model in the same format, each world with its `world`; a test may have `skip` and
-  `origin: "ai"`.
+- **No set-up** (since 2026-11-08, the pilot study): a test has no `world` events and no `globals` (a clap, a key
+  press, a variable's value before the run), as the Tests tab no longer offers their blocks (`SET_UP_BLOCKS` in
+  `nepoTest.blocks.ts`). The pack says a test can't make them, and a scenario that needs one is deferred
+  (`unsupported`); an answer whose test has one gets a problem (a repair), as does a check of a clap, a key or a sound
+  (`whenever` `sound` / `play_key` / `rec_key`, `after` `clap` / `key`): the schema no longer lists them. Example 3 of
+  the pack (wait for PLAY, then park) was taken out with it, and the fix example became example 3. In phase 5 (rounds 2
+  to 4, 3 × 80 answers) no test had a set-up or such a check.
+- The learner's tests go to the model in the same format, each world with its `world` (an empty set-up is left out; a
+  test of an older suite keeps its set-up); a test may have `skip` and `origin: "ai"`.
 
 ## Both ways (OpenRobertaWeb)
 
@@ -469,10 +476,12 @@ drawn world, so editing the world keeps the provenance. It holds:
 - **Blocks → JSON → blocks:** the line follower's suite (`NepoTest/examples/line_follower_with_tests.xml`) gives the
   same JSON and, through `blocks.py`, the same tests again (headless Chrome).
 - **JSON → blocks → JSON:** `NepoTest/tests/test_ai_format.py`: the blocks `suiteXml` made of the context pack's
-  examples and of an answer with every check and set-up translate back to the answers' tests. Its fixture
+  examples and of an answer with every check and set-up translate back to the answers' tests (made before 2026-11-08:
+  example 3 and the set-up are no longer in the pack, and the blocks still translate). Its fixture
   `NepoTest/tests/data/ai_format.json` was made in the browser: for each answer, `checkAnswer(answer, ctx).worlds` and
   `suiteXml(worlds, 'fx', provenance)`. Make it again when `nepoTest.aiFormat` changes.
-- **The context pack's examples** run on the simulator, all six of their tests pass.
+- **The context pack's examples** run on the simulator, all six of their tests pass (four since example 3 was taken out
+  on 2026-11-08; the others only lost their empty `world` and `globals`, not run again).
 - **Live:** a broken answer (8 problems: a start, a role, an item, a condition) came back repaired in one call; infer
   and generate on the line follower without a level, the tests added in one undo step with their provenance, run on
   the simulator (the line tests pass; "stops before the box" fails, as it should: the program has no obstacle stop).

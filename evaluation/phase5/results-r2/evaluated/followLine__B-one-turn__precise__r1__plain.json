@@ -94,6 +94,34 @@
    "kind": "broken",
    "fault": "straight-off",
    "of": "followLine/C"
+  },
+  {
+   "id": "followLine/A-swapped",
+   "kind": "equivalent",
+   "fault": "swapped",
+   "of": "followLine/A",
+   "added": "2026-11-08"
+  },
+  {
+   "id": "followLine/B-swapped",
+   "kind": "equivalent",
+   "fault": "swapped",
+   "of": "followLine/B",
+   "added": "2026-11-08"
+  },
+  {
+   "id": "followLine/B-too-slow",
+   "kind": "equivalent",
+   "fault": "too-slow",
+   "of": "followLine/B",
+   "added": "2026-11-08"
+  },
+  {
+   "id": "followLine/C-swapped",
+   "kind": "equivalent",
+   "fault": "swapped",
+   "of": "followLine/C",
+   "added": "2026-11-08"
   }
  ],
  "runs": {
@@ -544,6 +572,122 @@
      "failed": [
       "the robot did not reach \"Goal 1\" within 40 s"
      ]
+    },
+    {
+     "world": "A line that bends to the left",
+     "test": "Follows a bend to the left",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A long line with two bends",
+     "test": "Follows a line with two bends",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "followLine/A-swapped": {
+   "key": "followLine/A-swapped",
+   "tests": [
+    {
+     "world": "A straight black line",
+     "test": "Follows a straight line",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A line that bends to the right",
+     "test": "Follows a bend to the right",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A line that bends to the left",
+     "test": "Follows a bend to the left",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A long line with two bends",
+     "test": "Follows a line with two bends",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "followLine/B-swapped": {
+   "key": "followLine/B-swapped",
+   "tests": [
+    {
+     "world": "A straight black line",
+     "test": "Follows a straight line",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A line that bends to the right",
+     "test": "Follows a bend to the right",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A line that bends to the left",
+     "test": "Follows a bend to the left",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A long line with two bends",
+     "test": "Follows a line with two bends",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "followLine/B-too-slow": {
+   "key": "followLine/B-too-slow",
+   "tests": [
+    {
+     "world": "A straight black line",
+     "test": "Follows a straight line",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A line that bends to the right",
+     "test": "Follows a bend to the right",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A line that bends to the left",
+     "test": "Follows a bend to the left",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A long line with two bends",
+     "test": "Follows a line with two bends",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "followLine/C-swapped": {
+   "key": "followLine/C-swapped",
+   "tests": [
+    {
+     "world": "A straight black line",
+     "test": "Follows a straight line",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A line that bends to the right",
+     "test": "Follows a bend to the right",
+     "outcome": "passed",
+     "failed": []
     },
     {
      "world": "A line that bends to the left",

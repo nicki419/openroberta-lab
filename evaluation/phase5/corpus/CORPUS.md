@@ -8,9 +8,9 @@ main:
     <the newest function>()
 ```
 
-A **correct** version beats its levels and every level before (the other functions in their reference version A). A **broken** version loses one of its levels; a fault that still beats its levels is **equivalent** and isn't used. "Later levels" plays a correct version with the later functions in their reference version.
+A **correct** version beats its levels and every level before (the other functions in their reference version A). A **broken** version loses one of its levels; a fault that still beats its levels is **equivalent**: every test should pass it, as a correct version (since 2026-11-08; before, phase 5 left it out). "Later levels" plays a correct version with the later functions in their reference version.
 
-## followLine (L1, L2)
+## followLine (L2)
 
 ### followLine/A: correct
 
@@ -60,7 +60,7 @@ def followLine():
     curve(10, 40)
 ```
 
-### followLine/A-too-slow: broken
+### followLine/A-too-slow: equivalent (still wins)
 
 Half the speed. L1 time_limit, L2 win
 
@@ -212,7 +212,7 @@ def followLine():
     drive(40)
 ```
 
-### followLine/C-too-slow: broken
+### followLine/C-too-slow: equivalent (still wins)
 
 Half the speed. L1 time_limit, L2 win
 

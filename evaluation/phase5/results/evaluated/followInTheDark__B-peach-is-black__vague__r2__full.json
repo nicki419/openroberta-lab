@@ -82,6 +82,27 @@
    "kind": "broken",
    "fault": "no-handover",
    "of": "followInTheDark/C"
+  },
+  {
+   "id": "followInTheDark/A-swapped",
+   "kind": "broken",
+   "fault": "swapped",
+   "of": "followInTheDark/A",
+   "added": "2026-11-08"
+  },
+  {
+   "id": "followInTheDark/B-swapped",
+   "kind": "broken",
+   "fault": "swapped",
+   "of": "followInTheDark/B",
+   "added": "2026-11-08"
+  },
+  {
+   "id": "followInTheDark/C-swapped",
+   "kind": "broken",
+   "fault": "swapped",
+   "of": "followInTheDark/C",
+   "added": "2026-11-08"
   }
  ],
  "runs": {
@@ -616,6 +637,141 @@
      "failed": [
       "the robot did not reach \"Goal 1\" within 60 s"
      ]
+    },
+    {
+     "world": "A wall across the line",
+     "test": "A wall in view: it doesn't move",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A wall across the line",
+     "test": "It drives up to the wall and stops before it",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "followInTheDark/A-swapped": {
+   "key": "followInTheDark/A-swapped",
+   "tests": [
+    {
+     "world": "A line through a dark tunnel",
+     "test": "Follows the line through the dark tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 60 s"
+     ]
+    },
+    {
+     "world": "A start beside the line in the dark",
+     "test": "Started beside the line in the dark, it finds it",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 60 s"
+     ]
+    },
+    {
+     "world": "A line to Goal 1 in bright light",
+     "test": "On the line, it follows it to Goal 1",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A line to Goal 1 in bright light",
+     "test": "Started beside the line, it finds it",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A wall across the line",
+     "test": "A wall in view: it doesn't move",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A wall across the line",
+     "test": "It drives up to the wall and stops before it",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "followInTheDark/B-swapped": {
+   "key": "followInTheDark/B-swapped",
+   "tests": [
+    {
+     "world": "A line through a dark tunnel",
+     "test": "Follows the line through the dark tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 60 s"
+     ]
+    },
+    {
+     "world": "A start beside the line in the dark",
+     "test": "Started beside the line in the dark, it finds it",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 60 s"
+     ]
+    },
+    {
+     "world": "A line to Goal 1 in bright light",
+     "test": "On the line, it follows it to Goal 1",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A line to Goal 1 in bright light",
+     "test": "Started beside the line, it finds it",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A wall across the line",
+     "test": "A wall in view: it doesn't move",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A wall across the line",
+     "test": "It drives up to the wall and stops before it",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "followInTheDark/C-swapped": {
+   "key": "followInTheDark/C-swapped",
+   "tests": [
+    {
+     "world": "A line through a dark tunnel",
+     "test": "Follows the line through the dark tunnel",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 60 s"
+     ]
+    },
+    {
+     "world": "A start beside the line in the dark",
+     "test": "Started beside the line in the dark, it finds it",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not reach \"Goal 1\" within 60 s"
+     ]
+    },
+    {
+     "world": "A line to Goal 1 in bright light",
+     "test": "On the line, it follows it to Goal 1",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A line to Goal 1 in bright light",
+     "test": "Started beside the line, it finds it",
+     "outcome": "passed",
+     "failed": []
     },
     {
      "world": "A wall across the line",

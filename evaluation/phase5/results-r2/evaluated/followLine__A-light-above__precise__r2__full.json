@@ -94,6 +94,34 @@
    "kind": "broken",
    "fault": "straight-off",
    "of": "followLine/C"
+  },
+  {
+   "id": "followLine/A-swapped",
+   "kind": "equivalent",
+   "fault": "swapped",
+   "of": "followLine/A",
+   "added": "2026-11-08"
+  },
+  {
+   "id": "followLine/B-swapped",
+   "kind": "equivalent",
+   "fault": "swapped",
+   "of": "followLine/B",
+   "added": "2026-11-08"
+  },
+  {
+   "id": "followLine/B-too-slow",
+   "kind": "equivalent",
+   "fault": "too-slow",
+   "of": "followLine/B",
+   "added": "2026-11-08"
+  },
+  {
+   "id": "followLine/C-swapped",
+   "kind": "equivalent",
+   "fault": "swapped",
+   "of": "followLine/C",
+   "added": "2026-11-08"
   }
  ],
  "runs": {
@@ -379,6 +407,80 @@
      "failed": [
       "the robot did not turn left: it drove forward, straight (13.95 cm/s), from 0.2 to 3.02 s"
      ]
+    }
+   ]
+  },
+  "followLine/A-swapped": {
+   "key": "followLine/A-swapped",
+   "tests": [
+    {
+     "world": "A line to the green goal",
+     "test": "On the line, it should follow it to the goal",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A dim tunnel",
+     "test": "Curves left in dim light",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "followLine/B-swapped": {
+   "key": "followLine/B-swapped",
+   "tests": [
+    {
+     "world": "A line to the green goal",
+     "test": "On the line, it should follow it to the goal",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A dim tunnel",
+     "test": "Curves left in dim light",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not turn left: it drove forward, turning right (1.38 cm/s, 52\u00b0/s), from 1.43 to 3 s",
+      "the robot bumped into \"Tunnel\" after 1.4 s"
+     ]
+    }
+   ]
+  },
+  "followLine/B-too-slow": {
+   "key": "followLine/B-too-slow",
+   "tests": [
+    {
+     "world": "A line to the green goal",
+     "test": "On the line, it should follow it to the goal",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A dim tunnel",
+     "test": "Curves left in dim light",
+     "outcome": "failed",
+     "failed": [
+      "the robot did not turn left: it drove forward, turning right (6.13 cm/s, 43\u00b0/s), from 0.2 to 2.9 s",
+      "the robot bumped into \"Tunnel\" after 2.9 s"
+     ]
+    }
+   ]
+  },
+  "followLine/C-swapped": {
+   "key": "followLine/C-swapped",
+   "tests": [
+    {
+     "world": "A line to the green goal",
+     "test": "On the line, it should follow it to the goal",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A dim tunnel",
+     "test": "Curves left in dim light",
+     "outcome": "passed",
+     "failed": []
     }
    ]
   }

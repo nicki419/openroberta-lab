@@ -62,7 +62,7 @@ Their `role`:
   - three obstacle sensors, LEFT, FRONT and RIGHT: 6 cm ahead, 2.7 cm left, in the middle and 2.7 cm right, **all
     looking forward**, each seeing an obstacle, a wall or the floor's edge less than 3 cm ahead (a fan of ±22°).
     So a robot that stops when it sees an obstacle stops about 2 to 3 cm before it, without touching it.
-  - the sound sensor hears a clap for about 0.3 s; the keys PLAY and REC.
+  - the sound sensor and the keys PLAY and REC: a test can't clap or press a key, so they never trigger.
 - **Bumping**: the robot can't drive into an obstacle, a wall or the floor's edge; it stays in front of it while its
   wheels keep turning.
 - LEDs: left and right, on or off.
@@ -124,7 +124,4 @@ Place a test's things clear of these places, so that each test is a typical case
   tunnel. Even so, it comes out of the dark a little to one side of the line's course, and a line follower that turns
   only one way when it sees no line finds a line after the tunnel only if it comes out on that side: whether it does
   depends on how it wiggled when the light fell, not on whether the program is right.
-- **Claps and keys over time**: a clap is heard from its `at` for about 0.3 s, a key is held from its `at` for
-  0.2 s. A "wait until" that begins later than that misses it: let a clap or key come at least 0.5 s after the moment
-  the program reaches the wait. That moment follows from the blocks before it: a drive of d cm at p % takes about
-  d / (0.35 × p) s, a wait t ms.
+- **When the program gets somewhere**: a drive of d cm at p % takes about d / (0.35 × p) s, a wait t ms.

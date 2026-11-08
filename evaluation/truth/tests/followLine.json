@@ -1,85 +1,5 @@
 [
  {
-  "name": "A straight line, in time",
-  "existing": false,
-  "data": {
-   "version": 3,
-   "world": {
-    "background": "peach",
-    "starts": [
-     {
-      "id": "A",
-      "name": "A",
-      "x": 12,
-      "y": 51.92,
-      "heading": 0
-     }
-    ],
-    "items": [
-     {
-      "id": "t1",
-      "name": "Line t1",
-      "kind": "line",
-      "points": [
-       [
-        16.74,
-        51.83
-       ],
-       [
-        132.26,
-        51.66
-       ]
-      ],
-      "smooth": false,
-      "width": 1.48
-     },
-     {
-      "id": "t2",
-      "name": "Goal t2",
-      "kind": "rect",
-      "role": "goal",
-      "x": 132.28,
-      "y": 40.33,
-      "w": 10.65,
-      "h": 21.18
-     }
-    ]
-   },
-   "view": {
-    "x": 150,
-    "y": 100,
-    "scale": 3
-   }
-  },
-  "tests": [
-   {
-    "name": "Follows a straight line to its end within 20 s",
-    "scenario": "Given the robot on a straight line of 115 cm, when the program runs, then it reaches the goal at the line's end within 20 s (the time limit of L1).",
-    "targets": [
-     "light-above",
-     "one-turn",
-     "too-slow",
-     "straight-off"
-    ],
-    "start": "A",
-    "until": "t2",
-    "max_time_ms": 20000,
-    "world": [],
-    "globals": {},
-    "checks": [
-     {
-      "check": "reaches",
-      "item": "t2"
-     },
-     {
-      "check": "never_bumps"
-     }
-    ],
-    "ref": "followLine:straight-in-time"
-   }
-  ]
- },
- {
   "name": "A bend to the left",
   "existing": false,
   "data": {
@@ -150,7 +70,7 @@
     ],
     "start": "A",
     "until": "t2",
-    "max_time_ms": 40000,
+    "max_time_ms": 60000,
     "world": [],
     "globals": {},
     "checks": [
@@ -237,7 +157,7 @@
     ],
     "start": "A",
     "until": "t2",
-    "max_time_ms": 40000,
+    "max_time_ms": 60000,
     "world": [],
     "globals": {},
     "checks": [

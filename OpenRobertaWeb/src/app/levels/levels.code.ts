@@ -10,9 +10,12 @@
  *   is chosen while it is played), its function in that version is added to the program, and the main loop calls it instead of the function it
  *   called before (the new function calls that one when its own situation isn't there). The functions the learner fixed stay as they are. The
  *   code of earlier levels that wasn't added yet is added first. A level's code is added once per program; a notice over the scene says so.
+ * - **Given functions** (`code.given`, since 2026-11-08): functions that come with the level's function, before it, as they are (correct, the same
+ *   in every version): L6 brings driveInTheDark, which its avoidWalls calls, since L5 (where it was the code to fix) was taken out. They don't
+ *   change the main loop; one that is already there is kept.
  * - **The main loop**: the call of the function before is replaced by a call of the new one; a program without a main loop gets one (forever:
  *   the new function); a main loop that calls neither gets the call at its end. A function of the same name that is already there is kept.
- * - Telemetry (levels.telemetry record): code_version_chosen, code_added (the level, the function, the version, what was done).
+ * - Telemetry (levels.telemetry record): code_version_chosen, code_added (the level, the function, the version, what was done, the given functions).
  */
 import * as GUISTATE_C from 'guiState.controller';
 import * as $ from 'jquery';
@@ -119,18 +122,27 @@ function addCode(): void {
 }
 
 /** adds a level's code to the program; notes it in the state and tells the telemetry */
-function addLevelCode(entry: LEVEL.LevelEntry, state: PLAYER.CodeState): { function: string; definition: string; main: string } {
+function addLevelCode(entry: LEVEL.LevelEntry, state: PLAYER.CodeState): { function: string; definition: string; main: string; given?: { [fn: string]: string } } {
     const code = entry.level.code;
     const workspace = GUISTATE_C.getBlocklyWorkspace();
     const xml = code.versions[state.version];
     let definition = 'missing'; // the level has no code in this version
     let main = 'unchanged';
+    const given: { [fn: string]: string } = {};
+    const there = (fn: string) => workspace.getTopBlocks(false).some((b: any) => b.type === DEF && b.getFieldValue('NAME') === fn);
     const group = Blockly.Events.getGroup();
     Blockly.Events.setGroup(true);
     try {
         if (xml) {
-            const there = workspace.getTopBlocks(false).some((b: any) => b.type === DEF && b.getFieldValue('NAME') === code.function);
-            if (there) {
+            for (const g of code.given || []) {
+                if (there(g.function)) {
+                    given[g.function] = 'existing';
+                } else {
+                    addDefinition(workspace, g.xml);
+                    given[g.function] = 'added';
+                }
+            }
+            if (there(code.function)) {
                 definition = 'existing';
             } else {
                 addDefinition(workspace, xml);
@@ -141,7 +153,8 @@ function addLevelCode(entry: LEVEL.LevelEntry, state: PLAYER.CodeState): { funct
     } finally {
         Blockly.Events.setGroup(group);
     }
-    const done = { function: code.function, definition: definition, main: main };
+    const done: { function: string; definition: string; main: string; given?: { [fn: string]: string } } = { function: code.function, definition: definition, main: main };
+    Object.keys(given).length && (done.given = given);
     state.added[entry.id] = Object.assign({ at: Date.now() }, done);
     TELEMETRY.record(Object.assign({ kind: 'code_added', level: entry.id, version: state.version }, done));
     return done;

@@ -82,6 +82,27 @@
    "kind": "broken",
    "fault": "no-handover",
    "of": "followInTheDark/C"
+  },
+  {
+   "id": "followInTheDark/A-swapped",
+   "kind": "broken",
+   "fault": "swapped",
+   "of": "followInTheDark/A",
+   "added": "2026-11-08"
+  },
+  {
+   "id": "followInTheDark/B-swapped",
+   "kind": "broken",
+   "fault": "swapped",
+   "of": "followInTheDark/B",
+   "added": "2026-11-08"
+  },
+  {
+   "id": "followInTheDark/C-swapped",
+   "kind": "broken",
+   "fault": "swapped",
+   "of": "followInTheDark/C",
+   "added": "2026-11-08"
   }
  ],
  "runs": {
@@ -367,6 +388,75 @@
   },
   "followInTheDark/C-no-handover": {
    "key": "followInTheDark/C-no-handover",
+   "tests": [
+    {
+     "world": "A line in a dark tunnel",
+     "test": "Follows the line to the goal in the dark",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A line in a dark tunnel",
+     "test": "Follows the line further in a long dark tunnel",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A line in the dark near a tunnel's end",
+     "test": "Follows the line through the dark up to the goal",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "followInTheDark/A-swapped": {
+   "key": "followInTheDark/A-swapped",
+   "tests": [
+    {
+     "world": "A line in a dark tunnel",
+     "test": "Follows the line to the goal in the dark",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A line in a dark tunnel",
+     "test": "Follows the line further in a long dark tunnel",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A line in the dark near a tunnel's end",
+     "test": "Follows the line through the dark up to the goal",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "followInTheDark/B-swapped": {
+   "key": "followInTheDark/B-swapped",
+   "tests": [
+    {
+     "world": "A line in a dark tunnel",
+     "test": "Follows the line to the goal in the dark",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A line in a dark tunnel",
+     "test": "Follows the line further in a long dark tunnel",
+     "outcome": "passed",
+     "failed": []
+    },
+    {
+     "world": "A line in the dark near a tunnel's end",
+     "test": "Follows the line through the dark up to the goal",
+     "outcome": "passed",
+     "failed": []
+    }
+   ]
+  },
+  "followInTheDark/C-swapped": {
+   "key": "followInTheDark/C-swapped",
    "tests": [
     {
      "world": "A line in a dark tunnel",

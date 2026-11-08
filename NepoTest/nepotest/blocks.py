@@ -16,8 +16,10 @@ The blocks (all types start with `nepoTest_`; the frontend defines them in nepoT
                                         translated (rule: true), and the Tests tab moves them into each test when it loads.
     nepoTest_simcase      ACTIVE NAME START MODE UNTIL SECONDS   a test of a world: ACTIVE TRUE | FALSE (unticked:
                                         skipped); set up: START (a start's id) and statement input SETUP (claps, keys,
-                                        variables: the past); run: the whole program, MODE for | until (UNTIL: an area's
-                                        id; the run ends when the robot touches it), at most SECONDS s (one decimal); statement input
+                                        variables: the past; the Tests tab no longer offers them since 2026-11-08, older
+                                        suites still have them); run: the whole program, MODE for | until (UNTIL: an area's
+                                        id; the run ends when the robot touches it), at most SECONDS s (one decimal; 60 if
+                                        missing); statement input
                                         CHECKS (nepoTest_check_* blocks). Every test of a world should pass: a SHOULD (saved
                                         until 2026-10-30) is ignored.
   CHECK (in CHECKS; AREA, OBSTACLE: an item's id, or ANY)
@@ -766,7 +768,7 @@ def _translate_simcase(test_block, world_block, program, problems):
         test['globals'] = globals_
         for var in _overwritten(program, globals_):
             problems.add(test_block, 'test "%s": the program sets "%s" when it starts, so the value of "set up" is lost' % (name, var), 'warning')
-    test['max_time_ms'] = _seconds_field(test_block, 'SECONDS', problems, default=5)
+    test['max_time_ms'] = _seconds_field(test_block, 'SECONDS', problems, default=60)
     if not sim['checks']:
         problems.add(test_block, 'test "%s" checks nothing: put checks into it (or rules into its world)' % name, 'warning')
     if not invalid and SIM.start_pose(world, sim['start']) is not None:

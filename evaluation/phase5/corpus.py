@@ -5,8 +5,8 @@ a level's program is the functions so far. The simulator runs one motor block pe
 its situation, or hands over to the function of the level before; the main loop calls the newest one.
 
 A version of a function is made from its parameters; a fault changes one of them. verify.py decides on the levels which versions are correct
-(they beat their levels and every level before) and which broken (they lose their level); a fault that still beats the level is equivalent and
-left out.
+(they beat their levels and every level before) and which broken (they lose their level); a fault that still beats the level is equivalent:
+every test should pass it, as a correct version (since 2026-11-08; until then phase 5 left it out).
 """
 from nepo import *
 
@@ -16,8 +16,15 @@ DARK = 70  # LLIGHT below this: inside a tunnel (100 in the open, 40 from 15 cm 
 CHAIN = ['followLine', 'stopAtWall', 'driveInTheDark', 'avoidWalls', 'followInTheDark']
 # the levels each function is for (its own levels: a broken version loses one of them)
 # (2026-11-07: L8, the climax, plays all functions; it belongs to the last one, as L2 to followLine, since its lines were softened)
-LEVELS_OF = {'followLine': ['l1', 'l2'], 'stopAtWall': ['l4'], 'driveInTheDark': ['l5'], 'avoidWalls': ['l6'], 'followInTheDark': ['l7', 'l8']}
-LEVEL_ORDER = ['l1', 'l2', 'l4', 'l5', 'l6', 'l7', 'l8']
+# (2026-11-08, the pilot study: L1 and L5 taken out. followLine is judged on L2 alone. driveInTheDark keeps its judgement on L5, which the study
+# no longer plays: L6 brings its reference version as it is (GIVEN), so the learner never fixes it, and its versions are not study code. L5's
+# file is in git before 2026-11-08, so verify.py can't judge driveInTheDark again without it.)
+LEVELS_OF = {'followLine': ['l2'], 'stopAtWall': ['l4'], 'driveInTheDark': ['l5'], 'avoidWalls': ['l6'], 'followInTheDark': ['l7', 'l8']}
+LEVEL_ORDER = ['l2', 'l4', 'l5', 'l6', 'l7', 'l8']
+STUDY_LEVELS = ['l2', 'l4', 'l6', 'l7', 'l8']  # the levels the study plays
+GIVEN = {'driveInTheDark': 'l6'}  # functions the study gives as they are (their reference version), and the level that brings them
+STUDY_FUNCTIONS = [f for f in CHAIN if f not in GIVEN]  # the functions the learner fixes
+REMOVED_LEVELS = {'l1': '2026-11-08', 'l5': '2026-11-08'}  # taken out of the study (the pilot study): their runs in versions.json no longer count
 
 
 def handover(fn):
