@@ -712,6 +712,16 @@ public class EdisonPythonVisitor extends AbstractPythonVisitor implements IEdiso
                 nlIndent();
                 this.src.add("Ed.PlayTune(___soundfile5)");
                 break;
+            case "5":
+                // Für Elise (Beethoven): the melody of an easy piano arrangement, moved up to E minor to fit the beeper's A6-C8 (its dropdown
+                // entry "6": program.controller addEdisonTunes). It takes 201 of the 256 bytes for tune strings, so a program that plays it can't
+                // also play "5" (Alle meine Entchen, 55 bytes).
+                this.src
+                    .add(
+                        "___soundfile6 = Ed.TuneString(201, \"b8A8b8A8b8F8a8g8e4r8m8n8e8F4r8n8D8F8g4r8n8b8A8b8A8b8F8a8g8e4r8m8n8e8F4r8n8g8F8e4r8F8g8a8b4r8d8o8b8a4r8c8b8a8g4r8n8a8g8F2b8A8b8A8b8F8a8g8e4r8m8n8e8F4r8n8D8F8g4r8n8b8A8b8A8b8F8a8g8e4r8m8n8e8F4r8m8g4F4e1z\")");
+                nlIndent();
+                this.src.add("Ed.PlayTune(___soundfile6)");
+                break;
         }
 
         nlIndent();

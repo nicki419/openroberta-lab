@@ -353,7 +353,7 @@ conversion to a speed level).
 | `robActions_motor_on` / `robActions_motor_stop` | `port` (`LMOTOR`/`RMOTOR`); `power` (on) |
 | `robActions_play_tone` | `frequency_hz` (NEPO value; the buzzer plays 4×, quirk #26), `duration_ms` |
 | `mbedActions_play_note` | `frequency_hz`, `duration_ms` (from the block's fields) |
-| `robActions_play_file` | `file` (0–4) |
+| `robActions_play_file` | `file` (0–5) |
 | `edisonCommunication_ir_sendBlock` | `value` |
 | `robControls_wait_time` | `ms` |
 | `robControls_wait_for` | `t_end`: when the awaited condition was read as true |

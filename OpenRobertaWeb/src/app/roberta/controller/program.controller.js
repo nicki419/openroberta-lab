@@ -45,7 +45,28 @@ function init() {
     initProgramForms();
 }
 
+/**
+ * The Edison's "play file" block gets a sixth tune, "6 (Für Elise)", value "5" (its tune string: EdisonPythonVisitor.visitPlayFileAction).
+ * The block and its options "1"-"5" are defined in Blockly (blockly_compressed.js, built in a separate repository), so the option is added here.
+ */
+function addEdisonTunes() {
+    var block = Blockly.Blocks['robActions_play_file'];
+    if (!block || block.edisonTunesAdded_) {
+        return;
+    }
+    var init = block.init;
+    block.init = function () {
+        init.call(this);
+        var field = this.getField('FILE');
+        if (this.workspace.device === 'edison' && field && Array.isArray(field.menuGenerator_)) {
+            field.menuGenerator_ = field.menuGenerator_.concat([['6 (Für Elise)', '5']]);
+        }
+    };
+    block.edisonTunesAdded_ = true;
+}
+
 function initView() {
+    addEdisonTunes();
     var toolbox = GUISTATE_C.getProgramToolbox();
     blocklyWorkspace = Blockly.inject(document.getElementById('blocklyDiv'), {
         path: '/blockly/',

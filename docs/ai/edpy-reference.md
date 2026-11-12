@@ -275,6 +275,11 @@ Writing to a constant → `Ed.Py constant … can not be written`.
   firmware, depending on the variables used.
 - **Runtime errors the firmware can raise:** `OutOfRange` (e.g. shift counts), `SizeMismatch` (8- vs 16-bit operands).
 - Tune strings are decoded by the firmware; an invalid character stops playback.
+- **The tune string format** (token spec §6.6.2, its table checked in the PDF): pairs of a note and a length, ended by `z`.
+  - Notes: `m M n` = A, A♯, B of the 6th octave (A6 = 1760 Hz); `c C d D e f F g G a A b` = C … B of the 7th; `o` = C8; `r` = rest.
+  - Lengths: `1` whole, `2` half, `4` quarter, `8` eighth, `6` sixteenth. Their speed follows `Ed.Tempo`; the Lab sets `Ed.TEMPO_SLOW`.
+  - Each character takes one byte of the **8-bit space, 256 bytes for all tune strings of a program**. More gives the compiler error `Overflowed B memory` (verified). The compiler checks only the final `z`, not the characters.
+  - The play-file tunes are written this way (`EdisonPythonVisitor.visitPlayFileAction`; "6 (Für Elise)" takes 201 bytes).
 
 ---
 
